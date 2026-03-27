@@ -1,0 +1,154 @@
+import { useState, useEffect } from 'react';
+import { parseSongMd, generateId } from './parser';
+import { loadSongs, saveSongs, loadSetlists, saveSetlists } from './storage';
+import { DEMO_SONGS_MD } from './data/demos';
+import Library from './components/Library';
+import ChartView from './components/ChartView';
+import Editor from './components/Editor';
+import SetlistBuilder from './components/SetlistBuilder';
+import SetlistPlayer from './components/SetlistPlayer';
+
+export default function App() {
+  const [songs, setSongs] = useState([]);
+  const [setlists, setSetlists] = useState([]);
+  const [view, setView] = useState('library');
+  const [currentSong, setCurrentSong] = useState(null);
+  const [currentSetlist, setCurrentSetlist] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // Load data on mount
+  useEffect(() => {
+    (async () => {
+      const savedSongs = await loadSongs();
+      if (savedSongs.length > 0) {
+        setSongs(savedSongs);
+      } else {
+        // First time — load demo songs
+        const demos = DEMO_SONGS_MD.map(md => ({
+          ...parseSongMd(md),
+          id: generateId(),
+        }));
+        setSongs(demos);
+        await saveSongs(demos);
+      }
+
+      const savedSetlists = await loadSetlists();
+      if (savedSetlists) setSetlists(savedSetlists);
+
+      setLoaded(true);
+    })();
+  }, []);
+
+  // Auto-save when data changes
+  useEffect(() => { if (loaded) saveSongs(songs); }, [songs, loaded]);
+  useEffect(() => { if (loaded) saveSetlists(setlists); }, [setlists, loaded]);
+
+  // Navigation handlers
+  const goLibrary = () => { setView('library'); setCurrentSong(null); setCurrentSetlist(null); };
+  const goChart = (song) => { setCurrentSong(song); setView('chart'); };
+  const goEditor = (song = null) => { setCurrentSong(song); setView('editor'); };
+  const goSetlistBuild = (sl = null) => { setCurrentSetlist(sl); setView('setlist-build'); };
+  const goSetlistPlay = (sl) => { setCurrentSetlist(sl); setView('setlist-play'); };
+
+  // Song CRUD
+  const handleSaveSong = (song) => {
+    setSongs(prev => {
+      const idx = prev.findIndex(s => s.id === song.id);
+      if (idx >= 0) { const n = [...prev]; n[idx] = song; return n; }
+      return [...prev, song];
+    });
+    goChart(song);
+  };
+
+  const handleDeleteSong = (id) => {
+    setSongs(prev => prev.filter(s => s.id !== id));
+    goLibrary();
+  };
+
+  const handleImportSong = (mdText) => {
+    try {
+      const song = { ...parseSongMd(mdText), id: generateId() };
+      setSongs(prev => [...prev, song]);
+    } catch {
+      alert('Failed to parse .md file');
+    }
+  };
+
+  // Setlist CRUD
+  const handleSaveSetlist = (sl) => {
+    setSetlists(prev => {
+      const idx = prev.findIndex(s => s.id === sl.id);
+      if (idx >= 0) { const n = [...prev]; n[idx] = sl; return n; }
+      return [...prev, sl];
+    });
+    goLibrary();
+  };
+
+  const handleDeleteSetlist = (id) => {
+    setSetlists(prev => prev.filter(s => s.id !== id));
+    goLibrary();
+  };
+
+  if (!loaded) {
+    return (
+      <div style={{
+        minHeight: '100vh', background: 'var(--bg)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+          Loading ChordVault...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {view === 'library' && (
+        <Library
+          songs={songs}
+          setlists={setlists}
+          onSelectSong={goChart}
+          onNewSong={() => goEditor()}
+          onImportSong={handleImportSong}
+          onExportSong={() => {}}
+          onExportAll={() => {}}
+          onNewSetlist={() => goSetlistBuild()}
+          onEditSetlist={goSetlistBuild}
+          onPlaySetlist={goSetlistPlay}
+        />
+      )}
+      {view === 'chart' && currentSong && (
+        <ChartView
+          song={currentSong}
+          onBack={goLibrary}
+          onEdit={() => goEditor(currentSong)}
+        />
+      )}
+      {view === 'editor' && (
+        <Editor
+          song={currentSong}
+          onSave={handleSaveSong}
+          onBack={currentSong ? () => goChart(currentSong) : goLibrary}
+          onDelete={currentSong ? handleDeleteSong : null}
+        />
+      )}
+      {view === 'setlist-build' && (
+        <SetlistBuilder
+          songs={songs}
+          setlist={currentSetlist}
+          onSave={handleSaveSetlist}
+          onBack={goLibrary}
+          onDelete={currentSetlist ? handleDeleteSetlist : null}
+        />
+      )}
+      {view === 'setlist-play' && currentSetlist && (
+        <SetlistPlayer
+          setlist={currentSetlist}
+          songs={songs}
+          onBack={goLibrary}
+        />
+      )}
+    </>
+  );
+}
