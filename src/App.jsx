@@ -174,6 +174,8 @@ export default function App() {
           song={currentSong}
           onBack={goLibrary}
           onEdit={() => goEditor(currentSong)}
+          defaultColumns={settings?.defaultColumns}
+          defaultFontSize={settings?.defaultFontSize}
         />
       )}
       {view === 'editor' && (
@@ -198,6 +200,8 @@ export default function App() {
           setlist={currentSetlist}
           songs={songs}
           onBack={goLibrary}
+          defaultColumns={settings?.defaultColumns}
+          defaultFontSize={settings?.defaultFontSize}
         />
       )}
       {view === 'settings' && settings && (

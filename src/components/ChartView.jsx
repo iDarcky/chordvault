@@ -3,10 +3,12 @@ import { transposeKey } from '../music';
 import SectionBlock from './SectionBlock';
 import { StructureRibbon, MetaPill } from './StructureRibbon';
 
-export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose }) {
+const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
+
+export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, defaultColumns, defaultFontSize }) {
   const [localTranspose, setLocalTranspose] = useState(0);
-  const [cols, setCols] = useState('auto');
-  const [size, setSize] = useState(1);
+  const [cols, setCols] = useState(defaultColumns || 'auto');
+  const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
 
   const transpose = forceTranspose != null ? forceTranspose : localTranspose;
 
