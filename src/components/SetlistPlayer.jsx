@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { transposeKey, sectionStyle } from '../music';
 import ChartView from './ChartView';
 
@@ -15,6 +15,19 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
       .filter(Boolean),
     [setlist, songs]
   );
+
+  const goNext = useCallback(() => setIdx(p => Math.min(resolved.length - 1, p + 1)), [resolved.length]);
+  const goPrev = useCallback(() => setIdx(p => Math.max(0, p - 1)), []);
+
+  // Keyboard / Bluetooth pedal navigation
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); goNext(); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goPrev(); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [goNext, goPrev]);
 
   if (!resolved.length) {
     return (
@@ -46,14 +59,14 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
         {idx + 1}/{resolved.length}
       </span>
       <button
-        onClick={() => setIdx(p => Math.max(0, p - 1))}
+        onClick={goPrev}
         disabled={idx === 0}
         style={{ ...cB, opacity: idx === 0 ? 0.3 : 1 }}
       >
         &#9664;
       </button>
       <button
-        onClick={() => setIdx(p => Math.min(resolved.length - 1, p + 1))}
+        onClick={goNext}
         disabled={idx === resolved.length - 1}
         style={{ ...cB, opacity: idx === resolved.length - 1 ? 0.3 : 1 }}
       >

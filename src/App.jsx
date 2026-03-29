@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { parseSongMd, generateId } from './parser';
-import { loadSongs, saveSongs, loadSetlists, saveSetlists } from './storage';
+import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
 import Library from './components/Library';
 import ChartView from './components/ChartView';
 import Editor from './components/Editor';
 import SetlistBuilder from './components/SetlistBuilder';
 import SetlistPlayer from './components/SetlistPlayer';
+import Settings from './components/Settings';
 
 export default function App() {
   const [songs, setSongs] = useState([]);
@@ -14,6 +15,7 @@ export default function App() {
   const [view, setView] = useState('library');
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
+  const [settings, setSettings] = useState(null);
   const [loaded, setLoaded] = useState(false);
 
   // Load data on mount
@@ -35,6 +37,9 @@ export default function App() {
       const savedSetlists = await loadSetlists();
       if (savedSetlists) setSetlists(savedSetlists);
 
+      const savedSettings = await loadSettings();
+      setSettings(savedSettings);
+
       setLoaded(true);
     })();
   }, []);
@@ -42,6 +47,13 @@ export default function App() {
   // Auto-save when data changes
   useEffect(() => { if (loaded) saveSongs(songs); }, [songs, loaded]);
   useEffect(() => { if (loaded) saveSetlists(setlists); }, [setlists, loaded]);
+  useEffect(() => { if (loaded && settings) saveSettings(settings); }, [settings, loaded]);
+
+  // Apply theme to document
+  useEffect(() => {
+    if (!settings) return;
+    document.documentElement.setAttribute('data-theme', settings.theme);
+  }, [settings?.theme]);
 
   // Navigation handlers
   const goLibrary = () => { setView('library'); setCurrentSong(null); setCurrentSetlist(null); };
@@ -49,6 +61,7 @@ export default function App() {
   const goEditor = (song = null) => { setCurrentSong(song); setView('editor'); };
   const goSetlistBuild = (sl = null) => { setCurrentSetlist(sl); setView('setlist-build'); };
   const goSetlistPlay = (sl) => { setCurrentSetlist(sl); setView('setlist-play'); };
+  const goSettings = () => setView('settings');
 
   // Song CRUD
   const handleSaveSong = (song) => {
@@ -89,6 +102,13 @@ export default function App() {
     goLibrary();
   };
 
+  const handleClearAll = async () => {
+    await clearAll();
+    setSongs([]);
+    setSetlists([]);
+    goLibrary();
+  };
+
   if (!loaded) {
     return (
       <div style={{
@@ -116,6 +136,7 @@ export default function App() {
           onNewSetlist={() => goSetlistBuild()}
           onEditSetlist={goSetlistBuild}
           onPlaySetlist={goSetlistPlay}
+          onSettings={goSettings}
         />
       )}
       {view === 'chart' && currentSong && (
@@ -147,6 +168,16 @@ export default function App() {
           setlist={currentSetlist}
           songs={songs}
           onBack={goLibrary}
+        />
+      )}
+      {view === 'settings' && settings && (
+        <Settings
+          settings={settings}
+          onUpdate={setSettings}
+          onBack={goLibrary}
+          onClearAll={handleClearAll}
+          songCount={songs.length}
+          setlistCount={setlists.length}
         />
       )}
     </>

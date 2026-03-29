@@ -67,6 +67,11 @@ export function parseSongMd(text) {
     tempo: meta.tempo || 120,
     time: meta.time || '4/4',
     ccli: meta.ccli || '',
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
+    spotify: meta.spotify || '',
+    youtube: meta.youtube || '',
+    capo: meta.capo || 0,
+    notes: meta.notes || '',
     structure: meta.structure || sections.map(s => s.type),
     sections,
   };
@@ -81,6 +86,11 @@ export function songToMd(song) {
   md += `tempo: ${song.tempo}\n`;
   md += `time: ${song.time}\n`;
   if (song.ccli) md += `ccli: "${song.ccli}"\n`;
+  if (song.tags?.length) md += `tags: [${song.tags.join(', ')}]\n`;
+  if (song.spotify) md += `spotify: ${song.spotify}\n`;
+  if (song.youtube) md += `youtube: ${song.youtube}\n`;
+  if (song.capo) md += `capo: ${song.capo}\n`;
+  if (song.notes) md += `notes: ${song.notes}\n`;
   if (song.structure?.length) {
     md += `structure: [${song.structure.join(', ')}]\n`;
   }

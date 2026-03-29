@@ -5,21 +5,30 @@ import { songToMd } from '../parser';
 export default function Library({
   songs, setlists,
   onSelectSong, onNewSong, onImportSong, onExportSong, onExportAll,
-  onNewSetlist, onEditSetlist, onPlaySetlist,
+  onNewSetlist, onEditSetlist, onPlaySetlist, onSettings,
 }) {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('songs');
+  const [sort, setSort] = useState('title');
   const fileRef = useRef(null);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return songs;
-    const q = query.toLowerCase();
-    return songs.filter(s =>
-      s.title.toLowerCase().includes(q) ||
-      s.artist.toLowerCase().includes(q) ||
-      s.key.toLowerCase().includes(q)
-    );
-  }, [songs, query]);
+    let list = songs;
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      list = list.filter(s =>
+        s.title.toLowerCase().includes(q) ||
+        s.artist.toLowerCase().includes(q) ||
+        s.key.toLowerCase().includes(q)
+      );
+    }
+    const sorted = [...list];
+    if (sort === 'title') sorted.sort((a, b) => a.title.localeCompare(b.title));
+    else if (sort === 'artist') sorted.sort((a, b) => a.artist.localeCompare(b.artist));
+    else if (sort === 'key') sorted.sort((a, b) => a.key.localeCompare(b.key));
+    else if (sort === 'newest') sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return sorted;
+  }, [songs, query, sort]);
 
   const handleFiles = async (e) => {
     for (const file of Array.from(e.target.files)) {
@@ -84,6 +93,15 @@ export default function Library({
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
+            {onSettings && (
+              <button onClick={onSettings} style={{
+                ...btnStyle, background: 'var(--surface)',
+                border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 10px',
+                fontSize: 16,
+              }}>
+                &#9881;
+              </button>
+            )}
             {tab === 'songs' && (
               <>
                 <button onClick={handleExportAll} style={{
@@ -220,6 +238,23 @@ export default function Library({
               }}>
                 &#128269;
               </span>
+            </div>
+            <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+              {[
+                { id: 'title', label: 'Title' },
+                { id: 'artist', label: 'Artist' },
+                { id: 'key', label: 'Key' },
+                { id: 'newest', label: 'Newest' },
+              ].map(s => (
+                <button key={s.id} onClick={() => setSort(s.id)} style={{
+                  ...btnStyle, padding: '4px 10px', fontSize: 11,
+                  borderColor: sort === s.id ? 'var(--accent)' : 'var(--border)',
+                  color: sort === s.id ? 'var(--accent-text)' : 'var(--text-muted)',
+                  background: sort === s.id ? 'var(--accent-soft)' : 'transparent',
+                }}>
+                  {s.label}
+                </button>
+              ))}
             </div>
           </div>
           <div style={{ padding: '8px 20px 40px' }}>

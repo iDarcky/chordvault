@@ -5,12 +5,13 @@ import { StructureRibbon, MetaPill } from './StructureRibbon';
 
 export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose }) {
   const [localTranspose, setLocalTranspose] = useState(0);
-  const [cols, setCols] = useState(2);
+  const [cols, setCols] = useState('auto');
   const [size, setSize] = useState(1);
 
   const transpose = forceTranspose != null ? forceTranspose : localTranspose;
 
-  const mid = cols === 2
+  const isExplicit2Col = cols === 2;
+  const mid = (isExplicit2Col || cols === 'auto')
     ? Math.ceil(song.sections.length / 2)
     : song.sections.length;
 
@@ -117,6 +118,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <span style={labelStyle}>Layout</span>
+              <button onClick={() => setCols('auto')} style={toggleStyle(cols === 'auto')}>Auto</button>
               {[1, 2].map(n => (
                 <button key={n} onClick={() => setCols(n)} style={toggleStyle(cols === n)}>
                   {n}col
@@ -141,19 +143,24 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
       </div>
 
       {/* Chart body */}
-      <div style={{
-        display: cols === 2 ? 'grid' : 'block',
-        gridTemplateColumns: cols === 2 ? '1fr 1fr' : '1fr',
-        gap: 10, padding: '14px 16px 50px',
-        transform: `scale(${size})`, transformOrigin: 'top left',
-        width: size !== 1 ? `${100 / size}%` : '100%',
-      }}>
+      <div
+        className={cols === 'auto' ? 'chart-auto-cols' : undefined}
+        style={{
+          ...(cols !== 'auto' && {
+            display: isExplicit2Col ? 'grid' : 'block',
+            gridTemplateColumns: isExplicit2Col ? '1fr 1fr' : '1fr',
+          }),
+          gap: 10, padding: '14px 16px 50px',
+          transform: `scale(${size})`, transformOrigin: 'top left',
+          width: size !== 1 ? `${100 / size}%` : '100%',
+        }}
+      >
         <div>
           {song.sections.slice(0, mid).map((sec, i) => (
             <SectionBlock key={i} section={sec} transpose={transpose} />
           ))}
         </div>
-        {cols === 2 && (
+        {(isExplicit2Col || cols === 'auto') && (
           <div>
             {song.sections.slice(mid).map((sec, i) => (
               <SectionBlock key={i} section={sec} transpose={transpose} />
