@@ -5,12 +5,13 @@ import { songToMd } from '../parser';
 export default function Library({
   songs, setlists,
   onSelectSong, onNewSong, onImportSong, onExportSong, onExportAll,
-  onNewSetlist, onEditSetlist, onPlaySetlist, onSettings,
+  onNewSetlist, onEditSetlist, onPlaySetlist, onExportSetlist, onImportSetlist, onSettings,
 }) {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('songs');
   const [sort, setSort] = useState('title');
   const fileRef = useRef(null);
+  const setlistFileRef = useRef(null);
 
   const filtered = useMemo(() => {
     let list = songs;
@@ -128,13 +129,27 @@ export default function Library({
               </>
             )}
             {tab === 'setlists' && (
-              <button onClick={onNewSetlist} style={{
-                ...btnStyle, background: 'var(--accent-soft)',
-                border: '1px solid rgba(99,102,241,0.3)',
-                color: 'var(--accent-text)', padding: '7px 16px',
-              }}>
-                + New Setlist
-              </button>
+              <>
+                <button onClick={() => setlistFileRef.current?.click()} style={{
+                  ...btnStyle, background: 'var(--surface)',
+                  border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
+                }}>
+                  Import
+                </button>
+                <input ref={setlistFileRef} type="file" accept=".zip"
+                  onChange={e => {
+                    if (e.target.files[0]) onImportSetlist(e.target.files[0]);
+                    e.target.value = '';
+                  }}
+                  style={{ display: 'none' }} />
+                <button onClick={onNewSetlist} style={{
+                  ...btnStyle, background: 'var(--accent-soft)',
+                  border: '1px solid rgba(99,102,241,0.3)',
+                  color: 'var(--accent-text)', padding: '7px 16px',
+                }}>
+                  + New Setlist
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -377,6 +392,13 @@ export default function Library({
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => onExportSetlist(sl)} style={{
+                      ...btnStyle, background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      color: '#94a3b8', padding: '6px 10px',
+                    }}>
+                      &#8595;
+                    </button>
                     <button onClick={() => onEditSetlist(sl)} style={{
                       ...btnStyle, background: 'var(--surface)',
                       border: '1px solid var(--border)',

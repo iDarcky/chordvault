@@ -8,6 +8,7 @@ import Editor from './components/Editor';
 import SetlistBuilder from './components/SetlistBuilder';
 import SetlistPlayer from './components/SetlistPlayer';
 import Settings from './components/Settings';
+import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
 export default function App() {
   const [songs, setSongs] = useState([]);
@@ -109,6 +110,33 @@ export default function App() {
     goLibrary();
   };
 
+  // Setlist export/import
+  const handleExportSetlist = async (sl) => {
+    const blob = await exportSetlistZip(sl, songs);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (sl.name || 'setlist').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportSetlist = async (file) => {
+    try {
+      const { setlist, newSongs } = await importSetlistZip(file, songs);
+      if (newSongs.length > 0) {
+        setSongs(prev => [...prev, ...newSongs]);
+      }
+      setSetlists(prev => [...prev, setlist]);
+      const msg = newSongs.length > 0
+        ? `Imported "${setlist.name}" with ${newSongs.length} new song${newSongs.length > 1 ? 's' : ''}.`
+        : `Imported "${setlist.name}". All songs already in library.`;
+      alert(msg);
+    } catch {
+      alert('Failed to import setlist zip.');
+    }
+  };
+
   if (!loaded) {
     return (
       <div style={{
@@ -136,6 +164,8 @@ export default function App() {
           onNewSetlist={() => goSetlistBuild()}
           onEditSetlist={goSetlistBuild}
           onPlaySetlist={goSetlistPlay}
+          onExportSetlist={handleExportSetlist}
+          onImportSetlist={handleImportSetlist}
           onSettings={goSettings}
         />
       )}
