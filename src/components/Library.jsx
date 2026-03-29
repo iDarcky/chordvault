@@ -121,6 +121,60 @@ export default function Library({
           </div>
         </div>
 
+        {/* Upcoming setlists */}
+        {(() => {
+          const today = new Date().toISOString().slice(0, 10);
+          const upcoming = setlists
+            .filter(sl => sl.date >= today)
+            .sort((a, b) => a.date.localeCompare(b.date));
+          if (upcoming.length === 0) return null;
+          return (
+            <div style={{ padding: '12px 0 8px' }}>
+              <div style={{
+                fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+                textTransform: 'uppercase', letterSpacing: '0.07em',
+                fontFamily: 'var(--fm)', marginBottom: 8, padding: '0 2px',
+              }}>
+                Upcoming
+              </div>
+              {upcoming.map(sl => {
+                const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
+                  weekday: 'short', month: 'short', day: 'numeric',
+                });
+                return (
+                  <div key={sl.id} style={{
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 10px', marginBottom: 4,
+                    borderRadius: 8, background: 'rgba(99,102,241,0.04)',
+                    border: '1px solid rgba(99,102,241,0.1)',
+                  }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 13, fontWeight: 600, color: 'var(--text-bright)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {sl.name || 'Untitled'}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+                        {dateStr} · {sl.service}
+                      </div>
+                    </div>
+                    <button onClick={() => onPlaySetlist(sl)} style={{
+                      ...btnStyle, background: 'var(--accent-soft)',
+                      border: '1px solid rgba(99,102,241,0.3)',
+                      color: 'var(--accent-text)', padding: '5px 14px',
+                      flexShrink: 0,
+                    }}>
+                      Live
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
         {/* Tab switch */}
         <div style={{
           display: 'flex', gap: 0,
@@ -310,6 +364,20 @@ export default function Library({
                     gap: 4, flexWrap: 'wrap',
                   }}>
                     {sl.items.map((it, i) => {
+                      if (it.type === 'break') {
+                        return (
+                          <span key={i} style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
+                            padding: '3px 8px', borderRadius: 12,
+                            background: 'var(--surface)',
+                            border: '1px solid rgba(107,114,128,0.2)',
+                            fontSize: 11, color: 'rgba(255,255,255,0.3)',
+                            fontStyle: 'italic',
+                          }}>
+                            {it.label || 'Break'}
+                          </span>
+                        );
+                      }
                       const song = songs.find(s => s.id === it.songId);
                       if (!song) return null;
                       return (

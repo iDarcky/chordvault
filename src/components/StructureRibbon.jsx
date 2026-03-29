@@ -1,22 +1,23 @@
-import { sectionStyle } from '../music';
+import { sectionStyle, compactLabel } from '../music';
 
-export function StructureRibbon({ structure }) {
+export function StructureRibbon({ structure, compact }) {
   return (
     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: '8px 0' }}>
       {structure.map((name, i) => {
         const s = sectionStyle(name.replace(/\s*\d+$/, ''));
         return (
           <span key={i} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 4,
-            padding: '3px 9px', borderRadius: 16,
+            display: 'inline-flex', alignItems: 'center', gap: compact ? 3 : 4,
+            padding: compact ? '2px 6px' : '3px 9px', borderRadius: 16,
             border: `1.5px solid ${s.b}44`, background: `${s.bg}88`,
-            color: s.d, fontSize: 10.5, fontWeight: 600,
+            color: s.d, fontSize: compact ? 10 : 10.5, fontWeight: 600,
             fontFamily: 'var(--fm)', whiteSpace: 'nowrap',
           }}>
             <span style={{
-              width: 7, height: 7, borderRadius: '50%', background: s.d,
+              width: compact ? 5 : 7, height: compact ? 5 : 7,
+              borderRadius: '50%', background: s.d,
             }} />
-            {name}
+            {compact ? compactLabel(name) : name}
           </span>
         );
       })}

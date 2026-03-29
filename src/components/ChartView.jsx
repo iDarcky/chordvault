@@ -3,10 +3,12 @@ import { transposeKey } from '../music';
 import SectionBlock from './SectionBlock';
 import { StructureRibbon, MetaPill } from './StructureRibbon';
 
-export default function ChartView({ song, onBack, onEdit, navOverride }) {
-  const [transpose, setTranspose] = useState(0);
+export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose }) {
+  const [localTranspose, setLocalTranspose] = useState(0);
   const [cols, setCols] = useState(2);
   const [size, setSize] = useState(1);
+
+  const transpose = forceTranspose != null ? forceTranspose : localTranspose;
 
   const mid = cols === 2
     ? Math.ceil(song.sections.length / 2)
@@ -34,13 +36,13 @@ export default function ChartView({ song, onBack, onEdit, navOverride }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: compact ? 'auto' : '100vh', background: 'var(--bg)' }}>
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
         background: 'rgba(11,11,15,0.92)', backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(255,255,255,0.05)',
-        padding: '14px 18px 10px',
+        padding: compact ? '10px 18px 6px' : '14px 18px 10px',
       }}>
         {/* Title row */}
         <div style={{
@@ -48,83 +50,94 @@ export default function ChartView({ song, onBack, onEdit, navOverride }) {
           justifyContent: 'space-between', gap: 10, flexWrap: 'wrap',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={onBack} style={{
-              background: 'none', border: 'none', color: '#94a3b8',
-              cursor: 'pointer', padding: 4,
-            }}>
-              &#8592; Back
-            </button>
+            {!compact && (
+              <button onClick={onBack} style={{
+                background: 'none', border: 'none', color: '#94a3b8',
+                cursor: 'pointer', padding: 4,
+              }}>
+                &#8592; Back
+              </button>
+            )}
             <div>
               <h1 style={{
-                margin: 0, fontSize: 22, fontWeight: 700,
+                margin: 0, fontSize: compact ? 18 : 22, fontWeight: 700,
                 color: 'var(--text-bright)', letterSpacing: '-0.02em',
               }}>
                 {song.title}
               </h1>
-              <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                {song.artist}
-              </div>
+              {!compact && (
+                <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                  {song.artist}
+                </div>
+              )}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-            <MetaPill label="Key" value={transposeKey(song.key, transpose)} highlight={transpose !== 0} />
-            <MetaPill label="BPM" value={song.tempo} />
-            <MetaPill label="Time" value={song.time} />
-            {song.ccli && <MetaPill label="CCLI" value={song.ccli} />}
-            {onEdit && (
-              <button onClick={onEdit} style={{
-                ...btnStyle, width: 'auto', padding: '5px 10px', fontSize: 12,
-              }}>
-                Edit
-              </button>
+            <MetaPill label="Key" value={transposeKey(song.key, compact ? 0 : transpose)} highlight={transpose !== 0} />
+            {!compact && (
+              <>
+                <MetaPill label="BPM" value={song.tempo} />
+                <MetaPill label="Time" value={song.time} />
+                {song.ccli && <MetaPill label="CCLI" value={song.ccli} />}
+                {onEdit && (
+                  <button onClick={onEdit} style={{
+                    ...btnStyle, width: 'auto', padding: '5px 10px', fontSize: 12,
+                  }}>
+                    Edit
+                  </button>
+                )}
+              </>
             )}
+            {compact && navOverride && <div>{navOverride}</div>}
           </div>
         </div>
 
-        <StructureRibbon structure={song.structure || []} />
+        <StructureRibbon structure={song.structure || []} compact={compact} />
 
-        {/* Controls */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 12,
-          flexWrap: 'wrap', marginTop: 4, paddingBottom: 4,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={labelStyle}>Transpose</span>
-            <button onClick={() => setTranspose(p => (p - 1 + 12) % 12)} style={btnStyle}>&#8722;</button>
-            <span style={{
-              minWidth: 26, textAlign: 'center',
-              fontFamily: 'var(--fm)', fontWeight: 700, fontSize: 13,
-              color: transpose ? 'var(--chord)' : 'rgba(255,255,255,0.4)',
-            }}>
-              {transpose > 0 ? '+' : ''}{transpose}
-            </span>
-            <button onClick={() => setTranspose(p => (p + 1) % 12)} style={btnStyle}>+</button>
+        {/* Controls — hidden in compact mode */}
+        {!compact && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            flexWrap: 'wrap', marginTop: 4, paddingBottom: 4,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={labelStyle}>Transpose</span>
+              <button onClick={() => setLocalTranspose(p => (p - 1 + 12) % 12)} style={btnStyle}>&#8722;</button>
+              <span style={{
+                minWidth: 26, textAlign: 'center',
+                fontFamily: 'var(--fm)', fontWeight: 700, fontSize: 13,
+                color: transpose ? 'var(--chord)' : 'rgba(255,255,255,0.4)',
+              }}>
+                {transpose > 0 ? '+' : ''}{transpose}
+              </span>
+              <button onClick={() => setLocalTranspose(p => (p + 1) % 12)} style={btnStyle}>+</button>
+            </div>
+
+            <div style={{ width: 1, height: 18, background: 'var(--border)' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={labelStyle}>Layout</span>
+              {[1, 2].map(n => (
+                <button key={n} onClick={() => setCols(n)} style={toggleStyle(cols === n)}>
+                  {n}col
+                </button>
+              ))}
+            </div>
+
+            <div style={{ width: 1, height: 18, background: 'var(--border)' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={labelStyle}>Size</span>
+              {[{ l: 'S', v: 0.88 }, { l: 'M', v: 1 }, { l: 'L', v: 1.14 }].map(({ l, v }) => (
+                <button key={l} onClick={() => setSize(v)} style={toggleStyle(size === v)}>
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            {navOverride && <div style={{ marginLeft: 'auto' }}>{navOverride}</div>}
           </div>
-
-          <div style={{ width: 1, height: 18, background: 'var(--border)' }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={labelStyle}>Layout</span>
-            {[1, 2].map(n => (
-              <button key={n} onClick={() => setCols(n)} style={toggleStyle(cols === n)}>
-                {n}col
-              </button>
-            ))}
-          </div>
-
-          <div style={{ width: 1, height: 18, background: 'var(--border)' }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={labelStyle}>Size</span>
-            {[{ l: 'S', v: 0.88 }, { l: 'M', v: 1 }, { l: 'L', v: 1.14 }].map(({ l, v }) => (
-              <button key={l} onClick={() => setSize(v)} style={toggleStyle(size === v)}>
-                {l}
-              </button>
-            ))}
-          </div>
-
-          {navOverride && <div style={{ marginLeft: 'auto' }}>{navOverride}</div>}
-        </div>
+        )}
       </div>
 
       {/* Chart body */}

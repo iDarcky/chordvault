@@ -7,8 +7,12 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
 
   const resolved = useMemo(() =>
     setlist.items
-      .map(it => ({ ...it, song: songs.find(s => s.id === it.songId) }))
-      .filter(it => it.song),
+      .map(it => {
+        if (it.type === 'break') return { ...it, isBreak: true };
+        const song = songs.find(s => s.id === it.songId);
+        return song ? { ...it, song } : null;
+      })
+      .filter(Boolean),
     [setlist, songs]
   );
 
@@ -18,13 +22,12 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
         padding: 40, textAlign: 'center',
         color: 'var(--text-muted)',
       }}>
-        No songs in setlist
+        No items in setlist
       </div>
     );
   }
 
   const cur = resolved[idx];
-  const songWithTranspose = { ...cur.song };
 
   const cB = {
     width: 28, height: 28, borderRadius: 6,
@@ -62,14 +65,16 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
   const progress = (
     <div style={{ display: 'flex', gap: 3, padding: '8px 18px 0', overflow: 'hidden' }}>
       {resolved.map((r, i) => {
-        const s = sectionStyle(r.song.sections?.[0]?.type || 'Verse');
+        const color = r.isBreak
+          ? '#6b7280'
+          : sectionStyle(r.song.sections?.[0]?.type || 'Verse').b;
         return (
           <button
             key={i}
             onClick={() => setIdx(i)}
             style={{
               flex: 1, height: i === idx ? 6 : 4, borderRadius: 3,
-              background: i === idx ? s.b : i < idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
+              background: i === idx ? color : i < idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
               border: 'none', cursor: 'pointer',
               transition: 'all 0.2s ease', minWidth: 0, minHeight: 'auto',
             }}
@@ -85,8 +90,35 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
       overflow: 'auto', scrollbarWidth: 'none',
     }}>
       {resolved.map((r, i) => {
-        const s = sectionStyle(r.song.sections?.[0]?.type || 'Verse');
         const active = i === idx;
+        if (r.isBreak) {
+          return (
+            <button key={i} onClick={() => setIdx(i)} style={{
+              flexShrink: 0, display: 'flex', alignItems: 'center',
+              gap: 6, padding: '5px 10px', borderRadius: 8,
+              border: `1px solid ${active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)'}`,
+              background: active ? 'rgba(255,255,255,0.05)' : 'transparent',
+              cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
+            }}>
+              <span style={{
+                fontSize: 11, fontWeight: 700,
+                color: active ? 'rgba(255,255,255,0.5)' : 'var(--text-dim)',
+                fontFamily: 'var(--fm)',
+              }}>
+                {i + 1}
+              </span>
+              <span style={{
+                fontSize: 11.5, fontWeight: active ? 600 : 400,
+                color: active ? 'var(--text-bright)' : 'var(--text-muted)',
+                whiteSpace: 'nowrap', fontFamily: 'var(--fb)',
+                fontStyle: 'italic',
+              }}>
+                {r.label || 'Break'}
+              </span>
+            </button>
+          );
+        }
+        const s = sectionStyle(r.song.sections?.[0]?.type || 'Verse');
         return (
           <button key={i} onClick={() => setIdx(i)} style={{
             flexShrink: 0, display: 'flex', alignItems: 'center',
@@ -124,6 +156,23 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
 
   return (
     <div>
+      {/* Back button for the whole player */}
+      <div style={{
+        padding: '10px 18px 0',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <button onClick={onBack} style={{
+          background: 'none', border: 'none', color: '#94a3b8',
+          cursor: 'pointer', padding: 4, fontSize: 14,
+        }}>
+          &#8592; Back
+        </button>
+        <span style={{
+          fontSize: 13, fontWeight: 600, color: 'var(--text-muted)',
+        }}>
+          {setlist.name}
+        </span>
+      </div>
       {progress}
       {songBar}
       {cur.note && (
@@ -138,11 +187,37 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
           </div>
         </div>
       )}
-      <ChartView
-        song={songWithTranspose}
-        onBack={onBack}
-        navOverride={nav}
-      />
+      {cur.isBreak ? (
+        <div style={{
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          padding: '80px 20px', minHeight: '50vh',
+        }}>
+          <div style={{
+            fontSize: 32, fontWeight: 700,
+            color: 'var(--text-bright)', marginBottom: 8,
+          }}>
+            {cur.label || 'Break'}
+          </div>
+          {cur.duration > 0 && (
+            <div style={{
+              fontSize: 16, color: 'var(--text-muted)',
+              fontFamily: 'var(--fm)', marginBottom: 8,
+            }}>
+              {cur.duration} min
+            </div>
+          )}
+          <div style={{ marginTop: 16 }}>{nav}</div>
+        </div>
+      ) : (
+        <ChartView
+          song={{ ...cur.song, key: transposeKey(cur.song.key, cur.transpose) }}
+          onBack={onBack}
+          navOverride={nav}
+          compact
+          forceTranspose={cur.transpose}
+        />
+      )}
     </div>
   );
 }

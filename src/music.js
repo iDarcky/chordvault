@@ -68,3 +68,10 @@ export function sectionStyle(type) {
   );
   return SECTION_COLORS[key] || DEFAULT_STYLE;
 }
+
+// Compact label for live mode (e.g. "Chorus 1" → "C1", "Pre Chorus" → "Pc")
+export function compactLabel(name) {
+  const num = name.match(/(\d+)$/)?.[1] || '';
+  const style = sectionStyle(name);
+  return style.l + num;
+}

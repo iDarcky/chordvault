@@ -47,7 +47,12 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     setAdding(false);
     setSearch('');
   };
-  const removeSong = (idx) => setItems(p => p.filter((_, i) => i !== idx));
+  const addBreak = () => {
+    setItems(p => [...p, { type: 'break', label: '', note: '', duration: 0 }]);
+  };
+  const updateBreakField = (idx, field, value) =>
+    setItems(p => p.map((it, i) => i === idx ? { ...it, [field]: value } : it));
+  const removeItem = (idx) => setItems(p => p.filter((_, i) => i !== idx));
   const moveItem = (idx, dir) => {
     setItems(p => {
       const n = [...p];
@@ -72,7 +77,10 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     });
   };
 
+  const songCount = items.filter(it => it.type !== 'break').length;
+  const breakCount = items.filter(it => it.type === 'break').length;
   const totalDuration = items.reduce((sum, it) => {
+    if (it.type === 'break') return sum + (it.duration || 0);
     const s = getSong(it.songId);
     if (!s) return sum;
     const bpm = s.tempo || 120;
@@ -164,7 +172,12 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
           justifyContent: 'space-between', marginBottom: 10,
         }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
-            Songs ({items.length})
+            Items ({items.length})
+            {breakCount > 0 && (
+              <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
+                {' '}({songCount} songs + {breakCount} breaks)
+              </span>
+            )}
             {totalDuration > 0 && (
               <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
                 {' '}· ~{totalDuration} min est.
@@ -174,6 +187,138 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
         </div>
 
         {items.map((item, idx) => {
+          // Shared move/reorder column
+          const orderCol = (
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', width: 44,
+              background: 'rgba(255,255,255,0.02)',
+              borderRight: '1px solid rgba(255,255,255,0.04)',
+              gap: 2, padding: '4px 0',
+            }}>
+              <button
+                onClick={() => idx > 0 && moveItem(idx, -1)}
+                disabled={idx === 0}
+                style={{
+                  background: 'none', border: 'none',
+                  color: idx > 0 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
+                  cursor: idx > 0 ? 'pointer' : 'default', padding: 2, display: 'flex',
+                  minHeight: 'auto',
+                }}
+              >
+                &#9650;
+              </button>
+              <span style={{
+                fontSize: 14, fontWeight: 700,
+                color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--fm)',
+              }}>
+                {idx + 1}
+              </span>
+              <button
+                onClick={() => idx < items.length - 1 && moveItem(idx, 1)}
+                disabled={idx === items.length - 1}
+                style={{
+                  background: 'none', border: 'none',
+                  color: idx < items.length - 1 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
+                  cursor: idx < items.length - 1 ? 'pointer' : 'default',
+                  padding: 2, display: 'flex', minHeight: 'auto',
+                }}
+              >
+                &#9660;
+              </button>
+            </div>
+          );
+
+          // Break item
+          if (item.type === 'break') {
+            return (
+              <div key={idx} style={{
+                display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
+                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
+                overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
+              }}>
+                {orderCol}
+                <div style={{
+                  flex: 1, padding: '10px 14px',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 8, flexShrink: 0,
+                    background: 'rgba(107,114,128,0.15)',
+                    border: '1px solid rgba(107,114,128,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 16, color: 'rgba(255,255,255,0.4)',
+                  }}>
+                    &#9646;
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <input
+                      value={item.label}
+                      onChange={e => updateBreakField(idx, 'label', e.target.value)}
+                      placeholder="e.g. Prayer, Announcements, Offering..."
+                      style={{
+                        ...inputStyle, padding: '5px 8px', fontSize: 13,
+                        fontWeight: 600, background: 'transparent',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 10px',
+                  borderLeft: '1px solid rgba(255,255,255,0.04)',
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <span style={{
+                      fontSize: 8, color: 'var(--text-dim)',
+                      textTransform: 'uppercase', letterSpacing: '0.1em',
+                    }}>
+                      Min
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={item.duration || ''}
+                      onChange={e => updateBreakField(idx, 'duration', parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      style={{
+                        width: 36, padding: '3px 4px', textAlign: 'center',
+                        background: 'var(--surface)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        borderRadius: 5, color: 'var(--text)', fontSize: 11,
+                        fontFamily: 'var(--fm)', outline: 'none',
+                      }}
+                    />
+                  </div>
+                  <input
+                    value={item.note}
+                    onChange={e => updateBreakField(idx, 'note', e.target.value)}
+                    placeholder="Note..."
+                    style={{
+                      width: 100, padding: '5px 8px',
+                      background: 'var(--surface)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 5, color: 'var(--text)', fontSize: 11,
+                      fontFamily: 'var(--fb)', outline: 'none',
+                    }}
+                  />
+                  <button
+                    onClick={() => removeItem(idx)}
+                    style={{
+                      background: 'none', border: 'none',
+                      color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
+                      padding: 4, display: 'flex', minHeight: 'auto',
+                    }}
+                  >
+                    &#10005;
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          // Song item
           const song = getSong(item.songId);
           if (!song) return null;
           const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
@@ -183,47 +328,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
               borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
               overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
             }}>
-              {/* Order number + move buttons */}
-              <div style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', width: 44,
-                background: 'rgba(255,255,255,0.02)',
-                borderRight: '1px solid rgba(255,255,255,0.04)',
-                gap: 2, padding: '4px 0',
-              }}>
-                <button
-                  onClick={() => idx > 0 && moveItem(idx, -1)}
-                  disabled={idx === 0}
-                  style={{
-                    background: 'none', border: 'none',
-                    color: idx > 0 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
-                    cursor: idx > 0 ? 'pointer' : 'default', padding: 2, display: 'flex',
-                    minHeight: 'auto',
-                  }}
-                >
-                  &#9650;
-                </button>
-                <span style={{
-                  fontSize: 14, fontWeight: 700,
-                  color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--fm)',
-                }}>
-                  {idx + 1}
-                </span>
-                <button
-                  onClick={() => idx < items.length - 1 && moveItem(idx, 1)}
-                  disabled={idx === items.length - 1}
-                  style={{
-                    background: 'none', border: 'none',
-                    color: idx < items.length - 1 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
-                    cursor: idx < items.length - 1 ? 'pointer' : 'default',
-                    padding: 2, display: 'flex', minHeight: 'auto',
-                  }}
-                >
-                  &#9660;
-                </button>
-              </div>
-
-              {/* Song info */}
+              {orderCol}
               <div style={{
                 flex: 1, padding: '10px 14px',
                 display: 'flex', alignItems: 'center', gap: 12,
@@ -249,8 +354,6 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   </div>
                 </div>
               </div>
-
-              {/* Transpose + note + remove */}
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '8px 10px',
@@ -301,7 +404,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   }}
                 />
                 <button
-                  onClick={() => removeSong(idx)}
+                  onClick={() => removeItem(idx)}
                   style={{
                     background: 'none', border: 'none',
                     color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
@@ -392,20 +495,36 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
             </div>
           </div>
         ) : (
-          <button
-            onClick={() => setAdding(true)}
-            style={{
-              width: '100%', justifyContent: 'center', marginTop: 8,
-              padding: '14px 0', borderStyle: 'dashed',
-              background: 'var(--surface)',
-              border: '1px dashed var(--border)',
-              borderRadius: 7, color: '#94a3b8', fontSize: 12,
-              fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
-              display: 'flex', alignItems: 'center', gap: 5,
-            }}
-          >
-            + Add Song
-          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button
+              onClick={() => setAdding(true)}
+              style={{
+                flex: 1, justifyContent: 'center',
+                padding: '14px 0',
+                background: 'var(--surface)',
+                border: '1px dashed var(--border)',
+                borderRadius: 7, color: '#94a3b8', fontSize: 12,
+                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
+                display: 'flex', alignItems: 'center', gap: 5,
+              }}
+            >
+              + Add Song
+            </button>
+            <button
+              onClick={addBreak}
+              style={{
+                flex: 1, justifyContent: 'center',
+                padding: '14px 0',
+                background: 'var(--surface)',
+                border: '1px dashed rgba(107,114,128,0.4)',
+                borderRadius: 7, color: 'rgba(107,114,128,0.7)', fontSize: 12,
+                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
+                display: 'flex', alignItems: 'center', gap: 5,
+              }}
+            >
+              + Add Break
+            </button>
+          </div>
         )}
       </div>
       <div style={{ height: 60 }} />
