@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { transposeKey, sectionStyle } from '../music';
 import ChartView from './ChartView';
 
 export default function SetlistPlayer({ setlist, songs, onBack }) {
   const [idx, setIdx] = useState(0);
+  const songBarRef = useRef(null);
 
   const resolved = useMemo(() =>
     setlist.items
@@ -18,6 +19,16 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
 
   const goNext = useCallback(() => setIdx(p => Math.min(resolved.length - 1, p + 1)), [resolved.length]);
   const goPrev = useCallback(() => setIdx(p => Math.max(0, p - 1)), []);
+
+  // Auto-scroll song strip to keep active item visible
+  useEffect(() => {
+    const container = songBarRef.current;
+    if (!container) return;
+    const activeBtn = container.children[idx];
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [idx]);
 
   // Keyboard / Bluetooth pedal navigation
   useEffect(() => {
@@ -98,7 +109,7 @@ export default function SetlistPlayer({ setlist, songs, onBack }) {
   );
 
   const songBar = (
-    <div className="hide-scrollbar" style={{
+    <div ref={songBarRef} className="hide-scrollbar" style={{
       display: 'flex', gap: 6, padding: '6px 18px',
       overflow: 'auto', scrollbarWidth: 'none',
     }}>
