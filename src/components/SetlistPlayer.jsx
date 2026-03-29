@@ -240,6 +240,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
           navOverride={nav}
           compact
           forceTranspose={cur.transpose}
+          capo={cur.capo || 0}
           defaultColumns={defaultColumns}
           defaultFontSize={defaultFontSize}
         />

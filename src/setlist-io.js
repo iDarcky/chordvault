@@ -42,6 +42,7 @@ export async function exportSetlistZip(setlist, songs) {
     items.push({
       file: filename,
       transpose: item.transpose || 0,
+      capo: item.capo || 0,
       note: item.note || '',
     });
   }
@@ -113,6 +114,7 @@ export async function importSetlistZip(file, existingSongs) {
     return {
       songId,
       transpose: item.transpose || 0,
+      capo: item.capo || 0,
       note: item.note || '',
     };
   }).filter(Boolean);

@@ -43,7 +43,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   }, [songs, search]);
 
   const addSong = (song) => {
-    setItems(p => [...p, { songId: song.id, note: '', transpose: 0 }]);
+    setItems(p => [...p, { songId: song.id, note: '', transpose: 0, capo: 0 }]);
     setAdding(false);
     setSearch('');
   };
@@ -66,6 +66,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     setItems(p => p.map((it, i) => i === idx ? { ...it, note } : it));
   const updateTranspose = (idx, val) =>
     setItems(p => p.map((it, i) => i === idx ? { ...it, transpose: val } : it));
+  const updateCapo = (idx, val) =>
+    setItems(p => p.map((it, i) => i === idx ? { ...it, capo: val } : it));
   const getSong = (id) => songs.find(s => s.id === id);
 
   const handleSave = () => {
@@ -383,6 +385,33 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   >
                     {ALL_KEYS.map(k => (
                       <option key={k} value={k}>{k}{k === song.key ? ' (orig)' : ''}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: 2,
+                }}>
+                  <span style={{
+                    fontSize: 8, color: 'var(--text-dim)',
+                    textTransform: 'uppercase', letterSpacing: '0.1em',
+                  }}>
+                    Capo
+                  </span>
+                  <select
+                    value={item.capo || 0}
+                    onChange={e => updateCapo(idx, parseInt(e.target.value))}
+                    style={{
+                      padding: '3px 4px', borderRadius: 5,
+                      background: 'var(--surface)',
+                      border: `1px solid ${item.capo ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
+                      color: item.capo ? 'var(--accent-text)' : 'var(--text)',
+                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
+                      outline: 'none', cursor: 'pointer',
+                    }}
+                  >
+                    {[0,1,2,3,4,5,6,7,8,9].map(n => (
+                      <option key={n} value={n}>{n}</option>
                     ))}
                   </select>
                 </div>

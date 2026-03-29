@@ -5,7 +5,7 @@ import { songToMd } from '../parser';
 export default function Library({
   songs, setlists,
   onSelectSong, onNewSong, onImportSong, onExportSong, onExportAll,
-  onNewSetlist, onEditSetlist, onPlaySetlist, onExportSetlist, onImportSetlist, onSettings,
+  onNewSetlist, onEditSetlist, onPlaySetlist, onViewSetlist, onExportSetlist, onImportSetlist, onSettings,
 }) {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('songs');
@@ -370,10 +370,11 @@ export default function Library({
               weekday: 'short', month: 'short', day: 'numeric',
             });
             return (
-              <div key={sl.id} style={{
+              <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
                 marginBottom: 8, borderRadius: 10,
                 border: '1px solid rgba(255,255,255,0.06)',
                 overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
+                cursor: 'pointer',
               }}>
                 <div style={{
                   display: 'flex', alignItems: 'center',
@@ -391,29 +392,13 @@ export default function Library({
                       </span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => onExportSetlist(sl)} style={{
-                      ...btnStyle, background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      color: '#94a3b8', padding: '6px 10px',
-                    }}>
-                      &#8595;
-                    </button>
-                    <button onClick={() => onEditSetlist(sl)} style={{
-                      ...btnStyle, background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      color: '#94a3b8', padding: '6px 10px',
-                    }}>
-                      Edit
-                    </button>
-                    <button onClick={() => onPlaySetlist(sl)} style={{
-                      ...btnStyle, background: 'var(--accent-soft)',
-                      border: '1px solid rgba(99,102,241,0.3)',
-                      color: 'var(--accent-text)', padding: '6px 14px',
-                    }}>
-                      Live
-                    </button>
-                  </div>
+                  <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
+                    ...btnStyle, background: 'var(--accent-soft)',
+                    border: '1px solid rgba(99,102,241,0.3)',
+                    color: 'var(--accent-text)', padding: '6px 14px',
+                  }}>
+                    Live
+                  </button>
                 </div>
                 {songCount > 0 && (
                   <div style={{

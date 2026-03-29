@@ -8,6 +8,7 @@ import Editor from './components/Editor';
 import SetlistBuilder from './components/SetlistBuilder';
 import SetlistPlayer from './components/SetlistPlayer';
 import Settings from './components/Settings';
+import SetlistOverview from './components/SetlistOverview';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
 export default function App() {
@@ -61,6 +62,7 @@ export default function App() {
   const goChart = (song) => { setCurrentSong(song); setView('chart'); };
   const goEditor = (song = null) => { setCurrentSong(song); setView('editor'); };
   const goSetlistBuild = (sl = null) => { setCurrentSetlist(sl); setView('setlist-build'); };
+  const goSetlistView = (sl) => { setCurrentSetlist(sl); setView('setlist-view'); };
   const goSetlistPlay = (sl) => { setCurrentSetlist(sl); setView('setlist-play'); };
   const goSettings = () => setView('settings');
 
@@ -164,6 +166,7 @@ export default function App() {
           onNewSetlist={() => goSetlistBuild()}
           onEditSetlist={goSetlistBuild}
           onPlaySetlist={goSetlistPlay}
+          onViewSetlist={goSetlistView}
           onExportSetlist={handleExportSetlist}
           onImportSetlist={handleImportSetlist}
           onSettings={goSettings}
@@ -184,6 +187,16 @@ export default function App() {
           onSave={handleSaveSong}
           onBack={currentSong ? () => goChart(currentSong) : goLibrary}
           onDelete={currentSong ? handleDeleteSong : null}
+        />
+      )}
+      {view === 'setlist-view' && currentSetlist && (
+        <SetlistOverview
+          setlist={currentSetlist}
+          songs={songs}
+          onBack={goLibrary}
+          onEdit={() => goSetlistBuild(currentSetlist)}
+          onExport={() => handleExportSetlist(currentSetlist)}
+          onPlay={() => goSetlistPlay(currentSetlist)}
         />
       )}
       {view === 'setlist-build' && (

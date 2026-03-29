@@ -5,12 +5,14 @@ import { StructureRibbon, MetaPill } from './StructureRibbon';
 
 const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
 
-export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, defaultColumns, defaultFontSize }) {
+export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize }) {
   const [localTranspose, setLocalTranspose] = useState(0);
   const [cols, setCols] = useState(defaultColumns || 'auto');
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
 
   const transpose = forceTranspose != null ? forceTranspose : localTranspose;
+  // When capo is set, chords render as shapes (shifted down by capo)
+  const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
 
   const isExplicit2Col = cols === 2;
   const mid = (isExplicit2Col || cols === 'auto')
@@ -77,6 +79,9 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <MetaPill label="Key" value={transposeKey(song.key, compact ? 0 : transpose)} highlight={transpose !== 0} />
+            {capo > 0 && (
+              <MetaPill label="Capo" value={`${capo} → ${transposeKey(song.key, chordTranspose)} shapes`} highlight />
+            )}
             {!compact && (
               <>
                 <MetaPill label="BPM" value={song.tempo} />
@@ -159,13 +164,13 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
       >
         <div>
           {song.sections.slice(0, mid).map((sec, i) => (
-            <SectionBlock key={i} section={sec} transpose={transpose} />
+            <SectionBlock key={i} section={sec} transpose={chordTranspose} />
           ))}
         </div>
         {(isExplicit2Col || cols === 'auto') && (
           <div>
             {song.sections.slice(mid).map((sec, i) => (
-              <SectionBlock key={i} section={sec} transpose={transpose} />
+              <SectionBlock key={i} section={sec} transpose={chordTranspose} />
             ))}
           </div>
         )}
