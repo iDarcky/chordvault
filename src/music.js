@@ -42,6 +42,19 @@ export function transposeKey(key, semitones) {
   return newRoot + suffix;
 }
 
+// All display keys for selectors
+export const ALL_KEYS = ['A','Bb','B','C','Db','D','Eb','E','F','Gb','G','Ab'];
+
+// Calculate semitones from one key to another
+export function semitonesBetween(fromKey, toKey) {
+  const fromRoot = FLAT_MAP[fromKey] || fromKey;
+  const toRoot = FLAT_MAP[toKey] || toKey;
+  const fi = CHROMATIC.indexOf(fromRoot);
+  const ti = CHROMATIC.indexOf(toRoot);
+  if (fi === -1 || ti === -1) return 0;
+  return (ti - fi + 12) % 12;
+}
+
 // Section type → colors, label, background
 const SECTION_COLORS = {
   Intro:        { b: '#6366f1', d: '#818cf8', l: 'I',  bg: '#12122a' },

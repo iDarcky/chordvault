@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { transposeKey, sectionStyle } from '../music';
+import { transposeKey, sectionStyle, ALL_KEYS, semitonesBetween } from '../music';
 import { generateId } from '../parser';
 
 const inputStyle = {
@@ -367,29 +367,24 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                     fontSize: 8, color: 'var(--text-dim)',
                     textTransform: 'uppercase', letterSpacing: '0.1em',
                   }}>
-                    Trans
+                    Key
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <button
-                      onClick={() => updateTranspose(idx, (item.transpose - 1 + 12) % 12)}
-                      style={{ ...cB, width: 22, height: 22, fontSize: 12, minHeight: 'auto' }}
-                    >
-                      &#8722;
-                    </button>
-                    <span style={{
-                      fontSize: 11, fontFamily: 'var(--fm)', fontWeight: 700,
-                      color: item.transpose ? 'var(--chord)' : 'rgba(255,255,255,0.3)',
-                      minWidth: 18, textAlign: 'center',
-                    }}>
-                      {item.transpose || 0}
-                    </span>
-                    <button
-                      onClick={() => updateTranspose(idx, (item.transpose + 1) % 12)}
-                      style={{ ...cB, width: 22, height: 22, fontSize: 12, minHeight: 'auto' }}
-                    >
-                      +
-                    </button>
-                  </div>
+                  <select
+                    value={transposeKey(song.key, item.transpose)}
+                    onChange={e => updateTranspose(idx, semitonesBetween(song.key, e.target.value))}
+                    style={{
+                      padding: '3px 4px', borderRadius: 5,
+                      background: 'var(--surface)',
+                      border: `1px solid ${item.transpose ? 'var(--chord)' : 'rgba(255,255,255,0.06)'}`,
+                      color: item.transpose ? 'var(--chord)' : 'var(--text)',
+                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
+                      outline: 'none', cursor: 'pointer',
+                    }}
+                  >
+                    {ALL_KEYS.map(k => (
+                      <option key={k} value={k}>{k}{k === song.key ? ' (orig)' : ''}</option>
+                    ))}
+                  </select>
                 </div>
                 <input
                   value={item.note}
