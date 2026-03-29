@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
 import { parseSongMd, songToMd, generateId } from '../parser';
 import RawTab from './editor/RawTab';
+import VisualTab from './editor/VisualTab';
+import FormTab from './editor/FormTab';
 import PreviewPanel from './editor/PreviewPanel';
 
 const TABS = [
-  { id: 'form', label: 'Form', disabled: true },
-  { id: 'guided', label: 'Guided', disabled: true },
+  { id: 'form', label: 'Form', disabled: false },
+  { id: 'visual', label: 'Visual', disabled: false },
   { id: 'raw', label: 'Raw', disabled: false },
 ];
 
@@ -27,7 +29,7 @@ structure: [Verse 1, Chorus]
 
 export default function Editor({ song, onSave, onBack, onDelete }) {
   const [md, setMd] = useState(song ? songToMd(song) : DEFAULT_MD);
-  const [activeTab, setActiveTab] = useState('raw');
+  const [activeTab, setActiveTab] = useState('form');
   const [showPreview, setShowPreview] = useState(false);
   const [preview, setPreview] = useState(null);
   const textareaRef = useRef(null);
@@ -80,10 +82,14 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
   // Render active tab content
   const renderTab = () => {
     switch (activeTab) {
+      case 'form':
+        return <FormTab md={md} onChange={setMd} />;
+      case 'visual':
+        return <VisualTab md={md} onChange={setMd} textareaRef={textareaRef} />;
       case 'raw':
         return <RawTab md={md} onChange={setMd} textareaRef={textareaRef} />;
       default:
-        return <RawTab md={md} onChange={setMd} textareaRef={textareaRef} />;
+        return <FormTab md={md} onChange={setMd} />;
     }
   };
 
@@ -162,7 +168,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
                   opacity: t.disabled ? 0.4 : 1,
                 }}
               >
-                {t.label}{t.disabled ? ' (Soon)' : ''}
+                {t.label}
               </button>
             ))}
           </div>
