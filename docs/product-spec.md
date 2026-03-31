@@ -1,6 +1,6 @@
 # ChordVault — Product Specification
 ### Worship Chord Chart PWA for Small-to-Medium Churches
-**Version:** Draft 1.0
+**Version:** Draft 1.1
 **Last updated:** March 2026
 
 ---
@@ -119,7 +119,8 @@ D|---2---2---2---2---|
 | `[Chord]` | Inline chord above lyric | `[A]Lyrics here` |
 | `{!note}` | Inline performance note | `{!electric drops out}` |
 | `{modulate: +N}` | Key change from this point | `{modulate: +1}` |
-| `{tab}...{/tab}` | Guitar tablature block | Standard 6-line tab |
+| `{tab}...{/tab}` | Guitar tablature block | Standard 6-line ASCII tab, rendered as SVG |
+| `{tab, time: 4/4}` | Tab block with time signature | Used by grid editor |
 | `{piano: Chord}` | Piano voicing reference | Future feature |
 | Empty line | Visual spacing | |
 | Plain text | Lyrics without chords | |
@@ -1144,7 +1145,12 @@ SYNC
 - [ ] Auto-detect browser language on first launch
 
 ### v2.5 — Advanced Features
-- [ ] Tab block rendering {tab}...{/tab}
+- [x] Tab block parsing — `{tab}...{/tab}` blocks parsed into structured objects with string/fret data; round-trip ASCII serialization
+- [x] Tab block SVG renderer — clean SVG with string lines, fret numbers (gold), bar lines, technique markers (h/p/s/b/x)
+- [x] Tab grid editor — interactive grid with duration picker (whole/half/quarter/8th/16th/dotted), auto-advance cursor, chord mode, technique buttons, add/remove measures
+- [x] Tab insert in Visual editor — toolbar "Tab Block" button opens grid editor
+- [x] Tab insert in Form editor — "+ Tab" button per section opens grid editor
+- [x] Chord diagrams — svguitar (MIT) renders fingering charts for ~50 worship chords; "Diagrams" toggle in ChartView shows strip of all song chords
 - [ ] Drummer view: bar counts, dynamics-only layout
 - [ ] Piano chord voicing reference
 - [ ] Bass view: root/bass note emphasis
