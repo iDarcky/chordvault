@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { parseSongMd } from '../../parser';
+import { parseSongMd, serializeTabBlock } from '../../parser';
 import ChordPicker from './ChordPicker';
 import TabGridEditor from './TabGridEditor';
 
@@ -28,7 +28,11 @@ function parseInitialMeta(md) {
 function parseInitialSections(md) {
   try {
     const song = parseSongMd(md);
-    return song.sections.map(s => ({ type: s.type, note: s.note || '', lyrics: s.lines.join('\n') }));
+    return song.sections.map(s => ({
+      type: s.type,
+      note: s.note || '',
+      lyrics: s.lines.map(l => typeof l === 'string' ? l : serializeTabBlock(l)).join('\n'),
+    }));
   } catch { return []; }
 }
 
