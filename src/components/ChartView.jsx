@@ -13,6 +13,10 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
   const [showDiagrams, setShowDiagrams] = useState(false);
 
+  const transpose = forceTranspose != null ? forceTranspose : localTranspose;
+  // When capo is set, chords render as shapes (shifted down by capo)
+  const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
+
   // Collect unique chord names from all sections (transposed)
   const uniqueChords = useMemo(() => {
     if (!showDiagrams) return [];
@@ -31,10 +35,6 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     }
     return [...seen];
   }, [showDiagrams, song.sections, chordTranspose]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const transpose = forceTranspose != null ? forceTranspose : localTranspose;
-  // When capo is set, chords render as shapes (shifted down by capo)
-  const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
 
   const isExplicit2Col = cols === 2;
   const mid = (isExplicit2Col || cols === 'auto')
