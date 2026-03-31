@@ -43,11 +43,28 @@ export default function RawTab({ md, onChange, textareaRef }) {
           <div style={{ marginBottom: 6 }}>
             <strong style={{ color: 'var(--text)' }}>Sections & Chords:</strong>
           </div>
-          <div style={{ paddingLeft: 10, color: 'var(--text-dim)' }}>
+          <div style={{ paddingLeft: 10, color: 'var(--text-dim)', marginBottom: 8 }}>
             <strong style={{ color: 'var(--accent-text)' }}>## Section Name</strong> — starts a section (Verse, Chorus, Bridge, etc.)<br />
             <strong style={{ color: 'var(--chord)' }}>[Chord]</strong>lyrics — inline chords above lyrics<br />
             <strong style={{ color: 'var(--text-muted)' }}>&gt; note</strong> — band cue / performance note<br />
             <span style={{ opacity: 0.5 }}>Blank lines between sections</span>
+          </div>
+
+          <div style={{ marginBottom: 6 }}>
+            <strong style={{ color: 'var(--text)' }}>Tab Blocks:</strong>
+          </div>
+          <div style={{ paddingLeft: 10, color: 'var(--text-dim)' }}>
+            <strong style={{ color: 'var(--accent-text)' }}>{'{'}</strong>tab{'}'} ... {'{'}/tab{'}'} — guitar tab block<br />
+            <strong style={{ color: 'var(--accent-text)' }}>{'{'}</strong>tab, time: 4/4{'}'} — with time signature<br />
+            <span style={{ color: 'var(--chord)' }}>e|--0--2h3--|--5-----|</span> — string lines (e B G D A E)<br />
+            <span style={{ opacity: 0.7 }}>Techniques: </span>
+            <strong style={{ color: 'var(--chord)' }}>h</strong> hammer-on &nbsp;
+            <strong style={{ color: 'var(--chord)' }}>p</strong> pull-off &nbsp;
+            <strong style={{ color: 'var(--chord)' }}>s</strong> slide &nbsp;
+            <strong style={{ color: 'var(--chord)' }}>b</strong> bend &nbsp;
+            <strong style={{ color: 'var(--chord)' }}>x</strong> mute &nbsp;
+            <strong style={{ color: 'var(--chord)' }}>~</strong> vibrato<br />
+            <span style={{ opacity: 0.5 }}>Use the Tab button in Visual/Form tab to open the grid editor</span>
           </div>
         </div>
       )}

@@ -36,10 +36,17 @@ export function parseSongMd(text) {
   // Parse body into sections
   const sections = [];
   let current = null;
+  let inTab = false;
+  let tabAccum = null;
 
   for (const line of bodyLines) {
     const sectionMatch = line.match(/^##\s+(.+?)$/);
     if (sectionMatch) {
+      if (inTab && tabAccum && current) {
+        current.lines.push(tabAccum);
+        inTab = false;
+        tabAccum = null;
+      }
       if (current) sections.push(current);
       current = { type: sectionMatch[1].trim(), note: '', lines: [] };
       continue;
@@ -49,7 +56,37 @@ export function parseSongMd(text) {
       if (current) current.note = line.replace(/^>\s*/, '').trim();
       continue;
     }
+
+    // Tab block detection
+    const tabOpen = line.match(/^\{tab(?:,\s*(.+?))?\}$/);
+    if (tabOpen) {
+      inTab = true;
+      const meta = tabOpen[1] || '';
+      let time = null;
+      const timePart = meta.match(/time:\s*(\S+)/);
+      if (timePart) time = timePart[1];
+      tabAccum = { type: 'tab', strings: [], time, raw: [] };
+      continue;
+    }
+    if (inTab && line.trim() === '{/tab}') {
+      if (current && tabAccum) current.lines.push(tabAccum);
+      inTab = false;
+      tabAccum = null;
+      continue;
+    }
+    if (inTab && tabAccum) {
+      const strMatch = line.match(/^([eBGDAE])\|(.+)$/);
+      if (strMatch) {
+        tabAccum.strings.push({ note: strMatch[1], content: strMatch[2] });
+      }
+      tabAccum.raw.push(line);
+      continue;
+    }
+
     if (current) current.lines.push(line);
+  }
+  if (inTab && tabAccum && current) {
+    current.lines.push(tabAccum);
   }
   if (current) sections.push(current);
 
@@ -99,7 +136,7 @@ export function songToMd(song) {
   for (const sec of song.sections) {
     md += `## ${sec.type}\n`;
     if (sec.note) md += `> ${sec.note}\n`;
-    md += sec.lines.join('\n') + '\n\n';
+    md += sec.lines.map(l => typeof l === 'string' ? l : serializeTabBlock(l)).join('\n') + '\n\n';
   }
 
   return md.trim() + '\n';
@@ -137,6 +174,70 @@ export function parseLine(line) {
   }
 
   return parts;
+}
+
+// Serialize a tab block object back to ASCII
+export function serializeTabBlock(tab) {
+  // Prefer raw lines for round-trip fidelity
+  if (tab.raw && tab.raw.length > 0) {
+    const header = tab.time ? `{tab, time: ${tab.time}}` : '{tab}';
+    return header + '\n' + tab.raw.join('\n') + '\n{/tab}';
+  }
+  // Generate from structured data (grid-editor-created)
+  const header = tab.time ? `{tab, time: ${tab.time}}` : '{tab}';
+  const lines = tab.strings.map(s => `${s.note}|${s.content}`);
+  return header + '\n' + lines.join('\n') + '\n{/tab}';
+}
+
+// Parse tab string content into positioned fret data for rendering
+export function parseTabPositions(content) {
+  const positions = [];
+  const measures = content.split('|').filter(m => m.length > 0);
+  let charOffset = 0;
+
+  for (let mi = 0; mi < measures.length; mi++) {
+    const measure = measures[mi];
+    let i = 0;
+    while (i < measure.length) {
+      const ch = measure[i];
+      if (ch >= '0' && ch <= '9') {
+        // Check for two-digit fret numbers (10-24)
+        let fretStr = ch;
+        if (i + 1 < measure.length && measure[i + 1] >= '0' && measure[i + 1] <= '9') {
+          fretStr += measure[i + 1];
+          i++;
+        }
+        const fret = parseInt(fretStr, 10);
+        // Check for trailing technique marker
+        let technique = null;
+        if (i + 1 < measure.length) {
+          const next = measure[i + 1];
+          if ('hpsbx~'.includes(next) || next === '/' || next === '\\') {
+            technique = next;
+            i++;
+          }
+        }
+        positions.push({ fret, pos: charOffset + i - (fretStr.length - 1), measure: mi, technique });
+      }
+      i++;
+      charOffset;
+    }
+    charOffset += measure.length + 1; // +1 for the | separator
+  }
+
+  return positions;
+}
+
+// Parse raw string lines (without delimiters) into a tab object
+export function parseTabBlock(rawLines) {
+  const tab = { type: 'tab', strings: [], time: null, raw: [...rawLines] };
+  for (const line of rawLines) {
+    const m = line.match(/^([eBGDAE])\|(.+)$/);
+    if (m) {
+      tab.strings.push({ note: m[1], content: m[2] });
+    }
+  }
+  return tab;
 }
 
 // Generate a unique ID for songs and setlists

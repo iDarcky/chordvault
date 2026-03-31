@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { transposeKey } from '../music';
+import { useState, useMemo } from 'react';
+import { transposeKey, transposeChord } from '../music';
 import SectionBlock from './SectionBlock';
 import { StructureRibbon, MetaPill } from './StructureRibbon';
+import ChordDiagram from './ChordDiagram';
+import { parseLine } from '../parser';
 
 const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
 
@@ -9,6 +11,26 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   const [localTranspose, setLocalTranspose] = useState(0);
   const [cols, setCols] = useState(defaultColumns || 'auto');
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
+  const [showDiagrams, setShowDiagrams] = useState(false);
+
+  // Collect unique chord names from all sections (transposed)
+  const uniqueChords = useMemo(() => {
+    if (!showDiagrams) return [];
+    const seen = new Set();
+    for (const sec of song.sections) {
+      for (const line of sec.lines) {
+        if (typeof line !== 'string') continue;
+        const parts = parseLine(line);
+        for (const p of parts) {
+          if (p.chord) {
+            const transposed = transposeChord(p.chord, chordTranspose);
+            seen.add(transposed);
+          }
+        }
+      }
+    }
+    return [...seen];
+  }, [showDiagrams, song.sections, chordTranspose]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const transpose = forceTranspose != null ? forceTranspose : localTranspose;
   // When capo is set, chords render as shapes (shifted down by capo)
@@ -144,7 +166,30 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
               ))}
             </div>
 
+            <div style={{ width: 1, height: 18, background: 'var(--border)' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
+                Diagrams
+              </button>
+            </div>
+
             {navOverride && <div style={{ marginLeft: 'auto' }}>{navOverride}</div>}
+          </div>
+        )}
+
+        {/* Chord diagram strip */}
+        {showDiagrams && uniqueChords.length > 0 && (
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: 6,
+            paddingTop: 8, paddingBottom: 4,
+            borderTop: '1px solid var(--border)',
+            marginTop: 4,
+            overflowX: 'auto',
+          }}>
+            {uniqueChords.map(chord => (
+              <ChordDiagram key={chord} chord={chord} size={100} />
+            ))}
           </div>
         )}
       </div>

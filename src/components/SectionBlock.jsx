@@ -1,5 +1,6 @@
 import { transposeChord, sectionStyle } from '../music';
 import { parseLine } from '../parser';
+import TabBlock from './TabBlock';
 
 function ChordToken({ chord, text, transpose }) {
   const transposed = chord ? transposeChord(chord, transpose) : '';
@@ -71,6 +72,9 @@ export default function SectionBlock({ section, transpose = 0 }) {
       {section.lines.length > 0 && (
         <div style={{ paddingLeft: 36 }}>
           {section.lines.map((line, i) => {
+            if (typeof line === 'object' && line.type === 'tab') {
+              return <TabBlock key={i} data={line} />;
+            }
             if (!line.trim()) return <div key={i} style={{ height: 5 }} />;
 
             const parts = parseLine(line);

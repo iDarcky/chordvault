@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ChordPicker from './ChordPicker';
+import TabGridEditor from './TabGridEditor';
 
 const SECTION_TYPES = [
   'Intro', 'Verse', 'Pre Chorus', 'Chorus', 'Bridge',
@@ -13,6 +14,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [showModMenu, setShowModMenu] = useState(false);
   const [showMetaForm, setShowMetaForm] = useState(false);
+  const [showTabEditor, setShowTabEditor] = useState(false);
   const [chordAnchor, setChordAnchor] = useState(null);
   const [popupAnchor, setPopupAnchor] = useState(null);
   const [cueText, setCueText] = useState('');
@@ -126,10 +128,14 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     setShowModMenu(false);
   }, [insertAtCursor]);
 
-  // ─── Tab block insertion ───
+  // ─── Tab block insertion via grid editor ───
   const handleTabInsert = useCallback(() => {
-    const tabBlock = `{tab}\ne|----\nB|----\nG|----\nD|----\nA|----\nE|----\n{/tab}`;
-    insertAtCursor(tabBlock, { newLine: true });
+    setShowTabEditor(true);
+  }, []);
+
+  const handleTabEditorSave = useCallback((asciiBlock) => {
+    insertAtCursor(asciiBlock, { newLine: true });
+    setShowTabEditor(false);
   }, [insertAtCursor]);
 
   // ─── Metadata form ───
@@ -290,6 +296,14 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
       {showMetaForm && (
         <MetadataOverlay meta={parseMeta()} onSave={handleMetaSave} onClose={() => setShowMetaForm(false)} />
+      )}
+
+      {showTabEditor && (
+        <TabGridEditor
+          time={parseMeta().time}
+          onSave={handleTabEditorSave}
+          onClose={() => setShowTabEditor(false)}
+        />
       )}
     </div>
   );

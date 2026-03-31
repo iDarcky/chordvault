@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { parseSongMd } from '../../parser';
 import ChordPicker from './ChordPicker';
+import TabGridEditor from './TabGridEditor';
 
 const SECTION_TYPES = [
   'Intro', 'Verse', 'Pre Chorus', 'Chorus', 'Bridge',
@@ -36,6 +37,7 @@ export default function FormTab({ md, onChange }) {
   const [sections, setSections] = useState(() => parseInitialSections(md));
   const [chordTarget, setChordTarget] = useState(null); // { sectionIdx, cursorPos }
   const [chordAnchor, setChordAnchor] = useState(null);
+  const [tabEditorTarget, setTabEditorTarget] = useState(null); // sectionIdx
   const lyricRefs = useRef({});
 
   // ─── Generate md from form state whenever it changes ───
@@ -144,6 +146,17 @@ export default function FormTab({ md, onChange }) {
     });
   };
 
+  const handleTabEditorSave = (asciiBlock) => {
+    if (tabEditorTarget === null) return;
+    const ta = lyricRefs.current[tabEditorTarget];
+    const cursorPos = ta ? ta.selectionStart : sections[tabEditorTarget].lyrics.length;
+    const lyrics = sections[tabEditorTarget].lyrics;
+    const needsNewline = lyrics.length > 0 && !lyrics.endsWith('\n');
+    const insert = (needsNewline ? '\n' : '') + asciiBlock;
+    updateSection(tabEditorTarget, 'lyrics', lyrics.substring(0, cursorPos) + insert + lyrics.substring(cursorPos));
+    setTabEditorTarget(null);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* ─── Metadata Section ─── */}
@@ -229,13 +242,22 @@ export default function FormTab({ md, onChange }) {
             <div style={{ marginBottom: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <FieldLabel>Lyrics & Chords</FieldLabel>
-                <button onClick={(e) => openChordPicker(idx, e)} style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--chord)', fontSize: 12, fontWeight: 600,
-                  fontFamily: 'var(--fm)', padding: '2px 6px',
-                }}>
-                  + Chord
-                </button>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button onClick={(e) => openChordPicker(idx, e)} style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--chord)', fontSize: 12, fontWeight: 600,
+                    fontFamily: 'var(--fm)', padding: '2px 6px',
+                  }}>
+                    + Chord
+                  </button>
+                  <button onClick={() => setTabEditorTarget(idx)} style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--accent-text)', fontSize: 12, fontWeight: 600,
+                    fontFamily: 'var(--fm)', padding: '2px 6px',
+                  }}>
+                    + Tab
+                  </button>
+                </div>
               </div>
               <textarea
                 ref={el => { lyricRefs.current[idx] = el; }}
@@ -273,6 +295,15 @@ export default function FormTab({ md, onChange }) {
           anchorRect={chordAnchor}
           onSelect={handleChordSelect}
           onClose={() => setChordTarget(null)}
+        />
+      )}
+
+      {/* Tab grid editor overlay */}
+      {tabEditorTarget !== null && (
+        <TabGridEditor
+          time={meta.time || '4/4'}
+          onSave={handleTabEditorSave}
+          onClose={() => setTabEditorTarget(null)}
         />
       )}
     </div>
