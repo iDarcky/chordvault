@@ -92,8 +92,10 @@ export function parseSongMd(text) {
 
   // Trim trailing empty lines from each section
   for (const s of sections) {
-    while (s.lines.length && !s.lines[s.lines.length - 1].trim()) {
-      s.lines.pop();
+    while (s.lines.length) {
+      const last = s.lines[s.lines.length - 1];
+      if (typeof last === 'string' && !last.trim()) s.lines.pop();
+      else break;
     }
   }
 
