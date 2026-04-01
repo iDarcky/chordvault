@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ChordPicker from './ChordPicker';
 import TabGridEditor from './TabGridEditor';
+import { parseTabBlock } from '../../parser';
 
 const SECTION_TYPES = [
   'Intro', 'Verse', 'Pre Chorus', 'Chorus', 'Bridge',
@@ -15,6 +16,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
   const [showModMenu, setShowModMenu] = useState(false);
   const [showMetaForm, setShowMetaForm] = useState(false);
   const [showTabEditor, setShowTabEditor] = useState(false);
+  const [tabEditState, setTabEditState] = useState(null); // { initialTab, time, range: { start, end } } | null
   const [chordAnchor, setChordAnchor] = useState(null);
   const [popupAnchor, setPopupAnchor] = useState(null);
   const [cueText, setCueText] = useState('');
@@ -128,15 +130,52 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     setShowModMenu(false);
   }, [insertAtCursor]);
 
-  // ─── Tab block insertion via grid editor ───
+  // ─── Tab block insertion/editing via grid editor ───
   const handleTabInsert = useCallback(() => {
+    const ta = textareaRef.current;
+    if (!ta) { setTabEditState(null); setShowTabEditor(true); return; }
+    const cursorPos = ta.selectionStart;
+    const val = ta.value;
+
+    // Check if cursor is inside an existing {tab}...{/tab} block
+    const openRegex = /\{tab(?:,\s*[^}]*)?\}/g;
+    let editState = null;
+    let match;
+    while ((match = openRegex.exec(val)) !== null) {
+      const blockStart = match.index;
+      const closeIdx = val.indexOf('{/tab}', match.index + match[0].length);
+      if (closeIdx === -1) continue;
+      const blockEnd = closeIdx + '{/tab}'.length;
+      if (cursorPos >= blockStart && cursorPos <= blockEnd) {
+        // Cursor is inside this tab block — parse it for editing
+        const blockText = val.substring(match.index + match[0].length, closeIdx).trim();
+        const rawLines = blockText.split('\n').filter(l => l.trim());
+        const parsed = parseTabBlock(rawLines);
+        // Extract time from header
+        const timePart = match[0].match(/time:\s*(\S+)/);
+        const time = timePart ? timePart[1] : null;
+        parsed.time = time;
+        editState = { initialTab: parsed, time, range: { start: blockStart, end: blockEnd } };
+        break;
+      }
+    }
+
+    setTabEditState(editState);
     setShowTabEditor(true);
-  }, []);
+  }, [md]);
 
   const handleTabEditorSave = useCallback((asciiBlock) => {
-    insertAtCursor(asciiBlock, { newLine: true });
+    if (tabEditState?.range) {
+      // Replace existing tab block
+      const { start, end } = tabEditState.range;
+      const newVal = md.substring(0, start) + asciiBlock + md.substring(end);
+      onChange(newVal);
+    } else {
+      insertAtCursor(asciiBlock, { newLine: true });
+    }
+    setTabEditState(null);
     setShowTabEditor(false);
-  }, [insertAtCursor]);
+  }, [tabEditState, md, onChange, insertAtCursor]);
 
   // ─── Metadata form ───
   const handleMetaSave = useCallback((meta) => {
@@ -300,9 +339,11 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
       {showTabEditor && (
         <TabGridEditor
-          time={parseMeta().time}
+          key={tabEditState?.range?.start ?? 'new'}
+          initialTab={tabEditState?.initialTab}
+          time={tabEditState?.time || parseMeta().time}
           onSave={handleTabEditorSave}
-          onClose={() => setShowTabEditor(false)}
+          onClose={() => { setShowTabEditor(false); setTabEditState(null); }}
         />
       )}
     </div>

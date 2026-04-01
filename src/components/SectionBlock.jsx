@@ -23,8 +23,68 @@ function ChordToken({ chord, text, transpose }) {
   );
 }
 
-export default function SectionBlock({ section, transpose = 0 }) {
+function ModulateBadge({ semitones }) {
+  const sign = semitones > 0 ? '+' : '';
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      margin: '6px 0', padding: '4px 0',
+      borderTop: '1px dashed var(--accent)',
+      borderBottom: '1px dashed var(--accent)',
+    }}>
+      <span style={{
+        fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)',
+        color: 'var(--accent-text)', background: 'var(--accent-soft)',
+        borderRadius: 4, padding: '2px 8px',
+        letterSpacing: '0.04em', textTransform: 'uppercase',
+      }}>
+        Key Change: {sign}{semitones}
+      </span>
+    </div>
+  );
+}
+
+export default function SectionBlock({ section, transpose = 0, modulateOffset = 0 }) {
   const s = sectionStyle(section.type);
+
+  // Pre-compute lines with running modulate offset
+  const renderLines = () => {
+    let runningMod = 0;
+    return section.lines.map((line, i) => {
+      if (typeof line === 'object' && line.type === 'modulate') {
+        runningMod += line.semitones;
+        return <ModulateBadge key={i} semitones={line.semitones} />;
+      }
+      if (typeof line === 'object' && line.type === 'tab') {
+        return <TabBlock key={i} data={line} />;
+      }
+      if (!line.trim()) return <div key={i} style={{ height: 5 }} />;
+
+      const effectiveTranspose = transpose + modulateOffset + runningMod;
+      const parts = parseLine(line);
+      const hasChords = parts.some(p => p.chord);
+
+      if (!hasChords) {
+        return (
+          <div key={i} style={{
+            fontSize: 15, color: 'var(--text)',
+            lineHeight: '21px', marginBottom: 1,
+            whiteSpace: 'pre-wrap',
+          }}>
+            {line}
+          </div>
+        );
+      }
+
+      return (
+        <div key={i} style={{ marginBottom: 1, whiteSpace: 'pre-wrap', lineHeight: 1 }}>
+          {parts.map((p, j) => (
+            <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} />
+          ))}
+        </div>
+      );
+    });
+  };
 
   return (
     <div style={{
@@ -71,35 +131,7 @@ export default function SectionBlock({ section, transpose = 0 }) {
       {/* Chord/lyric lines */}
       {section.lines.length > 0 && (
         <div style={{ paddingLeft: 36 }}>
-          {section.lines.map((line, i) => {
-            if (typeof line === 'object' && line.type === 'tab') {
-              return <TabBlock key={i} data={line} />;
-            }
-            if (!line.trim()) return <div key={i} style={{ height: 5 }} />;
-
-            const parts = parseLine(line);
-            const hasChords = parts.some(p => p.chord);
-
-            if (!hasChords) {
-              return (
-                <div key={i} style={{
-                  fontSize: 15, color: 'var(--text)',
-                  lineHeight: '21px', marginBottom: 1,
-                  whiteSpace: 'pre-wrap',
-                }}>
-                  {line}
-                </div>
-              );
-            }
-
-            return (
-              <div key={i} style={{ marginBottom: 1, whiteSpace: 'pre-wrap', lineHeight: 1 }}>
-                {parts.map((p, j) => (
-                  <ChordToken key={j} chord={p.chord} text={p.text} transpose={transpose} />
-                ))}
-              </div>
-            );
-          })}
+          {renderLines()}
         </div>
       )}
     </div>

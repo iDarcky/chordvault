@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { parseSongMd, serializeTabBlock } from '../../parser';
+import { parseSongMd, serializeTabBlock, parseTabBlock } from '../../parser';
 import ChordPicker from './ChordPicker';
 import TabGridEditor from './TabGridEditor';
 
@@ -31,7 +31,12 @@ function parseInitialSections(md) {
     return song.sections.map(s => ({
       type: s.type,
       note: s.note || '',
-      lyrics: s.lines.map(l => typeof l === 'string' ? l : serializeTabBlock(l)).join('\n'),
+      lyrics: s.lines.map(l => {
+        if (typeof l === 'string') return l;
+        if (l.type === 'tab') return serializeTabBlock(l);
+        if (l.type === 'modulate') return `{modulate: ${l.semitones > 0 ? '+' : ''}${l.semitones}}`;
+        return '';
+      }).join('\n'),
     }));
   } catch { return []; }
 }
@@ -41,7 +46,7 @@ export default function FormTab({ md, onChange }) {
   const [sections, setSections] = useState(() => parseInitialSections(md));
   const [chordTarget, setChordTarget] = useState(null); // { sectionIdx, cursorPos }
   const [chordAnchor, setChordAnchor] = useState(null);
-  const [tabEditorTarget, setTabEditorTarget] = useState(null); // sectionIdx
+  const [tabEditorTarget, setTabEditorTarget] = useState(null); // { sectionIdx, initialTab?, replaceRange? }
   const lyricRefs = useRef({});
 
   // ─── Generate md from form state whenever it changes ───
@@ -151,13 +156,21 @@ export default function FormTab({ md, onChange }) {
   };
 
   const handleTabEditorSave = (asciiBlock) => {
-    if (tabEditorTarget === null) return;
-    const ta = lyricRefs.current[tabEditorTarget];
-    const cursorPos = ta ? ta.selectionStart : sections[tabEditorTarget].lyrics.length;
-    const lyrics = sections[tabEditorTarget].lyrics;
-    const needsNewline = lyrics.length > 0 && !lyrics.endsWith('\n');
-    const insert = (needsNewline ? '\n' : '') + asciiBlock;
-    updateSection(tabEditorTarget, 'lyrics', lyrics.substring(0, cursorPos) + insert + lyrics.substring(cursorPos));
+    if (!tabEditorTarget) return;
+    const { sectionIdx, replaceRange } = tabEditorTarget;
+    const lyrics = sections[sectionIdx].lyrics;
+    if (replaceRange) {
+      // Replace existing tab block
+      const newLyrics = lyrics.substring(0, replaceRange.start) + asciiBlock + lyrics.substring(replaceRange.end);
+      updateSection(sectionIdx, 'lyrics', newLyrics);
+    } else {
+      // Insert new tab block
+      const ta = lyricRefs.current[sectionIdx];
+      const cursorPos = ta ? ta.selectionStart : lyrics.length;
+      const needsNewline = lyrics.length > 0 && !lyrics.endsWith('\n');
+      const insert = (needsNewline ? '\n' : '') + asciiBlock;
+      updateSection(sectionIdx, 'lyrics', lyrics.substring(0, cursorPos) + insert + lyrics.substring(cursorPos));
+    }
     setTabEditorTarget(null);
   };
 
@@ -254,7 +267,7 @@ export default function FormTab({ md, onChange }) {
                   }}>
                     + Chord
                   </button>
-                  <button onClick={() => setTabEditorTarget(idx)} style={{
+                  <button onClick={() => setTabEditorTarget({ sectionIdx: idx })} style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     color: 'var(--accent-text)', fontSize: 12, fontWeight: 600,
                     fontFamily: 'var(--fm)', padding: '2px 6px',
@@ -263,6 +276,40 @@ export default function FormTab({ md, onChange }) {
                   </button>
                 </div>
               </div>
+              {/* Edit buttons for existing tab blocks */}
+              {(() => {
+                const tabBlocks = [];
+                const openRegex = /\{tab(?:,\s*[^}]*)?\}/g;
+                let m;
+                while ((m = openRegex.exec(sec.lyrics)) !== null) {
+                  const closeIdx = sec.lyrics.indexOf('{/tab}', m.index + m[0].length);
+                  if (closeIdx !== -1) {
+                    tabBlocks.push({ start: m.index, end: closeIdx + '{/tab}'.length, header: m[0] });
+                  }
+                }
+                if (tabBlocks.length === 0) return null;
+                return (
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 4 }}>
+                    {tabBlocks.map((tb, ti) => (
+                      <button key={ti} onClick={() => {
+                        const blockText = sec.lyrics.substring(tb.start + tb.header.length, tb.end - '{/tab}'.length).trim();
+                        const rawLines = blockText.split('\n').filter(l => l.trim());
+                        const parsed = parseTabBlock(rawLines);
+                        const timePart = tb.header.match(/time:\s*(\S+)/);
+                        parsed.time = timePart ? timePart[1] : null;
+                        setTabEditorTarget({ sectionIdx: idx, initialTab: parsed, replaceRange: { start: tb.start, end: tb.end } });
+                      }} style={{
+                        background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.2)',
+                        borderRadius: 5, padding: '2px 8px', cursor: 'pointer',
+                        color: 'var(--accent-text)', fontSize: 10, fontWeight: 600,
+                        fontFamily: 'var(--fm)',
+                      }}>
+                        Edit Tab {tabBlocks.length > 1 ? ti + 1 : ''}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
               <textarea
                 ref={el => { lyricRefs.current[idx] = el; }}
                 value={sec.lyrics}
@@ -305,7 +352,9 @@ export default function FormTab({ md, onChange }) {
       {/* Tab grid editor overlay */}
       {tabEditorTarget !== null && (
         <TabGridEditor
-          time={meta.time || '4/4'}
+          key={tabEditorTarget.replaceRange?.start ?? 'new'}
+          initialTab={tabEditorTarget.initialTab}
+          time={tabEditorTarget.initialTab?.time || meta.time || '4/4'}
           onSave={handleTabEditorSave}
           onClose={() => setTabEditorTarget(null)}
         />

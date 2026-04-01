@@ -471,7 +471,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
         {/* Bottom bar */}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={cancelBtnStyle}>Cancel</button>
-          <button onClick={handleInsert} style={insertBtnStyle}>Insert Tab</button>
+          <button onClick={handleInsert} style={insertBtnStyle}>{initialTab ? 'Save Tab' : 'Insert Tab'}</button>
         </div>
       </div>
     </div>
