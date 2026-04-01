@@ -17,24 +17,45 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   // When capo is set, chords render as shapes (shifted down by capo)
   const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
 
+  // Pre-compute cumulative modulate offsets per section
+  const sectionModOffsets = useMemo(() => {
+    const offsets = [];
+    const acc = { total: 0 };
+    for (const sec of song.sections) {
+      offsets.push(acc.total);
+      for (const line of sec.lines) {
+        if (typeof line === 'object' && line.type === 'modulate') {
+          acc.total += line.semitones;
+        }
+      }
+    }
+    return offsets;
+  }, [song.sections]);
+
   // Collect unique chord names from all sections (transposed)
   const uniqueChords = useMemo(() => {
     if (!showDiagrams) return [];
     const seen = new Set();
-    for (const sec of song.sections) {
+    for (let si = 0; si < song.sections.length; si++) {
+      const sec = song.sections[si];
+      let runningMod = sectionModOffsets[si] || 0;
       for (const line of sec.lines) {
+        if (typeof line === 'object' && line.type === 'modulate') {
+          runningMod += line.semitones;
+          continue;
+        }
         if (typeof line !== 'string') continue;
         const parts = parseLine(line);
         for (const p of parts) {
           if (p.chord) {
-            const transposed = transposeChord(p.chord, chordTranspose);
+            const transposed = transposeChord(p.chord, chordTranspose + runningMod);
             seen.add(transposed);
           }
         }
       }
     }
     return [...seen];
-  }, [showDiagrams, song.sections, chordTranspose]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showDiagrams, song.sections, chordTranspose, sectionModOffsets]);
 
   const isExplicit2Col = cols === 2;
   const mid = (isExplicit2Col || cols === 'auto')
@@ -209,13 +230,13 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
       >
         <div>
           {song.sections.slice(0, mid).map((sec, i) => (
-            <SectionBlock key={i} section={sec} transpose={chordTranspose} />
+            <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} />
           ))}
         </div>
         {(isExplicit2Col || cols === 'auto') && (
           <div>
             {song.sections.slice(mid).map((sec, i) => (
-              <SectionBlock key={i} section={sec} transpose={chordTranspose} />
+              <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[mid + i] || 0} />
             ))}
           </div>
         )}

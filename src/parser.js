@@ -83,6 +83,13 @@ export function parseSongMd(text) {
       continue;
     }
 
+    // Modulate marker detection
+    const modMatch = line.match(/^\{modulate:\s*([+-]?\d+)\}$/);
+    if (modMatch) {
+      if (current) current.lines.push({ type: 'modulate', semitones: parseInt(modMatch[1], 10) });
+      continue;
+    }
+
     if (current) current.lines.push(line);
   }
   if (inTab && tabAccum && current) {
@@ -138,7 +145,12 @@ export function songToMd(song) {
   for (const sec of song.sections) {
     md += `## ${sec.type}\n`;
     if (sec.note) md += `> ${sec.note}\n`;
-    md += sec.lines.map(l => typeof l === 'string' ? l : serializeTabBlock(l)).join('\n') + '\n\n';
+    md += sec.lines.map(l => {
+      if (typeof l === 'string') return l;
+      if (l.type === 'tab') return serializeTabBlock(l);
+      if (l.type === 'modulate') return `{modulate: ${l.semitones > 0 ? '+' : ''}${l.semitones}}`;
+      return '';
+    }).join('\n') + '\n\n';
   }
 
   return md.trim() + '\n';
