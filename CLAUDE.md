@@ -65,6 +65,8 @@ src/
 - **Section types** each have a color scheme defined in `music.js` (Intro, Verse, Chorus, Bridge, etc.)
 - **Transpose** is applied at render time via `transposeChord()` — stored data is always in the original key
 - **Tab blocks** are parsed into structured objects `{ type: 'tab', strings, time, raw }` — `raw` preserves original ASCII for round-trip fidelity
+- **Modulate markers** are parsed into `{ type: 'modulate', semitones: N }` objects in `section.lines[]` — cumulative offsets computed per section in ChartView, applied mid-section in SectionBlock with visual key-change badges
+- **Tab editing** — VisualTab detects cursor inside `{tab}...{/tab}` to open TabGridEditor pre-loaded; FormTab shows "Edit Tab" buttons per tab block; saves replace in-place
 - **Editor** — `md` state lives in Editor.jsx shell; all tabs receive `md` + `onChange`; switching tabs preserves content
 - **Split-screen preview** — `useSyncExternalStore` with `window.matchMedia('(min-width: 768px)')` — side-by-side on wide, toggle on narrow
 
@@ -102,7 +104,17 @@ E|-----------|
 {/tab}
 [Am]More [F]lyrics {!inline note}
 {modulate: +2}
+[Bm]Chords after modulate are shifted +2 semitones
 ```
+
+## Modulate Format
+
+Modulate markers shift all subsequent chords by N semitones. Parsed into `{ type: 'modulate', semitones: N }` in `section.lines[]`.
+
+- Cumulative: multiple `{modulate}` markers stack across sections
+- Applied at render time on top of user transpose and capo
+- Visual "Key Change: +N" badge rendered at marker position
+- Round-trip: serialized back to `{modulate: +N}` in `songToMd()`
 
 ## Tab Block Format
 
@@ -134,11 +146,14 @@ Use `var(--name)` instead of hardcoded colors:
 - Imports between components use relative paths (`../music`, `../parser`, etc.)
 - Song row elements in Library use `<div role="button">` (not `<button>`) to allow nested interactive elements
 - Tab objects in `section.lines[]` are detected via `typeof line === 'object' && line.type === 'tab'`
-- Always check line type before calling `.trim()` on section lines (can be string or tab object)
+- Modulate objects in `section.lines[]` are detected via `typeof line === 'object' && line.type === 'modulate'`
+- Always check line type before calling `.trim()` on section lines (can be string, tab object, or modulate object)
 
 ## Known Gotchas
 
-- `section.lines[]` can contain **strings** (normal lines) OR **tab objects** — always type-check before calling string methods
+- `section.lines[]` can contain **strings** (normal lines), **tab objects**, OR **modulate objects** — always type-check before calling string methods
 - `chordTranspose` must be computed **before** any `useMemo` that references it (temporal dead zone)
-- `parseInitialSections` in FormTab uses `serializeTabBlock` to convert tab objects to ASCII — do not use raw `.join('\n')`
+- `parseInitialSections` in FormTab serializes both tab and modulate objects — do not use raw `.join('\n')`
 - svguitar renders imperatively into a DOM ref — use `useRef` + `useEffect`, copy ref to local var in cleanup
+- TabGridEditor uses `key` prop for remount when editing different tabs — do not add deps to the `initialTab` useEffect
+- ChartView computes `sectionModOffsets` via `useMemo` — uses `acc` object instead of `let` variable to satisfy React compiler immutability rules

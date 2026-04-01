@@ -1,7 +1,7 @@
 # ChordVault — Product Specification
 ### Worship Chord Chart PWA for Small-to-Medium Churches
-**Version:** Draft 1.1
-**Last updated:** March 2026
+**Version:** Draft 1.2
+**Last updated:** April 2026
 
 ---
 
@@ -191,9 +191,12 @@ Each type has a unique color, border, and circle label:
 {
   type: string,        // "Verse 1", "Chorus", etc.
   note: string,        // Section-level band cue
-  lines: string[],     // Raw lines with [Chord] and {!note} syntax
-  modulate: number,    // Semitones to shift from this section onward
+  lines: (string | TabObject | ModulateObject)[],
+                       // Mixed array: raw lyric strings, tab blocks, modulate markers
 }
+
+// TabObject: { type: 'tab', strings: [{note, content}], time, raw: [] }
+// ModulateObject: { type: 'modulate', semitones: number }
 ```
 
 ### Setlist
@@ -340,7 +343,7 @@ to type brackets, curly braces, or YAML manually.
 | 📢 | Band Cue | Text input popup → inserts `> cue text` on line below current section header. |
 | 💬 | Inline Note | Text input popup → inserts `{!note text}` at cursor position on current lyric line. |
 | ↑ | Modulate | Picker: +1 to +7 semitones → inserts `{modulate: +N}` at start of current section. |
-| ┃ | Tab Block | Inserts `{tab}` + 6 empty tab lines (e/B/G/D/A/E) + `{/tab}` at cursor. |
+| ┃ | Tab Block | Opens interactive tab grid editor. If cursor is inside an existing `{tab}...{/tab}` block, opens pre-loaded for editing; otherwise inserts new. |
 | ⓘ | Metadata | Opens a form overlay with fields for title, artist, key, tempo, time, CCLI, tags, spotify, youtube. Writes/updates the YAML frontmatter block without user touching `---` syntax. |
 
 **Chord picker detail:**
@@ -996,7 +999,7 @@ SYNC
 
 ---
 
-## 10. Modulation Support
+## 10. Modulation Support ✅
 
 ### Format
 ```markdown
@@ -1005,17 +1008,14 @@ SYNC
 [Bb]I will build my [F]life upon Your love
 ```
 
-### Rendering Logic
-1. Parser reads `{modulate: +N}` at start of section
-2. From this section onward, all chords get an additional +N
-   semitones applied on top of any user transpose
-3. Multiple modulations stack:
-   - Base key: A, user transpose: +2 → C
-   - Section with {modulate: +1} → C# (all three add up)
-4. Visual indicator rendered between sections:
-   "↑ Key change: C → C#" banner with accent color
+### Implementation (done)
+1. **Parser** (`parser.js`): `{modulate: +N}` lines parsed into `{ type: 'modulate', semitones: N }` objects in `section.lines[]`. Round-trip serialization in `songToMd()`.
+2. **ChartView**: Pre-computes `sectionModOffsets` array — cumulative modulate total from all prior sections. Passes `modulateOffset` prop to each `SectionBlock`. Chord diagram collection accounts for modulate offsets.
+3. **SectionBlock**: Tracks running modulate within the section. Chords after a marker use `transpose + modulateOffset + runningModulate`. Renders "Key Change: +N" badge with accent-colored dashed borders at each marker.
+4. **Multiple modulations stack**: Base key: A, user transpose: +2 → C, section with `{modulate: +1}` → C# (all add up). Offsets accumulate across sections.
+5. **FormTab**: Modulate objects serialized alongside tab objects in `parseInitialSections` for round-trip fidelity.
 
-### UI Behavior
+### UI Behavior (future enhancements)
 - In the structure ribbon, modulated sections show a small
   arrow indicator
 - The key display in the header updates as you scroll past
@@ -1129,7 +1129,7 @@ SYNC
 - [ ] Import conversion preview before saving
 - [ ] Rehearsal vs Live mode (separate sub-modes)
 - [ ] Inline notes {!note} syntax and rendering
-- [ ] Modulation markers {modulate: +N} rendering
+- [x] Modulation markers {modulate: +N} parsing, rendering, cumulative stacking, key-change badges
 - [ ] Duplicate section handling (full/compact/first-chords-only)
 - [ ] Chords-only and lyrics-only display modes
 - [ ] Nashville number system toggle
@@ -1150,6 +1150,7 @@ SYNC
 - [x] Tab grid editor — interactive grid with duration picker (whole/half/quarter/8th/16th/dotted), auto-advance cursor, chord mode, technique buttons, add/remove measures
 - [x] Tab insert in Visual editor — toolbar "Tab Block" button opens grid editor
 - [x] Tab insert in Form editor — "+ Tab" button per section opens grid editor
+- [x] Tab editing — edit existing tab blocks visually: VisualTab detects cursor inside `{tab}...{/tab}` to open pre-loaded grid editor; FormTab shows "Edit Tab" buttons per block; saves replace in-place
 - [x] Chord diagrams — svguitar (MIT) renders fingering charts for ~50 worship chords; "Diagrams" toggle in ChartView shows strip of all song chords
 - [ ] Drummer view: bar counts, dynamics-only layout
 - [ ] Piano chord voicing reference
