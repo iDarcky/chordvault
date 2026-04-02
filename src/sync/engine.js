@@ -108,8 +108,6 @@ export function createSyncEngine(onStatusChange) {
 
     // Pull setlists from Setlists subfolder
     const setlistFiles = await provider.listFiles(SETLISTS_FOLDER);
-    console.log('[sync] setlist files in Drive:', setlistFiles.length, setlistFiles.map(f => f.name));
-    console.log('[sync] setlistManifest entries:', Object.keys(slManifest).length);
     for (const file of setlistFiles) {
       if (!file.name.endsWith('.json')) continue;
 
@@ -127,13 +125,10 @@ export function createSyncEngine(onStatusChange) {
         ? new Date(manifestEntry.lastSyncedTime).getTime()
         : 0;
 
-      console.log(`[sync] setlist "${file.name}": remoteTime=${remoteTime}, lastSyncedTime=${lastSyncedTime}, willPull=${remoteTime > lastSyncedTime}`);
-
       if (remoteTime > lastSyncedTime) {
         const content = await provider.downloadFile(file.id);
         try {
           const remoteSetlist = JSON.parse(content);
-          console.log('[sync] pulled setlist:', remoteSetlist.name, 'id:', remoteSetlist.id);
           if (setlistId) {
             // Update existing setlist (or re-add if missing from local state)
             const existingIdx = updatedSetlists.findIndex(sl => sl.id === setlistId);
@@ -160,11 +155,10 @@ export function createSyncEngine(onStatusChange) {
           };
           setlistsChanged = true;
         } catch (err) {
-          console.error('[sync] failed to parse setlist JSON:', file.name, err);
+          console.error(`Failed to parse setlist JSON "${file.name}":`, err);
         }
       }
     }
-    console.log('[sync] setlistsChanged:', setlistsChanged, 'updatedSetlists count:', updatedSetlists.length);
 
     if (songsChanged) await updateSyncManifest(manifest);
     if (setlistsChanged) await updateSetlistManifest(slManifest);
