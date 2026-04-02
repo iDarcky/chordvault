@@ -200,7 +200,11 @@ export function createGoogleDriveProvider() {
     },
 
     async downloadFile(fileId) {
-      return api(`/files/${fileId}?alt=media`);
+      const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!r.ok) throw new Error(`Google Drive download error: ${r.status} ${await r.text()}`);
+      return r.text();
     },
 
     async deleteFile(fileId) {
