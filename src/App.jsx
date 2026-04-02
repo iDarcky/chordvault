@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { parseSongMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
+import { createSyncEngine } from './sync/engine';
+import { getSyncState } from './sync/tokens';
+import Welcome from './components/Welcome';
+import Onboarding from './components/Onboarding';
+import Dashboard from './components/Dashboard';
 import Library from './components/Library';
 import ChartView from './components/ChartView';
 import Editor from './components/Editor';
@@ -14,11 +19,30 @@ import { exportSetlistZip, importSetlistZip } from './setlist-io';
 export default function App() {
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
-  const [view, setView] = useState('library');
+  const [view, setView] = useState('loading');
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
+  const syncEngineRef = useRef(null);
+
+  // Initialize sync engine
+  if (syncEngineRef.current == null) {
+    syncEngineRef.current = createSyncEngine((status) => {
+      setSyncState(prev => ({ ...prev, ...status }));
+    });
+  }
+
+  const triggerSync = useCallback(async () => {
+    const state = await getSyncState();
+    if (!state?.activeProvider) return;
+    const result = await syncEngineRef.current.fullSync(songs, setlists);
+    if (result.changed) {
+      setSongs(result.songs);
+      setSetlists(result.setlists);
+    }
+  }, [songs, setlists]);
 
   // Load data on mount
   useEffect(() => {
@@ -42,14 +66,54 @@ export default function App() {
       const savedSettings = await loadSettings();
       setSettings(savedSettings);
 
+      // Determine initial view based on onboarding state
+      if (savedSongs.length === 0 && !savedSettings.onboardingComplete) {
+        setView('welcome');
+      } else if (!savedSettings.onboardingComplete) {
+        // Existing user who predates onboarding — skip it, go to home
+        savedSettings.onboardingComplete = true;
+        setSettings(savedSettings);
+        await saveSettings(savedSettings);
+        setView('home');
+      } else {
+        setView('home');
+      }
+
       setLoaded(true);
+
+      // Initialize sync state from storage
+      const storedSync = await getSyncState();
+      if (storedSync?.activeProvider) {
+        setSyncState({ state: 'idle', lastSync: storedSync.lastSyncTime, provider: storedSync.activeProvider });
+      }
     })();
   }, []);
 
-  // Auto-save when data changes
-  useEffect(() => { if (loaded) saveSongs(songs); }, [songs, loaded]);
-  useEffect(() => { if (loaded) saveSetlists(setlists); }, [setlists, loaded]);
+  // Auto-save when data changes + debounced sync push
+  useEffect(() => {
+    if (loaded) {
+      saveSongs(songs);
+      syncEngineRef.current?.debouncedPush(songs, setlists);
+    }
+  }, [songs, loaded]);
+  useEffect(() => {
+    if (loaded) {
+      saveSetlists(setlists);
+      syncEngineRef.current?.debouncedPush(songs, setlists);
+    }
+  }, [setlists, loaded]);
   useEffect(() => { if (loaded && settings) saveSettings(settings); }, [settings, loaded]);
+
+  // Sync on tab focus
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && loaded) {
+        triggerSync();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [loaded, triggerSync]);
 
   // Apply theme to document
   useEffect(() => {
@@ -58,6 +122,7 @@ export default function App() {
   }, [settings?.theme]);
 
   // Navigation handlers
+  const goHome = () => { setView('home'); setCurrentSong(null); setCurrentSetlist(null); };
   const goLibrary = () => { setView('library'); setCurrentSong(null); setCurrentSetlist(null); };
   const goChart = (song) => { setCurrentSong(song); setView('chart'); };
   const goEditor = (song = null) => { setCurrentSong(song); setView('editor'); };
@@ -154,20 +219,60 @@ export default function App() {
 
   return (
     <>
+      {view === 'welcome' && (
+        <Welcome
+          onGetStarted={() => {
+            const demos = DEMO_SONGS_MD.map(md => ({
+              ...parseSongMd(md),
+              id: generateId(),
+            }));
+            setSongs(demos);
+            saveSongs(demos);
+            setView('onboarding');
+          }}
+          onImport={(mdText) => {
+            handleImportSong(mdText);
+            setSettings(prev => ({ ...prev, onboardingComplete: true }));
+            setView('home');
+          }}
+        />
+      )}
+      {view === 'onboarding' && (
+        <Onboarding
+          onComplete={() => {
+            setSettings(prev => ({ ...prev, onboardingComplete: true }));
+            setView('home');
+          }}
+        />
+      )}
+      {view === 'home' && (
+        <Dashboard
+          songs={songs}
+          setlists={setlists}
+          syncState={syncState}
+          onSelectSong={goChart}
+          onNewSong={() => goEditor()}
+          onImportSong={handleImportSong}
+          onNewSetlist={() => goSetlistBuild()}
+          onViewSetlist={goSetlistView}
+          onPlaySetlist={goSetlistPlay}
+          onGoLibrary={goLibrary}
+          onGoSetlists={() => { setView('library'); }}
+          onGoSettings={goSettings}
+          onSyncNow={triggerSync}
+        />
+      )}
       {view === 'library' && (
         <Library
           songs={songs}
           setlists={setlists}
+          onBack={goHome}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
           onImportSong={handleImportSong}
-          onExportSong={() => {}}
-          onExportAll={() => {}}
           onNewSetlist={() => goSetlistBuild()}
-          onEditSetlist={goSetlistBuild}
           onPlaySetlist={goSetlistPlay}
           onViewSetlist={goSetlistView}
-          onExportSetlist={handleExportSetlist}
           onImportSetlist={handleImportSetlist}
           onSettings={goSettings}
         />
@@ -221,10 +326,13 @@ export default function App() {
         <Settings
           settings={settings}
           onUpdate={setSettings}
-          onBack={goLibrary}
+          onBack={goHome}
           onClearAll={handleClearAll}
           songCount={songs.length}
           setlistCount={setlists.length}
+          syncState={syncState}
+          onSyncStateChange={setSyncState}
+          onSyncNow={triggerSync}
         />
       )}
     </>

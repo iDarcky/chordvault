@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SyncSettings from './settings/SyncSettings';
 
 const labelStyle = {
   fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
@@ -22,7 +23,7 @@ const activeBtn = (active) => ({
   background: active ? 'var(--accent-soft)' : 'var(--surface)',
 });
 
-export default function Settings({ settings, onUpdate, onBack, onClearAll, songCount, setlistCount }) {
+export default function Settings({ settings, onUpdate, onBack, onClearAll, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
   const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
@@ -126,6 +127,13 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
             ))}
           </div>
         </div>
+
+        {/* Cloud Sync */}
+        <SyncSettings
+          syncState={syncState || { state: 'idle', lastSync: null, provider: null }}
+          onSyncStateChange={onSyncStateChange}
+          onSyncNow={onSyncNow}
+        />
 
         {/* Data */}
         <div style={{ marginBottom: 24 }}>

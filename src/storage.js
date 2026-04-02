@@ -3,6 +3,7 @@ import { get, set, del } from 'idb-keyval';
 const SONGS_KEY = 'chordvault:songs';
 const SETLISTS_KEY = 'chordvault:setlists';
 const SETTINGS_KEY = 'chordvault:settings';
+const SYNC_KEY = 'chordvault:sync';
 
 export async function loadSongs() {
   try {
@@ -34,6 +35,7 @@ export const DEFAULT_SETTINGS = {
   defaultFontSize: 'M',
   pedalNext: 'ArrowRight',
   pedalPrev: 'ArrowLeft',
+  onboardingComplete: false,
 };
 
 export async function loadSettings() {
@@ -49,8 +51,21 @@ export async function saveSettings(settings) {
   await set(SETTINGS_KEY, settings);
 }
 
+export async function loadSyncState() {
+  try {
+    return (await get(SYNC_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveSyncState(state) {
+  await set(SYNC_KEY, state);
+}
+
 export async function clearAll() {
   await del(SONGS_KEY);
   await del(SETLISTS_KEY);
   await del(SETTINGS_KEY);
+  await del(SYNC_KEY);
 }

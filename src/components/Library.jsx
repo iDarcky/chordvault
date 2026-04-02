@@ -3,9 +3,9 @@ import { transposeKey, sectionStyle } from '../music';
 import { songToMd } from '../parser';
 
 export default function Library({
-  songs, setlists,
-  onSelectSong, onNewSong, onImportSong, onExportSong, onExportAll,
-  onNewSetlist, onEditSetlist, onPlaySetlist, onViewSetlist, onExportSetlist, onImportSetlist, onSettings,
+  songs, setlists, onBack,
+  onSelectSong, onNewSong, onImportSong,
+  onNewSetlist, onPlaySetlist, onViewSetlist, onImportSetlist, onSettings,
 }) {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('songs');
@@ -73,6 +73,15 @@ export default function Library({
           justifyContent: 'space-between', marginBottom: 16,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {onBack && (
+              <button onClick={onBack} style={{
+                background: 'none', border: 'none', color: '#94a3b8',
+                cursor: 'pointer', padding: '4px 2px', fontSize: 18,
+                display: 'flex', alignItems: 'center',
+              }}>
+                &#8592;
+              </button>
+            )}
             <div style={{
               width: 38, height: 38, borderRadius: 10,
               background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
