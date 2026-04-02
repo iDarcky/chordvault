@@ -40,6 +40,7 @@ export function createDropboxProvider() {
     displayName: 'Dropbox',
 
     async connect() {
+      if (!DROPBOX_CLIENT_ID) throw new Error('Dropbox is not configured. Set VITE_DROPBOX_CLIENT_ID.');
       const codeVerifier = generateCodeVerifier();
       const codeChallenge = await generateCodeChallenge(codeVerifier);
 

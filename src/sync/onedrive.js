@@ -55,6 +55,7 @@ export function createOneDriveProvider() {
     displayName: 'OneDrive',
 
     async connect() {
+      if (!MICROSOFT_CLIENT_ID) throw new Error('OneDrive is not configured. Set VITE_MICROSOFT_CLIENT_ID.');
       const msal = await loadMsal();
       const response = await msal.loginPopup({
         scopes: MICROSOFT_SCOPES,

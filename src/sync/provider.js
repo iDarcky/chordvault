@@ -1,6 +1,7 @@
 import { createGoogleDriveProvider } from './google-drive';
 import { createDropboxProvider } from './dropbox';
 import { createOneDriveProvider } from './onedrive';
+import { isProviderConfigured } from './constants';
 
 /**
  * Provider interface — each provider must implement:
@@ -40,8 +41,8 @@ export function getProvider(name) {
 
 export function getAvailableProviders() {
   return [
-    { name: 'google-drive', displayName: 'Google Drive', icon: '\uD83D\uDCBE' },
-    { name: 'dropbox', displayName: 'Dropbox', icon: '\uD83D\uDCE6' },
-    { name: 'onedrive', displayName: 'OneDrive', icon: '\u2601\uFE0F' },
+    { name: 'google-drive', displayName: 'Google Drive', icon: '\uD83D\uDCBE', configured: isProviderConfigured('google-drive') },
+    { name: 'dropbox', displayName: 'Dropbox', icon: '\uD83D\uDCE6', configured: isProviderConfigured('dropbox') },
+    { name: 'onedrive', displayName: 'OneDrive', icon: '\u2601\uFE0F', configured: isProviderConfigured('onedrive') },
   ];
 }

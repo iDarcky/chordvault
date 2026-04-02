@@ -38,6 +38,7 @@ export function createGoogleDriveProvider() {
     displayName: 'Google Drive',
 
     async connect() {
+      if (!GOOGLE_CLIENT_ID) throw new Error('Google Drive is not configured. Set VITE_GOOGLE_CLIENT_ID.');
       await loadGsi();
       return new Promise((resolve, reject) => {
         tokenClient = window.google.accounts.oauth2.initTokenClient({

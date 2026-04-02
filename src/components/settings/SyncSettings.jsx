@@ -29,10 +29,16 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
       const tokens = await provider.connect();
       await setActiveProvider(providerName, tokens);
       onSyncStateChange({ state: 'idle', lastSync: null, provider: providerName });
-      // Trigger initial sync
       if (onSyncNow) onSyncNow();
     } catch (err) {
-      setError(err.message || 'Failed to connect');
+      const msg = err.message || '';
+      if (msg.includes('popup') || msg.includes('closed')) {
+        setError('Sign-in was cancelled. Please try again.');
+      } else if (msg.includes('not configured')) {
+        setError(msg);
+      } else {
+        setError(msg || 'Failed to connect. Please try again.');
+      }
     } finally {
       setConnecting(null);
     }
@@ -52,6 +58,7 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
 
   const providers = getAvailableProviders();
   const connected = syncState.provider;
+  const anyConfigured = providers.some(p => p.configured);
 
   return (
     <div style={{ marginBottom: 24 }}>
@@ -106,23 +113,35 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
             Connect a cloud provider to sync songs across devices.
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {providers.map(p => (
-              <button
-                key={p.name}
-                onClick={() => handleConnect(p.name)}
-                disabled={!!connecting}
-                style={{
-                  ...cB,
-                  padding: '10px 16px',
-                  gap: 6,
-                  opacity: connecting && connecting !== p.name ? 0.5 : 1,
-                }}
-              >
-                <span>{p.icon}</span>
-                {connecting === p.name ? 'Connecting...' : p.displayName}
-              </button>
-            ))}
+            {providers.map(p => {
+              const disabled = !p.configured || !!connecting;
+              return (
+                <button
+                  key={p.name}
+                  onClick={() => handleConnect(p.name)}
+                  disabled={disabled}
+                  title={!p.configured ? 'Not configured' : undefined}
+                  style={{
+                    ...cB,
+                    padding: '10px 16px',
+                    gap: 6,
+                    opacity: !p.configured ? 0.35 : (connecting && connecting !== p.name ? 0.5 : 1),
+                    cursor: !p.configured ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  <span>{p.icon}</span>
+                  {connecting === p.name ? 'Connecting...' : p.displayName}
+                </button>
+              );
+            })}
           </div>
+          {!anyConfigured && (
+            <div style={{
+              fontSize: 11, color: 'var(--text-dim)', marginTop: 8, lineHeight: 1.5,
+            }}>
+              No cloud providers are configured. Set OAuth client IDs in the environment to enable sync.
+            </div>
+          )}
         </div>
       )}
 
