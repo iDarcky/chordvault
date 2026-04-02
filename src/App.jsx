@@ -81,10 +81,23 @@ export default function App() {
 
       setLoaded(true);
 
-      // Initialize sync state from storage
+      // Initialize sync state from storage and trigger initial pull
       const storedSync = await getSyncState();
       if (storedSync?.activeProvider) {
         setSyncState({ state: 'idle', lastSync: storedSync.lastSyncTime, provider: storedSync.activeProvider });
+        // Pull from cloud on startup — but we need to pass the just-loaded data directly
+        // since React state (songs/setlists) hasn't settled yet
+        const engine = syncEngineRef.current;
+        if (engine) {
+          const currentSongs = savedSongs.length > 0 ? savedSongs : [];
+          const currentSetlists = savedSetlists || [];
+          engine.fullSync(currentSongs, currentSetlists).then(result => {
+            if (result.changed) {
+              setSongs(result.songs);
+              setSetlists(result.setlists);
+            }
+          }).catch(err => console.error('Startup sync failed:', err));
+        }
       }
     })();
   }, []);
