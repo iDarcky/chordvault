@@ -14,6 +14,7 @@ import SetlistBuilder from './components/SetlistBuilder';
 import SetlistPlayer from './components/SetlistPlayer';
 import Settings from './components/Settings';
 import SetlistOverview from './components/SetlistOverview';
+import AppShell from './components/AppShell';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
 export default function App() {
@@ -245,37 +246,66 @@ export default function App() {
           }}
         />
       )}
-      {view === 'home' && (
-        <Dashboard
+      {(view === 'home' || view === 'library' || view === 'settings') && settings && (
+        <AppShell
+          section={view === 'home' ? 'home' : view === 'library' ? 'library' : 'settings'}
           songs={songs}
           setlists={setlists}
           syncState={syncState}
-          onSelectSong={goChart}
-          onNewSong={() => goEditor()}
-          onImportSong={handleImportSong}
-          onNewSetlist={() => goSetlistBuild()}
-          onViewSetlist={goSetlistView}
-          onPlaySetlist={goSetlistPlay}
-          onGoLibrary={goLibrary}
-          onGoSetlists={() => { setView('library'); }}
-          onGoSettings={goSettings}
-          onSyncNow={triggerSync}
-        />
-      )}
-      {view === 'library' && (
-        <Library
-          songs={songs}
-          setlists={setlists}
-          onBack={goHome}
-          onSelectSong={goChart}
-          onNewSong={() => goEditor()}
-          onImportSong={handleImportSong}
-          onNewSetlist={() => goSetlistBuild()}
-          onPlaySetlist={goSetlistPlay}
-          onViewSetlist={goSetlistView}
-          onImportSetlist={handleImportSetlist}
+          onHome={goHome}
+          onLibrary={goLibrary}
           onSettings={goSettings}
-        />
+          onSyncNow={triggerSync}
+          onSelectSong={goChart}
+          onViewSetlist={goSetlistView}
+          onPlaySetlist={goSetlistPlay}
+        >
+          {view === 'home' && (
+            <Dashboard
+              songs={songs}
+              setlists={setlists}
+              settings={settings}
+              onUpdateSettings={setSettings}
+              onSelectSong={goChart}
+              onNewSong={() => goEditor()}
+              onImportSong={handleImportSong}
+              onNewSetlist={() => goSetlistBuild()}
+              onViewSetlist={goSetlistView}
+              onPlaySetlist={goSetlistPlay}
+              onGoLibrary={goLibrary}
+            />
+          )}
+          {view === 'library' && (
+            <Library
+              embedded
+              songs={songs}
+              setlists={setlists}
+              onBack={goHome}
+              onSelectSong={goChart}
+              onNewSong={() => goEditor()}
+              onImportSong={handleImportSong}
+              onNewSetlist={() => goSetlistBuild()}
+              onPlaySetlist={goSetlistPlay}
+              onViewSetlist={goSetlistView}
+              onImportSetlist={handleImportSetlist}
+              onSettings={goSettings}
+            />
+          )}
+          {view === 'settings' && (
+            <Settings
+              embedded
+              settings={settings}
+              onUpdate={setSettings}
+              onBack={goHome}
+              onClearAll={handleClearAll}
+              songCount={songs.length}
+              setlistCount={setlists.length}
+              syncState={syncState}
+              onSyncStateChange={setSyncState}
+              onSyncNow={triggerSync}
+            />
+          )}
+        </AppShell>
       )}
       {view === 'chart' && currentSong && (
         <ChartView
@@ -320,19 +350,6 @@ export default function App() {
           onBack={goLibrary}
           defaultColumns={settings?.defaultColumns}
           defaultFontSize={settings?.defaultFontSize}
-        />
-      )}
-      {view === 'settings' && settings && (
-        <Settings
-          settings={settings}
-          onUpdate={setSettings}
-          onBack={goHome}
-          onClearAll={handleClearAll}
-          songCount={songs.length}
-          setlistCount={setlists.length}
-          syncState={syncState}
-          onSyncStateChange={setSyncState}
-          onSyncNow={triggerSync}
         />
       )}
     </>

@@ -23,7 +23,10 @@ const activeBtn = (active) => ({
   background: active ? 'var(--accent-soft)' : 'var(--surface)',
 });
 
-export default function Settings({ settings, onUpdate, onBack, onClearAll, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
+export default function Settings({
+  embedded = false,
+  settings, onUpdate, onBack, onClearAll, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow,
+}) {
   const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
@@ -40,27 +43,40 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', color: '#94a3b8',
-          cursor: 'pointer', padding: 4,
+    <div style={{ minHeight: embedded ? '100%' : '100vh', background: 'var(--bg)' }}>
+      {embedded ? (
+        <div style={{ padding: '24px 22px 8px' }}>
+          <h1 style={{
+            margin: 0,
+            fontSize: 26,
+            fontWeight: 700,
+            color: 'var(--text-bright)',
+            letterSpacing: '-0.03em',
+          }}>
+            Settings
+          </h1>
+        </div>
+      ) : (
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 10,
+          background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
+          borderBottom: '1px solid var(--border)',
+          padding: '14px 18px 10px',
+          display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          &#8592; Back
-        </button>
-        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
-          Settings
-        </span>
-      </div>
+          <button type="button" onClick={onBack} style={{
+            background: 'none', border: 'none', color: '#94a3b8',
+            cursor: 'pointer', padding: 4,
+          }}>
+            &#8592; Back
+          </button>
+          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+            Settings
+          </span>
+        </div>
+      )}
 
-      <div style={{ padding: '16px 18px', maxWidth: 500 }}>
+      <div style={{ padding: embedded ? '8px 22px 24px' : '16px 18px', maxWidth: 560 }}>
         {/* Theme */}
         <div style={{ marginBottom: 24 }}>
           <label style={labelStyle}>Theme</label>

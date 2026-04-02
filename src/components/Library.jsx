@@ -3,6 +3,7 @@ import { transposeKey, sectionStyle } from '../music';
 import { songToMd } from '../parser';
 
 export default function Library({
+  embedded = false,
   songs, setlists, onBack,
   onSelectSong, onNewSong, onImportSong,
   onNewSetlist, onPlaySetlist, onViewSetlist, onImportSetlist, onSettings,
@@ -61,181 +62,204 @@ export default function Library({
     fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
   };
 
-  return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        padding: '28px 20px 0',
-        background: 'linear-gradient(180deg, rgba(99,102,241,0.06) 0%, transparent 100%)',
-      }}>
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 16,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {onBack && (
-              <button onClick={onBack} style={{
-                background: 'none', border: 'none', color: '#94a3b8',
-                cursor: 'pointer', padding: '4px 2px', fontSize: 18,
-                display: 'flex', alignItems: 'center',
-              }}>
-                &#8592;
-              </button>
-            )}
-            <div style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 16, fontWeight: 700,
-            }}>
-              CV
-            </div>
-            <div>
-              <h1 style={{
-                margin: 0, fontSize: 22, fontWeight: 700,
-                color: 'var(--text-bright)', letterSpacing: '-0.02em',
-              }}>
-                ChordVault
-              </h1>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                {songs.length} song{songs.length !== 1 ? 's' : ''} · {setlists.length} setlist{setlists.length !== 1 ? 's' : ''}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {onSettings && (
-              <button onClick={onSettings} style={{
-                ...btnStyle, background: 'var(--surface)',
-                border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 10px',
-                fontSize: 16,
-              }}>
-                &#9881;
-              </button>
-            )}
-            {tab === 'songs' && (
-              <>
-                <button onClick={handleExportAll} style={{
-                  ...btnStyle, background: 'var(--surface)',
-                  border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-                }}>
-                  All .md
-                </button>
-                <button onClick={() => fileRef.current?.click()} style={{
-                  ...btnStyle, background: 'var(--surface)',
-                  border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-                }}>
-                  Import
-                </button>
-                <input ref={fileRef} type="file" accept=".md,.txt" multiple
-                  onChange={handleFiles} style={{ display: 'none' }} />
-                <button onClick={onNewSong} style={{
-                  ...btnStyle, background: 'var(--accent-soft)',
-                  border: '1px solid rgba(99,102,241,0.3)',
-                  color: 'var(--accent-text)', padding: '7px 16px',
-                }}>
-                  + New Song
-                </button>
-              </>
-            )}
-            {tab === 'setlists' && (
-              <>
-                <button onClick={() => setlistFileRef.current?.click()} style={{
-                  ...btnStyle, background: 'var(--surface)',
-                  border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-                }}>
-                  Import
-                </button>
-                <input ref={setlistFileRef} type="file" accept=".zip"
-                  onChange={e => {
-                    if (e.target.files[0]) onImportSetlist(e.target.files[0]);
-                    e.target.value = '';
-                  }}
-                  style={{ display: 'none' }} />
-                <button onClick={onNewSetlist} style={{
-                  ...btnStyle, background: 'var(--accent-soft)',
-                  border: '1px solid rgba(99,102,241,0.3)',
-                  color: 'var(--accent-text)', padding: '7px 16px',
-                }}>
-                  + New Setlist
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Upcoming setlists */}
-        {(() => {
-          const today = new Date().toISOString().slice(0, 10);
-          const upcoming = setlists
-            .filter(sl => sl.date >= today)
-            .sort((a, b) => a.date.localeCompare(b.date));
-          if (upcoming.length === 0) return null;
-          return (
-            <div style={{ padding: '12px 0 8px' }}>
-              <div style={{
-                fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-                textTransform: 'uppercase', letterSpacing: '0.07em',
-                fontFamily: 'var(--fm)', marginBottom: 8, padding: '0 2px',
-              }}>
-                Upcoming
-              </div>
-              {upcoming.map(sl => {
-                const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-                  weekday: 'short', month: 'short', day: 'numeric',
-                });
-                return (
-                  <div key={sl.id} style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px', marginBottom: 4,
-                    borderRadius: 8, background: 'rgba(99,102,241,0.04)',
-                    border: '1px solid rgba(99,102,241,0.1)',
-                  }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{
-                        fontSize: 13, fontWeight: 600, color: 'var(--text-bright)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {sl.name || 'Untitled'}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                        {dateStr} · {sl.service}
-                      </div>
-                    </div>
-                    <button onClick={() => onPlaySetlist(sl)} style={{
-                      ...btnStyle, background: 'var(--accent-soft)',
-                      border: '1px solid rgba(99,102,241,0.3)',
-                      color: 'var(--accent-text)', padding: '5px 14px',
-                      flexShrink: 0,
-                    }}>
-                      Live
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
-
-        {/* Tab switch */}
-        <div style={{
-          display: 'flex', gap: 0,
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}>
-          {[{ id: 'songs', label: 'Songs' }, { id: 'setlists', label: 'Setlists' }].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none',
-              borderBottom: tab === t.id ? '2px solid var(--accent)' : '2px solid transparent',
-              color: tab === t.id ? 'var(--text)' : 'var(--text-muted)',
-              padding: '10px 20px', fontSize: 13, fontWeight: 600,
-              cursor: 'pointer', fontFamily: 'var(--fb)',
-            }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+  const tabBar = (
+    <div style={{
+      display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      gap: embedded ? 8 : 0,
+      borderBottom: '1px solid var(--border)',
+    }}
+    >
+      <div style={{ display: 'flex', gap: 0 }}>
+        {[{ id: 'songs', label: 'Songs' }, { id: 'setlists', label: 'Setlists' }].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            background: 'none', border: 'none',
+            borderBottom: tab === t.id ? '2px solid var(--accent)' : '2px solid transparent',
+            marginBottom: -1,
+            color: tab === t.id ? 'var(--text)' : 'var(--text-muted)',
+            padding: '10px 20px', fontSize: 13, fontWeight: 600,
+            cursor: 'pointer', fontFamily: 'var(--fb)',
+          }}>
+            {t.label}
+          </button>
+        ))}
       </div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        {!embedded && onSettings && (
+          <button onClick={onSettings} style={{
+            ...btnStyle, background: 'var(--surface)',
+            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 10px',
+            fontSize: 16,
+          }}>
+            &#9881;
+          </button>
+        )}
+        {tab === 'songs' && (
+          <>
+            <button onClick={handleExportAll} style={{
+              ...btnStyle, background: 'var(--surface)',
+              border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
+            }}>
+              All .md
+            </button>
+            <button onClick={() => fileRef.current?.click()} style={{
+              ...btnStyle, background: 'var(--surface)',
+              border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
+            }}>
+              Import
+            </button>
+            <input ref={fileRef} type="file" accept=".md,.txt" multiple
+              onChange={handleFiles} style={{ display: 'none' }} />
+            <button onClick={onNewSong} style={{
+              ...btnStyle, background: 'var(--accent-soft)',
+              border: '1px solid rgba(99,102,241,0.3)',
+              color: 'var(--accent-text)', padding: '7px 16px',
+            }}>
+              + New Song
+            </button>
+          </>
+        )}
+        {tab === 'setlists' && (
+          <>
+            <button onClick={() => setlistFileRef.current?.click()} style={{
+              ...btnStyle, background: 'var(--surface)',
+              border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
+            }}>
+              Import
+            </button>
+            <input ref={setlistFileRef} type="file" accept=".zip"
+              onChange={e => {
+                if (e.target.files[0]) onImportSetlist(e.target.files[0]);
+                e.target.value = '';
+              }}
+              style={{ display: 'none' }} />
+            <button onClick={onNewSetlist} style={{
+              ...btnStyle, background: 'var(--accent-soft)',
+              border: '1px solid rgba(99,102,241,0.3)',
+              color: 'var(--accent-text)', padding: '7px 16px',
+            }}>
+              + New Setlist
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: embedded ? '100%' : '100vh', background: 'var(--bg)' }}>
+      {embedded ? (
+        <div style={{ padding: '16px 16px 0' }}>
+          <h1 style={{
+            margin: '0 0 12px',
+            fontSize: 22,
+            fontWeight: 700,
+            color: 'var(--text-bright)',
+            letterSpacing: '-0.02em',
+          }}>
+            Library
+          </h1>
+          {tabBar}
+        </div>
+      ) : (
+        <div style={{
+          padding: '28px 20px 0',
+          background: 'linear-gradient(180deg, rgba(99,102,241,0.06) 0%, transparent 100%)',
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'flex-start', marginBottom: 16,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {onBack && (
+                <button onClick={onBack} style={{
+                  background: 'none', border: 'none', color: '#94a3b8',
+                  cursor: 'pointer', padding: '4px 2px', fontSize: 18,
+                  display: 'flex', alignItems: 'center',
+                }}>
+                  &#8592;
+                </button>
+              )}
+              <div style={{
+                width: 38, height: 38, borderRadius: 10,
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontSize: 16, fontWeight: 700,
+              }}>
+                CV
+              </div>
+              <div>
+                <h1 style={{
+                  margin: 0, fontSize: 22, fontWeight: 700,
+                  color: 'var(--text-bright)', letterSpacing: '-0.02em',
+                }}>
+                  ChordVault
+                </h1>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  {songs.length} song{songs.length !== 1 ? 's' : ''} · {setlists.length} setlist{setlists.length !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {(() => {
+            const today = new Date().toISOString().slice(0, 10);
+            const upcoming = setlists
+              .filter(sl => sl.date >= today)
+              .sort((a, b) => a.date.localeCompare(b.date));
+            if (upcoming.length === 0) return null;
+            return (
+              <div style={{ padding: '12px 0 8px' }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+                  textTransform: 'uppercase', letterSpacing: '0.07em',
+                  fontFamily: 'var(--fm)', marginBottom: 8, padding: '0 2px',
+                }}>
+                  Upcoming
+                </div>
+                {upcoming.map(sl => {
+                  const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
+                    weekday: 'short', month: 'short', day: 'numeric',
+                  });
+                  return (
+                    <div key={sl.id} style={{
+                      display: 'flex', alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 10px', marginBottom: 4,
+                      borderRadius: 8, background: 'rgba(99,102,241,0.04)',
+                      border: '1px solid rgba(99,102,241,0.1)',
+                    }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{
+                          fontSize: 13, fontWeight: 600, color: 'var(--text-bright)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {sl.name || 'Untitled'}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+                          {dateStr} · {sl.service}
+                        </div>
+                      </div>
+                      <button onClick={() => onPlaySetlist(sl)} style={{
+                        ...btnStyle, background: 'var(--accent-soft)',
+                        border: '1px solid rgba(99,102,241,0.3)',
+                        color: 'var(--accent-text)', padding: '5px 14px',
+                        flexShrink: 0,
+                      }}>
+                        Live
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          {tabBar}
+        </div>
+      )}
 
       {/* Songs tab */}
       {tab === 'songs' && (

@@ -36,6 +36,7 @@ export const DEFAULT_SETTINGS = {
   pedalNext: 'ArrowRight',
   pedalPrev: 'ArrowLeft',
   onboardingComplete: false,
+  homeNotes: '',
 };
 
 export async function loadSettings() {
