@@ -1,14 +1,16 @@
 import { loadSyncState, saveSyncState } from '../storage';
 
+const SYNC_DEFAULTS = {
+  activeProvider: null,
+  tokens: null,
+  lastSyncTime: null,
+  syncManifest: {},
+  setlistManifest: {},
+};
+
 export async function getSyncState() {
   const state = await loadSyncState();
-  return state || {
-    activeProvider: null,
-    tokens: null,
-    lastSyncTime: null,
-    syncManifest: {},
-    setlistManifest: {},
-  };
+  return { ...SYNC_DEFAULTS, ...(state || {}) };
 }
 
 export async function setActiveProvider(providerName, tokens) {

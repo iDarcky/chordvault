@@ -178,26 +178,30 @@ export function createSyncEngine(onStatusChange) {
 
     // Push songs
     for (const song of songs) {
-      const md = songToMd(song);
-      const hash = quickHash(md);
-      const entry = manifest[song.id];
-      const fileName = `${sanitizeFilename(song.title)}.md`;
+      try {
+        const md = songToMd(song);
+        const hash = quickHash(md);
+        const entry = manifest[song.id];
+        const fileName = `${sanitizeFilename(song.title)}.md`;
 
-      // Detect rename: title changed, old file exists
-      if (entry && entry.remoteName && entry.remoteName !== fileName) {
-        try {
-          await provider.deleteFile(entry.remoteId);
-        } catch { /* old file may not exist */ }
-      }
+        // Detect rename: title changed, old file exists
+        if (entry && entry.remoteName && entry.remoteName !== fileName) {
+          try {
+            await provider.deleteFile(entry.remoteId);
+          } catch { /* old file may not exist */ }
+        }
 
-      if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
-        const result = await provider.uploadFile(SONGS_FOLDER, fileName, md, 'text/markdown');
-        manifest[song.id] = {
-          remoteId: result.id,
-          remoteName: result.name,
-          lastSyncedHash: hash,
-          lastSyncedTime: result.modifiedTime,
-        };
+        if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
+          const result = await provider.uploadFile(SONGS_FOLDER, fileName, md, 'text/markdown');
+          manifest[song.id] = {
+            remoteId: result.id,
+            remoteName: result.name,
+            lastSyncedHash: hash,
+            lastSyncedTime: result.modifiedTime,
+          };
+        }
+      } catch (err) {
+        console.error(`Failed to sync song "${song.title}":`, err);
       }
     }
 
@@ -205,26 +209,30 @@ export function createSyncEngine(onStatusChange) {
 
     // Push setlists (each as individual .json file)
     for (const sl of setlists) {
-      const json = JSON.stringify(sl, null, 2);
-      const hash = quickHash(json);
-      const entry = slManifest[sl.id];
-      const fileName = `${sanitizeFilename(sl.name || 'Untitled Setlist')}.json`;
+      try {
+        const json = JSON.stringify(sl, null, 2);
+        const hash = quickHash(json);
+        const entry = slManifest[sl.id];
+        const fileName = `${sanitizeFilename(sl.name || 'Untitled Setlist')}.json`;
 
-      // Detect rename
-      if (entry && entry.remoteName && entry.remoteName !== fileName) {
-        try {
-          await provider.deleteFile(entry.remoteId);
-        } catch { /* old file may not exist */ }
-      }
+        // Detect rename
+        if (entry && entry.remoteName && entry.remoteName !== fileName) {
+          try {
+            await provider.deleteFile(entry.remoteId);
+          } catch { /* old file may not exist */ }
+        }
 
-      if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
-        const result = await provider.uploadFile(SETLISTS_FOLDER, fileName, json, 'application/json');
-        slManifest[sl.id] = {
-          remoteId: result.id,
-          remoteName: result.name,
-          lastSyncedHash: hash,
-          lastSyncedTime: result.modifiedTime,
-        };
+        if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
+          const result = await provider.uploadFile(SETLISTS_FOLDER, fileName, json, 'application/json');
+          slManifest[sl.id] = {
+            remoteId: result.id,
+            remoteName: result.name,
+            lastSyncedHash: hash,
+            lastSyncedTime: result.modifiedTime,
+          };
+        }
+      } catch (err) {
+        console.error(`Failed to sync setlist "${sl.name}":`, err);
       }
     }
 
