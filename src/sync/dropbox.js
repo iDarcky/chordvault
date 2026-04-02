@@ -1,4 +1,4 @@
-import { DROPBOX_CLIENT_ID, DROPBOX_REDIRECT_URI, FOLDER_NAME } from './constants';
+import { DROPBOX_CLIENT_ID, DROPBOX_REDIRECT_URI, FOLDER_NAME, SONGS_FOLDER, SETLISTS_FOLDER } from './constants';
 
 function generateCodeVerifier() {
   const array = new Uint8Array(32);
@@ -18,7 +18,7 @@ async function generateCodeChallenge(verifier) {
 export function createDropboxProvider() {
   let accessToken = null;
   let refreshTokenValue = null;
-  const folderPath = `/${FOLDER_NAME}`;
+  const rootPath = `/${FOLDER_NAME}`;
 
   const rpc = (endpoint, body = null) => {
     return fetch(`https://api.dropboxapi.com/2${endpoint}`, {
@@ -35,6 +35,18 @@ export function createDropboxProvider() {
     });
   };
 
+  function subPath(subfolder) {
+    return `${rootPath}/${subfolder}`;
+  }
+
+  async function ensurePath(path) {
+    try {
+      await rpc('/files/get_metadata', { path });
+    } catch {
+      await rpc('/files/create_folder_v2', { path });
+    }
+  }
+
   return {
     name: 'dropbox',
     displayName: 'Dropbox',
@@ -44,7 +56,6 @@ export function createDropboxProvider() {
       const codeVerifier = generateCodeVerifier();
       const codeChallenge = await generateCodeChallenge(codeVerifier);
 
-      // Store verifier for the callback
       sessionStorage.setItem('dbx_code_verifier', codeVerifier);
 
       const params = new URLSearchParams({
@@ -56,7 +67,6 @@ export function createDropboxProvider() {
         token_access_type: 'offline',
       });
 
-      // Open popup for OAuth
       const width = 500, height = 700;
       const left = window.screenX + (window.innerWidth - width) / 2;
       const top = window.screenY + (window.innerHeight - height) / 2;
@@ -151,17 +161,16 @@ export function createDropboxProvider() {
     },
 
     async ensureFolder() {
-      try {
-        await rpc('/files/get_metadata', { path: folderPath });
-      } catch {
-        await rpc('/files/create_folder_v2', { path: folderPath });
-      }
-      return folderPath;
+      await ensurePath(rootPath);
+      await ensurePath(subPath(SONGS_FOLDER));
+      await ensurePath(subPath(SETLISTS_FOLDER));
+      return rootPath;
     },
 
-    async listFiles() {
+    async listFiles(subfolder) {
+      const path = subPath(subfolder);
       try {
-        const result = await rpc('/files/list_folder', { path: folderPath });
+        const result = await rpc('/files/list_folder', { path });
         let entries = result.entries || [];
         let cursor = result.cursor;
         let hasMore = result.has_more;
@@ -182,13 +191,12 @@ export function createDropboxProvider() {
             size: e.size,
           }));
       } catch {
-        // Folder might not exist yet
         return [];
       }
     },
 
-    async uploadFile(name, content) {
-      const path = `${folderPath}/${name}`;
+    async uploadFile(subfolder, name, content) {
+      const path = `${subPath(subfolder)}/${name}`;
       const response = await fetch('https://content.dropboxapi.com/2/files/upload', {
         method: 'POST',
         headers: {

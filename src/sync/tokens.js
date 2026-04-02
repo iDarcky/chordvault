@@ -7,8 +7,7 @@ export async function getSyncState() {
     tokens: null,
     lastSyncTime: null,
     syncManifest: {},
-    setlistsRemoteId: null,
-    setlistsLastSyncedHash: null,
+    setlistManifest: {},
   };
 }
 
@@ -42,12 +41,12 @@ export async function updateSyncManifest(manifest) {
   return state;
 }
 
-export async function updateSetlistsSyncInfo(remoteId, hash) {
+export async function updateSetlistManifest(manifest) {
   const state = await getSyncState();
-  state.setlistsRemoteId = remoteId;
-  state.setlistsLastSyncedHash = hash;
+  state.setlistManifest = manifest;
   state.lastSyncTime = new Date().toISOString();
   await saveSyncState(state);
+  return state;
 }
 
 export function isTokenExpired(tokens) {

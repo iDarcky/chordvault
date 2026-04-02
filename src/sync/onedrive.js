@@ -1,11 +1,10 @@
-import { MICROSOFT_CLIENT_ID, MICROSOFT_AUTHORITY, MICROSOFT_SCOPES, FOLDER_NAME } from './constants';
+import { MICROSOFT_CLIENT_ID, MICROSOFT_AUTHORITY, MICROSOFT_SCOPES, FOLDER_NAME, SONGS_FOLDER, SETLISTS_FOLDER } from './constants';
 
 let msalInstance = null;
 
 async function loadMsal() {
   if (msalInstance) return msalInstance;
 
-  // Dynamically import MSAL from CDN
   if (!window.msal) {
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
@@ -50,6 +49,25 @@ export function createOneDriveProvider() {
     });
   };
 
+  async function ensureDriveFolder(path) {
+    try {
+      await graph(`/me/drive/root:/${path}`);
+    } catch {
+      const parts = path.split('/');
+      const name = parts.pop();
+      const parent = parts.length > 0 ? `/me/drive/root:/${parts.join('/')}:/children` : '/me/drive/root/children';
+      await graph(parent, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          folder: {},
+          '@microsoft.graph.conflictBehavior': 'fail',
+        }),
+      });
+    }
+  }
+
   return {
     name: 'onedrive',
     displayName: 'OneDrive',
@@ -63,7 +81,6 @@ export function createOneDriveProvider() {
 
       account = response.account;
 
-      // Get access token
       const tokenResponse = await msal.acquireTokenSilent({
         scopes: MICROSOFT_SCOPES,
         account,
@@ -117,25 +134,16 @@ export function createOneDriveProvider() {
     },
 
     async ensureFolder() {
-      try {
-        await graph(`/me/drive/root:/${FOLDER_NAME}`);
-      } catch {
-        await graph('/me/drive/root/children', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: FOLDER_NAME,
-            folder: {},
-            '@microsoft.graph.conflictBehavior': 'fail',
-          }),
-        });
-      }
+      await ensureDriveFolder(FOLDER_NAME);
+      await ensureDriveFolder(`${FOLDER_NAME}/${SONGS_FOLDER}`);
+      await ensureDriveFolder(`${FOLDER_NAME}/${SETLISTS_FOLDER}`);
       return FOLDER_NAME;
     },
 
-    async listFiles() {
+    async listFiles(subfolder) {
+      const path = `${FOLDER_NAME}/${subfolder}`;
       try {
-        const result = await graph(`/me/drive/root:/${FOLDER_NAME}:/children?$select=id,name,lastModifiedDateTime,size`);
+        const result = await graph(`/me/drive/root:/${path}:/children?$select=id,name,lastModifiedDateTime,size`);
         return (result.value || []).map(f => ({
           id: f.id,
           name: f.name,
@@ -147,8 +155,9 @@ export function createOneDriveProvider() {
       }
     },
 
-    async uploadFile(name, content) {
-      const result = await graph(`/me/drive/root:/${FOLDER_NAME}/${name}:/content`, {
+    async uploadFile(subfolder, name, content) {
+      const path = `${FOLDER_NAME}/${subfolder}/${name}`;
+      const result = await graph(`/me/drive/root:/${path}:/content`, {
         method: 'PUT',
         headers: { 'Content-Type': 'text/plain' },
         body: content,
@@ -163,7 +172,6 @@ export function createOneDriveProvider() {
     },
 
     async downloadFile(fileId) {
-      // Get download URL
       const item = await graph(`/me/drive/items/${fileId}`);
       const downloadUrl = item['@microsoft.graph.downloadUrl'];
       if (!downloadUrl) throw new Error('No download URL for file');

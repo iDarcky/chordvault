@@ -1,7 +1,7 @@
 import { getProvider } from './provider';
-import { getSyncState, updateSyncManifest, updateSetlistsSyncInfo, updateTokens, isTokenExpired } from './tokens';
-import { SETLISTS_FILENAME, SYNC_DEBOUNCE_MS } from './constants';
-import { parseSongMd, songToMd } from '../parser';
+import { getSyncState, updateSyncManifest, updateSetlistManifest, updateTokens, isTokenExpired } from './tokens';
+import { SONGS_FOLDER, SETLISTS_FOLDER, SYNC_DEBOUNCE_MS } from './constants';
+import { parseSongMd, songToMd, generateId } from '../parser';
 
 function quickHash(str) {
   let hash = 0;
@@ -9,6 +9,13 @@ function quickHash(str) {
     hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
   }
   return hash.toString(36);
+}
+
+function sanitizeFilename(name) {
+  return (name || 'Untitled')
+    .replace(/[<>:"/\\|?*]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim() || 'Untitled';
 }
 
 let debounceTimer = null;
@@ -44,37 +51,46 @@ export function createSyncEngine(onStatusChange) {
     await ensureAuth(provider, syncState);
     await provider.ensureFolder();
 
-    const remoteFiles = await provider.listFiles();
     const manifest = { ...syncState.syncManifest };
+    const slManifest = { ...syncState.setlistManifest };
     let songsChanged = false;
     let setlistsChanged = false;
     let updatedSongs = [...songs];
     let updatedSetlists = [...setlists];
 
-    // Process song files (.md)
-    for (const file of remoteFiles) {
+    // Pull songs from Songs subfolder
+    const songFiles = await provider.listFiles(SONGS_FOLDER);
+    for (const file of songFiles) {
       if (!file.name.endsWith('.md')) continue;
 
-      const songId = file.name.replace('.md', '');
-      const manifestEntry = manifest[songId];
+      // Find matching manifest entry by remoteName or remoteId
+      let songId = null;
+      for (const [id, entry] of Object.entries(manifest)) {
+        if (entry.remoteId === file.id || entry.remoteName === file.name) {
+          songId = id;
+          break;
+        }
+      }
 
-      // Check if remote is newer than what we last synced
+      const manifestEntry = songId ? manifest[songId] : null;
       const remoteTime = new Date(file.modifiedTime).getTime();
       const lastSyncedTime = manifestEntry?.lastSyncedTime
         ? new Date(manifestEntry.lastSyncedTime).getTime()
         : 0;
 
       if (remoteTime > lastSyncedTime) {
-        // Download and parse
         const content = await provider.downloadFile(file.id);
         const parsed = parseSongMd(content);
 
-        const existingIdx = updatedSongs.findIndex(s => s.id === songId);
-        if (existingIdx >= 0) {
+        if (songId) {
           // Update existing song
-          updatedSongs[existingIdx] = { ...parsed, id: songId };
+          const existingIdx = updatedSongs.findIndex(s => s.id === songId);
+          if (existingIdx >= 0) {
+            updatedSongs[existingIdx] = { ...parsed, id: songId };
+          }
         } else {
           // New song from remote
+          songId = generateId();
           updatedSongs.push({ ...parsed, id: songId });
         }
 
@@ -88,35 +104,59 @@ export function createSyncEngine(onStatusChange) {
       }
     }
 
-    // Process setlists file
-    const setlistsFile = remoteFiles.find(f => f.name === SETLISTS_FILENAME);
-    if (setlistsFile) {
-      const remoteTime = new Date(setlistsFile.modifiedTime).getTime();
-      const lastTime = syncState.setlistsLastSyncedHash
-        ? new Date(syncState.lastSyncTime || 0).getTime()
+    // Pull setlists from Setlists subfolder
+    const setlistFiles = await provider.listFiles(SETLISTS_FOLDER);
+    for (const file of setlistFiles) {
+      if (!file.name.endsWith('.json')) continue;
+
+      let setlistId = null;
+      for (const [id, entry] of Object.entries(slManifest)) {
+        if (entry.remoteId === file.id || entry.remoteName === file.name) {
+          setlistId = id;
+          break;
+        }
+      }
+
+      const manifestEntry = setlistId ? slManifest[setlistId] : null;
+      const remoteTime = new Date(file.modifiedTime).getTime();
+      const lastSyncedTime = manifestEntry?.lastSyncedTime
+        ? new Date(manifestEntry.lastSyncedTime).getTime()
         : 0;
 
-      if (remoteTime > lastTime) {
-        const content = await provider.downloadFile(setlistsFile.id);
+      if (remoteTime > lastSyncedTime) {
+        const content = await provider.downloadFile(file.id);
         try {
-          const remoteSetlists = JSON.parse(content);
-          // Merge: remote wins for conflicts (by setlist id)
-          const mergedMap = new Map();
-          updatedSetlists.forEach(sl => mergedMap.set(sl.id, sl));
-          remoteSetlists.forEach(sl => mergedMap.set(sl.id, sl));
-          updatedSetlists = Array.from(mergedMap.values());
-          setlistsChanged = true;
+          const remoteSetlist = JSON.parse(content);
+          if (setlistId) {
+            const existingIdx = updatedSetlists.findIndex(sl => sl.id === setlistId);
+            if (existingIdx >= 0) {
+              updatedSetlists[existingIdx] = remoteSetlist;
+            }
+          } else {
+            setlistId = remoteSetlist.id || generateId();
+            const existingIdx = updatedSetlists.findIndex(sl => sl.id === setlistId);
+            if (existingIdx >= 0) {
+              updatedSetlists[existingIdx] = remoteSetlist;
+            } else {
+              updatedSetlists.push(remoteSetlist);
+            }
+          }
 
-          await updateSetlistsSyncInfo(setlistsFile.id, quickHash(content));
+          slManifest[setlistId] = {
+            remoteId: file.id,
+            remoteName: file.name,
+            lastSyncedHash: quickHash(content),
+            lastSyncedTime: file.modifiedTime,
+          };
+          setlistsChanged = true;
         } catch {
           // Invalid JSON — skip
         }
       }
     }
 
-    if (songsChanged) {
-      await updateSyncManifest(manifest);
-    }
+    if (songsChanged) await updateSyncManifest(manifest);
+    if (setlistsChanged) await updateSetlistManifest(slManifest);
 
     return {
       songs: updatedSongs,
@@ -134,16 +174,24 @@ export function createSyncEngine(onStatusChange) {
     await provider.ensureFolder();
 
     const manifest = { ...syncState.syncManifest };
+    const slManifest = { ...syncState.setlistManifest };
 
     // Push songs
     for (const song of songs) {
       const md = songToMd(song);
       const hash = quickHash(md);
       const entry = manifest[song.id];
+      const fileName = `${sanitizeFilename(song.title)}.md`;
 
-      if (!entry || entry.lastSyncedHash !== hash) {
-        const fileName = `${song.id}.md`;
-        const result = await provider.uploadFile(fileName, md, 'text/markdown');
+      // Detect rename: title changed, old file exists
+      if (entry && entry.remoteName && entry.remoteName !== fileName) {
+        try {
+          await provider.deleteFile(entry.remoteId);
+        } catch { /* old file may not exist */ }
+      }
+
+      if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
+        const result = await provider.uploadFile(SONGS_FOLDER, fileName, md, 'text/markdown');
         manifest[song.id] = {
           remoteId: result.id,
           remoteName: result.name,
@@ -155,13 +203,32 @@ export function createSyncEngine(onStatusChange) {
 
     await updateSyncManifest(manifest);
 
-    // Push setlists
-    const setlistsJson = JSON.stringify(setlists, null, 2);
-    const setlistsHash = quickHash(setlistsJson);
-    if (setlistsHash !== syncState.setlistsLastSyncedHash) {
-      const result = await provider.uploadFile(SETLISTS_FILENAME, setlistsJson, 'application/json');
-      await updateSetlistsSyncInfo(result.id, setlistsHash);
+    // Push setlists (each as individual .json file)
+    for (const sl of setlists) {
+      const json = JSON.stringify(sl, null, 2);
+      const hash = quickHash(json);
+      const entry = slManifest[sl.id];
+      const fileName = `${sanitizeFilename(sl.name || 'Untitled Setlist')}.json`;
+
+      // Detect rename
+      if (entry && entry.remoteName && entry.remoteName !== fileName) {
+        try {
+          await provider.deleteFile(entry.remoteId);
+        } catch { /* old file may not exist */ }
+      }
+
+      if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
+        const result = await provider.uploadFile(SETLISTS_FOLDER, fileName, json, 'application/json');
+        slManifest[sl.id] = {
+          remoteId: result.id,
+          remoteName: result.name,
+          lastSyncedHash: hash,
+          lastSyncedTime: result.modifiedTime,
+        };
+      }
     }
+
+    await updateSetlistManifest(slManifest);
   }
 
   return {
@@ -171,10 +238,7 @@ export function createSyncEngine(onStatusChange) {
       setStatus('syncing');
 
       try {
-        // Pull first
         const pullResult = await pull(songs, setlists);
-
-        // Then push
         await push(pullResult.songs, pullResult.setlists);
 
         const lastSync = new Date().toISOString();

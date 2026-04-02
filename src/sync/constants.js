@@ -1,8 +1,9 @@
 // Cloud storage folder name
 export const FOLDER_NAME = 'ChordVault';
 
-// Setlists filename (prefixed to separate from song .md files)
-export const SETLISTS_FILENAME = '_setlists.json';
+// Subfolders
+export const SONGS_FOLDER = 'Songs';
+export const SETLISTS_FOLDER = 'Setlists';
 
 // Google Drive
 export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';

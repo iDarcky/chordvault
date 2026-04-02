@@ -1,4 +1,4 @@
-import { GOOGLE_CLIENT_ID, GOOGLE_SCOPES, FOLDER_NAME } from './constants';
+import { GOOGLE_CLIENT_ID, GOOGLE_SCOPES, FOLDER_NAME, SONGS_FOLDER, SETLISTS_FOLDER } from './constants';
 
 let gsiLoaded = false;
 let tokenClient = null;
@@ -16,7 +16,8 @@ function loadGsi() {
 
 export function createGoogleDriveProvider() {
   let accessToken = null;
-  let folderId = null;
+  let rootFolderId = null;
+  let subfolderIds = {};
 
   const api = (path, options = {}) => {
     const base = path.startsWith('https://') ? path : `https://www.googleapis.com/drive/v3${path}`;
@@ -32,6 +33,22 @@ export function createGoogleDriveProvider() {
       return ct.includes('json') ? r.json() : r.text();
     });
   };
+
+  async function findOrCreateFolder(name, parentId) {
+    const q = encodeURIComponent(`name='${name}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`);
+    const result = await api(`/files?q=${q}&fields=files(id,name)`);
+    if (result.files.length > 0) return result.files[0].id;
+    const folder = await api('/files', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        mimeType: 'application/vnd.google-apps.folder',
+        parents: [parentId],
+      }),
+    });
+    return folder.id;
+  }
 
   return {
     name: 'google-drive',
@@ -68,7 +85,8 @@ export function createGoogleDriveProvider() {
         } catch { /* ignore */ }
       }
       accessToken = null;
-      folderId = null;
+      rootFolderId = null;
+      subfolderIds = {};
       tokenClient = null;
     },
 
@@ -77,7 +95,6 @@ export function createGoogleDriveProvider() {
     },
 
     async refreshToken(/* tokens */) {
-      // Google GSI handles refresh via requestAccessToken with prompt: ''
       await loadGsi();
       return new Promise((resolve, reject) => {
         if (!tokenClient) {
@@ -100,29 +117,32 @@ export function createGoogleDriveProvider() {
     },
 
     async ensureFolder() {
-      // Check if folder exists
+      // Create root ChordVault folder
       const q = encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
       const result = await api(`/files?q=${q}&fields=files(id,name)`);
       if (result.files.length > 0) {
-        folderId = result.files[0].id;
-        return folderId;
+        rootFolderId = result.files[0].id;
+      } else {
+        const folder = await api('/files', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: FOLDER_NAME,
+            mimeType: 'application/vnd.google-apps.folder',
+          }),
+        });
+        rootFolderId = folder.id;
       }
-      // Create folder
-      const folder = await api('/files', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: FOLDER_NAME,
-          mimeType: 'application/vnd.google-apps.folder',
-        }),
-      });
-      folderId = folder.id;
-      return folderId;
+      // Create Songs and Setlists subfolders
+      subfolderIds[SONGS_FOLDER] = await findOrCreateFolder(SONGS_FOLDER, rootFolderId);
+      subfolderIds[SETLISTS_FOLDER] = await findOrCreateFolder(SETLISTS_FOLDER, rootFolderId);
+      return rootFolderId;
     },
 
-    async listFiles() {
-      if (!folderId) await this.ensureFolder();
-      const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
+    async listFiles(subfolder) {
+      if (!rootFolderId) await this.ensureFolder();
+      const parentId = subfolderIds[subfolder] || rootFolderId;
+      const q = encodeURIComponent(`'${parentId}' in parents and trashed=false`);
       const result = await api(`/files?q=${q}&fields=files(id,name,modifiedTime,size)&pageSize=1000`);
       return result.files.map(f => ({
         id: f.id,
@@ -132,14 +152,15 @@ export function createGoogleDriveProvider() {
       }));
     },
 
-    async uploadFile(name, content, mimeType = 'text/plain') {
-      if (!folderId) await this.ensureFolder();
+    async uploadFile(subfolder, name, content, mimeType = 'text/plain') {
+      if (!rootFolderId) await this.ensureFolder();
+      const parentId = subfolderIds[subfolder] || rootFolderId;
 
       // Check if file already exists
-      const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
+      const q = encodeURIComponent(`name='${name}' and '${parentId}' in parents and trashed=false`);
       const existing = await api(`/files?q=${q}&fields=files(id)`);
 
-      const metadata = { name, parents: [folderId] };
+      const metadata = { name, parents: [parentId] };
       const boundary = '---chordvault_boundary';
       const body = [
         `--${boundary}`,
@@ -154,7 +175,6 @@ export function createGoogleDriveProvider() {
       ].join('\r\n');
 
       if (existing.files.length > 0) {
-        // Update existing file
         const fileId = existing.files[0].id;
         const result = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,name,modifiedTime,size`, {
           method: 'PATCH',
@@ -167,7 +187,6 @@ export function createGoogleDriveProvider() {
         return { id: result.id, name: result.name, modifiedTime: result.modifiedTime, size: parseInt(result.size || '0', 10) };
       }
 
-      // Create new file with multipart upload
       const result = await fetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime,size`, {
         method: 'POST',
         headers: {
