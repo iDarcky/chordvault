@@ -58,8 +58,8 @@ export default function FormTab({ md, onChange }) {
     if (meta.tempo) lines.push(`tempo: ${meta.tempo}`);
     if (meta.time) lines.push(`time: ${meta.time}`);
 
-    // Auto-generate structure from section types
-    const structure = sections.map(s => s.type).join(', ');
+    // Use stored structure if it exists, otherwise auto-generate from sections
+    const structure = meta.structure || sections.map(s => s.type).join(', ');
     if (structure) lines.push(`structure: [${structure}]`);
 
     if (meta.ccli) lines.push(`ccli: ${meta.ccli}`);
