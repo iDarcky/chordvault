@@ -25,9 +25,9 @@ function ChordToken({ chord, text, transpose }) {
 
 const LEADER_STYLES = {
   none: { border: 'none' },
-  dashes: { borderBottom: '1px dashed rgba(255,255,255,0.15)' },
+  dashes: { backgroundImage: 'repeating-linear-gradient(to right, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
   dots: { backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)', backgroundSize: '6px 3px', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  arrow: { borderBottom: '1px solid rgba(255,255,255,0.15)', arrow: true },
+  arrow: { backgroundImage: 'repeating-linear-gradient(to right, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center', arrow: true },
 };
 
 function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
@@ -41,16 +41,16 @@ function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
         <span style={{
           flex: 1, alignSelf: 'center',
           ...style,
-          height: style.backgroundImage ? 3 : undefined,
-          marginBottom: 3, marginRight: style.arrow ? 0 : 6,
+          height: 2,
+          marginRight: style.arrow ? 0 : 6,
           minWidth: 20,
         }} />
       )}
       {leaderStyle === 'none' && <span style={{ flex: 1 }} />}
       {style.arrow && (
         <span style={{
-          alignSelf: 'center', color: 'rgba(255,255,255,0.15)',
-          fontSize: 10, lineHeight: 1, marginRight: 6, marginBottom: 1,
+          alignSelf: 'center', color: 'rgba(255,255,255,0.18)',
+          fontSize: 9, lineHeight: 1, marginRight: 6,
         }}>&#9656;</span>
       )}
       <span style={{
