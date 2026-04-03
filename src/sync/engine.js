@@ -210,6 +210,15 @@ export function createSyncEngine(onStatusChange) {
       }
     }
 
+    // Delete remote files for songs removed locally
+    const currentSongIds = new Set(songs.map(s => s.id));
+    for (const [id, entry] of Object.entries(manifest)) {
+      if (!currentSongIds.has(id)) {
+        try { await provider.deleteFile(entry.remoteId); } catch { /* may not exist */ }
+        delete manifest[id];
+      }
+    }
+
     await updateSyncManifest(manifest);
 
     // Push setlists (each as individual .json file)
@@ -238,6 +247,15 @@ export function createSyncEngine(onStatusChange) {
         }
       } catch (err) {
         console.error(`Failed to sync setlist "${sl.name}":`, err);
+      }
+    }
+
+    // Delete remote files for setlists removed locally
+    const currentSetlistIds = new Set(setlists.map(sl => sl.id));
+    for (const [id, entry] of Object.entries(slManifest)) {
+      if (!currentSetlistIds.has(id)) {
+        try { await provider.deleteFile(entry.remoteId); } catch { /* may not exist */ }
+        delete slManifest[id];
       }
     }
 
