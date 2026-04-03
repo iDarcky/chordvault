@@ -7,7 +7,7 @@ import { parseLine } from '../parser';
 
 const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
 
-export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader' }) {
+export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', duplicateSections = 'full' }) {
   const [localTranspose, setLocalTranspose] = useState(0);
   const [cols, setCols] = useState(defaultColumns || 'auto');
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
@@ -31,6 +31,19 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     }
     return offsets;
   }, [song.sections]);
+
+  // Compute which sections are collapsed (duplicate type, 1st-only mode)
+  const collapsedSections = useMemo(() => {
+    if (duplicateSections !== 'first') return [];
+    const seen = new Set();
+    return song.sections.map(sec => {
+      // Normalize: "Chorus 2" → "Chorus", "Verse 1" → "Verse"
+      const baseType = sec.type.replace(/\s*\d+$/, '').trim();
+      if (seen.has(baseType)) return true;
+      seen.add(baseType);
+      return false;
+    });
+  }, [song.sections, duplicateSections]);
 
   // Collect unique chord names from all sections (transposed)
   const uniqueChords = useMemo(() => {
@@ -230,13 +243,13 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
       >
         <div>
           {song.sections.slice(0, mid).map((sec, i) => (
-            <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} />
+            <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[i]} />
           ))}
         </div>
         {(isExplicit2Col || cols === 'auto') && (
           <div>
             {song.sections.slice(mid).map((sec, i) => (
-              <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[mid + i] || 0} />
+              <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[mid + i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[mid + i]} />
             ))}
           </div>
         )}

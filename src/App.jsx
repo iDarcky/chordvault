@@ -342,6 +342,7 @@ export default function App() {
           showInlineNotes={settings?.showInlineNotes !== false}
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
           displayRole={settings?.displayRole || 'leader'}
+          duplicateSections={settings?.duplicateSections || 'full'}
         />
       )}
       {view === 'editor' && (
@@ -381,6 +382,7 @@ export default function App() {
           showInlineNotes={settings?.showInlineNotes !== false}
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
           displayRole={settings?.displayRole || 'leader'}
+          duplicateSections={settings?.duplicateSections || 'full'}
         />
       )}
       {view === 'settings' && settings && (

@@ -39,6 +39,7 @@ export const DEFAULT_SETTINGS = {
   showInlineNotes: true,
   inlineNoteStyle: 'dashes',
   displayRole: 'leader',
+  duplicateSections: 'full',
 };
 
 export async function loadSettings() {

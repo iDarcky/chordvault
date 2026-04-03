@@ -121,6 +121,29 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
           </div>
         </div>
 
+        {/* Duplicate Sections */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Repeat Sections</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[
+              { key: 'full', label: 'Full', desc: 'Show every section' },
+              { key: 'first', label: '1st Only', desc: 'Collapse repeats' },
+            ].map(({ key, label, desc }) => (
+              <button
+                key={key}
+                onClick={() => update('duplicateSections', key)}
+                style={{
+                  ...activeBtn(settings.duplicateSections === key),
+                  flexDirection: 'column', alignItems: 'center', padding: '8px 14px', gap: 2,
+                }}
+              >
+                <span style={{ fontSize: 12 }}>{label}</span>
+                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 400 }}>{desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Inline Notes */}
         <div style={{ marginBottom: 24 }}>
           <label style={labelStyle}>Inline Notes</label>

@@ -85,8 +85,54 @@ function ModulateBadge({ semitones }) {
   );
 }
 
-export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader' }) {
+export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', collapsed = false }) {
   const s = sectionStyle(section.type);
+
+  if (collapsed) {
+    return (
+      <div style={{
+        background: s.bg, border: `1.5px solid ${s.b}88`,
+        borderRadius: 10, padding: '10px 16px', marginBottom: 8,
+        position: 'relative', opacity: 0.7,
+      }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, bottom: 0, width: 3,
+          background: s.b, borderRadius: '3px 0 0 3px',
+        }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 22, height: 22, borderRadius: '50%',
+            border: `2px solid ${s.d}`, color: s.d,
+            fontSize: 8, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
+          }}>
+            {s.l}
+          </span>
+          <span style={{
+            fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
+            letterSpacing: '0.05em', textTransform: 'uppercase',
+          }}>
+            {section.type}
+          </span>
+          <span style={{
+            fontSize: 10, color: 'var(--text-dim)', fontStyle: 'italic',
+            fontFamily: 'var(--fb)',
+          }}>
+            (see above)
+          </span>
+          {section.note && (
+            <span style={{
+              fontSize: 10.5, color: 'var(--text-muted)',
+              fontStyle: 'italic', marginLeft: 'auto',
+              maxWidth: '45%', textAlign: 'right', lineHeight: 1.3,
+            }}>
+              {section.note}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const isDrummer = displayRole === 'drummer';
   const isVocalist = displayRole === 'vocalist';
