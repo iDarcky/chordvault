@@ -1119,7 +1119,7 @@ SYNC
 
 ### v2 — Professional Features
 - [ ] Instrument role profiles (vocalist, guitar, bass, keys, drums views)
-- [ ] Onboarding flow (role selection, import prompt, quick tour)
+- [x] Onboarding flow (welcome screen, 4-step tour, import prompt)
 - [ ] Smart import: ChordPro (`.cho`, `.chordpro`)
 - [ ] Smart import: SongSelect (`.usr`)
 - [ ] Smart import: OnSong (`.onsong`)
@@ -1166,12 +1166,15 @@ SYNC
 - [ ] WCAG AA color contrast audit
 
 ### v3 — Cloud Sync & Collaboration
-- [ ] Sync adapter interface (provider-agnostic abstraction)
-- [ ] Google Drive sync (OAuth + folder-based .md read/write)
-- [ ] Sync engine: timestamp comparison, offline queue, conflict handling
+- [x] Sync adapter interface (provider-agnostic abstraction)
+- [x] Google Drive sync (OAuth + folder-based .md read/write)
+- [x] Sync engine: timestamp comparison, conflict handling, deletion sync
+- [x] Sync UI: SyncSettings panel, SyncStatus pill, connect/disconnect
+- [x] Songs + setlists sync (individual files in ChordVault/Songs/ and ChordVault/Setlists/)
+- [x] Startup sync + visibility-change sync + debounced push on save
 - [ ] Settings sync across devices
-- [ ] Dropbox sync adapter
-- [ ] OneDrive sync adapter
+- [x] Dropbox sync adapter (implemented, needs client ID to activate)
+- [x] OneDrive sync adapter (implemented, needs client ID to activate)
 - [ ] WebDAV sync adapter (Nextcloud, Synology, self-hosted)
 - [ ] Team collaboration via shared cloud folders
 - [ ] Real-time session sync (Supabase Realtime — ephemeral, no lyrics stored)
