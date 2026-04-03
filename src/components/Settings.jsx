@@ -112,10 +112,10 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
               <label style={{ ...labelStyle, marginTop: 8 }}>Leader Style</label>
               <div style={{ display: 'flex', gap: 6 }}>
                 {[
+                  { key: 'none', label: 'None' },
                   { key: 'dashes', label: '- - -' },
-                  { key: 'dots', label: '· · ·' },
-                  { key: 'underscores', label: '___' },
-                  { key: 'arrow', label: '──▸' },
+                  { key: 'dots', label: '\u00B7 \u00B7 \u00B7' },
+                  { key: 'arrow', label: '\u2500\u2500\u25B8' },
                 ].map(({ key, label }) => (
                   <button key={key} onClick={() => update('inlineNoteStyle', key)} style={activeBtn(settings.inlineNoteStyle === key)}>
                     <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{label}</span>

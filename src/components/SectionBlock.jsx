@@ -24,10 +24,10 @@ function ChordToken({ chord, text, transpose }) {
 }
 
 const LEADER_STYLES = {
-  dashes: { borderBottom: '1px dashed rgba(255,255,255,0.15)', content: '' },
-  dots: { borderBottom: '1px dotted rgba(255,255,255,0.2)', content: '' },
-  underscores: { borderBottom: '1px solid rgba(255,255,255,0.1)', content: '' },
-  arrow: { borderBottom: '1px dashed rgba(255,255,255,0.15)', arrow: true },
+  none: { border: 'none' },
+  dashes: { borderBottom: '1px dashed rgba(255,255,255,0.15)' },
+  dots: { backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)', backgroundSize: '6px 3px', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
+  arrow: { borderBottom: '1px solid rgba(255,255,255,0.15)', arrow: true },
 };
 
 function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
@@ -37,12 +37,16 @@ function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
       display: 'inline-flex', alignItems: 'flex-end',
       flex: 1, minWidth: 40, marginLeft: 6,
     }}>
-      <span style={{
-        flex: 1, alignSelf: 'center',
-        ...style,
-        marginBottom: 3, marginRight: style.arrow ? 0 : 6,
-        minWidth: 20,
-      }} />
+      {leaderStyle !== 'none' && (
+        <span style={{
+          flex: 1, alignSelf: 'center',
+          ...style,
+          height: style.backgroundImage ? 3 : undefined,
+          marginBottom: 3, marginRight: style.arrow ? 0 : 6,
+          minWidth: 20,
+        }} />
+      )}
+      {leaderStyle === 'none' && <span style={{ flex: 1 }} />}
       {style.arrow && (
         <span style={{
           alignSelf: 'center', color: 'rgba(255,255,255,0.15)',
