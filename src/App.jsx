@@ -343,6 +343,7 @@ export default function App() {
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
           displayRole={settings?.displayRole || 'leader'}
           duplicateSections={settings?.duplicateSections || 'full'}
+          defaultChordDisplay={settings?.chordDisplay || 'standard'}
         />
       )}
       {view === 'editor' && (
@@ -383,6 +384,7 @@ export default function App() {
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
           displayRole={settings?.displayRole || 'leader'}
           duplicateSections={settings?.duplicateSections || 'full'}
+          defaultChordDisplay={settings?.chordDisplay || 'standard'}
         />
       )}
       {view === 'settings' && settings && (

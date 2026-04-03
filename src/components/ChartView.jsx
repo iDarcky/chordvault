@@ -7,11 +7,12 @@ import { parseLine } from '../parser';
 
 const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
 
-export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', duplicateSections = 'full' }) {
+export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', duplicateSections = 'full', defaultChordDisplay = 'standard' }) {
   const [localTranspose, setLocalTranspose] = useState(0);
   const [cols, setCols] = useState(defaultColumns || 'auto');
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
   const [showDiagrams, setShowDiagrams] = useState(false);
+  const [chordDisplay, setChordDisplay] = useState(defaultChordDisplay);
 
   const transpose = forceTranspose != null ? forceTranspose : localTranspose;
   // When capo is set, chords render as shapes (shifted down by capo)
@@ -203,6 +204,9 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
             <div style={{ width: 1, height: 18, background: 'var(--border)' }} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <button onClick={() => setChordDisplay(p => p === 'nashville' ? 'standard' : 'nashville')} style={toggleStyle(chordDisplay === 'nashville')}>
+                Nashville
+              </button>
               <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
                 Diagrams
               </button>
@@ -243,13 +247,13 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
       >
         <div>
           {song.sections.slice(0, mid).map((sec, i) => (
-            <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[i]} />
+            <SectionBlock key={i} section={sec} keySig={song.key} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} chordDisplay={chordDisplay} collapsed={collapsedSections[i]} />
           ))}
         </div>
         {(isExplicit2Col || cols === 'auto') && (
           <div>
             {song.sections.slice(mid).map((sec, i) => (
-              <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[mid + i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[mid + i]} />
+              <SectionBlock key={i} section={sec} keySig={song.key} transpose={chordTranspose} modulateOffset={sectionModOffsets[mid + i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} chordDisplay={chordDisplay} collapsed={collapsedSections[mid + i]} />
             ))}
           </div>
         )}

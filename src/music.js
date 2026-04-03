@@ -55,6 +55,32 @@ export function semitonesBetween(fromKey, toKey) {
   return (ti - fi + 12) % 12;
 }
 
+const NNS_MAP = {
+  0: '1', 1: 'b2', 2: '2', 3: 'b3', 4: '3', 5: '4',
+  6: '#4', 7: '5', 8: 'b6', 9: '6', 10: 'b7', 11: '7'
+};
+
+function rootToNashville(root, keyRoot) {
+  const ri = CHROMATIC.indexOf(FLAT_MAP[root] || root);
+  const ki = CHROMATIC.indexOf(FLAT_MAP[keyRoot] || keyRoot);
+  if (ri === -1 || ki === -1) return root;
+  const diff = (ri - ki + 12) % 12;
+  return NNS_MAP[diff] || root;
+}
+
+// Convert a chord to Nashville Number System relative to a key
+export function chordToNashville(chord, key) {
+  if (!chord || !key) return chord;
+  if (chord.includes('/')) {
+    const [main, bass] = chord.split('/');
+    return chordToNashville(main, key) + '/' + chordToNashville(bass, key);
+  }
+  const { root, suffix } = parseRoot(chord);
+  const { root: keyRoot } = parseRoot(key);
+  const num = rootToNashville(root, keyRoot);
+  return num + suffix;
+}
+
 // Section type → colors, label, background
 const SECTION_COLORS = {
   Intro:        { b: '#6366f1', d: '#818cf8', l: 'I',  bg: '#12122a' },
