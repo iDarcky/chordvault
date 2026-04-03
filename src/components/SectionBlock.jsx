@@ -1,9 +1,19 @@
-import { transposeChord, sectionStyle } from '../music';
+import { transposeChord, sectionStyle, chordToNashville, transposeKey } from '../music';
 import { parseLine, extractInlineNotes } from '../parser';
 import TabBlock from './TabBlock';
 
-function ChordToken({ chord, text, transpose }) {
-  const transposed = chord ? transposeChord(chord, transpose) : '';
+function ChordToken({ chord, text, transpose, keySig, chordDisplay }) {
+  let displayChord = '';
+  if (chord) {
+    const transposed = transposeChord(chord, transpose);
+    if (chordDisplay === 'nashville') {
+      const currentKey = transposeKey(keySig, transpose);
+      displayChord = chordToNashville(transposed, currentKey);
+    } else {
+      displayChord = transposed;
+    }
+  }
+
   return (
     <span style={{ display: 'inline-block', verticalAlign: 'top', marginRight: 1 }}>
       <span style={{
@@ -11,7 +21,7 @@ function ChordToken({ chord, text, transpose }) {
         fontSize: 13, color: 'var(--chord)', height: 19, lineHeight: '19px',
         whiteSpace: 'pre', letterSpacing: '0.01em',
       }}>
-        {transposed || '\u00A0'}
+        {displayChord || '\u00A0'}
       </span>
       <span style={{
         display: 'block', fontFamily: 'var(--fb)', fontSize: 15,
@@ -85,7 +95,7 @@ function ModulateBadge({ semitones }) {
   );
 }
 
-export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', collapsed = false }) {
+export default function SectionBlock({ section, keySig, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', chordDisplay = 'standard', collapsed = false }) {
   const s = sectionStyle(section.type);
 
   if (collapsed) {
@@ -169,8 +179,8 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
       const hasChords = parts.some(p => p.chord);
       const hasNotes = showInlineNotes && notes.length > 0;
 
-      if (isVocalist) {
-        // Vocalist: lyrics only, no chords
+      if (isVocalist || chordDisplay === 'none') {
+        // Vocalist or None: lyrics only, no chords
         const lyricsText = parts.map(p => p.text).join('');
         return (
           <div key={i} style={{
@@ -201,7 +211,7 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
         <div key={i} style={{ display: 'flex', alignItems: 'flex-end', marginBottom: 1, lineHeight: 1 }}>
           <span style={{ whiteSpace: 'pre-wrap' }}>
             {parts.map((p, j) => (
-              <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} />
+              <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} keySig={keySig} chordDisplay={chordDisplay} />
             ))}
           </span>
           {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}

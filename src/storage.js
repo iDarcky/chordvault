@@ -40,6 +40,7 @@ export const DEFAULT_SETTINGS = {
   inlineNoteStyle: 'dashes',
   displayRole: 'leader',
   duplicateSections: 'full',
+  chordDisplay: 'standard',
 };
 
 export async function loadSettings() {

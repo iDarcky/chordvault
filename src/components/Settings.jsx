@@ -97,9 +97,25 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
           </div>
         </div>
 
+        {/* Chords Display */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Chord Display</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[
+              { key: 'standard', label: 'Standard' },
+              { key: 'nashville', label: 'Nashville' },
+              { key: 'none', label: 'None' },
+            ].map(({ key, label }) => (
+              <button key={key} onClick={() => update('chordDisplay', key)} style={activeBtn(settings.chordDisplay === key)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Display Role / View */}
         <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>View</label>
+          <label style={labelStyle}>View Profile</label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {[
               { key: 'leader', label: 'Full', desc: 'Chords, lyrics, tabs' },
