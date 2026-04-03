@@ -8,16 +8,17 @@
 ## 1. Product Manager POV
 *Focus: Roadmap, Retention, and Market Fit*
 
-1.  **Prioritize "Smart Import" (v2):** User acquisition is hindered by manual entry. High-quality ChordPro and ".txt with chords-above-lyrics" detection is the #1 growth lever.
-2.  **Accelerate "Nashville Number System" (v1.5):** This is a professional-grade differentiator. Moving this from v1.5 to "Core" adds immediate credibility with serious worship teams.
-3.  **Local Usage History:** Implement "Last Played" tracking now (locally). It helps users rotate their repertoire and provides immediate value without needing cloud sync.
-4.  **Collaborative Setlist Editing:** The v3 "Shared Folder" model is brilliant, but "Setlist Sharing via URL/QR" (v1.5) is a faster way to achieve 80% of the value for teams.
-5.  **Offline Safety (PWA Eviction):** The Safari 7-day eviction rule is a "product killer." While Google Drive sync mitigates data loss, the PWA must eventually move to a native shell (Capacitor) to guarantee local persistence.
-6.  **"Guest Mode" Friction:** Ensure the "Guest Musician" experience (scan QR -> see setlist) requires zero account creation or setup.
-7.  **Song Metadata Gaps:** Add "Original Artist" vs "Our Version" artist fields. Churches often re-arrange songs.
-8.  **Feedback Loop:** Add a simple "Send Feedback" button in Settings that pre-fills device info and app version.
-9.  **Feature Discovery:** New users might miss "Modulation" or "Inline Notes." Add "Did you know?" tooltips or a sample "Pro Chart" demo song.
-10. **The "Non-Church" Pivot:** While "Worship" is the niche, rename generic terms (e.g., "Service" -> "Event") internally to allow for a broader "GigVault" sibling product later.
+1.  **Competitive Advantage (vs. PCO):** Focus on **Data Ownership** and **Dynamic Formatting**. PCO is for admins; ChordVault is for musicians. See **[docs/competitive-analysis.md](./docs/competitive-analysis.md)**.
+2.  **Prioritize "Smart Import" (v2):** User acquisition is hindered by manual entry. High-quality ChordPro and ".txt with chords-above-lyrics" detection is the #1 growth lever.
+3.  **Accelerate "Nashville Number System" (v1.5):** This is a professional-grade differentiator. Moving this from v1.5 to "Core" adds immediate credibility with serious worship teams.
+4.  **Local Usage History:** Implement "Last Played" tracking now (locally). It helps users rotate their repertoire and provides immediate value without needing cloud sync.
+5.  **Collaborative Setlist Editing:** The v3 "Shared Folder" model is brilliant, but "Setlist Sharing via URL/QR" (v1.5) is a faster way to achieve 80% of the value for teams.
+6.  **Offline Safety (PWA Eviction):** The Safari 7-day eviction rule is a "product killer." While Google Drive sync mitigates data loss, the PWA must eventually move to a native shell (Capacitor) to guarantee local persistence.
+7.  **"Guest Mode" Friction:** Ensure the "Guest Musician" experience (scan QR -> see setlist) requires zero account creation or setup.
+8.  **Song Metadata Gaps:** Add "Original Artist" vs "Our Version" artist fields. Churches often re-arrange songs.
+9.  **Feedback Loop:** Add a simple "Send Feedback" button in Settings that pre-fills device info and app version.
+10. **Feature Discovery:** New users might miss "Modulation" or "Inline Notes." Add "Did you know?" tooltips or a sample "Pro Chart" demo song.
+11. **The "Non-Church" Pivot:** While "Worship" is the niche, rename generic terms (e.g., "Service" -> "Event") internally to allow for a broader "GigVault" sibling product later.
 
 ---
 
@@ -57,16 +58,17 @@
 ## 4. Sales POV
 *Focus: Monetization and Growth*
 
-1.  **"Sync as a Service" (Tier 1):** Offer a managed cloud sync for $4.99/mo for churches that don't want to mess with Google Drive permissions. See **[docs/monetization.md](./docs/monetization.md)** for the full financial breakdown.
-2.  **Pro PDF Exports (Tier 2):** High-quality, branded PDF generation (e.g., "PraiseCharts style") for a one-time fee or subscription.
-3.  **Team Licensing:** A "Church Plan" ($15/mo) that allows 10+ users to sync to a shared vault with "Role Permissions" (Leader can edit, Band can only view).
-4.  **Premium Themes:** Special "Stage-Ready" themes (e.g., extra-large chords, specific color palettes) as a one-time "Support the Developer" purchase.
-5.  **Sponsorships:** A "Sponsored by [Church Name]" in the About section for large churches that want to fund development.
-6.  **Affiliate Hardware Links:** Link to vetted iPad stands, Bluetooth pedals (AirTurn), and chargers on Amazon/Sweetwater.
-7.  **"White-Label" for Denominations:** Selling a branded version of the app to large church networks.
-8.  **Verified Song Library:** Partner with independent artists to offer "Verified Charts" for their songs (revenue share).
-9.  **Workshops/Consulting:** Selling "Digital Worship Team" setup guides or 1-on-1 Zoom sessions.
-10. **The "Freemium" Cap:** Keep all core features free, but limit the "Library Size" to 50 songs for free users.
+1.  **Competitive Advantage (vs. PCO):** Sell "Data Ownership" and "Zero-Friction Guest Access." See **[docs/competitive-analysis.md](./docs/competitive-analysis.md)**.
+2.  **"Sync as a Service" (Tier 1):** Offer a managed cloud sync for $4.99/mo for churches that don't want to mess with Google Drive permissions. See **[docs/monetization.md](./docs/monetization.md)** for the full financial breakdown.
+3.  **Pro PDF Exports (Tier 2):** High-quality, branded PDF generation (e.g., "PraiseCharts style") for a one-time fee or subscription.
+4.  **Team Licensing:** A "Church Plan" ($15/mo) that allows 10+ users to sync to a shared vault with "Role Permissions" (Leader can edit, Band can only view).
+5.  **Premium Themes:** Special "Stage-Ready" themes (e.g., extra-large chords, specific color palettes) as a one-time "Support the Developer" purchase.
+6.  **Sponsorships:** A "Sponsored by [Church Name]" in the About section for large churches that want to fund development.
+7.  **Affiliate Hardware Links:** Link to vetted iPad stands, Bluetooth pedals (AirTurn), and chargers on Amazon/Sweetwater.
+8.  **"White-Label" for Denominations:** Selling a branded version of the app to large church networks.
+9.  **Verified Song Library:** Partner with independent artists to offer "Verified Charts" for their songs (revenue share).
+10. **Workshops/Consulting:** Selling "Digital Worship Team" setup guides or 1-on-1 Zoom sessions.
+11. **The "Freemium" Cap:** Keep all core features free, but limit the "Library Size" to 50 songs for free users.
 
 ---
 
