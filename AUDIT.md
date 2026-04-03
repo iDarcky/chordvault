@@ -57,7 +57,7 @@
 ## 4. Sales POV
 *Focus: Monetization and Growth*
 
-1.  **"Sync as a Service" (Tier 1):** Offer a managed cloud sync for $4.99/mo for churches that don't want to mess with Google Drive permissions.
+1.  **"Sync as a Service" (Tier 1):** Offer a managed cloud sync for $4.99/mo for churches that don't want to mess with Google Drive permissions. See **[docs/monetization.md](./docs/monetization.md)** for the full financial breakdown.
 2.  **Pro PDF Exports (Tier 2):** High-quality, branded PDF generation (e.g., "PraiseCharts style") for a one-time fee or subscription.
 3.  **Team Licensing:** A "Church Plan" ($15/mo) that allows 10+ users to sync to a shared vault with "Role Permissions" (Leader can edit, Band can only view).
 4.  **Premium Themes:** Special "Stage-Ready" themes (e.g., extra-large chords, specific color palettes) as a one-time "Support the Developer" purchase.
