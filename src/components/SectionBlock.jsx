@@ -7,7 +7,7 @@ function ChordToken({ chord, text, transpose }) {
   return (
     <span style={{ display: 'inline-block', verticalAlign: 'top', marginRight: 1 }}>
       <span style={{
-        display: 'block', fontFamily: 'var(--fm)', fontWeight: 700,
+        display: 'block', fontFamily: 'var(--fm)', fontWeight: 500,
         fontSize: 13, color: 'var(--chord)', height: 19, lineHeight: '19px',
         whiteSpace: 'pre', letterSpacing: '0.01em',
       }}>
@@ -25,9 +25,9 @@ function ChordToken({ chord, text, transpose }) {
 
 const LEADER_STYLES = {
   none: { border: 'none' },
-  dashes: { backgroundImage: 'repeating-linear-gradient(to right, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  dots: { backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)', backgroundSize: '6px 3px', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  arrow: { backgroundImage: 'repeating-linear-gradient(to right, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center', arrow: true },
+  dashes: { backgroundImage: 'repeating-linear-gradient(to right, var(--border) 0px, var(--border) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
+  dots: { backgroundImage: 'radial-gradient(circle, var(--text-dim) 1px, transparent 1px)', backgroundSize: '6px 3px', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
+  arrow: { backgroundImage: 'repeating-linear-gradient(to right, var(--border) 0px, var(--border) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center', arrow: true },
 };
 
 function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
@@ -49,7 +49,7 @@ function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
       {leaderStyle === 'none' && <span style={{ flex: 1 }} />}
       {style.arrow && (
         <span style={{
-          alignSelf: 'center', color: 'rgba(255,255,255,0.18)',
+          alignSelf: 'center', color: 'var(--border)',
           fontSize: 9, lineHeight: 1, marginRight: 6,
         }}>&#9656;</span>
       )}
@@ -74,7 +74,7 @@ function ModulateBadge({ semitones }) {
       borderBottom: '1px dashed var(--accent)',
     }}>
       <span style={{
-        fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)',
+        fontSize: 10, fontWeight: 500, fontFamily: 'var(--fm)',
         color: 'var(--accent-text)', background: 'var(--accent-soft)',
         borderRadius: 4, padding: '2px 8px',
         letterSpacing: '0.04em', textTransform: 'uppercase',
@@ -104,12 +104,12 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: 22, height: 22, borderRadius: '50%',
             border: `2px solid ${s.d}`, color: s.d,
-            fontSize: 8, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
+            fontSize: 8, fontWeight: 500, fontFamily: 'var(--fm)', flexShrink: 0,
           }}>
             {s.l}
           </span>
           <span style={{
-            fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
+            fontSize: 12, fontWeight: 500, color: 'var(--text-muted)',
             letterSpacing: '0.05em', textTransform: 'uppercase',
           }}>
             {section.type}
@@ -231,19 +231,19 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: 28, height: 28, borderRadius: '50%',
           border: `2px solid ${s.d}`, color: s.d,
-          fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
+          fontSize: 10, fontWeight: 500, fontFamily: 'var(--fm)', flexShrink: 0,
         }}>
           {s.l}
         </span>
         <span style={{
-          fontSize: 13, fontWeight: 700, color: 'var(--text-bright)',
+          fontSize: 13, fontWeight: 500, color: 'var(--text-bright)',
           letterSpacing: '0.05em', textTransform: 'uppercase',
         }}>
           {section.type}
         </span>
         {isDrummer && lineCount > 0 && (
           <span style={{
-            fontSize: 11, fontWeight: 600, fontFamily: 'var(--fm)',
+            fontSize: 11, fontWeight: 500, fontFamily: 'var(--fm)',
             color: 'var(--text-dim)', opacity: 0.6,
           }}>
             {lineCount} line{lineCount !== 1 ? 's' : ''}
@@ -252,7 +252,7 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
         {section.note && (
           <span style={{
             fontSize: isDrummer ? 12 : 10.5,
-            color: isDrummer ? 'var(--text-muted)' : 'rgba(255,255,255,0.28)',
+            color: isDrummer ? 'var(--text-muted)' : 'var(--text-dim)',
             fontStyle: 'italic', marginLeft: 'auto',
             maxWidth: isDrummer ? '60%' : '45%', textAlign: 'right', lineHeight: 1.3,
             fontWeight: isDrummer ? 600 : 400,

@@ -32,7 +32,7 @@ export default function Welcome({ onGetStarted, onImport }) {
         width: 600,
         height: 600,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)',
+        display: 'none',
         pointerEvents: 'none',
       }} />
 
@@ -47,9 +47,9 @@ export default function Welcome({ onGetStarted, onImport }) {
         justifyContent: 'center',
         color: '#fff',
         fontSize: 32,
-        fontWeight: 700,
+        fontWeight: 500,
         marginBottom: 24,
-        boxShadow: '0 8px 32px rgba(99,102,241,0.3)',
+        boxShadow: '0 8px 32px var(--accent)',
       }}>
         CV
       </div>
@@ -58,7 +58,7 @@ export default function Welcome({ onGetStarted, onImport }) {
       <h1 style={{
         margin: 0,
         fontSize: 32,
-        fontWeight: 700,
+        fontWeight: 500,
         color: 'var(--text-bright)',
         letterSpacing: '-0.02em',
         textAlign: 'center',
@@ -102,10 +102,10 @@ export default function Welcome({ onGetStarted, onImport }) {
           background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
           color: '#fff',
           fontSize: 16,
-          fontWeight: 700,
+          fontWeight: 500,
           cursor: 'pointer',
           fontFamily: 'var(--fb)',
-          boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
+          boxShadow: '0 4px 16px var(--accent)',
         }}
       >
         Get Started

@@ -10,7 +10,7 @@ export default function RawTab({ md, onChange, textareaRef }) {
         onClick={() => setShowRef(v => !v)}
         style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: 'var(--accent-text)', fontSize: 12, fontWeight: 600,
+          color: 'var(--accent-text)', fontSize: 12, fontWeight: 500,
           fontFamily: 'var(--fm)', padding: '8px 0', textAlign: 'left',
           display: 'flex', alignItems: 'center', gap: 5,
         }}
@@ -23,7 +23,7 @@ export default function RawTab({ md, onChange, textareaRef }) {
         <div style={{
           marginBottom: 10, padding: 12, borderRadius: 8,
           background: 'var(--accent-soft)',
-          border: '1px solid rgba(99,102,241,0.12)',
+          border: '1px solid var(--border)',
           fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.7,
           fontFamily: 'var(--fm)',
         }}>

@@ -5,21 +5,21 @@ import { generateId } from '../parser';
 const inputStyle = {
   width: '100%', padding: '9px 12px',
   background: 'var(--surface)',
-  border: '1px solid rgba(255,255,255,0.07)',
+  border: '1px solid var(--border)',
   borderRadius: 7, color: 'var(--text)',
   fontSize: 14, outline: 'none',
   fontFamily: 'var(--fb)', boxSizing: 'border-box',
 };
 
 const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
+  fontSize: 10, fontWeight: 500, color: 'var(--text-muted)',
   textTransform: 'uppercase', letterSpacing: '0.07em',
   fontFamily: 'var(--fm)', display: 'block', marginBottom: 4,
 };
 
 const cB = {
   width: 28, height: 28, borderRadius: 6,
-  border: '1px solid rgba(255,255,255,0.1)',
+  border: '1px solid var(--border)',
   background: 'var(--surface)', color: 'var(--text)',
   fontSize: 15, cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -94,8 +94,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
       {/* Header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(11,11,15,0.92)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        background: 'var(--header-bg)',
+        borderBottom: '1px solid var(--border)',
         padding: '14px 18px 10px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
@@ -106,7 +106,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
           }}>
             &#8592; Back
           </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+          <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-bright)' }}>
             {setlist ? 'Edit Setlist' : 'New Setlist'}
           </span>
         </div>
@@ -116,10 +116,10 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
               onClick={() => { if (confirm('Delete this setlist?')) onDelete(setlist.id); }}
               style={{
                 background: 'var(--danger-soft)',
-                border: '1px solid rgba(239,68,68,0.2)',
+                border: 'none',
                 borderRadius: 7, padding: '7px 14px',
                 color: 'var(--danger)', fontSize: 13,
-                fontWeight: 600, cursor: 'pointer',
+                fontWeight: 500, cursor: 'pointer',
               }}
             >
               Delete
@@ -127,10 +127,10 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
           )}
           <button onClick={handleSave} style={{
             background: 'var(--accent-soft)',
-            border: '1px solid rgba(99,102,241,0.3)',
+            border: '1px solid var(--accent)',
             borderRadius: 7, padding: '7px 18px',
             color: 'var(--accent-text)', fontSize: 13,
-            fontWeight: 600, cursor: 'pointer',
+            fontWeight: 500, cursor: 'pointer',
           }}>
             Save
           </button>
@@ -156,8 +156,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
             {['Morning', 'Evening', 'Special'].map(s => (
               <button key={s} onClick={() => setService(s)} style={{
                 ...cB, padding: '6px 10px', width: 'auto', fontSize: 11,
-                borderColor: service === s ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-                color: service === s ? 'var(--accent-text)' : 'rgba(255,255,255,0.4)',
+                borderColor: service === s ? 'var(--accent)' : 'var(--border)',
+                color: service === s ? 'var(--accent-text)' : 'var(--text-muted)',
                 background: service === s ? 'var(--accent-soft)' : 'var(--surface)',
               }}>
                 {s}
@@ -173,7 +173,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', marginBottom: 10,
         }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>
             Items ({items.length})
             {breakCount > 0 && (
               <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
@@ -194,8 +194,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
             <div style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               justifyContent: 'center', width: 44,
-              background: 'rgba(255,255,255,0.02)',
-              borderRight: '1px solid rgba(255,255,255,0.04)',
+              background: 'var(--surface)',
+              borderRight: '1px solid var(--border)',
               gap: 2, padding: '4px 0',
             }}>
               <button
@@ -203,7 +203,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 disabled={idx === 0}
                 style={{
                   background: 'none', border: 'none',
-                  color: idx > 0 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
+                  color: idx > 0 ? 'var(--text-muted)' : 'var(--border)',
                   cursor: idx > 0 ? 'pointer' : 'default', padding: 2, display: 'flex',
                   minHeight: 'auto',
                 }}
@@ -211,8 +211,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 &#9650;
               </button>
               <span style={{
-                fontSize: 14, fontWeight: 700,
-                color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--fm)',
+                fontSize: 14, fontWeight: 500,
+                color: 'var(--text-muted)', fontFamily: 'var(--fm)',
               }}>
                 {idx + 1}
               </span>
@@ -221,7 +221,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 disabled={idx === items.length - 1}
                 style={{
                   background: 'none', border: 'none',
-                  color: idx < items.length - 1 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
+                  color: idx < items.length - 1 ? 'var(--text-muted)' : 'var(--border)',
                   cursor: idx < items.length - 1 ? 'pointer' : 'default',
                   padding: 2, display: 'flex', minHeight: 'auto',
                 }}
@@ -236,8 +236,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
             return (
               <div key={idx} style={{
                 display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
-                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-                overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
+                borderRadius: 10, border: '1px solid var(--border)',
+                overflow: 'hidden', background: 'var(--surface)',
               }}>
                 {orderCol}
                 <div style={{
@@ -246,10 +246,10 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 }}>
                   <div style={{
                     width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                    background: 'rgba(107,114,128,0.15)',
-                    border: '1px solid rgba(107,114,128,0.3)',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16, color: 'rgba(255,255,255,0.4)',
+                    fontSize: 16, color: 'var(--text-muted)',
                   }}>
                     &#9646;
                   </div>
@@ -260,8 +260,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                       placeholder="e.g. Prayer, Announcements, Offering..."
                       style={{
                         ...inputStyle, padding: '5px 8px', fontSize: 13,
-                        fontWeight: 600, background: 'transparent',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        fontWeight: 500, background: 'transparent',
+                        border: '1px solid var(--border)',
                       }}
                     />
                   </div>
@@ -269,7 +269,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '8px 10px',
-                  borderLeft: '1px solid rgba(255,255,255,0.04)',
+                  borderLeft: '1px solid var(--border)',
                 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <span style={{
@@ -287,7 +287,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                       style={{
                         width: 36, padding: '3px 4px', textAlign: 'center',
                         background: 'var(--surface)',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        border: '1px solid var(--border)',
                         borderRadius: 5, color: 'var(--text)', fontSize: 11,
                         fontFamily: 'var(--fm)', outline: 'none',
                       }}
@@ -300,7 +300,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                     style={{
                       width: 100, padding: '5px 8px',
                       background: 'var(--surface)',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      border: '1px solid var(--border)',
                       borderRadius: 5, color: 'var(--text)', fontSize: 11,
                       fontFamily: 'var(--fb)', outline: 'none',
                     }}
@@ -309,7 +309,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                     onClick={() => removeItem(idx)}
                     style={{
                       background: 'none', border: 'none',
-                      color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
+                      color: 'var(--text-dim)', cursor: 'pointer',
                       padding: 4, display: 'flex', minHeight: 'auto',
                     }}
                   >
@@ -327,8 +327,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
           return (
             <div key={idx} style={{
               display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
-              borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-              overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
+              borderRadius: 10, border: '1px solid var(--border)',
+              overflow: 'hidden', background: 'var(--surface)',
             }}>
               {orderCol}
               <div style={{
@@ -337,16 +337,16 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
               }}>
                 <div style={{
                   width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
+                  background: 'var(--bg)',
                   border: `1px solid ${s.b}44`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
+                  fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 500, color: s.d,
                 }}>
                   {transposeKey(song.key, item.transpose)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
+                    fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {song.title}
@@ -359,7 +359,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '8px 10px',
-                borderLeft: '1px solid rgba(255,255,255,0.04)',
+                borderLeft: '1px solid var(--border)',
               }}>
                 <div style={{
                   display: 'flex', flexDirection: 'column',
@@ -377,9 +377,9 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                     style={{
                       padding: '3px 4px', borderRadius: 5,
                       background: 'var(--surface)',
-                      border: `1px solid ${item.transpose ? 'var(--chord)' : 'rgba(255,255,255,0.06)'}`,
+                      border: `1px solid ${item.transpose ? 'var(--chord)' : 'var(--border)'}`,
                       color: item.transpose ? 'var(--chord)' : 'var(--text)',
-                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
+                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 500,
                       outline: 'none', cursor: 'pointer',
                     }}
                   >
@@ -404,9 +404,9 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                     style={{
                       padding: '3px 4px', borderRadius: 5,
                       background: 'var(--surface)',
-                      border: `1px solid ${item.capo ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
+                      border: `1px solid ${item.capo ? 'var(--accent)' : 'var(--border)'}`,
                       color: item.capo ? 'var(--accent-text)' : 'var(--text)',
-                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
+                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 500,
                       outline: 'none', cursor: 'pointer',
                     }}
                   >
@@ -422,7 +422,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   style={{
                     width: 100, padding: '5px 8px',
                     background: 'var(--surface)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    border: '1px solid var(--border)',
                     borderRadius: 5, color: 'var(--text)', fontSize: 11,
                     fontFamily: 'var(--fb)', outline: 'none',
                   }}
@@ -431,7 +431,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   onClick={() => removeItem(idx)}
                   style={{
                     background: 'none', border: 'none',
-                    color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
+                    color: 'var(--text-dim)', cursor: 'pointer',
                     padding: 4, display: 'flex', minHeight: 'auto',
                   }}
                 >
@@ -445,12 +445,12 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
         {/* Add song */}
         {adding ? (
           <div style={{
-            border: '1px solid rgba(99,102,241,0.2)',
+            border: '1px solid var(--accent)',
             borderRadius: 10, overflow: 'hidden', marginTop: 8,
           }}>
             <div style={{
               padding: 10,
-              borderBottom: '1px solid rgba(255,255,255,0.05)',
+              borderBottom: '1px solid var(--border)',
             }}>
               <input
                 value={search}
@@ -467,20 +467,20 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   <button key={song.id} onClick={() => addSong(song)} style={{
                     width: '100%', display: 'flex', alignItems: 'center',
                     gap: 10, padding: '10px 12px', background: 'none',
-                    border: 'none', borderBottom: '1px solid rgba(255,255,255,0.03)',
+                    border: 'none', borderBottom: '1px solid var(--border)',
                     cursor: 'pointer', textAlign: 'left',
                   }}>
                     <span style={{
                       width: 32, height: 32, borderRadius: 7, flexShrink: 0,
-                      background: `linear-gradient(135deg,${s.b}33,${s.b}11)`,
+                      background: 'var(--bg)',
                       border: `1px solid ${s.b}44`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700, color: s.d,
+                      fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 500, color: s.d,
                     }}>
                       {song.key}
                     </span>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-bright)' }}>
                         {song.title}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
@@ -501,7 +501,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
             </div>
             <div style={{
               padding: 8,
-              borderTop: '1px solid rgba(255,255,255,0.05)',
+              borderTop: '1px solid var(--border)',
             }}>
               <button
                 onClick={() => { setAdding(false); setSearch(''); }}
@@ -510,7 +510,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   background: 'var(--surface)',
                   border: '1px solid var(--border)',
                   borderRadius: 7, padding: '7px 12px',
-                  color: '#94a3b8', fontSize: 12, fontWeight: 600,
+                  color: '#94a3b8', fontSize: 12, fontWeight: 500,
                   cursor: 'pointer', fontFamily: 'var(--fb)',
                 }}
               >
@@ -528,7 +528,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 background: 'var(--surface)',
                 border: '1px dashed var(--border)',
                 borderRadius: 7, color: '#94a3b8', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
+                fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--fb)',
                 display: 'flex', alignItems: 'center', gap: 5,
               }}
             >
@@ -540,9 +540,9 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 flex: 1, justifyContent: 'center',
                 padding: '14px 0',
                 background: 'var(--surface)',
-                border: '1px dashed rgba(107,114,128,0.4)',
-                borderRadius: 7, color: 'rgba(107,114,128,0.7)', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
+                border: '1px dashed var(--border)',
+                borderRadius: 7, color: 'var(--text-dim)', fontSize: 12,
+                fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--fb)',
                 display: 'flex', alignItems: 'center', gap: 5,
               }}
             >

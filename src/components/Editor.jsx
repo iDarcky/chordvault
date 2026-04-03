@@ -107,11 +107,11 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button onClick={onBack} style={{
               background: 'none', border: 'none', color: 'var(--text-muted)',
-              cursor: 'pointer', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', fontSize: 14, fontWeight: 500,
             }}>
               ← Back
             </button>
-            <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+            <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-bright)' }}>
               {song ? 'Edit Song' : 'New Song'}
             </span>
           </div>
@@ -122,10 +122,10 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
                 onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }}
                 style={{
                   background: 'var(--danger-soft)',
-                  border: '1px solid rgba(239,68,68,0.2)',
+                  border: 'none',
                   borderRadius: 7, padding: '6px 12px',
                   color: 'var(--danger)', fontSize: 12,
-                  fontWeight: 600, cursor: 'pointer',
+                  fontWeight: 500, cursor: 'pointer',
                 }}
               >
                 Delete
@@ -133,10 +133,10 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
             )}
             <button onClick={handleSave} style={{
               background: 'var(--accent-soft)',
-              border: '1px solid rgba(99,102,241,0.3)',
+              border: '1px solid var(--accent)',
               borderRadius: 7, padding: '6px 16px',
               color: 'var(--accent-text)', fontSize: 12,
-              fontWeight: 600, cursor: 'pointer',
+              fontWeight: 500, cursor: 'pointer',
               opacity: preview ? 1 : 0.4,
             }}>
               Save
@@ -163,7 +163,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
                     : activeTab === t.id
                       ? 'var(--text)'
                       : 'var(--text-muted)',
-                  padding: '8px 14px', fontSize: 12, fontWeight: 600,
+                  padding: '8px 14px', fontSize: 12, fontWeight: 500,
                   cursor: t.disabled ? 'not-allowed' : 'pointer',
                   opacity: t.disabled ? 0.4 : 1,
                 }}
@@ -238,7 +238,7 @@ const iconBtnStyle = {
 };
 
 const statPillStyle = {
-  fontSize: 10.5, fontWeight: 600,
+  fontSize: 10.5, fontWeight: 500,
   color: 'var(--text-dim)',
   fontFamily: 'var(--fm)',
   padding: '3px 8px',

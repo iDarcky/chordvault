@@ -58,7 +58,7 @@ export default function Library({
   const btnStyle = {
     border: 'none', borderRadius: 7, cursor: 'pointer',
     display: 'flex', alignItems: 'center', gap: 5,
-    fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
+    fontFamily: 'var(--fb)', fontWeight: 500, fontSize: 12,
   };
 
   return (
@@ -66,7 +66,7 @@ export default function Library({
       {/* Header */}
       <div style={{
         padding: '28px 20px 0',
-        background: 'linear-gradient(180deg, rgba(99,102,241,0.06) 0%, transparent 100%)',
+        background: 'var(--bg)',
       }}>
         <div style={{
           display: 'flex', alignItems: 'center',
@@ -86,13 +86,13 @@ export default function Library({
               width: 38, height: 38, borderRadius: 10,
               background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 16, fontWeight: 700,
+              color: '#fff', fontSize: 16, fontWeight: 500,
             }}>
               CV
             </div>
             <div>
               <h1 style={{
-                margin: 0, fontSize: 22, fontWeight: 700,
+                margin: 0, fontSize: 22, fontWeight: 500,
                 color: 'var(--text-bright)', letterSpacing: '-0.02em',
               }}>
                 ChordVault
@@ -130,7 +130,7 @@ export default function Library({
                   onChange={handleFiles} style={{ display: 'none' }} />
                 <button onClick={onNewSong} style={{
                   ...btnStyle, background: 'var(--accent-soft)',
-                  border: '1px solid rgba(99,102,241,0.3)',
+                  border: '1px solid var(--accent)',
                   color: 'var(--accent-text)', padding: '7px 16px',
                 }}>
                   + New Song
@@ -153,7 +153,7 @@ export default function Library({
                   style={{ display: 'none' }} />
                 <button onClick={onNewSetlist} style={{
                   ...btnStyle, background: 'var(--accent-soft)',
-                  border: '1px solid rgba(99,102,241,0.3)',
+                  border: '1px solid var(--accent)',
                   color: 'var(--accent-text)', padding: '7px 16px',
                 }}>
                   + New Setlist
@@ -173,7 +173,7 @@ export default function Library({
           return (
             <div style={{ padding: '12px 0 8px' }}>
               <div style={{
-                fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+                fontSize: 11, fontWeight: 500, color: 'var(--text-muted)',
                 textTransform: 'uppercase', letterSpacing: '0.07em',
                 fontFamily: 'var(--fm)', marginBottom: 8, padding: '0 2px',
               }}>
@@ -188,12 +188,12 @@ export default function Library({
                     display: 'flex', alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '8px 10px', marginBottom: 4,
-                    borderRadius: 8, background: 'rgba(99,102,241,0.04)',
-                    border: '1px solid rgba(99,102,241,0.1)',
+                    borderRadius: 8, background: 'var(--surface)',
+                    border: '1px solid var(--border)',
                   }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{
-                        fontSize: 13, fontWeight: 600, color: 'var(--text-bright)',
+                        fontSize: 13, fontWeight: 500, color: 'var(--text-bright)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {sl.name || 'Untitled'}
@@ -204,7 +204,7 @@ export default function Library({
                     </div>
                     <button onClick={() => onPlaySetlist(sl)} style={{
                       ...btnStyle, background: 'var(--accent-soft)',
-                      border: '1px solid rgba(99,102,241,0.3)',
+                      border: '1px solid var(--accent)',
                       color: 'var(--accent-text)', padding: '5px 14px',
                       flexShrink: 0,
                     }}>
@@ -220,7 +220,7 @@ export default function Library({
         {/* Tab switch */}
         <div style={{
           display: 'flex', gap: 0,
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid var(--border)',
         }}>
           {[{ id: 'songs', label: 'Songs' }, { id: 'setlists', label: 'Setlists' }].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -228,7 +228,7 @@ export default function Library({
               background: 'none', border: 'none',
               borderBottom: tab === t.id ? '2px solid var(--accent)' : '2px solid transparent',
               color: tab === t.id ? 'var(--text)' : 'var(--text-muted)',
-              padding: '10px 20px', fontSize: 13, fontWeight: 600,
+              padding: '10px 20px', fontSize: 13, fontWeight: 500,
               cursor: 'pointer', fontFamily: 'var(--fb)',
             }}>
               {t.label}
@@ -249,7 +249,7 @@ export default function Library({
                 style={{
                   width: '100%', padding: '10px 12px 10px 36px',
                   background: 'var(--surface)',
-                  border: '1px solid rgba(255,255,255,0.07)',
+                  border: '1px solid var(--border)',
                   borderRadius: 8, color: 'var(--text)',
                   fontSize: 14, outline: 'none',
                   fontFamily: 'var(--fb)', boxSizing: 'border-box',
@@ -305,24 +305,24 @@ export default function Library({
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center',
                     gap: 14, padding: '14px 14px', marginBottom: 4,
-                    borderRadius: 10, background: 'rgba(255,255,255,0.015)',
-                    border: '1px solid rgba(255,255,255,0.04)',
+                    borderRadius: 10, background: 'var(--surface)',
+                    border: '1px solid var(--border)',
                     cursor: 'pointer', textAlign: 'left',
                     boxSizing: 'border-box',
                   }}
                 >
                   <div style={{
                     width: 42, height: 42, borderRadius: 9, flexShrink: 0,
-                    background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
+                    background: 'var(--bg)',
                     border: `1px solid ${s.b}44`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--fm)', fontSize: 14, fontWeight: 700, color: s.d,
+                    fontFamily: 'var(--fm)', fontSize: 14, fontWeight: 500, color: s.d,
                   }}>
                     {song.key}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: 15, fontWeight: 600, color: 'var(--text-bright)',
+                      fontSize: 15, fontWeight: 500, color: 'var(--text-bright)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {song.title}
@@ -348,7 +348,7 @@ export default function Library({
                       onClick={e => { e.stopPropagation(); handleExport(song); }}
                       style={{
                         background: 'none', border: 'none',
-                        color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
+                        color: 'var(--text-dim)', cursor: 'pointer',
                         padding: 4, display: 'flex', fontSize: 14,
                       }}
                     >
@@ -381,8 +381,8 @@ export default function Library({
             return (
               <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
                 marginBottom: 8, borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.06)',
-                overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
+                border: '1px solid var(--border)',
+                overflow: 'hidden', background: 'var(--surface)',
                 cursor: 'pointer',
               }}>
                 <div style={{
@@ -390,7 +390,7 @@ export default function Library({
                   justifyContent: 'space-between', padding: '14px 16px',
                 }}>
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-bright)' }}>
+                    <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-bright)' }}>
                       {sl.name || 'Untitled Setlist'}
                     </div>
                     <div style={{ display: 'flex', gap: 10, marginTop: 3 }}>
@@ -403,7 +403,7 @@ export default function Library({
                   </div>
                   <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
                     ...btnStyle, background: 'var(--accent-soft)',
-                    border: '1px solid rgba(99,102,241,0.3)',
+                    border: '1px solid var(--accent)',
                     color: 'var(--accent-text)', padding: '6px 14px',
                   }}>
                     Live
@@ -421,8 +421,8 @@ export default function Library({
                             display: 'inline-flex', alignItems: 'center', gap: 4,
                             padding: '3px 8px', borderRadius: 12,
                             background: 'var(--surface)',
-                            border: '1px solid rgba(107,114,128,0.2)',
-                            fontSize: 11, color: 'rgba(255,255,255,0.3)',
+                            border: '1px solid var(--border)',
+                            fontSize: 11, color: 'var(--text-muted)',
                             fontStyle: 'italic',
                           }}>
                             {it.label || 'Break'}
@@ -437,10 +437,10 @@ export default function Library({
                           padding: '3px 8px', borderRadius: 12,
                           background: 'var(--surface)',
                           border: '1px solid var(--border)',
-                          fontSize: 11, color: 'rgba(255,255,255,0.45)',
+                          fontSize: 11, color: 'var(--text-muted)',
                         }}>
                           <span style={{
-                            fontFamily: 'var(--fm)', fontWeight: 700,
+                            fontFamily: 'var(--fm)', fontWeight: 500,
                             color: 'var(--chord)', fontSize: 10,
                           }}>
                             {transposeKey(song.key, it.transpose)}

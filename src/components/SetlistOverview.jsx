@@ -4,7 +4,7 @@ import { transposeKey, sectionStyle } from '../music';
 const btnStyle = {
   border: 'none', borderRadius: 7, cursor: 'pointer',
   display: 'flex', alignItems: 'center', gap: 5,
-  fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
+  fontFamily: 'var(--fb)', fontWeight: 500, fontSize: 12,
 };
 
 export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay }) {
@@ -37,7 +37,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
       {/* Header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg, rgba(11,11,15,0.92))', backdropFilter: 'blur(16px)',
+        background: 'var(--header-bg)',
         borderBottom: '1px solid var(--border)',
         padding: '14px 18px 10px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -49,7 +49,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           }}>
             &#8592; Back
           </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+          <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-bright)' }}>
             {setlist.name || 'Untitled Setlist'}
           </span>
         </div>
@@ -68,7 +68,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           </button>
           <button onClick={onPlay} style={{
             ...btnStyle, background: 'var(--accent-soft)',
-            border: '1px solid rgba(99,102,241,0.3)',
+            border: '1px solid var(--accent)',
             color: 'var(--accent-text)', padding: '7px 16px',
           }}>
             Live
@@ -80,8 +80,8 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
       <div style={{ padding: '16px 18px 8px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{
           padding: '4px 10px', borderRadius: 6,
-          background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.2)',
-          fontSize: 12, fontWeight: 600, color: 'var(--accent-text)',
+          background: 'var(--accent-soft)', border: '1px solid var(--accent)',
+          fontSize: 12, fontWeight: 500, color: 'var(--accent-text)',
         }}>
           {setlist.service || 'Service'}
         </span>
@@ -101,27 +101,27 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
             return (
               <div key={idx} style={{
                 display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-                padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
+                borderRadius: 10, border: '1px solid var(--border)',
+                padding: '12px 16px', background: 'var(--surface)',
               }}>
                 <span style={{
-                  fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
+                  fontSize: 13, fontWeight: 500, color: 'var(--text-dim)',
                   fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
                 }}>
                   {idx + 1}
                 </span>
                 <div style={{
                   width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: 'rgba(107,114,128,0.15)',
-                  border: '1px solid rgba(107,114,128,0.3)',
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, color: 'rgba(255,255,255,0.4)',
+                  fontSize: 16, color: 'var(--text-muted)',
                 }}>
                   &#9646;
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
+                    fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
                     fontStyle: 'italic',
                   }}>
                     {item.label || 'Break'}
@@ -152,27 +152,27 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           return (
             <div key={idx} style={{
               display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-              borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-              padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
+              borderRadius: 10, border: '1px solid var(--border)',
+              padding: '12px 16px', background: 'var(--surface)',
             }}>
               <span style={{
-                fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
+                fontSize: 13, fontWeight: 500, color: 'var(--text-dim)',
                 fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
               }}>
                 {idx + 1}
               </span>
               <div style={{
                 width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
+                background: 'var(--bg)',
                 border: `1px solid ${s.b}44`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
+                fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 500, color: s.d,
               }}>
                 {displayKey}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
+                  fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                   {song.title}
@@ -184,18 +184,18 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
               <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
                 {item.transpose !== 0 && (
                   <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
+                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 500,
                     fontFamily: 'var(--fm)', color: 'var(--chord)',
-                    background: 'rgba(226,168,50,0.1)', border: '1px solid rgba(226,168,50,0.2)',
+                    background: 'var(--warning)', border: 'none', color: '#000',
                   }}>
                     {song.key} → {displayKey}
                   </span>
                 )}
                 {(item.capo || 0) > 0 && (
                   <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
+                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 500,
                     fontFamily: 'var(--fm)', color: 'var(--accent-text)',
-                    background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.2)',
+                    background: 'var(--accent-soft)', border: '1px solid var(--accent)',
                   }}>
                     Capo {item.capo}
                   </span>

@@ -52,7 +52,7 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
     border: '1px solid var(--border)',
     borderRadius: 10,
     padding: 10,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    border: '1px solid var(--border)',
     width: 290,
   };
 
@@ -141,6 +141,6 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
 
 const pillBtn = {
   borderRadius: 6, padding: '6px 0', fontSize: 13,
-  fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fm)',
+  fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--fm)',
   textAlign: 'center',
 };

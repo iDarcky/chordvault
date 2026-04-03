@@ -10,7 +10,7 @@ export function StructureRibbon({ structure, compact }) {
             display: 'inline-flex', alignItems: 'center', gap: compact ? 3 : 4,
             padding: compact ? '2px 6px' : '3px 9px', borderRadius: 16,
             border: `1.5px solid ${s.b}44`, background: `${s.bg}88`,
-            color: s.d, fontSize: compact ? 10 : 10.5, fontWeight: 600,
+            color: s.d, fontSize: compact ? 10 : 10.5, fontWeight: 500,
             fontFamily: 'var(--fm)', whiteSpace: 'nowrap',
           }}>
             <span style={{
@@ -33,13 +33,13 @@ export function MetaPill({ label, value, highlight }) {
       background: 'var(--surface)', border: '1px solid var(--border)',
     }}>
       <span style={{
-        fontSize: 9.5, fontWeight: 600, color: 'var(--text-muted)',
+        fontSize: 9.5, fontWeight: 500, color: 'var(--text-muted)',
         textTransform: 'uppercase', letterSpacing: '0.08em',
       }}>
         {label}
       </span>
       <span style={{
-        fontSize: 13.5, fontWeight: 700,
+        fontSize: 13.5, fontWeight: 500,
         color: highlight ? 'var(--chord)' : 'var(--text-bright)',
         fontFamily: 'var(--fm)',
       }}>

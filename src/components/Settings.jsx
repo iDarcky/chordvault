@@ -2,7 +2,7 @@ import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
 
 const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
+  fontSize: 10, fontWeight: 500, color: 'var(--text-muted)',
   textTransform: 'uppercase', letterSpacing: '0.07em',
   fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
 };
@@ -11,7 +11,7 @@ const cB = {
   borderRadius: 6,
   border: '1px solid var(--border)',
   background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 600,
+  fontSize: 12, cursor: 'pointer', fontWeight: 500,
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   fontFamily: 'var(--fb)', padding: '6px 14px',
 };
@@ -55,7 +55,7 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
         }}>
           &#8592; Back
         </button>
-        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+        <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-bright)' }}>
           Settings
         </span>
       </div>
@@ -228,7 +228,7 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
             style={{
               ...cB, width: '100%', justifyContent: 'center',
               background: 'var(--danger-soft)',
-              border: '1px solid rgba(239,68,68,0.2)',
+              border: 'none',
               color: 'var(--danger)',
             }}
           >
@@ -241,7 +241,7 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
           padding: '12px 14px', borderRadius: 8,
           background: 'var(--surface)', border: '1px solid var(--border)',
         }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)', marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-bright)', marginBottom: 4 }}>
             ChordVault
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>

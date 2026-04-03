@@ -55,7 +55,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   const cB = {
     width: 28, height: 28, borderRadius: 6,
-    border: '1px solid rgba(255,255,255,0.1)',
+    border: '1px solid var(--border)',
     background: 'var(--surface)', color: 'var(--text)',
     fontSize: 15, cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -98,7 +98,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
             onClick={() => setIdx(i)}
             style={{
               flex: 1, height: i === idx ? 6 : 4, borderRadius: 3,
-              background: i === idx ? color : i < idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
+              background: i === idx ? color : i < idx ? 'var(--border)' : 'var(--border)',
               border: 'none', cursor: 'pointer',
               transition: 'all 0.2s ease', minWidth: 0, minHeight: 'auto',
             }}
@@ -120,13 +120,13 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
             <button key={i} onClick={() => setIdx(i)} style={{
               flexShrink: 0, display: 'flex', alignItems: 'center',
               gap: 6, padding: '5px 10px', borderRadius: 8,
-              border: `1px solid ${active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)'}`,
-              background: active ? 'rgba(255,255,255,0.05)' : 'transparent',
+              border: `1px solid ${active ? 'var(--text-dim)' : 'var(--border)'}`,
+              background: active ? 'var(--border)' : 'transparent',
               cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
             }}>
               <span style={{
-                fontSize: 11, fontWeight: 700,
-                color: active ? 'rgba(255,255,255,0.5)' : 'var(--text-dim)',
+                fontSize: 11, fontWeight: 500,
+                color: active ? 'var(--text-muted)' : 'var(--text-dim)',
                 fontFamily: 'var(--fm)',
               }}>
                 {i + 1}
@@ -147,12 +147,12 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
           <button key={i} onClick={() => setIdx(i)} style={{
             flexShrink: 0, display: 'flex', alignItems: 'center',
             gap: 6, padding: '5px 10px', borderRadius: 8,
-            border: `1px solid ${active ? s.b + '66' : 'rgba(255,255,255,0.04)'}`,
+            border: `1px solid ${active ? s.b + '66' : 'var(--border)'}`,
             background: active ? s.bg : 'transparent',
             cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
           }}>
             <span style={{
-              fontSize: 11, fontWeight: 700,
+              fontSize: 11, fontWeight: 500,
               color: active ? s.d : 'var(--text-dim)',
               fontFamily: 'var(--fm)',
             }}>
@@ -167,7 +167,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
             </span>
             <span style={{
               fontSize: 10,
-              color: active ? 'var(--chord)' : 'rgba(255,255,255,0.2)',
+              color: active ? 'var(--chord)' : 'var(--text-dim)',
               fontFamily: 'var(--fm)',
             }}>
               {transposeKey(r.song.key, r.transpose)}
@@ -192,7 +192,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
           &#8592; Back
         </button>
         <span style={{
-          fontSize: 13, fontWeight: 600, color: 'var(--text-muted)',
+          fontSize: 13, fontWeight: 500, color: 'var(--text-muted)',
         }}>
           {setlist.name}
         </span>
@@ -203,8 +203,8 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
         <div style={{ padding: '4px 18px 0' }}>
           <div style={{
             padding: '6px 12px', borderRadius: 6,
-            background: 'rgba(245,158,11,0.08)',
-            border: '1px solid rgba(245,158,11,0.15)',
+            background: 'var(--warning)',
+            border: 'none',
             fontSize: 12, color: '#fbbf24', fontFamily: 'var(--fb)',
           }}>
             {cur.note}
@@ -218,7 +218,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
           padding: '80px 20px', minHeight: '50vh',
         }}>
           <div style={{
-            fontSize: 32, fontWeight: 700,
+            fontSize: 32, fontWeight: 500,
             color: 'var(--text-bright)', marginBottom: 8,
           }}>
             {cur.label || 'Break'}

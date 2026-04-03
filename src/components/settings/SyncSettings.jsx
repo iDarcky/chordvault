@@ -3,7 +3,7 @@ import { getProvider, getAvailableProviders } from '../../sync/provider';
 import { setActiveProvider, clearProvider, getSyncState } from '../../sync/tokens';
 
 const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
+  fontSize: 10, fontWeight: 500, color: 'var(--text-muted)',
   textTransform: 'uppercase', letterSpacing: '0.07em',
   fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
 };
@@ -12,7 +12,7 @@ const cB = {
   borderRadius: 6,
   border: '1px solid var(--border)',
   background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 600,
+  fontSize: 12, cursor: 'pointer', fontWeight: 500,
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   fontFamily: 'var(--fb)', padding: '6px 14px',
 };
@@ -75,7 +75,7 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-bright)' }}>
                   {providers.find(p => p.name === connected)?.displayName || connected}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
@@ -89,15 +89,15 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
                   ...cB, padding: '5px 12px',
                   color: 'var(--accent-text)',
                   background: 'var(--accent-soft)',
-                  borderColor: 'rgba(99,102,241,0.3)',
+                  borderColor: 'var(--accent)',
                 }}>
                   Sync Now
                 </button>
                 <button onClick={handleDisconnect} style={{
                   ...cB, padding: '5px 12px',
                   color: 'var(--danger)',
-                  background: 'var(--danger-soft)',
-                  borderColor: 'rgba(239,68,68,0.2)',
+                  background: 'var(--danger)',
+                  border: 'none',
                 }}>
                   Disconnect
                 </button>
@@ -148,7 +148,7 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
       {error && (
         <div style={{
           marginTop: 8, padding: '8px 12px', borderRadius: 6,
-          background: 'var(--danger-soft)', border: '1px solid rgba(239,68,68,0.2)',
+          background: 'var(--danger)', border: 'none',
           fontSize: 12, color: 'var(--danger)',
         }}>
           {error}

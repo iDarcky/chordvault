@@ -4,7 +4,7 @@ export default function SyncStatus({ syncState, onClick }) {
   const dotColors = {
     idle: 'var(--text-dim)',
     syncing: 'var(--accent)',
-    synced: '#22c55e',
+    synced: 'var(--success)',
     error: 'var(--danger)',
   };
 
@@ -29,7 +29,7 @@ export default function SyncStatus({ syncState, onClick }) {
         cursor: 'pointer',
         fontFamily: 'var(--fb)',
         fontSize: 11,
-        fontWeight: 600,
+        fontWeight: 500,
         color: 'var(--text-muted)',
       }}
     >

@@ -77,7 +77,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
 
   const btnStyle = {
     width: 28, height: 28, borderRadius: 6,
-    border: '1px solid rgba(255,255,255,0.1)',
+    border: '1px solid var(--border)',
     background: 'var(--surface)', color: 'var(--text)',
     fontSize: 15, cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -86,13 +86,13 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
 
   const toggleStyle = (active) => ({
     ...btnStyle, padding: '4px 10px', width: 'auto',
-    borderColor: active ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-    color: active ? 'var(--accent-text)' : 'rgba(255,255,255,0.4)',
+    borderColor: active ? 'var(--accent)' : 'var(--border)',
+    color: active ? 'var(--accent-text)' : 'var(--text-muted)',
     background: active ? 'var(--accent-soft)' : 'var(--surface)',
   });
 
   const labelStyle = {
-    fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
+    fontSize: 10, fontWeight: 500, color: 'var(--text-muted)',
     textTransform: 'uppercase', letterSpacing: '0.07em',
   };
 
@@ -101,8 +101,8 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(11,11,15,0.92)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        background: 'var(--header-bg)',
+        borderBottom: '1px solid var(--border)',
         padding: compact ? '10px 18px 6px' : '14px 18px 10px',
       }}>
         {/* Title row */}
@@ -121,7 +121,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
             )}
             <div>
               <h1 style={{
-                margin: 0, fontSize: compact ? 18 : 22, fontWeight: 700,
+                margin: 0, fontSize: compact ? 18 : 22, fontWeight: 500,
                 color: 'var(--text-bright)', letterSpacing: '-0.02em',
               }}>
                 {song.title}
@@ -169,8 +169,8 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
               <button onClick={() => setLocalTranspose(p => (p - 1 + 12) % 12)} style={btnStyle}>&#8722;</button>
               <span style={{
                 minWidth: 26, textAlign: 'center',
-                fontFamily: 'var(--fm)', fontWeight: 700, fontSize: 13,
-                color: transpose ? 'var(--chord)' : 'rgba(255,255,255,0.4)',
+                fontFamily: 'var(--fm)', fontWeight: 500, fontSize: 13,
+                color: transpose ? 'var(--chord)' : 'var(--text-muted)',
               }}>
                 {transpose > 0 ? '+' : ''}{transpose}
               </span>

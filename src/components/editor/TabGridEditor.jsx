@@ -220,7 +220,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.7)',
+        background: 'var(--bg)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
       onClick={onClose}
@@ -235,12 +235,12 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
           padding: 18, width: '95%', maxWidth: 860,
           maxHeight: '90vh', overflow: 'auto',
           outline: 'none',
-          boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
+          border: '1px solid var(--border)',
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-bright)', flex: 1 }}>
+          <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-bright)', flex: 1 }}>
             Tab Editor
           </span>
           <span style={{ fontSize: 11, color: 'var(--text-dim)', fontFamily: 'var(--fm)' }}>
@@ -352,7 +352,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
               {/* String label */}
               <div style={{
                 width: labelW, textAlign: 'right', paddingRight: 6,
-                fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
+                fontSize: 12, fontWeight: 500, color: 'var(--text-muted)',
                 fontFamily: 'var(--fm)', flexShrink: 0,
               }}>
                 {name}
@@ -376,8 +376,8 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                       position: 'relative',
                       borderLeft: isBarLine ? '2px solid var(--text-dim)' : '1px solid var(--border)',
                       background: isCursor
-                        ? 'rgba(99,102,241,0.12)'
-                        : cell !== null ? 'rgba(226,168,50,0.06)' : 'transparent',
+                        ? 'var(--accent-soft)'
+                        : cell !== null ? 'var(--surface)' : 'transparent',
                       cursor: 'pointer',
                       outline: isCursor ? '1px solid var(--accent)' : 'none',
                       borderRadius: isCursor ? 3 : 0,
@@ -429,7 +429,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                           border: '1px solid var(--accent)',
                           borderRadius: 3, textAlign: 'center',
                           color: 'var(--accent-text)', fontFamily: 'var(--fm)',
-                          fontSize: 13, fontWeight: 700, outline: 'none',
+                          fontSize: 13, fontWeight: 500, outline: 'none',
                           zIndex: 1, position: 'relative',
                         }}
                       />
@@ -440,7 +440,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                           display: 'flex', alignItems: 'center', gap: 1,
                         }}>
                           <span style={{
-                            fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700,
+                            fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 500,
                             color: 'var(--chord)', lineHeight: 1,
                           }}>
                             {fret}
@@ -481,7 +481,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
 const toolBtnStyle = {
   background: 'var(--surface)', border: '1px solid var(--border)',
   borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-  color: 'var(--text-muted)', fontSize: 12, fontWeight: 600,
+  color: 'var(--text-muted)', fontSize: 12, fontWeight: 500,
   fontFamily: 'var(--fm)',
 };
 
@@ -493,11 +493,11 @@ const closeBtnStyle = {
 const cancelBtnStyle = {
   background: 'var(--surface)', border: '1px solid var(--border)',
   borderRadius: 8, padding: '8px 18px',
-  color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+  color: 'var(--text-muted)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
 };
 
 const insertBtnStyle = {
-  background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.3)',
+  background: 'var(--accent-soft)', border: '1px solid var(--accent)',
   borderRadius: 8, padding: '8px 22px',
-  color: 'var(--accent-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+  color: 'var(--accent-text)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
 };

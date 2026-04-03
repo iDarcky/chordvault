@@ -356,7 +356,7 @@ function ToolBtn({ label, title, onClick }) {
     <button onClick={onClick} title={title} style={{
       background: 'var(--surface)', border: '1px solid var(--border)',
       borderRadius: 7, padding: '5px 10px', cursor: 'pointer',
-      color: 'var(--text)', fontSize: 14, fontWeight: 600,
+      color: 'var(--text)', fontSize: 14, fontWeight: 500,
       display: 'flex', alignItems: 'center', gap: 4,
       whiteSpace: 'nowrap',
     }}>
@@ -394,7 +394,7 @@ function Popup({ anchor, onClose, children }) {
       background: 'var(--bg)',
       border: '1px solid var(--border)',
       borderRadius: 10, padding: 10,
-      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+      border: '1px solid var(--border)',
       minWidth: 180,
     }}>
       {children}
@@ -425,7 +425,7 @@ function MetadataOverlay({ meta, onSave, onClose }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(0,0,0,0.6)',
+      background: 'var(--surface)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{
@@ -434,13 +434,13 @@ function MetadataOverlay({ meta, onSave, onClose }) {
         padding: 20, width: '90%', maxWidth: 420, maxHeight: '80vh',
         overflow: 'auto',
       }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 14 }}>
+        <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-bright)', marginBottom: 14 }}>
           Song Metadata
         </div>
         {fields.map(f => (
           <label key={f.key} style={{ display: 'block', marginBottom: 10 }}>
             <span style={{
-              fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
+              fontSize: 10, fontWeight: 500, color: 'var(--text-muted)',
               textTransform: 'uppercase', letterSpacing: '0.06em',
               display: 'block', marginBottom: 3,
             }}>
@@ -489,9 +489,9 @@ const inputStyle = {
 
 const popupBtnStyle = {
   background: 'var(--accent-soft)',
-  border: '1px solid rgba(99,102,241,0.3)',
+  border: '1px solid var(--accent)',
   borderRadius: 6, padding: '6px 14px',
   color: 'var(--accent-text)', fontSize: 12,
-  fontWeight: 600, cursor: 'pointer',
+  fontWeight: 500, cursor: 'pointer',
   whiteSpace: 'nowrap',
 };
