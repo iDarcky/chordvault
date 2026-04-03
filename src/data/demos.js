@@ -40,9 +40,9 @@ Rise to the call
 
 ## Chorus 1
 > Whole band dynamics
-[F#m7]I'll [A]praise when outnumbered
+[F#m7]I'll [A]praise when outnumbered {!electric swells}
 [F#m7]  [A]Praise when surrounded
-[F#m7]Cause [A]praise is the river
+[F#m7]Cause [A]praise is the river {!drums build}
 [D/A]My doubts are [A]drowned in
 
 ## Instrumental

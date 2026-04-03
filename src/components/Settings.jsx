@@ -97,6 +97,35 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
           </div>
         </div>
 
+        {/* Inline Notes */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Inline Notes</label>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {[true, false].map(v => (
+              <button key={String(v)} onClick={() => update('showInlineNotes', v)} style={activeBtn(settings.showInlineNotes === v)}>
+                {v ? 'Show' : 'Hide'}
+              </button>
+            ))}
+          </div>
+          {settings.showInlineNotes !== false && (
+            <>
+              <label style={{ ...labelStyle, marginTop: 8 }}>Leader Style</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[
+                  { key: 'dashes', label: '- - -' },
+                  { key: 'dots', label: '· · ·' },
+                  { key: 'underscores', label: '___' },
+                  { key: 'arrow', label: '──▸' },
+                ].map(({ key, label }) => (
+                  <button key={key} onClick={() => update('inlineNoteStyle', key)} style={activeBtn(settings.inlineNoteStyle === key)}>
+                    <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Pedal Mapping */}
         <div style={{ marginBottom: 24 }}>
           <label style={labelStyle}>Pedal / Keyboard Mapping</label>

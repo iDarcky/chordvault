@@ -7,7 +7,7 @@ import { parseLine } from '../parser';
 
 const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
 
-export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize }) {
+export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize, showInlineNotes = true, inlineNoteStyle = 'dashes' }) {
   const [localTranspose, setLocalTranspose] = useState(0);
   const [cols, setCols] = useState(defaultColumns || 'auto');
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
@@ -230,7 +230,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
       >
         <div>
           {song.sections.slice(0, mid).map((sec, i) => (
-            <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} />
+            <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} />
           ))}
         </div>
         {(isExplicit2Col || cols === 'auto') && (

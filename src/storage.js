@@ -36,6 +36,8 @@ export const DEFAULT_SETTINGS = {
   pedalNext: 'ArrowRight',
   pedalPrev: 'ArrowLeft',
   onboardingComplete: false,
+  showInlineNotes: true,
+  inlineNoteStyle: 'dashes',
 };
 
 export async function loadSettings() {

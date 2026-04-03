@@ -1,5 +1,5 @@
 import { transposeChord, sectionStyle } from '../music';
-import { parseLine } from '../parser';
+import { parseLine, extractInlineNotes } from '../parser';
 import TabBlock from './TabBlock';
 
 function ChordToken({ chord, text, transpose }) {
@@ -18,6 +18,43 @@ function ChordToken({ chord, text, transpose }) {
         color: 'var(--text)', lineHeight: '21px', whiteSpace: 'pre',
       }}>
         {text || '\u00A0'}
+      </span>
+    </span>
+  );
+}
+
+const LEADER_STYLES = {
+  dashes: { borderBottom: '1px dashed rgba(255,255,255,0.15)', content: '' },
+  dots: { borderBottom: '1px dotted rgba(255,255,255,0.2)', content: '' },
+  underscores: { borderBottom: '1px solid rgba(255,255,255,0.1)', content: '' },
+  arrow: { borderBottom: '1px dashed rgba(255,255,255,0.15)', arrow: true },
+};
+
+function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
+  const style = LEADER_STYLES[leaderStyle] || LEADER_STYLES.dashes;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'flex-end',
+      flex: 1, minWidth: 40, marginLeft: 6,
+    }}>
+      <span style={{
+        flex: 1, alignSelf: 'center',
+        ...style,
+        marginBottom: 3, marginRight: style.arrow ? 0 : 6,
+        minWidth: 20,
+      }} />
+      {style.arrow && (
+        <span style={{
+          alignSelf: 'center', color: 'rgba(255,255,255,0.15)',
+          fontSize: 10, lineHeight: 1, marginRight: 6, marginBottom: 1,
+        }}>&#9656;</span>
+      )}
+      <span style={{
+        fontSize: 10.5, fontStyle: 'italic', whiteSpace: 'nowrap',
+        color: 'var(--chord)', opacity: 0.7,
+        fontFamily: 'var(--fb)', lineHeight: '19px',
+      }}>
+        {notes.join(' · ')}
       </span>
     </span>
   );
@@ -44,7 +81,7 @@ function ModulateBadge({ semitones }) {
   );
 }
 
-export default function SectionBlock({ section, transpose = 0, modulateOffset = 0 }) {
+export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes' }) {
   const s = sectionStyle(section.type);
 
   // Pre-compute lines with running modulate offset
@@ -60,27 +97,33 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
       }
       if (!line.trim()) return <div key={i} style={{ height: 5 }} />;
 
+      const { clean, notes } = extractInlineNotes(line);
       const effectiveTranspose = transpose + modulateOffset + runningMod;
-      const parts = parseLine(line);
+      const parts = parseLine(clean);
       const hasChords = parts.some(p => p.chord);
+      const hasNotes = showInlineNotes && notes.length > 0;
 
       if (!hasChords) {
         return (
           <div key={i} style={{
+            display: hasNotes ? 'flex' : 'block', alignItems: 'flex-end',
             fontSize: 15, color: 'var(--text)',
             lineHeight: '21px', marginBottom: 1,
-            whiteSpace: 'pre-wrap',
           }}>
-            {line}
+            <span style={{ whiteSpace: 'pre-wrap' }}>{clean}</span>
+            {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
           </div>
         );
       }
 
       return (
-        <div key={i} style={{ marginBottom: 1, whiteSpace: 'pre-wrap', lineHeight: 1 }}>
-          {parts.map((p, j) => (
-            <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} />
-          ))}
+        <div key={i} style={{ display: 'flex', alignItems: 'flex-end', marginBottom: 1, lineHeight: 1 }}>
+          <span style={{ whiteSpace: 'pre-wrap' }}>
+            {parts.map((p, j) => (
+              <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} />
+            ))}
+          </span>
+          {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
         </div>
       );
     });

@@ -297,6 +297,8 @@ export default function App() {
           onEdit={() => goEditor(currentSong)}
           defaultColumns={settings?.defaultColumns}
           defaultFontSize={settings?.defaultFontSize}
+          showInlineNotes={settings?.showInlineNotes !== false}
+          inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
         />
       )}
       {view === 'editor' && (
@@ -333,6 +335,8 @@ export default function App() {
           onBack={goLibrary}
           defaultColumns={settings?.defaultColumns}
           defaultFontSize={settings?.defaultFontSize}
+          showInlineNotes={settings?.showInlineNotes !== false}
+          inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
         />
       )}
       {view === 'settings' && settings && (

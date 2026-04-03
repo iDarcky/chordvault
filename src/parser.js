@@ -254,6 +254,17 @@ export function parseTabBlock(rawLines) {
   return tab;
 }
 
+// Extract inline notes {!text} from a line
+// Returns { clean: lineWithoutNotes, notes: ['note1', 'note2'] }
+export function extractInlineNotes(line) {
+  const notes = [];
+  const clean = line.replace(/\{!([^}]*)\}/g, (_, text) => {
+    notes.push(text.trim());
+    return '';
+  });
+  return { clean, notes };
+}
+
 // Generate a unique ID for songs and setlists
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
