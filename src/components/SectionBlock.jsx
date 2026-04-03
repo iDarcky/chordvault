@@ -1,4 +1,4 @@
-import { transposeChord, sectionStyle, chordToNashville, transposeKey } from '../music';
+import { transposeChord, sectionStyle, chordToNashville, chordToRoman, transposeKey } from '../music';
 import { parseLine, extractInlineNotes } from '../parser';
 import TabBlock from './TabBlock';
 
@@ -6,9 +6,12 @@ function ChordToken({ chord, text, transpose, keySig, chordDisplay }) {
   let displayChord = '';
   if (chord) {
     const transposed = transposeChord(chord, transpose);
+    const currentKey = transposeKey(keySig, transpose);
+
     if (chordDisplay === 'nashville') {
-      const currentKey = transposeKey(keySig, transpose);
       displayChord = chordToNashville(transposed, currentKey);
+    } else if (chordDisplay === 'roman') {
+      displayChord = chordToRoman(transposed, currentKey);
     } else {
       displayChord = transposed;
     }

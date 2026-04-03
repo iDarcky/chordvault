@@ -60,12 +60,16 @@ const NNS_MAP = {
   6: '#4', 7: '5', 8: 'b6', 9: '6', 10: 'b7', 11: '7'
 };
 
-function rootToNashville(root, keyRoot) {
+const ROMAN_MAP = {
+  0: 'I', 1: 'bII', 2: 'II', 3: 'bIII', 4: 'III', 5: 'IV',
+  6: '#IV', 7: 'V', 8: 'bVI', 9: 'VI', 10: 'bVII', 11: 'VII'
+};
+
+function getRootInterval(root, keyRoot) {
   const ri = CHROMATIC.indexOf(FLAT_MAP[root] || root);
   const ki = CHROMATIC.indexOf(FLAT_MAP[keyRoot] || keyRoot);
-  if (ri === -1 || ki === -1) return root;
-  const diff = (ri - ki + 12) % 12;
-  return NNS_MAP[diff] || root;
+  if (ri === -1 || ki === -1) return null;
+  return (ri - ki + 12) % 12;
 }
 
 // Convert a chord to Nashville Number System relative to a key
@@ -77,8 +81,23 @@ export function chordToNashville(chord, key) {
   }
   const { root, suffix } = parseRoot(chord);
   const { root: keyRoot } = parseRoot(key);
-  const num = rootToNashville(root, keyRoot);
-  return num + suffix;
+  const interval = getRootInterval(root, keyRoot);
+  if (interval === null) return chord;
+  return (NNS_MAP[interval] || root) + suffix;
+}
+
+// Convert a chord to Roman Numerals relative to a key
+export function chordToRoman(chord, key) {
+  if (!chord || !key) return chord;
+  if (chord.includes('/')) {
+    const [main, bass] = chord.split('/');
+    return chordToRoman(main, key) + '/' + chordToRoman(bass, key);
+  }
+  const { root, suffix } = parseRoot(chord);
+  const { root: keyRoot } = parseRoot(key);
+  const interval = getRootInterval(root, keyRoot);
+  if (interval === null) return chord;
+  return (ROMAN_MAP[interval] || root) + suffix;
 }
 
 // Section type → colors, label, background

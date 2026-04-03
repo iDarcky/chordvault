@@ -100,10 +100,11 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
         {/* Chords Display */}
         <div style={{ marginBottom: 24 }}>
           <label style={labelStyle}>Chord Display</label>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {[
               { key: 'standard', label: 'Standard' },
               { key: 'nashville', label: 'Nashville' },
+              { key: 'roman', label: 'Roman' },
               { key: 'none', label: 'None' },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => update('chordDisplay', key)} style={activeBtn(settings.chordDisplay === key)}>

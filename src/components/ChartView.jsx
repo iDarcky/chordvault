@@ -97,6 +97,19 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     textTransform: 'uppercase', letterSpacing: '0.07em',
   };
 
+  const toggleChordDisplay = () => {
+    const modes = ['standard', 'nashville', 'roman'];
+    const nextIdx = (modes.indexOf(chordDisplay) + 1) % modes.length;
+    setChordDisplay(modes[nextIdx]);
+  };
+
+  const getChordDisplayLabel = () => {
+    if (chordDisplay === 'standard') return 'Standard';
+    if (chordDisplay === 'nashville') return 'Nashville';
+    if (chordDisplay === 'roman') return 'Roman';
+    return 'Chords';
+  };
+
   return (
     <div style={{ minHeight: compact ? 'auto' : '100vh', background: 'var(--bg)' }}>
       {/* Sticky header */}
@@ -204,8 +217,8 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
             <div style={{ width: 1, height: 18, background: 'var(--border)' }} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <button onClick={() => setChordDisplay(p => p === 'nashville' ? 'standard' : 'nashville')} style={toggleStyle(chordDisplay === 'nashville')}>
-                Nashville
+              <button onClick={toggleChordDisplay} style={toggleStyle(chordDisplay !== 'standard')}>
+                {getChordDisplayLabel()}
               </button>
               <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
                 Diagrams
