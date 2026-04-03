@@ -1,109 +1,91 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { parseSongMd, generateId } from './parser';
-import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
-import { DEMO_SONGS_MD } from './data/demos';
-import { createSyncEngine } from './sync/engine';
-import { getSyncState } from './sync/tokens';
-import Welcome from './components/Welcome';
-import Onboarding from './components/Onboarding';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { saveSongs, loadSongs, saveSetlists, loadSetlists, saveSettings, loadSettings, clearAll } from './storage';
+import { generateId } from "./parser";
+import { parseSongMd } from './parser';
+import { exportSetlistZip, importSetlistZip } from './setlist-io';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
 import ChartView from './components/ChartView';
 import Editor from './components/Editor';
+import SetlistOverview from './components/SetlistOverview';
 import SetlistBuilder from './components/SetlistBuilder';
 import SetlistPlayer from './components/SetlistPlayer';
 import Settings from './components/Settings';
-import SetlistOverview from './components/SetlistOverview';
-import { exportSetlistZip, importSetlistZip } from './setlist-io';
+import Welcome from './components/Welcome';
+import Onboarding from './components/Onboarding';
+import { createSyncEngine } from './sync/engine';
+
+const DEMO_SONGS_MD = [
+  '# The Kingdom Stands\nartist: Worship Collective\nkey: A\ntempo: 128\n\n(Verse 1)\n[A]The world is [D]shaking, [A]nations are [E]waking\n[F#m]But your [D]kingdom [E]stands for[A]ever',
+  '# Shelter of the Most High\nartist: Grace Chapel Music\nkey: G\ntempo: 72\n\n(Chorus)\n[G]I will say of the [C]Lord, [G]He is my [D]refuge\n[Em]My [C]fortress in [D]whom I [G]trust',
+  '# Build My Life\nartist: Worship Central\nkey: E\ntempo: 68\n\n(Verse 1)\n[E]Worthy of [A]every song we could [E]ever sing\n[E]Worthy of [A]all the praise we could [E]ever bring'
+];
 
 export default function App() {
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
-  const [view, setView] = useState('loading');
-  const [currentSong, setCurrentSong] = useState(null);
-  const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [view, setView] = useState('home');
+  const [currentSong, setCurrentSong] = useState(null);
+  const [currentSetlist, setCurrentSetlist] = useState(null);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
-  const syncEngineRef = useRef(null);
-  const historyRef = useRef([]);
 
-  // Initialize sync engine
-  if (syncEngineRef.current == null) {
-    syncEngineRef.current = createSyncEngine((status) => {
-      setSyncState(prev => ({ ...prev, ...status }));
-    });
-  }
+  const historyRef = useRef([]);
+  const syncEngineRef = useRef(null);
 
   const triggerSync = useCallback(async () => {
-    const state = await getSyncState();
-    if (!state?.activeProvider) return;
-    const result = await syncEngineRef.current.fullSync(songs, setlists);
-    if (result.changed) {
-      setSongs(result.songs);
-      setSetlists(result.setlists);
+    if (!syncEngineRef.current) return;
+    try {
+      const result = await syncEngineRef.current.fullSync(songs, setlists);
+      if (result.changed) {
+        setSongs(result.songs);
+        setSetlists(result.setlists);
+      }
+    } catch (err) {
+      console.error('Sync failed:', err);
     }
   }, [songs, setlists]);
 
-  // Load data on mount
+  // Initial load
   useEffect(() => {
     (async () => {
       const savedSongs = await loadSongs();
-      if (savedSongs.length > 0) {
-        setSongs(savedSongs);
-      } else {
-        // First time — load demo songs
-        const demos = DEMO_SONGS_MD.map(md => ({
-          ...parseSongMd(md),
-          id: generateId(),
-        }));
-        setSongs(demos);
-        await saveSongs(demos);
-      }
-
       const savedSetlists = await loadSetlists();
-      if (savedSetlists) setSetlists(savedSetlists);
-
       const savedSettings = await loadSettings();
-      setSettings(savedSettings);
 
-      // Determine initial view based on onboarding state
-      if (savedSongs.length === 0 && !savedSettings.onboardingComplete) {
+      setSongs(savedSongs || []);
+      setSetlists(savedSetlists || []);
+
+      const initialSettings = savedSettings || {
+        theme: 'light',
+        onboardingComplete: false,
+        defaultColumns: 'auto',
+        defaultFontSize: 'M'
+      };
+      setSettings(initialSettings);
+
+      if (!initialSettings.onboardingComplete && (!savedSongs || savedSongs.length === 0)) {
         setView('welcome');
-      } else if (!savedSettings.onboardingComplete) {
-        // Existing user who predates onboarding — skip it, go to home
-        savedSettings.onboardingComplete = true;
-        setSettings(savedSettings);
-        await saveSettings(savedSettings);
-        setView('home');
-      } else {
-        setView('home');
       }
 
       setLoaded(true);
 
-      // Initialize sync state from storage and trigger initial pull
-      const storedSync = await getSyncState();
-      if (storedSync?.activeProvider) {
-        setSyncState({ state: 'idle', lastSync: storedSync.lastSyncTime, provider: storedSync.activeProvider });
-        // Pull from cloud on startup — but we need to pass the just-loaded data directly
-        // since React state (songs/setlists) hasn't settled yet
-        const engine = syncEngineRef.current;
-        if (engine) {
-          const currentSongs = savedSongs.length > 0 ? savedSongs : [];
-          const currentSetlists = savedSetlists || [];
-          engine.fullSync(currentSongs, currentSetlists).then(result => {
-            if (result.changed) {
-              setSongs(result.songs);
-              setSetlists(result.setlists);
-            }
-          }).catch(err => console.error('Startup sync failed:', err));
-        }
+      // Setup Sync Engine
+      const engine = createSyncEngine((st) => setSyncState(st));
+      syncEngineRef.current = engine;
+      if (engine) {
+        engine.fullSync(savedSongs || [], savedSetlists || []).then(result => {
+          if (result.changed) {
+            setSongs(result.songs);
+            setSetlists(result.setlists);
+          }
+        }).catch(err => console.error('Startup sync failed:', err));
       }
     })();
   }, []);
 
-  // Auto-save when data changes + debounced sync push
+  // Auto-save when data changes
   useEffect(() => {
     if (loaded) {
       saveSongs(songs);
@@ -116,26 +98,13 @@ export default function App() {
       syncEngineRef.current?.debouncedPush(songs, setlists);
     }
   }, [setlists, loaded]);
-  useEffect(() => { if (loaded && settings) saveSettings(settings); }, [settings, loaded]);
-
-  // Sync on tab focus
   useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && loaded) {
-        triggerSync();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [loaded, triggerSync]);
+    if (loaded && settings) {
+      saveSettings(settings);
+      document.documentElement.setAttribute('data-theme', settings.theme);
+    }
+  }, [settings, loaded]);
 
-  // Apply theme to document
-  useEffect(() => {
-    if (!settings) return;
-    document.documentElement.setAttribute('data-theme', settings.theme);
-  }, [settings?.theme]);
-
-  // Navigation with history stack + browser back button
   const navigate = useCallback((nextView, { song, setlist, replace } = {}) => {
     if (!replace) {
       historyRef.current.push({ view, song: currentSong, setlist: currentSetlist });
@@ -159,7 +128,6 @@ export default function App() {
     }
   }, []);
 
-  // Browser back button support
   useEffect(() => {
     const handler = (e) => {
       if (historyRef.current.length > 0) {
@@ -171,31 +139,18 @@ export default function App() {
     return () => window.removeEventListener('popstate', handler);
   }, [goBack]);
 
-  // Navigation shortcuts
-  const goHome = () => navigate('home', { song: null, setlist: null });
-  const goLibrary = () => navigate('library', { song: null, setlist: null });
-  const goChart = (song) => navigate('chart', { song });
-  const goEditor = (song = null) => navigate('editor', { song });
-  const goSetlistBuild = (sl = null) => navigate('setlist-build', { setlist: sl });
-  const goSetlistView = (sl) => navigate('setlist-view', { setlist: sl });
-  const goSetlistPlay = (sl) => navigate('setlist-play', { setlist: sl });
-  const goSettings = () => navigate('settings');
-
-  // Song CRUD
   const handleSaveSong = (song) => {
     setSongs(prev => {
       const idx = prev.findIndex(s => s.id === song.id);
       if (idx >= 0) { const n = [...prev]; n[idx] = song; return n; }
       return [...prev, song];
     });
-    // After save, go to chart but replace the editor entry in history
     navigate('chart', { song, replace: true });
   };
 
   const handleDeleteSong = (id) => {
     setSongs(prev => prev.filter(s => s.id !== id));
-    // After delete, go back two steps (skip the chart for the deleted song)
-    historyRef.current.pop(); // discard the chart entry
+    historyRef.current.pop();
     goBack();
   };
 
@@ -208,7 +163,6 @@ export default function App() {
     }
   };
 
-  // Setlist CRUD
   const handleSaveSetlist = (sl) => {
     setSetlists(prev => {
       const idx = prev.findIndex(s => s.id === sl.id);
@@ -232,7 +186,6 @@ export default function App() {
     setView('home');
   };
 
-  // Setlist export/import
   const handleExportSetlist = async (sl) => {
     const blob = await exportSetlistZip(sl, songs);
     const url = URL.createObjectURL(blob);
@@ -250,37 +203,20 @@ export default function App() {
         setSongs(prev => [...prev, ...newSongs]);
       }
       setSetlists(prev => [...prev, setlist]);
-      const msg = newSongs.length > 0
-        ? `Imported "${setlist.name}" with ${newSongs.length} new song${newSongs.length > 1 ? 's' : ''}.`
-        : `Imported "${setlist.name}". All songs already in library.`;
-      alert(msg);
+      alert('Import successful');
     } catch {
       alert('Failed to import setlist zip.');
     }
   };
 
-  if (!loaded) {
-    return (
-      <div style={{
-        minHeight: '100vh', background: 'var(--bg)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-          Loading ChordVault...
-        </div>
-      </div>
-    );
-  }
+  if (!loaded) return null;
 
   return (
     <>
       {view === 'welcome' && (
         <Welcome
           onGetStarted={() => {
-            const demos = DEMO_SONGS_MD.map(md => ({
-              ...parseSongMd(md),
-              id: generateId(),
-            }));
+            const demos = DEMO_SONGS_MD.map(md => ({ ...parseSongMd(md), id: generateId() }));
             setSongs(demos);
             saveSongs(demos);
             setView('onboarding');
@@ -302,100 +238,72 @@ export default function App() {
       )}
       {view === 'home' && (
         <Dashboard
-          songs={songs}
-          setlists={setlists}
-          syncState={syncState}
-          onSelectSong={goChart}
-          onNewSong={() => goEditor()}
+          songs={songs} setlists={setlists} syncState={syncState}
+          onSelectSong={(s) => navigate('chart', { song: s })}
+          onNewSong={() => navigate('editor')}
           onImportSong={handleImportSong}
-          onNewSetlist={() => goSetlistBuild()}
-          onViewSetlist={goSetlistView}
-          onPlaySetlist={goSetlistPlay}
-          onGoLibrary={goLibrary}
+          onNewSetlist={() => navigate('setlist-build')}
+          onViewSetlist={(sl) => navigate('setlist-view', { setlist: sl })}
+          onPlaySetlist={(sl) => navigate('setlist-play', { setlist: sl })}
+          onGoLibrary={() => navigate('library')}
           onGoSetlists={() => navigate('library')}
-          onGoSettings={goSettings}
+          onGoSettings={() => navigate('settings')}
           onSyncNow={triggerSync}
         />
       )}
       {view === 'library' && (
         <Library
-          songs={songs}
-          setlists={setlists}
-          onBack={goBack}
-          onSelectSong={goChart}
-          onNewSong={() => goEditor()}
+          songs={songs} setlists={setlists} onBack={goBack}
+          onSelectSong={(s) => navigate('chart', { song: s })}
+          onNewSong={() => navigate('editor')}
           onImportSong={handleImportSong}
-          onNewSetlist={() => goSetlistBuild()}
-          onPlaySetlist={goSetlistPlay}
-          onViewSetlist={goSetlistView}
+          onNewSetlist={() => navigate('setlist-build')}
+          onPlaySetlist={(sl) => navigate('setlist-play', { setlist: sl })}
+          onViewSetlist={(sl) => navigate('setlist-view', { setlist: sl })}
           onImportSetlist={handleImportSetlist}
-          onSettings={goSettings}
+          onSettings={() => navigate('settings')}
         />
       )}
       {view === 'chart' && currentSong && (
         <ChartView
-          song={currentSong}
-          onBack={goBack}
-          onEdit={() => goEditor(currentSong)}
+          song={currentSong} onBack={goBack}
+          onEdit={() => navigate('editor', { song: currentSong })}
           defaultColumns={settings?.defaultColumns}
           defaultFontSize={settings?.defaultFontSize}
-          showInlineNotes={settings?.showInlineNotes !== false}
-          inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
-          displayRole={settings?.displayRole || 'leader'}
-          duplicateSections={settings?.duplicateSections || 'full'}
         />
       )}
       {view === 'editor' && (
         <Editor
-          song={currentSong}
-          onSave={handleSaveSong}
-          onBack={goBack}
+          song={currentSong} onSave={handleSaveSong} onBack={goBack}
           onDelete={currentSong ? handleDeleteSong : null}
         />
       )}
       {view === 'setlist-view' && currentSetlist && (
         <SetlistOverview
-          setlist={currentSetlist}
-          songs={songs}
-          onBack={goBack}
-          onEdit={() => goSetlistBuild(currentSetlist)}
+          setlist={currentSetlist} songs={songs} onBack={goBack}
+          onEdit={() => navigate('setlist-build', { setlist: currentSetlist })}
           onExport={() => handleExportSetlist(currentSetlist)}
-          onPlay={() => goSetlistPlay(currentSetlist)}
+          onPlay={() => navigate('setlist-play', { setlist: currentSetlist })}
         />
       )}
       {view === 'setlist-build' && (
         <SetlistBuilder
-          songs={songs}
-          setlist={currentSetlist}
-          onSave={handleSaveSetlist}
-          onBack={goBack}
+          songs={songs} setlist={currentSetlist} onSave={handleSaveSetlist} onBack={goBack}
           onDelete={currentSetlist ? handleDeleteSetlist : null}
         />
       )}
       {view === 'setlist-play' && currentSetlist && (
         <SetlistPlayer
-          setlist={currentSetlist}
-          songs={songs}
-          onBack={goBack}
+          setlist={currentSetlist} songs={songs} onBack={goBack}
           defaultColumns={settings?.defaultColumns}
           defaultFontSize={settings?.defaultFontSize}
-          showInlineNotes={settings?.showInlineNotes !== false}
-          inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
-          displayRole={settings?.displayRole || 'leader'}
-          duplicateSections={settings?.duplicateSections || 'full'}
         />
       )}
       {view === 'settings' && settings && (
         <Settings
-          settings={settings}
-          onUpdate={setSettings}
-          onBack={goBack}
-          onClearAll={handleClearAll}
-          songCount={songs.length}
-          setlistCount={setlists.length}
-          syncState={syncState}
-          onSyncStateChange={setSyncState}
-          onSyncNow={triggerSync}
+          settings={settings} onUpdate={setSettings} onBack={goBack}
+          onClearAll={handleClearAll} songCount={songs.length} setlistCount={setlists.length}
+          syncState={syncState} onSyncStateChange={setSyncState} onSyncNow={triggerSync}
         />
       )}
     </>

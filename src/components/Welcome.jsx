@@ -20,114 +20,87 @@ export default function Welcome({ onGetStarted, onImport }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '40px 24px',
-      position: 'relative',
-      overflow: 'hidden',
     }}>
-      {/* Background glow */}
+      {/* Zen-Modern Branding */}
       <div style={{
-        position: 'absolute',
-        top: '30%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 600,
-        height: 600,
-        borderRadius: '50%',
-        display: 'none',
-        pointerEvents: 'none',
-      }} />
-
-      {/* Logo */}
-      <div style={{
-        width: 80,
-        height: 80,
-        borderRadius: 20,
-        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontSize: 32,
-        fontWeight: 500,
-        marginBottom: 24,
-        boxShadow: '0 8px 32px var(--accent)',
+        gap: 12,
+        marginBottom: 48,
       }}>
-        CV
+        <div style={{
+          width: 14,
+          height: 14,
+          background: 'var(--accent)',
+          borderRadius: 2,
+        }} />
+        <h1 style={{
+          margin: 0,
+          fontSize: 28,
+          fontWeight: 400,
+          letterSpacing: '-0.04em',
+          color: 'var(--text-bright)',
+        }}>
+          ChordVault
+        </h1>
       </div>
 
-      {/* Title */}
-      <h1 style={{
-        margin: 0,
-        fontSize: 32,
-        fontWeight: 500,
-        color: 'var(--text-bright)',
-        letterSpacing: '-0.02em',
-        textAlign: 'center',
-      }}>
-        ChordVault
-      </h1>
-
-      {/* Tagline */}
-      <p style={{
-        margin: '8px 0 0',
-        fontSize: 16,
-        color: 'var(--text-muted)',
-        textAlign: 'center',
-        fontFamily: 'var(--fb)',
-      }}>
-        Chord charts for worship teams
-      </p>
-
-      {/* Description */}
-      <p style={{
-        margin: '16px 0 0',
-        fontSize: 14,
-        color: 'var(--text-dim)',
-        textAlign: 'center',
-        maxWidth: 320,
-        lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
-      }}>
-        Build chord charts, create setlists, transpose on the fly.
-        Works offline on any device.
-      </p>
-
-      {/* CTA */}
-      <button
-        onClick={onGetStarted}
-        style={{
-          marginTop: 40,
-          padding: '14px 48px',
-          borderRadius: 12,
-          border: 'none',
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 500,
-          cursor: 'pointer',
+      <div style={{ maxWidth: 360, textAlign: 'center' }}>
+        <p style={{
+          fontSize: 18,
+          color: 'var(--text)',
           fontFamily: 'var(--fb)',
-          boxShadow: '0 4px 16px var(--accent)',
-        }}
-      >
-        Get Started
-      </button>
-
-      {/* Import link */}
-      <button
-        onClick={() => fileRef.current?.click()}
-        style={{
-          marginTop: 16,
-          background: 'none',
-          border: 'none',
+          lineHeight: 1.5,
+          marginBottom: 12,
+        }}>
+          Modern chord charts for worship teams.
+        </p>
+        <p style={{
+          fontSize: 14,
           color: 'var(--text-muted)',
-          fontSize: 13,
-          cursor: 'pointer',
           fontFamily: 'var(--fb)',
-          textDecoration: 'underline',
-          textUnderlineOffset: 3,
-        }}
-      >
-        I already have .md files &mdash; Import
-      </button>
+          lineHeight: 1.6,
+        }}>
+          Offline-first. Portable markdown files.
+          Built for focus and clarity.
+        </p>
+      </div>
+
+      <div style={{ marginTop: 64, display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 280 }}>
+        <button
+          onClick={onGetStarted}
+          style={{
+            padding: '14px',
+            borderRadius: 8,
+            background: 'var(--text-bright)',
+            color: 'var(--bg)',
+            fontSize: 15,
+            fontWeight: 500,
+            cursor: 'pointer',
+            fontFamily: 'var(--fb)',
+          }}
+        >
+          Get Started
+        </button>
+
+        <button
+          onClick={() => fileRef.current?.click()}
+          style={{
+            padding: '14px',
+            borderRadius: 8,
+            background: 'transparent',
+            border: '1px solid var(--border)',
+            color: 'var(--text)',
+            fontSize: 14,
+            fontWeight: 500,
+            cursor: 'pointer',
+            fontFamily: 'var(--fb)',
+          }}
+        >
+          Import .md files
+        </button>
+      </div>
+
       <input
         ref={fileRef}
         type="file"

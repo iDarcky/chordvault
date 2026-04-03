@@ -2,12 +2,6 @@ import { useMemo, useRef } from 'react';
 import { sectionStyle } from '../music';
 import SyncStatus from './SyncStatus';
 
-const btnStyle = {
-  border: 'none', borderRadius: 7, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: 5,
-  fontFamily: 'var(--fb)', fontWeight: 500, fontSize: 12,
-};
-
 export default function Dashboard({
   songs, setlists, syncState,
   onSelectSong, onNewSong, onImportSong,
@@ -39,252 +33,88 @@ export default function Dashboard({
   }, [setlists]);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 60 }}>
       {/* Header */}
-      <div style={{
-        padding: '28px 20px 0',
-        background: 'var(--bg)',
-      }}>
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 20,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: 'var(--accent)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 16, fontWeight: 500,
-            }}>
-              CV
-            </div>
-            <div>
-              <h1 style={{
-                margin: 0, fontSize: 22, fontWeight: 500,
-                color: 'var(--text-bright)', letterSpacing: '-0.02em',
-              }}>
-                ChordVault
-              </h1>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                {songs.length} song{songs.length !== 1 ? 's' : ''} · {setlists.length} setlist{setlists.length !== 1 ? 's' : ''}
-              </div>
-            </div>
+      <header style={{ padding: '40px 24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <div style={{ width: 10, height: 10, background: 'var(--accent)', borderRadius: 1 }} />
+            <h1 style={{ fontSize: 24, fontWeight: 500 }}>ChordVault</h1>
           </div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <SyncStatus syncState={syncState} onClick={onSyncNow} />
-            <button onClick={onGoSettings} style={{
-              ...btnStyle, background: 'var(--surface)',
-              border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 10px',
-              fontSize: 16,
+          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+            {songs.length} songs · {setlists.length} setlists
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <SyncStatus syncState={syncState} onClick={onSyncNow} />
+          <button onClick={onGoSettings} style={{ fontSize: 20, color: 'var(--text-muted)' }}>⚙</button>
+        </div>
+      </header>
+
+      <main style={{ padding: '0 24px' }}>
+        {/* Actions */}
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 56 }}>
+          {[
+            { label: 'New', icon: '+', action: onNewSong },
+            { label: 'Import', icon: '↑', action: () => fileRef.current?.click() },
+            { label: 'Setlist', icon: '☰', action: onNewSetlist },
+          ].map(btn => (
+            <button key={btn.label} onClick={btn.action} style={{
+              flexDirection: 'column', gap: 6, padding: '16px 8px',
+              background: 'var(--surface-alt)', color: 'var(--text)', fontSize: 12,
             }}>
-              &#9881;
+              <span style={{ fontSize: 20 }}>{btn.icon}</span>
+              {btn.label}
             </button>
-          </div>
-        </div>
-      </div>
+          ))}
+        </section>
+        <input ref={fileRef} type="file" accept=".md,.txt" multiple onChange={handleFiles} style={{ display: 'none' }} />
 
-      <div style={{ padding: '0 20px 40px' }}>
-        {/* Quick Actions */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 8,
-          marginBottom: 28,
-        }}>
-          <button onClick={onNewSong} style={{
-            ...btnStyle,
-            flexDirection: 'column',
-            gap: 6,
-            padding: '16px 8px',
-            borderRadius: 12,
-            background: 'var(--accent-soft)',
-            border: '1px solid var(--accent)',
-            color: 'var(--accent-text)',
-            fontSize: 12,
-            justifyContent: 'center',
-          }}>
-            <span style={{ fontSize: 20 }}>+</span>
-            New Song
-          </button>
-          <button onClick={() => fileRef.current?.click()} style={{
-            ...btnStyle,
-            flexDirection: 'column',
-            gap: 6,
-            padding: '16px 8px',
-            borderRadius: 12,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted)',
-            fontSize: 12,
-            justifyContent: 'center',
-          }}>
-            <span style={{ fontSize: 20 }}>{'\u2191'}</span>
-            Import
-          </button>
-          <button onClick={onNewSetlist} style={{
-            ...btnStyle,
-            flexDirection: 'column',
-            gap: 6,
-            padding: '16px 8px',
-            borderRadius: 12,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted)',
-            fontSize: 12,
-            justifyContent: 'center',
-          }}>
-            <span style={{ fontSize: 20 }}>{'\u2630'}</span>
-            New Setlist
-          </button>
-        </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".md,.txt"
-          multiple
-          onChange={handleFiles}
-          style={{ display: 'none' }}
-        />
-
-        {/* Upcoming Setlists */}
+        {/* Content */}
         {upcomingSetlists.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
-            <div style={{
-              fontSize: 11, fontWeight: 500, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
-              fontFamily: 'var(--fm)', marginBottom: 8,
-            }}>
-              Upcoming
-            </div>
-            {upcomingSetlists.map(sl => {
-              const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-                weekday: 'short', month: 'short', day: 'numeric',
-              });
-              return (
-                <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 12px', marginBottom: 4,
-                  borderRadius: 10, background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  cursor: 'pointer',
-                }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {sl.name || 'Untitled'}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                      {dateStr}{sl.service ? ` \u00B7 ${sl.service}` : ''} · {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                  <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-                    ...btnStyle, background: 'var(--accent-soft)',
-                    border: '1px solid var(--accent)',
-                    color: 'var(--accent-text)', padding: '6px 14px',
-                    flexShrink: 0,
-                  }}>
-                    Live
-                  </button>
+          <section style={{ marginBottom: 48 }}>
+            <h2 style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Upcoming</h2>
+            {upcomingSetlists.map(sl => (
+              <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '20px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer'
+              }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 500 }}>{sl.name || 'Untitled'}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>{sl.date}</div>
                 </div>
-              );
-            })}
-          </div>
+                <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
+                  padding: '6px 14px', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: 12
+                }}>Live</button>
+              </div>
+            ))}
+          </section>
         )}
 
-        {/* Recent Songs */}
-        {recentSongs.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
-            <div style={{
-              fontSize: 11, fontWeight: 500, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
-              fontFamily: 'var(--fm)', marginBottom: 8,
+        <section style={{ marginBottom: 56 }}>
+          <h2 style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Recent</h2>
+          {recentSongs.length > 0 ? recentSongs.map(song => (
+            <div key={song.id} onClick={() => onSelectSong(song)} style={{
+              display: 'flex', alignItems: 'center', gap: 16,
+              padding: '20px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer'
             }}>
-              Recent Songs
+              <div style={{ width: 6, height: 6, background: 'var(--border)', borderRadius: '50%' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 16, fontWeight: 500 }}>{song.title}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{song.artist}</div>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-dim)', fontFamily: 'var(--fm)' }}>{song.key}</div>
             </div>
-            {recentSongs.map(song => {
-              const s = song.sections?.length
-                ? sectionStyle(song.sections[0].type)
-                : { b: '#6b7280', d: '#9ca3af' };
-              return (
-                <div
-                  key={song.id}
-                  onClick={() => onSelectSong(song)}
-                  role="button"
-                  tabIndex={0}
-                  style={{
-                    display: 'flex', alignItems: 'center',
-                    gap: 12, padding: '12px 12px', marginBottom: 4,
-                    borderRadius: 10, background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div style={{
-                    width: 38, height: 38, borderRadius: 8, flexShrink: 0,
-                    background: 'var(--bg)',
-                    border: `1px solid ${s.b}44`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 500, color: s.d,
-                  }}>
-                    {song.key}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {song.title}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                      {song.artist}
-                    </div>
-                  </div>
-                  <span style={{
-                    fontSize: 11, color: 'var(--text-dim)', fontFamily: 'var(--fm)',
-                  }}>
-                    {song.tempo ? `${song.tempo}bpm` : ''}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
+          )) : (
+            <p style={{ fontSize: 14, color: 'var(--text-dim)', textAlign: 'center', padding: '20px 0' }}>No songs yet.</p>
+          )}
+        </section>
 
-        {/* Navigation */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 8,
-        }}>
-          <button onClick={onGoLibrary} style={{
-            ...btnStyle,
-            padding: '16px',
-            borderRadius: 12,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            color: 'var(--text)',
-            fontSize: 14,
-            justifyContent: 'center',
-          }}>
-            Full Library
-          </button>
-          <button onClick={onGoSetlists} style={{
-            ...btnStyle,
-            padding: '16px',
-            borderRadius: 12,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            color: 'var(--text)',
-            fontSize: 14,
-            justifyContent: 'center',
-          }}>
-            All Setlists
-          </button>
-        </div>
-      </div>
+        <nav style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <button onClick={onGoLibrary} style={{ background: 'var(--surface-alt)', fontSize: 14 }}>Library</button>
+          <button onClick={onGoSetlists} style={{ background: 'var(--surface-alt)', fontSize: 14 }}>Setlists</button>
+        </nav>
+      </main>
     </div>
   );
 }
