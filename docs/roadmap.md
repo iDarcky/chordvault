@@ -34,11 +34,12 @@ This roadmap synthesizes goals from the Product Spec, Audit, and Technical Debt 
 ## Phase 4: Collaboration & Role Profiles (Week 4)
 *Focus: Team-wide utility.*
 
-1.  **Vocalist Mode (v1):** Finalize the "Lyrics Only" toggle with increased font-size and centered text.
-2.  **Instrument-Specific Views:** Initial implementation of "Bass" (emphasize slash notes) and "Acoustic" (prominent capo).
-3.  **Cloud Sync Reliability:** Implement "Conflict Resolution" UI (Keep Local vs. Keep Remote).
-4.  **Search by Tag:** Add tag-based filtering and a "Fast/Slow" tag toggle in the Library.
-5.  **Pedal "Auto-Learn" Wizard:** A UI step in Settings to map Bluetooth pedal keys without manual text input.
+1.  **Settings Sync:** Treat `settings.json` as a syncable file in Google Drive/Dropbox (one-tap "Follow Leader" mode).
+2.  **Vocalist Mode (v1):** Finalize the "Lyrics Only" toggle with increased font-size and centered text.
+3.  **Instrument-Specific Views:** Initial implementation of "Bass" (emphasize slash notes) and "Acoustic" (prominent capo).
+4.  **Cloud Sync Reliability:** Implement "Conflict Resolution" UI (Keep Local vs. Keep Remote).
+5.  **Search by Tag:** Add tag-based filtering and a "Fast/Slow" tag toggle in the Library.
+6.  **Pedal "Auto-Learn" Wizard:** A UI step in Settings to map Bluetooth pedal keys without manual text input.
 
 ## Phase 5: Capacitor & Native Preparation (Week 5)
 *Focus: Moving beyond the browser.*
@@ -49,14 +50,16 @@ This roadmap synthesizes goals from the Product Spec, Audit, and Technical Debt 
 4.  **Splash Screen & App Icons:** Professional branding assets for mobile devices.
 5.  **Print to PDF:** Implement client-side PDF generation for single songs and full setlists.
 
-## Phase 6: Monetization & Polish (Week 6+)
+## Phase 6: Monetization & Private Cloud (Week 6+)
 *Focus: Sustainability and v3.0 launch.*
 
-1.  **Premium Themes UI:** Add a "Supporter" section for one-time theme unlocks.
-2.  **Verified Song Library:** Partner-ready architecture for "Official" chart imports.
-3.  **Deep-Linked YouTube/Spotify:** Integrated "Play Reference" button in the Chart header.
-4.  **Advanced Auto-Scroll:** Teleprompter mode that syncs with song duration/tempo.
-5.  **Global i18n:** Spanish (es) and Portuguese (pt) UI translations.
+1.  **ChordVault Private Sync (E2EE):** Build a zero-knowledge encrypted sync provider using Supabase/S3.
+2.  **Stripe Integration:** Add subscription management for the Private Sync tier.
+3.  **Premium Themes UI:** Add a "Supporter" section for one-time theme unlocks.
+4.  **Verified Song Library:** Partner-ready architecture for "Official" chart imports (revenue share).
+5.  **Deep-Linked YouTube/Spotify:** Integrated "Play Reference" button in the Chart header.
+6.  **Advanced Auto-Scroll:** Teleprompter mode that syncs with song duration/tempo.
+7.  **Global i18n:** Spanish (es) and Portuguese (pt) UI translations.
 
 ---
 
