@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { transposeKey, sectionStyle } from '../music';
 import ChartView from './ChartView';
 
-export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, defaultFontSize, showInlineNotes, inlineNoteStyle }) {
+export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, defaultFontSize, showInlineNotes, inlineNoteStyle, displayRole }) {
   const [idx, setIdx] = useState(0);
   const songBarRef = useRef(null);
 
@@ -245,6 +245,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
           defaultFontSize={defaultFontSize}
           showInlineNotes={showInlineNotes}
           inlineNoteStyle={inlineNoteStyle}
+          displayRole={displayRole}
         />
       )}
     </div>

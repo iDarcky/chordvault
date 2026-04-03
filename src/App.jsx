@@ -26,6 +26,7 @@ export default function App() {
   const [loaded, setLoaded] = useState(false);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
   const syncEngineRef = useRef(null);
+  const historyRef = useRef([]);
 
   // Initialize sync engine
   if (syncEngineRef.current == null) {
@@ -134,15 +135,51 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', settings.theme);
   }, [settings?.theme]);
 
-  // Navigation handlers
-  const goHome = () => { setView('home'); setCurrentSong(null); setCurrentSetlist(null); };
-  const goLibrary = () => { setView('library'); setCurrentSong(null); setCurrentSetlist(null); };
-  const goChart = (song) => { setCurrentSong(song); setView('chart'); };
-  const goEditor = (song = null) => { setCurrentSong(song); setView('editor'); };
-  const goSetlistBuild = (sl = null) => { setCurrentSetlist(sl); setView('setlist-build'); };
-  const goSetlistView = (sl) => { setCurrentSetlist(sl); setView('setlist-view'); };
-  const goSetlistPlay = (sl) => { setCurrentSetlist(sl); setView('setlist-play'); };
-  const goSettings = () => setView('settings');
+  // Navigation with history stack + browser back button
+  const navigate = useCallback((nextView, { song, setlist, replace } = {}) => {
+    if (!replace) {
+      historyRef.current.push({ view, song: currentSong, setlist: currentSetlist });
+      window.history.pushState(null, '');
+    }
+    if (song !== undefined) setCurrentSong(song);
+    if (setlist !== undefined) setCurrentSetlist(setlist);
+    setView(nextView);
+  }, [view, currentSong, currentSetlist]);
+
+  const goBack = useCallback(() => {
+    const prev = historyRef.current.pop();
+    if (prev) {
+      setView(prev.view);
+      setCurrentSong(prev.song);
+      setCurrentSetlist(prev.setlist);
+    } else {
+      setView('home');
+      setCurrentSong(null);
+      setCurrentSetlist(null);
+    }
+  }, []);
+
+  // Browser back button support
+  useEffect(() => {
+    const handler = (e) => {
+      if (historyRef.current.length > 0) {
+        e.preventDefault();
+        goBack();
+      }
+    };
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, [goBack]);
+
+  // Navigation shortcuts
+  const goHome = () => navigate('home', { song: null, setlist: null });
+  const goLibrary = () => navigate('library', { song: null, setlist: null });
+  const goChart = (song) => navigate('chart', { song });
+  const goEditor = (song = null) => navigate('editor', { song });
+  const goSetlistBuild = (sl = null) => navigate('setlist-build', { setlist: sl });
+  const goSetlistView = (sl) => navigate('setlist-view', { setlist: sl });
+  const goSetlistPlay = (sl) => navigate('setlist-play', { setlist: sl });
+  const goSettings = () => navigate('settings');
 
   // Song CRUD
   const handleSaveSong = (song) => {
@@ -151,12 +188,15 @@ export default function App() {
       if (idx >= 0) { const n = [...prev]; n[idx] = song; return n; }
       return [...prev, song];
     });
-    goChart(song);
+    // After save, go to chart but replace the editor entry in history
+    navigate('chart', { song, replace: true });
   };
 
   const handleDeleteSong = (id) => {
     setSongs(prev => prev.filter(s => s.id !== id));
-    goLibrary();
+    // After delete, go back two steps (skip the chart for the deleted song)
+    historyRef.current.pop(); // discard the chart entry
+    goBack();
   };
 
   const handleImportSong = (mdText) => {
@@ -175,19 +215,21 @@ export default function App() {
       if (idx >= 0) { const n = [...prev]; n[idx] = sl; return n; }
       return [...prev, sl];
     });
-    goLibrary();
+    goBack();
   };
 
   const handleDeleteSetlist = (id) => {
     setSetlists(prev => prev.filter(s => s.id !== id));
-    goLibrary();
+    historyRef.current.pop();
+    goBack();
   };
 
   const handleClearAll = async () => {
     await clearAll();
     setSongs([]);
     setSetlists([]);
-    goLibrary();
+    historyRef.current = [];
+    setView('home');
   };
 
   // Setlist export/import
@@ -270,7 +312,7 @@ export default function App() {
           onViewSetlist={goSetlistView}
           onPlaySetlist={goSetlistPlay}
           onGoLibrary={goLibrary}
-          onGoSetlists={() => { setView('library'); }}
+          onGoSetlists={() => navigate('library')}
           onGoSettings={goSettings}
           onSyncNow={triggerSync}
         />
@@ -279,7 +321,7 @@ export default function App() {
         <Library
           songs={songs}
           setlists={setlists}
-          onBack={goHome}
+          onBack={goBack}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
           onImportSong={handleImportSong}
@@ -293,19 +335,20 @@ export default function App() {
       {view === 'chart' && currentSong && (
         <ChartView
           song={currentSong}
-          onBack={goLibrary}
+          onBack={goBack}
           onEdit={() => goEditor(currentSong)}
           defaultColumns={settings?.defaultColumns}
           defaultFontSize={settings?.defaultFontSize}
           showInlineNotes={settings?.showInlineNotes !== false}
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
+          displayRole={settings?.displayRole || 'leader'}
         />
       )}
       {view === 'editor' && (
         <Editor
           song={currentSong}
           onSave={handleSaveSong}
-          onBack={currentSong ? () => goChart(currentSong) : goLibrary}
+          onBack={goBack}
           onDelete={currentSong ? handleDeleteSong : null}
         />
       )}
@@ -313,7 +356,7 @@ export default function App() {
         <SetlistOverview
           setlist={currentSetlist}
           songs={songs}
-          onBack={goLibrary}
+          onBack={goBack}
           onEdit={() => goSetlistBuild(currentSetlist)}
           onExport={() => handleExportSetlist(currentSetlist)}
           onPlay={() => goSetlistPlay(currentSetlist)}
@@ -324,7 +367,7 @@ export default function App() {
           songs={songs}
           setlist={currentSetlist}
           onSave={handleSaveSetlist}
-          onBack={goLibrary}
+          onBack={goBack}
           onDelete={currentSetlist ? handleDeleteSetlist : null}
         />
       )}
@@ -332,18 +375,19 @@ export default function App() {
         <SetlistPlayer
           setlist={currentSetlist}
           songs={songs}
-          onBack={goLibrary}
+          onBack={goBack}
           defaultColumns={settings?.defaultColumns}
           defaultFontSize={settings?.defaultFontSize}
           showInlineNotes={settings?.showInlineNotes !== false}
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
+          displayRole={settings?.displayRole || 'leader'}
         />
       )}
       {view === 'settings' && settings && (
         <Settings
           settings={settings}
           onUpdate={setSettings}
-          onBack={goHome}
+          onBack={goBack}
           onClearAll={handleClearAll}
           songCount={songs.length}
           setlistCount={setlists.length}

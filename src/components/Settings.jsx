@@ -97,6 +97,30 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
           </div>
         </div>
 
+        {/* Display Role / View */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>View</label>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { key: 'leader', label: 'Full', desc: 'Chords, lyrics, tabs' },
+              { key: 'vocalist', label: 'Vocalist', desc: 'Lyrics only' },
+              { key: 'drummer', label: 'Drummer', desc: 'Structure & cues' },
+            ].map(({ key, label, desc }) => (
+              <button
+                key={key}
+                onClick={() => update('displayRole', key)}
+                style={{
+                  ...activeBtn(settings.displayRole === key),
+                  flexDirection: 'column', alignItems: 'center', padding: '8px 14px', gap: 2,
+                }}
+              >
+                <span style={{ fontSize: 12 }}>{label}</span>
+                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 400 }}>{desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Inline Notes */}
         <div style={{ marginBottom: 24 }}>
           <label style={labelStyle}>Inline Notes</label>

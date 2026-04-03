@@ -38,6 +38,7 @@ export const DEFAULT_SETTINGS = {
   onboardingComplete: false,
   showInlineNotes: true,
   inlineNoteStyle: 'dashes',
+  displayRole: 'leader',
 };
 
 export async function loadSettings() {

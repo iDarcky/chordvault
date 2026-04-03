@@ -85,11 +85,27 @@ function ModulateBadge({ semitones }) {
   );
 }
 
-export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes' }) {
+export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader' }) {
   const s = sectionStyle(section.type);
+
+  const isDrummer = displayRole === 'drummer';
+  const isVocalist = displayRole === 'vocalist';
+
+  // Count non-empty lyric lines for drummer bar count
+  const lineCount = isDrummer ? section.lines.filter(l => typeof l === 'string' && l.trim()).length : 0;
 
   // Pre-compute lines with running modulate offset
   const renderLines = () => {
+    if (isDrummer) {
+      // Drummer view: only show modulate badges
+      return section.lines.map((line, i) => {
+        if (typeof line === 'object' && line.type === 'modulate') {
+          return <ModulateBadge key={i} semitones={line.semitones} />;
+        }
+        return null;
+      }).filter(Boolean);
+    }
+
     let runningMod = 0;
     return section.lines.map((line, i) => {
       if (typeof line === 'object' && line.type === 'modulate') {
@@ -106,6 +122,21 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
       const parts = parseLine(clean);
       const hasChords = parts.some(p => p.chord);
       const hasNotes = showInlineNotes && notes.length > 0;
+
+      if (isVocalist) {
+        // Vocalist: lyrics only, no chords
+        const lyricsText = parts.map(p => p.text).join('');
+        return (
+          <div key={i} style={{
+            display: hasNotes ? 'flex' : 'block', alignItems: 'flex-end',
+            fontSize: 15, color: 'var(--text)',
+            lineHeight: '21px', marginBottom: 1,
+          }}>
+            <span style={{ whiteSpace: 'pre-wrap' }}>{lyricsText || clean}</span>
+            {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
+          </div>
+        );
+      }
 
       if (!hasChords) {
         return (
@@ -148,7 +179,7 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
       {/* Section header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        marginBottom: section.lines.length ? 8 : 0,
+        marginBottom: (!isDrummer && section.lines.length) ? 8 : 0,
       }}>
         <span style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -164,19 +195,36 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
         }}>
           {section.type}
         </span>
+        {isDrummer && lineCount > 0 && (
+          <span style={{
+            fontSize: 11, fontWeight: 600, fontFamily: 'var(--fm)',
+            color: 'var(--text-dim)', opacity: 0.6,
+          }}>
+            {lineCount} line{lineCount !== 1 ? 's' : ''}
+          </span>
+        )}
         {section.note && (
           <span style={{
-            fontSize: 10.5, color: 'rgba(255,255,255,0.28)',
+            fontSize: isDrummer ? 12 : 10.5,
+            color: isDrummer ? 'var(--text-muted)' : 'rgba(255,255,255,0.28)',
             fontStyle: 'italic', marginLeft: 'auto',
-            maxWidth: '45%', textAlign: 'right', lineHeight: 1.3,
+            maxWidth: isDrummer ? '60%' : '45%', textAlign: 'right', lineHeight: 1.3,
+            fontWeight: isDrummer ? 600 : 400,
           }}>
             {section.note}
           </span>
         )}
       </div>
 
-      {/* Chord/lyric lines */}
-      {section.lines.length > 0 && (
+      {/* Drummer modulate badges (no lyric content) */}
+      {isDrummer && (
+        <div style={{ paddingLeft: 36 }}>
+          {renderLines()}
+        </div>
+      )}
+
+      {/* Chord/lyric lines (non-drummer) */}
+      {!isDrummer && section.lines.length > 0 && (
         <div style={{ paddingLeft: 36 }}>
           {renderLines()}
         </div>
