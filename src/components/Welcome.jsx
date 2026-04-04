@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { Button } from './ui/Button';
 
 export default function Welcome({ onGetStarted, onImport }) {
   const fileRef = useRef(null);
@@ -12,130 +13,80 @@ export default function Welcome({ onGetStarted, onImport }) {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 24px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      {/* Background glow */}
-      <div style={{
-        position: 'absolute',
-        top: '30%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 600,
-        height: 600,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, var(--accent-soft) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 relative overflow-hidden font-sans">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--foreground) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-transparent to-background/50 z-0 pointer-events-none" />
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-geist-link/5 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-geist-success/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
-      {/* Logo */}
-      <div style={{
-        width: 80,
-        height: 80,
-        borderRadius: 20,
-        background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontSize: 32,
-        fontWeight: 700,
-        marginBottom: 24,
-        boxShadow: '0 8px 32px var(--accent-border)',
-      }}>
-        SM
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center max-w-md w-full animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        {/* Logo */}
+        <div className="w-24 h-24 rounded-3xl bg-foreground flex items-center justify-center text-background text-4xl font-black mb-12 shadow-2xl transition-transform hover:rotate-3 hover:scale-105 active:scale-95 duration-300">
+          SM
+        </div>
+
+        {/* Title Group */}
+        <div className="text-center mb-12 space-y-4">
+          <h1 className="text-6xl font-black text-foreground tracking-tighter italic leading-none">
+            Setlists MD
+          </h1>
+          <p className="text-xl font-bold text-accents-5 tracking-tight uppercase">
+            Performance Optimized Charts
+          </p>
+        </div>
+
+        {/* Action Group */}
+        <div className="flex flex-col gap-6 w-full px-4">
+          <Button
+            size="lg"
+            onClick={onGetStarted}
+            className="w-full h-16 rounded-2xl font-black tracking-[0.2em] shadow-geist hover:shadow-2xl transition-all active:scale-95 text-base border-none"
+          >
+            INITIALIZE &rarr;
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => fileRef.current?.click()}
+            className="text-accents-3 hover:text-foreground font-black tracking-widest text-[11px] uppercase transition-colors"
+          >
+            IMPORT EXISTING REPOSITORY (.MD)
+          </Button>
+        </div>
+
+        {/* Features Minimalist List */}
+        <div className="mt-20 grid grid-cols-3 gap-8 opacity-40">
+           <Feature icon="⚡️" label="INSTANT" />
+           <Feature icon="🌐" label="OFFLINE" />
+           <Feature icon="🔒" label="PRIVATE" />
+        </div>
       </div>
 
-      {/* Title */}
-      <h1 style={{
-        margin: 0,
-        fontSize: 32,
-        fontWeight: 700,
-        color: 'var(--text-bright)',
-        letterSpacing: '-0.02em',
-        textAlign: 'center',
-      }}>
-        Setlists MD
-      </h1>
-
-      {/* Tagline */}
-      <p style={{
-        margin: '8px 0 0',
-        fontSize: 16,
-        color: 'var(--text-muted)',
-        textAlign: 'center',
-        fontFamily: 'var(--fb)',
-      }}>
-        Chord charts for worship teams
-      </p>
-
-      {/* Description */}
-      <p style={{
-        margin: '16px 0 0',
-        fontSize: 14,
-        color: 'var(--text-dim)',
-        textAlign: 'center',
-        maxWidth: 320,
-        lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
-      }}>
-        Build chord charts, create setlists, transpose on the fly.
-        Works offline on any device.
-      </p>
-
-      {/* CTA */}
-      <button
-        onClick={onGetStarted}
-        style={{
-          marginTop: 40,
-          padding: '14px 48px',
-          borderRadius: 12,
-          border: 'none',
-          background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          boxShadow: '0 4px 16px var(--accent-border)',
-        }}
-      >
-        Get Started
-      </button>
-
-      {/* Import link */}
-      <button
-        onClick={() => fileRef.current?.click()}
-        style={{
-          marginTop: 16,
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          fontSize: 13,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          textDecoration: 'underline',
-          textUnderlineOffset: 3,
-        }}
-      >
-        I already have .md files &mdash; Import
-      </button>
       <input
         ref={fileRef}
         type="file"
         accept=".md,.txt"
         multiple
         onChange={handleFiles}
-        style={{ display: 'none' }}
+        className="hidden"
       />
+
+      {/* Footer Branding */}
+      <div className="absolute bottom-12 text-[10px] font-black text-accents-2 tracking-[0.5em] uppercase pointer-events-none select-none">
+        BY WORSHIP LEADERS FOR WORSHIP LEADERS
+      </div>
+    </div>
+  );
+}
+
+function Feature({ icon, label }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <span className="text-2xl">{icon}</span>
+      <span className="text-[9px] font-black tracking-widest uppercase font-mono">{label}</span>
     </div>
   );
 }

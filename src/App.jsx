@@ -17,6 +17,7 @@ import SetlistOverview from './components/SetlistOverview';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
+import { Badge } from './components/ui/Badge';
 
 export default function App() {
   const [songs, setSongs] = useState([]);
@@ -54,7 +55,6 @@ export default function App() {
       if (savedSongs.length > 0) {
         setSongs(savedSongs);
       } else {
-        // First time — load demo songs
         const demos = DEMO_SONGS_MD.map(md => ({
           ...parseSongMd(md),
           id: generateId(),
@@ -69,11 +69,9 @@ export default function App() {
       const savedSettings = await loadSettings();
       setSettings(savedSettings);
 
-      // Determine initial view based on onboarding state
       if (savedSongs.length === 0 && !savedSettings.onboardingComplete) {
         setView('welcome');
       } else if (!savedSettings.onboardingComplete) {
-        // Existing user who predates onboarding — skip it, go to home
         savedSettings.onboardingComplete = true;
         setSettings(savedSettings);
         await saveSettings(savedSettings);
@@ -84,12 +82,9 @@ export default function App() {
 
       setLoaded(true);
 
-      // Initialize sync state from storage and trigger initial pull
       const storedSync = await getSyncState();
       if (storedSync?.activeProvider) {
         setSyncState({ state: 'idle', lastSync: storedSync.lastSyncTime, provider: storedSync.activeProvider });
-        // Pull from cloud on startup — but we need to pass the just-loaded data directly
-        // since React state (songs/setlists) hasn't settled yet
         const engine = syncEngineRef.current;
         if (engine) {
           const currentSongs = savedSongs.length > 0 ? savedSongs : [];
@@ -105,7 +100,7 @@ export default function App() {
     })();
   }, []);
 
-  // Auto-save when data changes + debounced sync push
+  // Auto-save
   useEffect(() => {
     if (loaded) {
       saveSongs(songs);
@@ -131,13 +126,12 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [loaded, triggerSync]);
 
-  // Apply theme to document
+  // Apply theme
   useEffect(() => {
     if (!settings) return;
     document.documentElement.setAttribute('data-theme', settings.theme);
   }, [settings?.theme]);
 
-  // Navigation with history stack
   const navigate = useCallback((nextView, { song, setlist, replace } = {}) => {
     if (!replace) {
       historyRef.current.push({ view, song: currentSong, setlist: currentSetlist });
@@ -161,7 +155,6 @@ export default function App() {
     }
   }, []);
 
-  // Browser back button support
   useEffect(() => {
     const handler = (e) => {
       if (historyRef.current.length > 0) {
@@ -173,14 +166,12 @@ export default function App() {
     return () => window.removeEventListener('popstate', handler);
   }, [goBack]);
 
-  // Navigate between main pages (no history push)
   const goToMainView = (viewName) => {
     setView(viewName);
     setCurrentSong(null);
     setCurrentSetlist(null);
   };
 
-  // Navigation shortcuts
   const goLibrary = () => goToMainView('library');
   const goSetlists = () => goToMainView('setlists');
   const goChart = (song) => navigate('chart', { song });
@@ -189,21 +180,18 @@ export default function App() {
   const goSetlistView = (sl) => navigate('setlist-view', { setlist: sl });
   const goSetlistPlay = (sl) => navigate('setlist-play', { setlist: sl });
 
-  // Song CRUD
   const handleSaveSong = (song) => {
     setSongs(prev => {
       const idx = prev.findIndex(s => s.id === song.id);
       if (idx >= 0) { const n = [...prev]; n[idx] = song; return n; }
       return [...prev, song];
     });
-    // After save, go to chart but replace the editor entry in history
     navigate('chart', { song, replace: true });
   };
 
   const handleDeleteSong = (id) => {
     setSongs(prev => prev.filter(s => s.id !== id));
-    // After delete, go back two steps (skip the chart for the deleted song)
-    historyRef.current.pop(); // discard the chart entry
+    historyRef.current.pop();
     goBack();
   };
 
@@ -216,7 +204,6 @@ export default function App() {
     }
   };
 
-  // Setlist CRUD
   const handleSaveSetlist = (sl) => {
     setSetlists(prev => {
       const idx = prev.findIndex(s => s.id === sl.id);
@@ -240,13 +227,12 @@ export default function App() {
     setView('home');
   };
 
-  // Setlist export/import
   const handleExportSetlist = async (sl) => {
     const blob = await exportSetlistZip(sl, songs);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = (sl.name || 'setlist').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.zip';
+    a.download = (sl.name || 'setlist').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\\s+/g, '-').toLowerCase() + '.zip';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -269,19 +255,24 @@ export default function App() {
 
   if (!loaded) {
     return (
-      <div style={{
-        minHeight: '100vh', background: 'var(--bg)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-          Loading Setlists MD...
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6">
+        <div className="w-16 h-16 rounded-2xl bg-foreground flex items-center justify-center text-background text-2xl font-black shadow-xl animate-pulse">
+          SM
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <Badge variant="outline" className="font-mono text-[10px] tracking-widest text-accents-4 border-accents-2">
+            INITIALIZING
+          </Badge>
+          <div className="text-sm font-bold text-foreground tracking-tight italic">
+            Setlists MD
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="bg-background text-foreground font-sans min-h-screen selection:bg-geist-link/20">
       {view === 'welcome' && (
         <Welcome
           onGetStarted={() => {
@@ -404,7 +395,7 @@ export default function App() {
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = s.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.md';
+              a.download = s.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\\s+/g, '-').toLowerCase() + '.md';
               a.click();
               URL.revokeObjectURL(url);
             });
@@ -419,6 +410,6 @@ export default function App() {
       {['home', 'library', 'setlists', 'settings'].includes(view) && (
         <BottomNav activeView={view} onNavigate={goToMainView} />
       )}
-    </>
+    </div>
   );
 }

@@ -1,8 +1,14 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { transposeKey, sectionStyle } from '../music';
 import ChartView from './ChartView';
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
+import { cn } from '../lib/utils';
 
-export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, defaultFontSize, showInlineNotes, inlineNoteStyle, displayRole, duplicateSections }) {
+export default function SetlistPlayer({
+  setlist, songs, onBack, defaultColumns, defaultFontSize,
+  showInlineNotes, inlineNoteStyle, displayRole, duplicateSections
+}) {
   const [idx, setIdx] = useState(0);
   const songBarRef = useRef(null);
 
@@ -20,7 +26,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   const goNext = useCallback(() => setIdx(p => Math.min(resolved.length - 1, p + 1)), [resolved.length]);
   const goPrev = useCallback(() => setIdx(p => Math.max(0, p - 1)), []);
 
-  // Auto-scroll song strip to keep active item visible
+  // Auto-scroll song strip
   useEffect(() => {
     const container = songBarRef.current;
     if (!container) return;
@@ -42,10 +48,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   if (!resolved.length) {
     return (
-      <div style={{
-        padding: 40, textAlign: 'center',
-        color: 'var(--text-muted)',
-      }}>
+      <div className="p-10 text-center text-accents-4 text-sm font-sans">
         No items in setlist
       </div>
     );
@@ -53,55 +56,47 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   const cur = resolved[idx];
 
-  const cB = {
-    width: 28, height: 28, borderRadius: 6,
-    border: '1px solid rgba(255,255,255,0.1)',
-    background: 'var(--surface)', color: 'var(--text)',
-    fontSize: 15, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: 'var(--fm)',
-  };
-
   const nav = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{
-        fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--fm)',
-      }}>
-        {idx + 1}/{resolved.length}
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] font-bold text-accents-4 font-mono uppercase tracking-widest mr-1">
+        {idx + 1} / {resolved.length}
       </span>
-      <button
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={goPrev}
         disabled={idx === 0}
-        style={{ ...cB, opacity: idx === 0 ? 0.3 : 1 }}
+        className="w-8 h-8 p-0 min-h-0"
       >
         &#9664;
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={goNext}
         disabled={idx === resolved.length - 1}
-        style={{ ...cB, opacity: idx === resolved.length - 1 ? 0.3 : 1 }}
+        className="w-8 h-8 p-0 min-h-0"
       >
         &#9654;
-      </button>
+      </Button>
     </div>
   );
 
   const progress = (
-    <div style={{ display: 'flex', gap: 3, padding: '8px 18px 0', overflow: 'hidden' }}>
+    <div className="flex gap-1 px-6 pt-2 pb-1 bg-background">
       {resolved.map((r, i) => {
         const color = r.isBreak
-          ? '#6b7280'
+          ? '#666666'
           : sectionStyle(r.song.sections?.[0]?.type || 'Verse').b;
         return (
           <button
             key={i}
             onClick={() => setIdx(i)}
-            style={{
-              flex: 1, height: i === idx ? 6 : 4, borderRadius: 3,
-              background: i === idx ? color : i < idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
-              border: 'none', cursor: 'pointer',
-              transition: 'all 0.2s ease', minWidth: 0, minHeight: 'auto',
-            }}
+            className={cn(
+              "flex-1 h-1 rounded-full transition-all duration-200 cursor-pointer border-none",
+              i === idx ? "h-1.5 opacity-100" : i < idx ? "opacity-40" : "opacity-10"
+            )}
+            style={{ backgroundColor: i === idx ? color : (i < idx ? color : '#888888') }}
           />
         );
       })}
@@ -109,34 +104,27 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   );
 
   const songBar = (
-    <div ref={songBarRef} className="hide-scrollbar" style={{
-      display: 'flex', gap: 6, padding: '6px 18px',
-      overflow: 'auto', scrollbarWidth: 'none',
-    }}>
+    <div
+      ref={songBarRef}
+      className="flex gap-2 px-6 py-2 bg-background border-b border-accents-2 overflow-x-auto hide-scrollbar scroll-smooth"
+    >
       {resolved.map((r, i) => {
         const active = i === idx;
         if (r.isBreak) {
           return (
-            <button key={i} onClick={() => setIdx(i)} style={{
-              flexShrink: 0, display: 'flex', alignItems: 'center',
-              gap: 6, padding: '5px 10px', borderRadius: 8,
-              border: `1px solid ${active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)'}`,
-              background: active ? 'rgba(255,255,255,0.05)' : 'transparent',
-              cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
-            }}>
-              <span style={{
-                fontSize: 11, fontWeight: 700,
-                color: active ? 'rgba(255,255,255,0.5)' : 'var(--text-dim)',
-                fontFamily: 'var(--fm)',
-              }}>
-                {i + 1}
-              </span>
-              <span style={{
-                fontSize: 11.5, fontWeight: active ? 600 : 400,
-                color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-                whiteSpace: 'nowrap', fontFamily: 'var(--fb)',
-                fontStyle: 'italic',
-              }}>
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              className={cn(
+                "flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-geist border transition-all cursor-pointer min-h-0",
+                active ? "bg-accents-1 border-accents-3" : "bg-transparent border-transparent text-accents-4"
+              )}
+            >
+              <span className="font-mono text-[10px] font-bold opacity-50">{i + 1}</span>
+              <span className={cn(
+                "text-xs font-bold uppercase tracking-tight italic",
+                active ? "text-foreground" : "text-accents-4"
+              )}>
                 {r.label || 'Break'}
               </span>
             </button>
@@ -144,34 +132,30 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
         }
         const s = sectionStyle(r.song.sections?.[0]?.type || 'Verse');
         return (
-          <button key={i} onClick={() => setIdx(i)} style={{
-            flexShrink: 0, display: 'flex', alignItems: 'center',
-            gap: 6, padding: '5px 10px', borderRadius: 8,
-            border: `1px solid ${active ? s.b + '66' : 'rgba(255,255,255,0.04)'}`,
-            background: active ? `${s.b}15` : 'transparent',
-            cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
-          }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700,
-              color: active ? s.d : 'var(--text-dim)',
-              fontFamily: 'var(--fm)',
-            }}>
+          <button
+            key={i}
+            onClick={() => setIdx(i)}
+            className={cn(
+              "flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-geist border transition-all cursor-pointer min-h-0",
+              active ? "bg-accents-1 border-accents-3" : "bg-transparent border-transparent"
+            )}
+            style={active ? { borderColor: `${s.b}44`, backgroundColor: `${s.b}10` } : {}}
+          >
+            <span className="font-mono text-[10px] font-bold" style={{ color: active ? s.d : '#999' }}>
               {i + 1}
             </span>
-            <span style={{
-              fontSize: 11.5, fontWeight: active ? 600 : 400,
-              color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-              whiteSpace: 'nowrap', fontFamily: 'var(--fb)',
-            }}>
+            <span className={cn(
+              "text-xs font-bold truncate max-w-[120px] tracking-tight uppercase",
+              active ? "text-foreground" : "text-accents-4"
+            )}>
               {r.song.title}
             </span>
-            <span style={{
-              fontSize: 10,
-              color: active ? 'var(--chord)' : 'rgba(255,255,255,0.2)',
-              fontFamily: 'var(--fm)',
-            }}>
+            <Badge variant="outline" className={cn(
+              "font-mono text-[9px] h-4 px-1 border-none bg-transparent",
+              active ? "text-geist-link" : "text-accents-3"
+            )}>
               {transposeKey(r.song.key, r.transpose)}
-            </span>
+            </Badge>
           </button>
         );
       })}
@@ -179,65 +163,55 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   );
 
   return (
-    <div style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      {/* Back button for the whole player */}
-      <div style={{
-        padding: '10px 18px 0',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', color: 'var(--text-muted)',
-          cursor: 'pointer', padding: 4, fontSize: 14,
-        }}>
-          &#8592; Back
-        </button>
-        <span style={{
-          fontSize: 13, fontWeight: 600, color: 'var(--text-muted)',
-        }}>
-          {setlist.name}
-        </span>
+    <div className="bg-background min-h-screen font-sans pt-[env(safe-area-inset-top,0px)]">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-2 bg-background">
+        <div className="flex items-center gap-2 min-w-0">
+          <button onClick={onBack} className="p-2 -ml-2 text-accents-4 hover:text-foreground">
+            &#8592;
+          </button>
+          <span className="text-xs font-bold text-accents-5 uppercase tracking-widest truncate">
+            {setlist.name}
+          </span>
+        </div>
+        {nav}
       </div>
+
       {progress}
       {songBar}
+
       {cur.note && (
-        <div style={{ padding: '4px 18px 0' }}>
-          <div style={{
-            padding: '6px 12px', borderRadius: 6,
-            background: 'rgba(245,158,11,0.08)',
-            border: '1px solid rgba(245,158,11,0.15)',
-            fontSize: 12, color: '#fbbf24', fontFamily: 'var(--fb)',
-          }}>
+        <div className="px-6 mt-2">
+          <div className="p-3 rounded-geist bg-geist-warning/10 border border-geist-warning/20 text-geist-warning text-[11px] font-bold uppercase tracking-wider leading-relaxed">
             {cur.note}
           </div>
         </div>
       )}
+
       {cur.isBreak ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          padding: '80px 20px', minHeight: '50vh',
-        }}>
-          <div style={{
-            fontSize: 32, fontWeight: 700,
-            color: 'var(--text-bright)', marginBottom: 8,
-          }}>
+        <div className="flex flex-col items-center justify-center py-20 px-6 min-h-[50vh] animate-in fade-in zoom-in-95 duration-300">
+          <Badge variant="outline" className="mb-4 font-mono tracking-[0.2em] px-4 py-1 border-accents-3 text-accents-4">
+            INTERVAL
+          </Badge>
+          <div className="text-4xl font-black text-foreground tracking-tighter mb-4 text-center italic">
             {cur.label || 'Break'}
           </div>
           {cur.duration > 0 && (
-            <div style={{
-              fontSize: 16, color: 'var(--text-muted)',
-              fontFamily: 'var(--fm)', marginBottom: 8,
-            }}>
-              {cur.duration} min
+            <div className="text-xl font-mono text-accents-4 mb-10">
+              {cur.duration} MIN
             </div>
           )}
-          <div style={{ marginTop: 16 }}>{nav}</div>
+          <div className="mt-6">
+            <Button size="lg" onClick={goNext} className="h-14 px-10 rounded-full font-bold tracking-widest">
+              NEXT ITEM &rarr;
+            </Button>
+          </div>
         </div>
       ) : (
         <ChartView
           song={{ ...cur.song, key: transposeKey(cur.song.key, cur.transpose) }}
           onBack={onBack}
-          navOverride={nav}
+          navOverride={null} // Nav is already in the player header
           compact
           forceTranspose={cur.transpose}
           capo={cur.capo || 0}

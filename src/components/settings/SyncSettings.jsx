@@ -1,20 +1,9 @@
 import { useState } from 'react';
 import { getProvider, getAvailableProviders } from '../../sync/provider';
 import { setActiveProvider, clearProvider, getSyncState } from '../../sync/tokens';
-
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
-};
-
-const cB = {
-  borderRadius: 6,
-  border: '1px solid var(--border)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 600,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fb)', padding: '6px 14px',
-};
+import { Button } from '../ui/Button';
+import { Badge } from '../ui/Badge';
+import { cn } from '../../lib/utils';
 
 export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }) {
   const [connecting, setConnecting] = useState(null);
@@ -60,96 +49,70 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
   const anyConfigured = providers.some(p => p.configured);
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <label style={labelStyle}>Cloud Sync</label>
-
+    <div className="space-y-4">
       {connected ? (
-        <div>
-          <div style={{
-            padding: '12px 14px', borderRadius: 8,
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            marginBottom: 8,
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-4 rounded-geist border border-accents-2 bg-accents-1/30">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-foreground">
                   {providers.find(p => p.name === connected)?.displayName || connected}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {syncState.lastSync
-                    ? `Last synced: ${new Date(syncState.lastSync).toLocaleString()}`
-                    : 'Not yet synced'}
-                </div>
+                </span>
+                <Badge variant="success" className="text-[9px] font-black h-4 px-1 leading-none uppercase">CONNECTED</Badge>
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={onSyncNow} style={{
-                  ...cB, padding: '5px 12px',
-                  color: 'var(--accent-text)',
-                  background: 'var(--accent-soft)',
-                  borderColor: 'var(--accent-border)',
-                }}>
-                  Sync Now
-                </button>
-                <button onClick={handleDisconnect} style={{
-                  ...cB, padding: '5px 12px',
-                  color: 'var(--danger)',
-                  background: 'var(--danger-soft)',
-                  borderColor: 'rgba(239,68,68,0.2)',
-                }}>
-                  Disconnect
-                </button>
+              <div className="text-[10px] font-bold text-accents-4 mt-1 font-mono uppercase tracking-wider">
+                {syncState.lastSync
+                  ? `LAST SYNC: ${new Date(syncState.lastSync).toLocaleString()}`
+                  : 'NOT YET SYNCED'}
               </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={onSyncNow} className="h-8 text-[10px] font-bold">
+                SYNC NOW
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleDisconnect} className="h-8 text-[10px] font-bold text-geist-error hover:bg-geist-error/10 border-geist-error/20">
+                DISCONNECT
+              </Button>
             </div>
           </div>
         </div>
       ) : (
-        <div>
-          <div style={{
-            fontSize: 12, color: 'var(--text-dim)', marginBottom: 8, lineHeight: 1.5,
-          }}>
-            Connect a cloud provider to sync songs across devices.
+        <div className="space-y-4">
+          <div className="text-xs text-accents-4 leading-relaxed max-w-sm">
+            Keep your library in sync across all your devices using your preferred cloud storage provider.
           </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             {providers.map(p => {
               const disabled = !p.configured || !!connecting;
               return (
-                <button
+                <Button
                   key={p.name}
                   onClick={() => handleConnect(p.name)}
                   disabled={disabled}
-                  title={!p.configured ? 'Not configured' : undefined}
-                  style={{
-                    ...cB,
-                    padding: '10px 16px',
-                    gap: 6,
-                    opacity: !p.configured ? 0.35 : (connecting && connecting !== p.name ? 0.5 : 1),
-                    cursor: !p.configured ? 'not-allowed' : 'pointer',
-                  }}
+                  variant="secondary"
+                  className={cn(
+                    "h-12 gap-3 justify-start px-4",
+                    !p.configured && "opacity-30 grayscale"
+                  )}
                 >
-                  <span>{p.icon}</span>
-                  {connecting === p.name ? 'Connecting...' : p.displayName}
-                </button>
+                  <span className="text-lg opacity-70">{p.icon}</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">
+                    {connecting === p.name ? '...' : p.displayName}
+                  </span>
+                </Button>
               );
             })}
           </div>
           {!anyConfigured && (
-            <div style={{
-              fontSize: 11, color: 'var(--text-dim)', marginTop: 8, lineHeight: 1.5,
-            }}>
-              No cloud providers are configured. Set OAuth client IDs in the environment to enable sync.
+            <div className="p-3 rounded bg-geist-warning/5 border border-geist-warning/10 text-[10px] font-bold text-geist-warning uppercase tracking-tight">
+              No cloud providers configured in the current environment.
             </div>
           )}
         </div>
       )}
 
       {error && (
-        <div style={{
-          marginTop: 8, padding: '8px 12px', borderRadius: 6,
-          background: 'var(--danger-soft)', border: '1px solid rgba(239,68,68,0.2)',
-          fontSize: 12, color: 'var(--danger)',
-        }}>
+        <div className="p-3 rounded bg-geist-error/5 border border-geist-error/10 text-xs text-geist-error font-medium">
           {error}
         </div>
       )}

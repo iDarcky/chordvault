@@ -1,29 +1,13 @@
 import { useState, useMemo } from 'react';
 import { transposeKey, sectionStyle, ALL_KEYS, semitonesBetween } from '../music';
 import { generateId } from '../parser';
-
-const inputStyle = {
-  width: '100%', padding: '9px 12px',
-  background: 'var(--surface)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 7, color: 'var(--text)',
-  fontSize: 14, outline: 'none',
-  fontFamily: 'var(--fb)', boxSizing: 'border-box',
-};
-
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 4,
-};
-
-const cB = {
-  width: 28, height: 28, borderRadius: 6,
-  border: '1px solid rgba(255,255,255,0.1)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 15, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fm)',
-};
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import { Badge } from './ui/Badge';
+import PageHeader from './PageHeader';
+import SearchIcon from './SearchIcon';
+import { cn } from '../lib/utils';
 
 export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete }) {
   const [name, setName] = useState(setlist?.name || '');
@@ -70,7 +54,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   const getSong = (id) => songs.find(s => s.id === id);
 
   const handleSave = () => {
-    if (!name.trim()) { alert('Please enter a setlist name'); return; }
+    if (!name.trim()) { alert('Please enter a repository name'); return; }
     onSave({
       id: setlist?.id || generateId(),
       name: name.trim(), date, service, items,
@@ -89,465 +73,265 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   }, 0);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{
-            background: 'none', border: 'none', color: '#94a3b8',
-            cursor: 'pointer', padding: 4,
-          }}>
-            &#8592; Back
-          </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
-            {setlist ? 'Edit Setlist' : 'New Setlist'}
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      <PageHeader title={setlist ? 'Configure Setlist' : 'Initialize Setlist'}>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={onBack} className="h-9 px-4 hidden md:flex">
+            CANCEL
+          </Button>
           {setlist && onDelete && (
-            <button
-              onClick={() => { if (confirm('Delete this setlist?')) onDelete(setlist.id); }}
-              style={{
-                background: 'var(--danger-soft)',
-                border: '1px solid rgba(239,68,68,0.2)',
-                borderRadius: 7, padding: '7px 14px',
-                color: 'var(--danger)', fontSize: 13,
-                fontWeight: 600, cursor: 'pointer',
-              }}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => { if (confirm('Purge this performance record?')) onDelete(setlist.id); }}
+              className="text-geist-error hover:bg-geist-error/5 border-geist-error/20 h-9 px-4"
             >
-              Delete
-            </button>
+              PURGE
+            </Button>
           )}
-          <button onClick={handleSave} style={{
-            background: 'var(--accent-soft)',
-            border: '1px solid var(--accent-border)',
-            borderRadius: 7, padding: '7px 18px',
-            color: 'var(--accent-text)', fontSize: 13,
-            fontWeight: 600, cursor: 'pointer',
-          }}>
-            Save
-          </button>
+          <Button size="sm" onClick={handleSave} className="px-6 font-black rounded-full h-9 shadow-geist">
+            COMMIT
+          </Button>
         </div>
-      </div>
+      </PageHeader>
 
-      {/* Meta fields */}
-      <div style={{ padding: '16px 18px', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <label style={labelStyle}>Setlist Name</label>
-          <input
-            value={name} onChange={e => setName(e.target.value)}
-            placeholder="e.g. Sunday Morning Service" style={inputStyle}
-          />
-        </div>
-        <div style={{ flex: '0 0 150px' }}>
-          <label style={labelStyle}>Date</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
-        </div>
-        <div style={{ flex: '0 0 130px' }}>
-          <label style={labelStyle}>Service</label>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {['Morning', 'Evening', 'Special'].map(s => (
-              <button key={s} onClick={() => setService(s)} style={{
-                ...cB, padding: '6px 10px', width: 'auto', fontSize: 11,
-                borderColor: service === s ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-                color: service === s ? 'var(--accent-text)' : 'rgba(255,255,255,0.4)',
-                background: service === s ? 'var(--accent-soft)' : 'var(--surface)',
-              }}>
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Song order */}
-      <div style={{ padding: '0 18px' }}>
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 10,
-        }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
-            Items ({items.length})
-            {breakCount > 0 && (
-              <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
-                {' '}({songCount} songs + {breakCount} breaks)
-              </span>
-            )}
-            {totalDuration > 0 && (
-              <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
-                {' '}· ~{totalDuration} min est.
-              </span>
-            )}
-          </span>
-        </div>
-
-        {items.map((item, idx) => {
-          // Shared move/reorder column
-          const orderCol = (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', width: 44,
-              background: 'rgba(255,255,255,0.02)',
-              borderRight: '1px solid rgba(255,255,255,0.04)',
-              gap: 2, padding: '4px 0',
-            }}>
-              <button
-                onClick={() => idx > 0 && moveItem(idx, -1)}
-                disabled={idx === 0}
-                style={{
-                  background: 'none', border: 'none',
-                  color: idx > 0 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
-                  cursor: idx > 0 ? 'pointer' : 'default', padding: 2, display: 'flex',
-                  minHeight: 'auto',
-                }}
-              >
-                &#9650;
-              </button>
-              <span style={{
-                fontSize: 14, fontWeight: 700,
-                color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--fm)',
-              }}>
-                {idx + 1}
-              </span>
-              <button
-                onClick={() => idx < items.length - 1 && moveItem(idx, 1)}
-                disabled={idx === items.length - 1}
-                style={{
-                  background: 'none', border: 'none',
-                  color: idx < items.length - 1 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
-                  cursor: idx < items.length - 1 ? 'pointer' : 'default',
-                  padding: 2, display: 'flex', minHeight: 'auto',
-                }}
-              >
-                &#9660;
-              </button>
-            </div>
-          );
-
-          // Break item
-          if (item.type === 'break') {
-            return (
-              <div key={idx} style={{
-                display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
-                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-                overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
-              }}>
-                {orderCol}
-                <div style={{
-                  flex: 1, padding: '10px 14px',
-                  display: 'flex', alignItems: 'center', gap: 12,
-                }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                    background: 'rgba(107,114,128,0.15)',
-                    border: '1px solid rgba(107,114,128,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16, color: 'rgba(255,255,255,0.4)',
-                  }}>
-                    &#9646;
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <input
-                      value={item.label}
-                      onChange={e => updateBreakField(idx, 'label', e.target.value)}
-                      placeholder="e.g. Prayer, Announcements, Offering..."
-                      style={{
-                        ...inputStyle, padding: '5px 8px', fontSize: 13,
-                        fontWeight: 600, background: 'transparent',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                      }}
-                    />
-                  </div>
-                </div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 10px',
-                  borderLeft: '1px solid rgba(255,255,255,0.04)',
-                }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <span style={{
-                      fontSize: 8, color: 'var(--text-dim)',
-                      }}>
-                      Min
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={item.duration || ''}
-                      onChange={e => updateBreakField(idx, 'duration', parseInt(e.target.value) || 0)}
-                      placeholder="0"
-                      style={{
-                        width: 36, padding: '3px 4px', textAlign: 'center',
-                        background: 'var(--surface)',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                        borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                        fontFamily: 'var(--fm)', outline: 'none',
-                      }}
-                    />
-                  </div>
-                  <input
-                    value={item.note}
-                    onChange={e => updateBreakField(idx, 'note', e.target.value)}
-                    placeholder="Note..."
-                    style={{
-                      width: 100, padding: '5px 8px',
-                      background: 'var(--surface)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                      fontFamily: 'var(--fb)', outline: 'none',
-                    }}
-                  />
-                  <button
-                    onClick={() => removeItem(idx)}
-                    style={{
-                      background: 'none', border: 'none',
-                      color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-                      padding: 4, display: 'flex', minHeight: 'auto',
-                    }}
-                  >
-                    &#10005;
-                  </button>
-                </div>
-              </div>
-            );
-          }
-
-          // Song item
-          const song = getSong(item.songId);
-          if (!song) return null;
-          const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-          return (
-            <div key={idx} style={{
-              display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
-              borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-              overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
-            }}>
-              {orderCol}
-              <div style={{
-                flex: 1, padding: '10px 14px',
-                display: 'flex', alignItems: 'center', gap: 12,
-              }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                  border: `1px solid ${s.b}44`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
-                }}>
-                  {transposeKey(song.key, item.transpose)}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {song.title}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
-                    {song.artist} · {song.tempo} bpm · {song.time}
-                  </div>
-                </div>
-              </div>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 10px',
-                borderLeft: '1px solid rgba(255,255,255,0.04)',
-              }}>
-                <div style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 2,
-                }}>
-                  <span style={{
-                    fontSize: 8, color: 'var(--text-dim)',
-                  }}>
-                    Key
-                  </span>
-                  <select
-                    value={transposeKey(song.key, item.transpose)}
-                    onChange={e => updateTranspose(idx, semitonesBetween(song.key, e.target.value))}
-                    style={{
-                      padding: '3px 4px', borderRadius: 5,
-                      background: 'var(--surface)',
-                      border: `1px solid ${item.transpose ? 'var(--chord)' : 'rgba(255,255,255,0.06)'}`,
-                      color: item.transpose ? 'var(--chord)' : 'var(--text)',
-                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
-                      outline: 'none', cursor: 'pointer',
-                    }}
-                  >
-                    {ALL_KEYS.map(k => (
-                      <option key={k} value={k}>{k}{k === song.key ? ' (orig)' : ''}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 2,
-                }}>
-                  <span style={{
-                    fontSize: 8, color: 'var(--text-dim)',
-                  }}>
-                    Capo
-                  </span>
-                  <select
-                    value={item.capo || 0}
-                    onChange={e => updateCapo(idx, parseInt(e.target.value))}
-                    style={{
-                      padding: '3px 4px', borderRadius: 5,
-                      background: 'var(--surface)',
-                      border: `1px solid ${item.capo ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
-                      color: item.capo ? 'var(--accent-text)' : 'var(--text)',
-                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
-                      outline: 'none', cursor: 'pointer',
-                    }}
-                  >
-                    {[0,1,2,3,4,5,6,7,8,9].map(n => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                </div>
-                <input
-                  value={item.note}
-                  onChange={e => updateNote(idx, e.target.value)}
-                  placeholder="Note..."
-                  style={{
-                    width: 100, padding: '5px 8px',
-                    background: 'var(--surface)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                    fontFamily: 'var(--fb)', outline: 'none',
-                  }}
-                />
-                <button
-                  onClick={() => removeItem(idx)}
-                  style={{
-                    background: 'none', border: 'none',
-                    color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-                    padding: 4, display: 'flex', minHeight: 'auto',
-                  }}
-                >
-                  &#10005;
-                </button>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Add song */}
-        {adding ? (
-          <div style={{
-            border: '1px solid var(--accent-border)',
-            borderRadius: 10, overflow: 'hidden', marginTop: 8,
-          }}>
-            <div style={{
-              padding: 10,
-              borderBottom: '1px solid rgba(255,255,255,0.05)',
-            }}>
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                autoFocus
-                placeholder="Search songs..."
-                style={{ ...inputStyle, fontSize: 13 }}
+      <div className="px-6 pb-32 max-w-5xl mx-auto mt-8 space-y-12">
+        {/* Identity Engine */}
+        <section>
+          <SectionHeader>Repository Metadata</SectionHeader>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <FieldLabel>PERFORMANCE IDENTIFIER</FieldLabel>
+              <Input
+                value={name} onChange={e => setName(e.target.value)}
+                placeholder="E.G. SUNDAY SERVICE"
+                className="bg-accents-1 border-accents-2 h-12 text-sm font-black uppercase tracking-tight"
               />
             </div>
-            <div style={{ maxHeight: 250, overflowY: 'auto' }}>
-              {available.map(song => {
-                const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-                return (
-                  <button key={song.id} onClick={() => addSong(song)} style={{
-                    width: '100%', display: 'flex', alignItems: 'center',
-                    gap: 10, padding: '10px 12px', background: 'none',
-                    border: 'none', borderBottom: '1px solid rgba(255,255,255,0.03)',
-                    cursor: 'pointer', textAlign: 'left',
-                  }}>
-                    <span style={{
-                      width: 32, height: 32, borderRadius: 7, flexShrink: 0,
-                      background: `linear-gradient(135deg,${s.b}33,${s.b}11)`,
-                      border: `1px solid ${s.b}44`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700, color: s.d,
-                    }}>
-                      {song.key}
-                    </span>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
-                        {song.title}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {song.artist}
-                      </div>
-                    </div>
+            <div>
+              <FieldLabel>EXECUTION DATE</FieldLabel>
+              <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="bg-accents-1 border-accents-2 h-12 font-mono font-bold" />
+            </div>
+            <div>
+              <FieldLabel>SERVICE COMPONENT</FieldLabel>
+              <div className="flex bg-accents-1 p-1 rounded-2xl border border-accents-2 h-12 shadow-inner">
+                {['Morning', 'Evening', 'Special'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setService(s)}
+                    className={cn(
+                      "flex-1 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border-none cursor-pointer",
+                      service === s ? "bg-background shadow-geist text-foreground" : "bg-transparent text-accents-4 hover:text-accents-6"
+                    )}
+                  >
+                    {s}
                   </button>
-                );
-              })}
-              {available.length === 0 && (
-                <div style={{
-                  padding: 20, textAlign: 'center',
-                  color: 'var(--text-dim)', fontSize: 13,
-                }}>
-                  No songs found
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Sequencing Engine */}
+        <section>
+          <div className="flex items-center justify-between border-b border-accents-2 pb-4 mb-8">
+            <SectionHeader className="mb-0">Component Sequence</SectionHeader>
+            <div className="text-[10px] font-black text-accents-4 font-mono uppercase tracking-[0.2em] bg-accents-1 px-4 py-1.5 rounded-full border border-accents-2">
+              {songCount} SONGS &middot; {breakCount} BREAKS &middot; ~{totalDuration} MIN
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {items.map((item, idx) => {
+              const isBreak = item.type === 'break';
+              const song = !isBreak ? getSong(item.songId) : null;
+              const s = song ? sectionStyle(song.sections?.[0]?.type || 'Verse') : null;
+
+              return (
+                <div key={idx} className="flex items-stretch bg-background border border-accents-2 rounded-2xl overflow-hidden group shadow-geist-sm transition-all hover:shadow-geist">
+                  <div className="w-12 bg-accents-1/30 border-r border-accents-2 flex flex-col items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => idx > 0 && moveItem(idx, -1)} className="p-1.5 hover:text-foreground border-none bg-transparent cursor-pointer disabled:opacity-10" disabled={idx === 0}>
+                      &#9650;
+                    </button>
+                    <span className="text-xs font-black font-mono tracking-tighter">{String(idx + 1).padStart(2, '0')}</span>
+                    <button onClick={() => idx < items.length - 1 && moveItem(idx, 1)} className="p-1.5 hover:text-foreground border-none bg-transparent cursor-pointer disabled:opacity-10" disabled={idx === items.length - 1}>
+                      &#9660;
+                    </button>
+                  </div>
+
+                  <div className="flex-1 p-6 flex items-center gap-6 min-w-0 bg-background/50">
+                    {isBreak ? (
+                      <>
+                        <div className="w-12 h-12 rounded-xl bg-accents-2 flex items-center justify-center text-accents-4 text-2xl font-black">
+                          &middot;
+                        </div>
+                        <Input
+                          value={item.label}
+                          onChange={e => updateBreakField(idx, 'label', e.target.value)}
+                          placeholder="IDENTIFY BREAK (E.G. PRAYER)"
+                          className="h-10 text-base font-black bg-transparent border-none p-0 focus-visible:ring-0 italic placeholder:text-accents-2"
+                        />
+                      </>
+                    ) : song ? (
+                      <>
+                        <div
+                          className="w-12 h-12 rounded-xl flex items-center justify-center font-mono text-sm font-black shrink-0 border-2 border-accents-2 transition-transform group-hover:scale-110"
+                          style={{ background: `${s.b}15`, color: s.d, borderColor: `${s.b}30` }}
+                        >
+                          {transposeKey(song.key, item.transpose)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-base font-black truncate text-foreground uppercase tracking-tight">{song.title}</div>
+                          <div className="text-[10px] font-bold text-accents-4 uppercase tracking-[0.2em] truncate mt-1">{song.artist}</div>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+
+                  <div className="flex items-center gap-3 px-6 bg-accents-1/10 border-l border-accents-2 shrink-0">
+                    {!isBreak && song && (
+                      <>
+                        <div className="flex flex-col items-center">
+                           <span className="text-[8px] font-black text-accents-3 mb-1 font-mono tracking-widest">KEY</span>
+                           <select
+                             value={transposeKey(song.key, item.transpose)}
+                             onChange={e => updateTranspose(idx, semitonesBetween(song.key, e.target.value))}
+                             className="h-8 px-2 bg-background border border-accents-2 rounded-lg text-[11px] font-black font-mono focus:border-foreground outline-none cursor-pointer"
+                           >
+                             {ALL_KEYS.map(k => (
+                               <option key={k} value={k}>{k}{k === song.key ? '*' : ''}</option>
+                             ))}
+                           </select>
+                        </div>
+                        <div className="flex flex-col items-center">
+                           <span className="text-[8px] font-black text-accents-3 mb-1 font-mono tracking-widest">CAPO</span>
+                           <select
+                             value={item.capo || 0}
+                             onChange={e => updateCapo(idx, parseInt(e.target.value))}
+                             className="h-8 px-2 bg-background border border-accents-2 rounded-lg text-[11px] font-black font-mono focus:border-foreground outline-none cursor-pointer"
+                           >
+                             {[0,1,2,3,4,5,6,7,8,9].map(n => (
+                               <option key={n} value={n}>{n}</option>
+                             ))}
+                           </select>
+                        </div>
+                      </>
+                    )}
+                    {isBreak && (
+                      <div className="flex flex-col items-center">
+                        <span className="text-[8px] font-black text-accents-3 mb-1 font-mono tracking-widest">MIN</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={item.duration || ''}
+                          onChange={e => updateBreakField(idx, 'duration', parseInt(e.target.value) || 0)}
+                          placeholder="0"
+                          className="h-8 w-14 text-center text-[11px] font-black font-mono p-1 bg-background"
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                       <span className="text-[8px] font-black text-accents-3 mb-1 font-mono tracking-widest px-1">NOTES</span>
+                       <Input
+                         value={item.note}
+                         onChange={e => isBreak ? updateBreakField(idx, 'note', e.target.value) : updateNote(idx, e.target.value)}
+                         placeholder="..."
+                         className="h-8 w-28 text-[10px] bg-background border-accents-2 font-bold"
+                       />
+                    </div>
+                    <button onClick={() => removeItem(idx)} className="p-2 ml-2 text-accents-3 hover:text-geist-error border-none bg-transparent cursor-pointer transition-colors active:scale-90">
+                      &#10005;
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
-            <div style={{
-              padding: 8,
-              borderTop: '1px solid rgba(255,255,255,0.05)',
-            }}>
-              <button
-                onClick={() => { setAdding(false); setSearch(''); }}
-                style={{
-                  width: '100%', justifyContent: 'center',
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 7, padding: '7px 12px',
-                  color: '#94a3b8', fontSize: 12, fontWeight: 600,
-                  cursor: 'pointer', fontFamily: 'var(--fb)',
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+              );
+            })}
           </div>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button
-              onClick={() => setAdding(true)}
-              style={{
-                flex: 1, justifyContent: 'center',
-                padding: '14px 0',
-                background: 'var(--surface)',
-                border: '1px dashed var(--border)',
-                borderRadius: 7, color: '#94a3b8', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
-                display: 'flex', alignItems: 'center', gap: 5,
-              }}
-            >
-              + Add Song
-            </button>
-            <button
-              onClick={addBreak}
-              style={{
-                flex: 1, justifyContent: 'center',
-                padding: '14px 0',
-                background: 'var(--surface)',
-                border: '1px dashed rgba(107,114,128,0.4)',
-                borderRadius: 7, color: 'rgba(107,114,128,0.7)', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
-                display: 'flex', alignItems: 'center', gap: 5,
-              }}
-            >
-              + Add Break
-            </button>
+
+          {/* Acquisition Module */}
+          <div className="pt-10">
+            {adding ? (
+              <Card className="border-foreground/30 shadow-2xl animate-in zoom-in-95 rounded-3xl overflow-hidden border-2">
+                <CardHeader className="p-6 border-b border-accents-2 flex-row items-center gap-4 space-y-0 bg-accents-1/50">
+                  <SearchIcon size={20} className="text-accents-4" />
+                  <Input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    autoFocus
+                    placeholder="LOCATE SONG IN LIBRARY..."
+                    className="bg-transparent border-none p-0 h-auto focus-visible:ring-0 text-lg font-black uppercase tracking-tight placeholder:text-accents-2"
+                  />
+                </CardHeader>
+                <div className="max-h-[400px] overflow-auto divide-y divide-accents-1 bg-background">
+                  {available.map(song => {
+                    const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
+                    return (
+                      <button
+                        key={song.id}
+                        onClick={() => addSong(song)}
+                        className="w-full flex items-center gap-4 p-5 hover:bg-accents-1 transition-all text-left border-none bg-transparent cursor-pointer"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-accents-1 border border-accents-2 flex items-center justify-center font-mono text-xs font-black" style={{ color: s.d }}>
+                          {song.key}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-black truncate text-foreground uppercase tracking-tight">{song.title}</div>
+                          <div className="text-[10px] text-accents-4 uppercase font-black tracking-widest mt-0.5">{song.artist}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {available.length === 0 && (
+                    <div className="p-20 text-center flex flex-col items-center opacity-30">
+                       <SearchIcon size={48} className="mb-4" />
+                       <div className="text-xs font-black uppercase tracking-widest">Repository result negative</div>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 border-t border-accents-2 bg-accents-1/30">
+                  <Button variant="ghost" size="sm" onClick={() => setAdding(false)} className="w-full h-10 text-accents-4 font-black uppercase tracking-[0.2em] text-[10px]">
+                    ABORT SELECTION
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <div className="flex gap-6 max-w-2xl mx-auto">
+                <button
+                  onClick={() => setAdding(true)}
+                  className="flex-1 flex flex-col items-center justify-center gap-3 h-24 rounded-3xl border-2 border-dashed border-accents-2 text-accents-3 hover:border-foreground hover:text-foreground transition-all font-black uppercase tracking-[0.2em] text-[10px] bg-accents-1/10 hover:bg-accents-1/20 cursor-pointer shadow-inner"
+                >
+                  <span className="text-2xl opacity-40">+</span>
+                  ADD SONG COMPONENT
+                </button>
+                <button
+                  onClick={addBreak}
+                  className="flex-1 flex flex-col items-center justify-center gap-3 h-24 rounded-3xl border-2 border-dashed border-accents-2 text-accents-3 hover:border-foreground hover:text-foreground transition-all font-black uppercase tracking-[0.2em] text-[10px] bg-accents-1/10 hover:bg-accents-1/20 cursor-pointer shadow-inner"
+                >
+                  <span className="text-2xl opacity-40">&middot;</span>
+                  ADD TRANSITION BREAK
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </section>
       </div>
-      <div style={{ height: 60 }} />
+      <div className="h-32" />
     </div>
+  );
+}
+
+function SectionHeader({ children, className }) {
+  return (
+    <h2 className={cn("text-[10px] font-black text-accents-4 uppercase tracking-[0.4em] mb-8 px-1 font-mono italic", className)}>
+      {children}
+    </h2>
+  );
+}
+
+function FieldLabel({ children }) {
+  return (
+    <label className="text-[9px] font-black text-accents-3 uppercase tracking-[0.3em] mb-2 block font-mono px-1">
+      {children}
+    </label>
   );
 }

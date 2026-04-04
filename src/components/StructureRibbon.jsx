@@ -1,49 +1,49 @@
-import { sectionStyle, compactLabel } from '../music';
+import { sectionStyle } from '../music';
+import { cn } from '../lib/utils';
 
-export function StructureRibbon({ structure, compact }) {
+export function MetaPill({ label, value, highlight }) {
   return (
-    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: '8px 0' }}>
-      {structure.map((name, i) => {
-        const s = sectionStyle(name.replace(/\s*\d+$/, ''));
-        return (
-          <span key={i} style={{
-            display: 'inline-flex', alignItems: 'center', gap: compact ? 3 : 4,
-            padding: compact ? '2px 6px' : '3px 9px', borderRadius: 16,
-            border: `1.5px solid ${s.b}33`, background: `${s.b}0a`,
-            color: s.d, fontSize: compact ? 10 : 10.5, fontWeight: 600,
-            fontFamily: 'var(--fm)', whiteSpace: 'nowrap',
-          }}>
-            <span style={{
-              width: compact ? 5 : 7, height: compact ? 5 : 7,
-              borderRadius: '50%', background: s.d,
-            }} />
-            {compact ? compactLabel(name) : name}
-          </span>
-        );
-      })}
+    <div className={cn(
+      "inline-flex items-center gap-2 px-3 py-1.5 rounded-geist border text-[11px] font-bold uppercase tracking-tight font-mono",
+      highlight
+        ? "bg-foreground text-background border-foreground shadow-md"
+        : "bg-accents-1 border-accents-2 text-accents-5"
+    )}>
+      <span className={highlight ? "text-accents-2" : "text-accents-3"}>{label}</span>
+      <span className="font-black">{value}</span>
     </div>
   );
 }
 
-export function MetaPill({ label, value, highlight }) {
+export function StructureRibbon({ structure, compact }) {
+  if (!structure?.length) return null;
+
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 5,
-      padding: '5px 11px', borderRadius: 7,
-      background: 'var(--surface)', border: '1px solid var(--border)',
-    }}>
-      <span style={{
-        fontSize: 9.5, fontWeight: 600, color: 'var(--text-muted)',
-      }}>
-        {label}
-      </span>
-      <span style={{
-        fontSize: 13.5, fontWeight: 700,
-        color: highlight ? 'var(--chord)' : 'var(--text-bright)',
-        fontFamily: 'var(--fm)',
-      }}>
-        {value}
-      </span>
+    <div className={cn(
+      "flex gap-1.5 overflow-x-auto hide-scrollbar scroll-smooth transition-all",
+      compact ? "mt-2 pb-1" : "my-4 pb-2"
+    )}>
+      {structure.map((s, i) => {
+        const style = sectionStyle(s);
+        return (
+          <div
+            key={i}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-geist border shadow-sm transition-all hover:scale-105"
+            style={{
+              borderColor: `${style.b}44`,
+              backgroundColor: `${style.b}10`,
+              color: style.d
+            }}
+          >
+            <span className="font-mono text-[10px] font-black border border-current rounded-full w-4 h-4 flex items-center justify-center opacity-60">
+              {style.l}
+            </span>
+            <span className="text-[10px] font-bold tracking-tight uppercase">
+              {s}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

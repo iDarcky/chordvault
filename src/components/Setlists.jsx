@@ -1,12 +1,15 @@
-import { useState, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { transposeKey } from '../music';
 import PageHeader from './PageHeader';
+import { Card } from './ui/Card';
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
+import { cn } from '../lib/utils';
 
 export default function Setlists({
   songs, setlists,
   onViewSetlist, onPlaySetlist, onNewSetlist, onImportSetlist,
 }) {
-  const [fabOpen, setFabOpen] = useState(false);
   const fileRef = useRef(null);
 
   const upcoming = useMemo(() => {
@@ -31,198 +34,127 @@ export default function Setlists({
       <div
         key={sl.id}
         onClick={() => onViewSetlist(sl)}
-        role="button"
-        tabIndex={0}
-        style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 16px',
-          borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-          cursor: 'pointer', background: 'var(--card)',
-        }}
+        className={cn(
+          "flex items-center justify-between p-6 cursor-pointer hover:bg-accents-1 transition-all group",
+          i < arr.length - 1 ? "border-b border-accents-2" : ""
+        )}
       >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
+        <div className="flex-1 min-w-0">
+          <div className="text-lg font-black tracking-tight text-foreground uppercase group-hover:text-geist-link transition-colors truncate">
             {sl.name || 'Untitled Setlist'}
           </div>
-          <div style={{
-            fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}>
-            <span>{formatDate(sl.date)}</span>
+          <div className="flex items-center gap-3 mt-2 text-xs text-accents-4">
+            <Badge variant="outline" className="font-black text-[9px] tracking-widest bg-accents-1 border-accents-2 h-5 px-2">
+              {formatDate(sl.date).toUpperCase()}
+            </Badge>
             {sl.service && (
-              <>
-                <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                <span>{sl.service}</span>
-              </>
+              <span className="font-bold text-accents-3 uppercase tracking-widest">{sl.service}</span>
             )}
-            <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-            <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>
-              {songCount} song{songCount !== 1 ? 's' : ''}
+            <span className="text-accents-2">&middot;</span>
+            <span className="font-mono font-bold tracking-tighter">
+              {songCount} ITEMS
             </span>
           </div>
           {songCount > 0 && (
-            <div style={{
-              display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6,
-            }}>
-              {sl.items.slice(0, 6).map((it, idx) => {
+            <div className="flex flex-wrap gap-2 mt-4">
+              {sl.items.slice(0, 4).map((it, idx) => {
                 if (it.type === 'break') {
                   return (
-                    <span key={idx} style={{
-                      display: 'inline-flex', alignItems: 'center',
-                      padding: '2px 6px', borderRadius: 10,
-                      background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      fontSize: 10, color: 'var(--text-dim)',
-                      fontStyle: 'italic',
-                    }}>
+                    <Badge key={idx} variant="outline" className="text-[9px] h-6 px-3 bg-accents-1 border-accents-2 italic font-medium text-accents-4 rounded-full">
                       {it.label || 'Break'}
-                    </span>
+                    </Badge>
                   );
                 }
                 const song = songs.find(s => s.id === it.songId);
                 if (!song) return null;
                 return (
-                  <span key={idx} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 3,
-                    padding: '2px 6px', borderRadius: 10,
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    fontSize: 10, color: 'var(--text-muted)',
-                  }}>
-                    <span style={{
-                      fontFamily: 'var(--fm)', fontWeight: 700,
-                      color: 'var(--chord)', fontSize: 9,
-                    }}>
+                  <div key={idx} className="flex items-center gap-2 px-3 py-1 rounded-full bg-background border border-accents-2 shadow-sm transition-all group-hover:border-accents-4">
+                    <span className="font-mono font-black text-[10px] text-geist-link">
                       {transposeKey(song.key, it.transpose)}
                     </span>
-                    {song.title}
-                  </span>
+                    <span className="text-[10px] font-bold text-accents-5 truncate max-w-[100px] uppercase tracking-tight">{song.title}</span>
+                  </div>
                 );
               })}
-              {sl.items.length > 6 && (
-                <span style={{
-                  fontSize: 10, color: 'var(--text-dim)', padding: '2px 4px',
-                }}>
-                  +{sl.items.length - 6} more
-                </span>
+              {sl.items.length > 4 && (
+                <div className="flex items-center justify-center w-8 h-6 rounded-full bg-accents-1 text-[9px] font-black text-accents-3 border border-accents-2">
+                  +{sl.items.length - 4}
+                </div>
               )}
             </div>
           )}
         </div>
-        <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-          border: '1px solid var(--accent-border)',
-          borderRadius: 7, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 5,
-          fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
-          padding: '6px 14px', flexShrink: 0, marginLeft: 12,
-          background: 'var(--accent-soft)', color: 'var(--accent-text)',
-        }}>
-          Live
-        </button>
+        <Button
+          size="sm"
+          onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }}
+          className="shrink-0 ml-6 rounded-full h-10 px-6 font-black border-2 transition-all group-hover:scale-105 shadow-geist-sm"
+        >
+          LIVE
+        </Button>
       </div>
     );
   };
 
-  const renderSection = (label, items) => (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{
-        fontSize: 16, fontWeight: 700,
-        color: 'var(--text-dim)',
-        marginBottom: 6, padding: '0 2px',
-      }}>
-        {label}
-      </div>
-      <div style={{
-        border: '1px solid var(--border)',
-        borderRadius: 10, overflow: 'hidden',
-      }}>
-        {items.map((sl, i) => renderSetlistRow(sl, i, items))}
-      </div>
-    </div>
-  );
-
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <PageHeader title="Setlists" />
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      <PageHeader title="Setlists">
+        <div className="flex items-center gap-2">
+           <Button variant="secondary" size="sm" onClick={() => fileRef.current?.click()} className="h-9 px-4">
+            IMPORT
+          </Button>
+          <Button size="sm" onClick={onNewSetlist} className="h-9 px-5 rounded-full font-black">
+            + NEW SETLIST
+          </Button>
+        </div>
+      </PageHeader>
 
-      <div style={{ padding: '0 24px', paddingBottom: 100 }}>
-        {setlists.length === 0 && (
-          <div style={{
-            textAlign: 'center', padding: '48px 20px',
-            color: 'var(--text-dim)', fontSize: 14,
-            border: '1px solid var(--border)', borderRadius: 10,
-          }}>
-            No setlists yet. Tap + to create one.
+      <div className="px-6 pb-32 max-w-4xl mx-auto mt-8">
+        {setlists.length === 0 ? (
+          <div className="text-center py-32 border-2 border-dashed border-accents-2 rounded-3xl bg-accents-1/10 flex flex-col items-center">
+            <div className="text-5xl mb-6 opacity-20">📋</div>
+            <div className="text-sm font-black text-accents-3 uppercase tracking-[0.2em] mb-4">No setlists discovered</div>
+            <Button size="sm" onClick={onNewSetlist} className="rounded-full px-8">CREATE YOUR FIRST</Button>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {upcoming.length > 0 && (
+               <section>
+                 <SectionHeader>Upcoming Performance</SectionHeader>
+                 <Card className="overflow-hidden bg-background/50 backdrop-blur-sm shadow-none">
+                    {upcoming.map((sl, i) => renderSetlistRow(sl, i, upcoming))}
+                 </Card>
+               </section>
+            )}
+            {all.length > 0 && (
+               <section>
+                 <SectionHeader>Performance History</SectionHeader>
+                 <Card className="overflow-hidden bg-background/50 backdrop-blur-sm shadow-none opacity-80">
+                    {all.map((sl, i) => renderSetlistRow(sl, i, all))}
+                 </Card>
+               </section>
+            )}
           </div>
         )}
-
-        {upcoming.length > 0 && renderSection('Upcoming', upcoming)}
-        {all.length > 0 && renderSection('All', all)}
       </div>
 
-      {/* FAB */}
-      {fabOpen && (
-        <div onClick={() => setFabOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 89 }} />
-      )}
-      <div style={{
-        position: 'fixed', bottom: 80, right: 20,
-        display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-        gap: 8, zIndex: 90,
-      }}>
-        {fabOpen && (
-          <>
-            <button onClick={() => { setFabOpen(false); onNewSetlist(); }} style={{
-              borderRadius: 24, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
-              padding: '10px 18px',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
-              New Setlist
-            </button>
-            <button onClick={() => { setFabOpen(false); fileRef.current?.click(); }} style={{
-              borderRadius: 24, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
-              padding: '10px 18px',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
-              Import .zip
-            </button>
-          </>
-        )}
-        <button
-          onClick={() => setFabOpen(prev => !prev)}
-          style={{
-            width: 56, height: 56, borderRadius: 28,
-            background: 'linear-gradient(135deg, var(--accent), #6b9e91)',
-            border: 'none', color: '#fff',
-            fontSize: 28, fontWeight: 300, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
-            transition: 'transform 0.2s',
-            transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-          }}
-        >
-          +
-        </button>
-      </div>
-      <input ref={fileRef} type="file" accept=".zip"
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".zip"
+        className="hidden"
         onChange={e => {
           if (e.target.files[0]) onImportSetlist(e.target.files[0]);
           e.target.value = '';
         }}
-        style={{ display: 'none' }} />
+      />
     </div>
+  );
+}
+
+function SectionHeader({ children }) {
+  return (
+    <h2 className="text-[10px] font-black text-accents-4 uppercase tracking-[0.3em] mb-6 px-1 font-mono italic">
+      {children}
+    </h2>
   );
 }

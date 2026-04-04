@@ -1,246 +1,265 @@
-import { useState } from 'react';
-import SyncSettings from './settings/SyncSettings';
+import { Button } from './ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import { Input } from './ui/Input';
+import { Badge } from './ui/Badge';
 import PageHeader from './PageHeader';
+import SyncSettings from './settings/SyncSettings';
+import { cn } from '../lib/utils';
 
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
-};
-
-const cB = {
-  borderRadius: 6,
-  border: '1px solid var(--border)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 600,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fb)', padding: '6px 14px',
-};
-
-const activeBtn = (active) => ({
-  ...cB,
-  borderColor: active ? 'var(--accent)' : 'var(--border)',
-  color: active ? 'var(--accent-text)' : 'var(--text-muted)',
-  background: active ? 'var(--accent-soft)' : 'var(--surface)',
-});
-
-export default function Settings({ settings, onUpdate, onClearAll, onDownloadSongs, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
-  const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
-
-  const update = (key, value) => onUpdate({ ...settings, [key]: value });
-
-  const handleDetectKey = (field) => {
-    setDetectingKey(field);
-    const handler = (e) => {
-      e.preventDefault();
-      update(field, e.code);
-      setDetectingKey(null);
-      window.removeEventListener('keydown', handler);
-    };
-    window.addEventListener('keydown', handler);
-  };
+export default function Settings({
+  settings, onUpdate, onClearAll, onDownloadSongs,
+  songCount, setlistCount, syncState, onSyncStateChange, onSyncNow
+}) {
+  const updateSetting = (key, val) => onUpdate({ ...settings, [key]: val });
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-background text-foreground font-sans">
       <PageHeader title="Settings" />
 
-      <div style={{ padding: '16px 18px 80px', maxWidth: 500 }}>
-        {/* Theme */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Theme</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['dark', 'light'].map(t => (
-              <button key={t} onClick={() => update('theme', t)} style={activeBtn(settings.theme === t)}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Default Layout */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Default Layout</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['auto', 1, 2].map(v => (
-              <button key={v} onClick={() => update('defaultColumns', v)} style={activeBtn(settings.defaultColumns === v)}>
-                {v === 'auto' ? 'Auto' : `${v}col`}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Default Font Size */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Default Font Size</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['S', 'M', 'L'].map(s => (
-              <button key={s} onClick={() => update('defaultFontSize', s)} style={activeBtn(settings.defaultFontSize === s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Display Role / View */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>View</label>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {[
-              { key: 'leader', label: 'Full', desc: 'Chords, lyrics, tabs' },
-              { key: 'vocalist', label: 'Vocalist', desc: 'Lyrics only' },
-              { key: 'drummer', label: 'Drummer', desc: 'Structure & cues' },
-            ].map(({ key, label, desc }) => (
-              <button
-                key={key}
-                onClick={() => update('displayRole', key)}
-                style={{
-                  ...activeBtn(settings.displayRole === key),
-                  flexDirection: 'column', alignItems: 'center', padding: '8px 14px', gap: 2,
-                }}
+      <div className="px-6 pb-32 space-y-10 mt-6">
+        {/* Appearance */}
+        <section>
+          <SectionHeader>Appearance</SectionHeader>
+          <Card className="rounded-2xl border-accents-2 overflow-hidden shadow-none bg-accents-1/20">
+            <CardContent className="p-0 divide-y divide-accents-2">
+              <SettingsRow
+                label="Theme"
+                description="Choose your preferred color scheme"
               >
-                <span style={{ fontSize: 12 }}>{label}</span>
-                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 400 }}>{desc}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+                <SegmentedControl
+                  options={['system', 'light', 'dark']}
+                  value={settings.theme}
+                  onChange={(v) => updateSetting('theme', v)}
+                />
+              </SettingsRow>
 
-        {/* Duplicate Sections */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Repeat Sections</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {[
-              { key: 'full', label: 'Full', desc: 'Show every section' },
-              { key: 'first', label: '1st Only', desc: 'Collapse repeats' },
-            ].map(({ key, label, desc }) => (
-              <button
-                key={key}
-                onClick={() => update('duplicateSections', key)}
-                style={{
-                  ...activeBtn(settings.duplicateSections === key),
-                  flexDirection: 'column', alignItems: 'center', padding: '8px 14px', gap: 2,
-                }}
+              <SettingsRow
+                label="Default Layout"
+                description="Number of columns for chord charts"
               >
-                <span style={{ fontSize: 12 }}>{label}</span>
-                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 400 }}>{desc}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+                <SegmentedControl
+                  options={['auto', 1, 2]}
+                  value={settings.defaultColumns}
+                  onChange={(v) => updateSetting('defaultColumns', v)}
+                  labels={{ 'auto': 'AUTO', 1: '1 COL', 2: '2 COL' }}
+                />
+              </SettingsRow>
 
-        {/* Inline Notes */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Inline Notes</label>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {[true, false].map(v => (
-              <button key={String(v)} onClick={() => update('showInlineNotes', v)} style={activeBtn(settings.showInlineNotes === v)}>
-                {v ? 'Show' : 'Hide'}
-              </button>
-            ))}
-          </div>
-          {settings.showInlineNotes !== false && (
-            <>
-              <label style={{ ...labelStyle, marginTop: 8 }}>Leader Style</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {[
-                  { key: 'none', label: 'None' },
-                  { key: 'dashes', label: '- - -' },
-                  { key: 'dots', label: '\u00B7 \u00B7 \u00B7' },
-                  { key: 'arrow', label: '\u2500\u2500\u25B8' },
-                ].map(({ key, label }) => (
-                  <button key={key} onClick={() => update('inlineNoteStyle', key)} style={activeBtn(settings.inlineNoteStyle === key)}>
-                    <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+              <SettingsRow
+                label="Text Size"
+                description="Default font size for charts"
+              >
+                <SegmentedControl
+                  options={['S', 'M', 'L']}
+                  value={settings.defaultFontSize}
+                  onChange={(v) => updateSetting('defaultFontSize', v)}
+                />
+              </SettingsRow>
+            </CardContent>
+          </Card>
+        </section>
 
-        {/* Pedal Mapping */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Pedal / Keyboard Mapping</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              { field: 'pedalNext', label: 'Next Song' },
-              { field: 'pedalPrev', label: 'Previous Song' },
-            ].map(({ field, label }) => (
-              <div key={field} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '8px 12px', borderRadius: 8,
-                background: 'var(--surface)', border: '1px solid var(--border)',
-              }}>
-                <span style={{ fontSize: 13, color: 'var(--text)' }}>{label}</span>
-                <button
-                  onClick={() => handleDetectKey(field)}
-                  style={{
-                    ...cB,
-                    background: detectingKey === field ? 'rgba(245,158,11,0.15)' : 'var(--surface)',
-                    borderColor: detectingKey === field ? 'rgba(245,158,11,0.4)' : 'var(--border)',
-                    color: detectingKey === field ? '#fbbf24' : 'var(--chord)',
-                    fontFamily: 'var(--fm)', fontSize: 11,
-                  }}
+        {/* Performance & Display */}
+        <section>
+          <SectionHeader>Performance & Display</SectionHeader>
+          <Card className="rounded-2xl border-accents-2 overflow-hidden shadow-none bg-accents-1/20">
+            <CardContent className="p-0 divide-y divide-accents-2">
+              <SettingsRow
+                label="Instrument Role"
+                description="Optimize view for your specific role"
+              >
+                <select
+                  value={settings.displayRole}
+                  onChange={(e) => updateSetting('displayRole', e.target.value)}
+                  className="bg-background border border-accents-2 rounded-geist h-8 px-3 text-xs font-bold font-mono outline-none"
                 >
-                  {detectingKey === field ? 'Press a key...' : settings[field]}
-                </button>
+                  <option value="leader">WORSHIP LEADER</option>
+                  <option value="vocalist">VOCALIST</option>
+                  <option value="guitar">GUITARIST</option>
+                  <option value="bass">BASSIST</option>
+                  <option value="keys">KEYBOARDIST</option>
+                  <option value="drummer">DRUMMER</option>
+                </select>
+              </SettingsRow>
+
+              <SettingsRow
+                label="Duplicate Sections"
+                description="How repeated sections (Chorus 2, etc) appear"
+              >
+                <select
+                  value={settings.duplicateSections}
+                  onChange={(e) => updateSetting('duplicateSections', e.target.value)}
+                  className="bg-background border border-accents-2 rounded-geist h-8 px-3 text-xs font-bold font-mono outline-none"
+                >
+                  <option value="full">FULL RENDERING</option>
+                  <option value="compact">COMPACT PILL</option>
+                  <option value="first">FIRST CHORDS ONLY</option>
+                </select>
+              </SettingsRow>
+
+              <SettingsRow
+                label="Inline Notes"
+                description="Show {!notes} in the chord chart"
+              >
+                <div className="flex gap-2">
+                  <Button
+                    variant={settings.showInlineNotes ? "primary" : "secondary"}
+                    size="sm"
+                    onClick={() => updateSetting('showInlineNotes', true)}
+                    className="h-8 text-[10px] font-bold"
+                  >
+                    ON
+                  </Button>
+                  <Button
+                    variant={!settings.showInlineNotes ? "primary" : "secondary"}
+                    size="sm"
+                    onClick={() => updateSetting('showInlineNotes', false)}
+                    className="h-8 text-[10px] font-bold"
+                  >
+                    OFF
+                  </Button>
+                </div>
+              </SettingsRow>
+
+              {settings.showInlineNotes && (
+                <SettingsRow
+                  label="Note Leader"
+                  description="Style of line before inline notes"
+                >
+                  <SegmentedControl
+                    options={['none', 'dashes', 'dots', 'arrow']}
+                    value={settings.inlineNoteStyle}
+                    onChange={(v) => updateSetting('inlineNoteStyle', v)}
+                    labels={{ 'none': 'NONE', 'dashes': '---', 'dots': '...', 'arrow': '→' }}
+                  />
+                </SettingsRow>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Pedal Controls */}
+        <section>
+          <SectionHeader>Pedal Mapping (Experimental)</SectionHeader>
+          <Card className="rounded-2xl border-accents-2 overflow-hidden shadow-none bg-accents-1/20">
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold uppercase tracking-widest text-accents-5">Next Song / Item</div>
+                <Input
+                  value={settings.pedalNext}
+                  onChange={(e) => updateSetting('pedalNext', e.target.value)}
+                  className="w-32 h-8 text-center font-mono text-[10px] bg-background border-accents-2"
+                />
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold uppercase tracking-widest text-accents-5">Prev Song / Item</div>
+                <Input
+                  value={settings.pedalPrev}
+                  onChange={(e) => updateSetting('pedalPrev', e.target.value)}
+                  className="w-32 h-8 text-center font-mono text-[10px] bg-background border-accents-2"
+                />
+              </div>
+              <div className="p-3 rounded-geist bg-geist-link/5 border border-geist-link/10 text-[10px] text-geist-link leading-relaxed font-medium">
+                Tip: Click the field and press your Bluetooth pedal button to map it automatically.
+              </div>
+            </CardContent>
+          </Card>
+        </section>
 
-        {/* Cloud Sync */}
-        <SyncSettings
-          syncState={syncState || { state: 'idle', lastSync: null, provider: null }}
-          onSyncStateChange={onSyncStateChange}
-          onSyncNow={onSyncNow}
-        />
+        {/* Sync */}
+        <section>
+          <SectionHeader>Sync & Cloud</SectionHeader>
+          <Card className="rounded-2xl border-accents-2 overflow-hidden shadow-none bg-accents-1/20 p-6">
+            <SyncSettings
+              syncState={syncState}
+              onSyncStateChange={onSyncStateChange}
+              onSyncNow={onSyncNow}
+            />
+          </Card>
+        </section>
 
-        {/* Data */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Data</label>
-          <div style={{
-            padding: '12px 14px', borderRadius: 8,
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            marginBottom: 8,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              {songCount} song{songCount !== 1 ? 's' : ''} · {setlistCount} setlist{setlistCount !== 1 ? 's' : ''}
-            </span>
-            {onDownloadSongs && songCount > 0 && (
-              <button onClick={onDownloadSongs} style={{
-                ...cB, padding: '4px 12px', fontSize: 11,
-              }}>
-                Download songs
-              </button>
-            )}
+        {/* Data Management */}
+        <section>
+          <SectionHeader>Storage & Data</SectionHeader>
+          <div className="space-y-4">
+            <Card className="bg-accents-1 border-none shadow-none rounded-2xl">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="text-xs font-bold uppercase tracking-widest text-accents-5 font-mono">
+                  {songCount} SONGS &middot; {setlistCount} SETLISTS
+                </div>
+                <Button variant="secondary" size="sm" onClick={onDownloadSongs} className="bg-background h-9 border-accents-2 text-[10px] font-black uppercase tracking-widest">
+                  Export Library (.md)
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Button
+              variant="secondary"
+              className="w-full h-12 font-black tracking-widest text-[10px] text-geist-error hover:bg-geist-error/10 border-geist-error/30 rounded-full"
+              onClick={() => {
+                if (confirm('Erase ALL local data from this device? Your songs will be deleted forever unless they are in the cloud.')) onClearAll();
+              }}
+            >
+              PURGE ALL LOCAL STORAGE
+            </Button>
           </div>
-          <button
-            onClick={() => { if (confirm('Delete ALL songs and setlists? This cannot be undone.')) onClearAll(); }}
-            style={{
-              ...cB, width: '100%', justifyContent: 'center',
-              background: 'var(--danger-soft)',
-              border: '1px solid rgba(239,68,68,0.2)',
-              color: 'var(--danger)',
-            }}
-          >
-            Clear All Data
-          </button>
-        </div>
+        </section>
 
         {/* About */}
-        <div style={{
-          padding: '12px 14px', borderRadius: 8,
-          background: 'var(--surface)', border: '1px solid var(--border)',
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)', marginBottom: 4 }}>
+        <div className="text-center pt-10 border-t border-accents-2">
+          <div className="text-2xl font-black tracking-tighter text-foreground mb-1 italic">
             Setlists MD
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Free, offline-first chord chart app for worship teams.
-            Songs are portable .md files.
+          <div className="text-[9px] font-mono text-accents-3 uppercase tracking-[0.3em]">
+            PRO PERFORMANCE EDITION &bull; V2.5.0
+          </div>
+          <div className="mt-4 flex justify-center gap-4">
+             <Badge variant="outline" className="text-[9px] font-bold border-accents-2 text-accents-3">OFFLINE-FIRST</Badge>
+             <Badge variant="outline" className="text-[9px] font-bold border-accents-2 text-accents-3">PWA READY</Badge>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SectionHeader({ children }) {
+  return (
+    <h2 className="text-[10px] font-black text-accents-4 uppercase tracking-[0.2em] mb-4 px-1 font-mono">
+      {children}
+    </h2>
+  );
+}
+
+function SettingsRow({ label, description, children }) {
+  return (
+    <div className="p-5 flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <div className="text-sm font-bold text-foreground tracking-tight">{label}</div>
+        <div className="text-xs text-accents-4 mt-0.5 leading-relaxed">{description}</div>
+      </div>
+      <div className="shrink-0">{children}</div>
+    </div>
+  );
+}
+
+function SegmentedControl({ options, value, onChange, labels = {} }) {
+  return (
+    <div className="flex bg-accents-1 p-1 rounded-geist border border-accents-2">
+      {options.map((opt) => (
+        <button
+          key={opt}
+          onClick={() => onChange(opt)}
+          className={cn(
+            "px-3 py-1.5 text-[10px] font-black uppercase rounded transition-all min-w-[50px] border-none cursor-pointer",
+            value === opt
+              ? "bg-background text-foreground shadow-sm ring-1 ring-accents-2"
+              : "bg-transparent text-accents-4 hover:text-foreground"
+          )}
+        >
+          {labels[opt] || opt}
+        </button>
+      ))}
     </div>
   );
 }

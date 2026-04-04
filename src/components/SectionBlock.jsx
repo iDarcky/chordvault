@@ -1,63 +1,50 @@
 import { transposeChord, sectionStyle } from '../music';
 import { parseLine, extractInlineNotes } from '../parser';
 import TabBlock from './TabBlock';
+import { Badge } from './ui/Badge';
+import { cn } from '../lib/utils';
 
-function ChordToken({ chord, text, transpose }) {
+function ChordToken({ chord, text, transpose, role }) {
   const transposed = chord ? transposeChord(chord, transpose) : '';
+  const showChords = !['vocalist', 'drummer'].includes(role);
+  const showLyrics = role !== 'drummer';
+
   return (
-    <span style={{ display: 'inline-block', verticalAlign: 'top', marginRight: 1 }}>
-      <span style={{
-        display: 'block', fontFamily: 'var(--fm)', fontWeight: 700,
-        fontSize: 13, color: 'var(--chord)', height: 19, lineHeight: '19px',
-        whiteSpace: 'pre', letterSpacing: '0.01em',
-      }}>
-        {transposed || '\u00A0'}
-      </span>
-      <span style={{
-        display: 'block', fontFamily: 'var(--fb)', fontSize: 15,
-        color: 'var(--text)', lineHeight: '21px', whiteSpace: 'pre',
-      }}>
-        {text || '\u00A0'}
-      </span>
+    <span className="inline-block align-top mr-0.5">
+      {showChords && (
+        <span className="block font-mono font-black text-sm text-geist-link h-[18px] leading-[18px] whitespace-pre tracking-tight transition-all">
+          {transposed || '\u00A0'}
+        </span>
+      )}
+      {showLyrics && (
+        <span className={cn(
+          "block font-sans leading-[24px] whitespace-pre transition-all",
+          role === 'vocalist' ? "text-lg font-medium" : "text-base font-normal text-foreground"
+        )}>
+          {text || '\u00A0'}
+        </span>
+      )}
     </span>
   );
 }
 
-const LEADER_STYLES = {
-  none: { border: 'none' },
-  dashes: { backgroundImage: 'repeating-linear-gradient(to right, var(--text-dim) 0px, var(--text-dim) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  dots: { backgroundImage: 'radial-gradient(circle, var(--text-dim) 1px, transparent 1px)', backgroundSize: '6px 3px', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  arrow: { backgroundImage: 'repeating-linear-gradient(to right, var(--text-dim) 0px, var(--text-dim) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center', arrow: true },
-};
-
 function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
-  const style = LEADER_STYLES[leaderStyle] || LEADER_STYLES.dashes;
+  const leaderClasses = {
+    none: "",
+    dashes: "flex-1 self-center h-[1px] mx-2 bg-accents-2 border-dashed",
+    dots: "flex-1 self-center h-[1px] mx-2 bg-accents-2 border-dotted",
+    arrow: "flex-1 self-center h-[1px] ml-2 mr-1 bg-accents-2 border-dashed",
+  };
+
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'flex-end',
-      flex: 1, minWidth: 40, marginLeft: 6,
-    }}>
+    <span className="inline-flex items-end flex-1 min-w-[40px] ml-2">
       {leaderStyle !== 'none' && (
-        <span style={{
-          flex: 1, alignSelf: 'center',
-          ...style,
-          height: 2,
-          marginRight: style.arrow ? 0 : 6,
-          minWidth: 20,
-        }} />
+        <span className={cn(leaderClasses[leaderStyle], "border-t-[1px] opacity-30")} />
       )}
-      {leaderStyle === 'none' && <span style={{ flex: 1 }} />}
-      {style.arrow && (
-        <span style={{
-          alignSelf: 'center', color: 'rgba(255,255,255,0.18)',
-          fontSize: 9, lineHeight: 1, marginRight: 6,
-        }}>&#9656;</span>
+      {leaderStyle === 'arrow' && (
+        <span className="self-center text-accents-3 text-[10px] mr-2">&#9656;</span>
       )}
-      <span style={{
-        fontSize: 10.5, fontStyle: 'italic', whiteSpace: 'nowrap',
-        color: 'var(--chord)', opacity: 0.7,
-        fontFamily: 'var(--fb)', lineHeight: '19px',
-      }}>
+      <span className="text-[10px] italic whitespace-nowrap text-accents-4 font-black uppercase tracking-wider leading-[18px]">
         {notes.join(' · ')}
       </span>
     </span>
@@ -67,81 +54,48 @@ function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
 function ModulateBadge({ semitones }) {
   const sign = semitones > 0 ? '+' : '';
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      margin: '6px 0', padding: '4px 0',
-      borderTop: '1px dashed var(--accent)',
-      borderBottom: '1px dashed var(--accent)',
-    }}>
-      <span style={{
-        fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)',
-        color: 'var(--accent-text)', background: 'var(--accent-soft)',
-        borderRadius: 4, padding: '2px 8px',
-      }}>
-        Key Change: {sign}{semitones}
-      </span>
+    <div className="flex items-center gap-2 my-4 py-3 border-y border-dashed border-accents-2 bg-accents-1/20 px-4 rounded-xl">
+      <Badge variant="success" className="font-mono text-[9px] h-5 px-2 font-black tracking-widest bg-foreground text-background border-none">
+        MODULATE {sign}{semitones}
+      </Badge>
+      <span className="text-[10px] font-black text-accents-4 uppercase tracking-[0.2em] font-mono">Transition Event</span>
     </div>
   );
 }
 
-export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', collapsed = false }) {
+export default function SectionBlock({
+  section, transpose = 0, modulateOffset = 0, showInlineNotes = true,
+  inlineNoteStyle = 'dashes', displayRole = 'leader', collapsed = false
+}) {
   const s = sectionStyle(section.type);
 
   if (collapsed) {
     return (
-      <div style={{
-        background: `${s.b}0a`, border: `1.5px solid ${s.b}33`,
-        borderRadius: 10, padding: '10px 16px', marginBottom: 8,
-        position: 'relative', opacity: 0.7,
-      }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, bottom: 0, width: 3,
-          background: s.b, borderRadius: '3px 0 0 3px',
-        }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 22, height: 22, borderRadius: '50%',
-            border: `2px solid ${s.d}`, color: s.d,
-            fontSize: 8, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
-          }}>
-            {s.l}
+      <div
+        className="rounded-2xl border border-accents-2 bg-accents-1/10 p-4 mb-4 relative opacity-60 flex items-center gap-4 group hover:opacity-100 transition-all cursor-default shadow-sm"
+      >
+        <div className="absolute top-0 left-0 bottom-0 w-1.5 rounded-l-2xl transition-all group-hover:w-2" style={{ background: s.b }} />
+        <Badge variant="outline" className="w-8 h-8 p-0 flex items-center justify-center font-mono text-[11px] font-black shrink-0 border-accents-2 bg-background shadow-sm" style={{ color: s.d }}>
+          {s.l}
+        </Badge>
+        <span className="text-sm font-black text-foreground uppercase tracking-tight">
+          {section.type}
+        </span>
+        <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest text-accents-4 border-accents-2 h-5">REPEATED</Badge>
+        {section.note && (
+          <span className="text-xs text-accents-4 italic ml-auto max-w-[40%] text-right font-medium truncate">
+            {section.note}
           </span>
-          <span style={{
-            fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
-          }}>
-            {section.type}
-          </span>
-          <span style={{
-            fontSize: 10, color: 'var(--text-dim)', fontStyle: 'italic',
-            fontFamily: 'var(--fb)',
-          }}>
-            (see above)
-          </span>
-          {section.note && (
-            <span style={{
-              fontSize: 10.5, color: 'var(--text-muted)',
-              fontStyle: 'italic', marginLeft: 'auto',
-              maxWidth: '45%', textAlign: 'right', lineHeight: 1.3,
-            }}>
-              {section.note}
-            </span>
-          )}
-        </div>
+        )}
       </div>
     );
   }
 
   const isDrummer = displayRole === 'drummer';
-  const isVocalist = displayRole === 'vocalist';
+  const showTabs = ['leader', 'guitar', 'bass'].includes(displayRole);
 
-  // Count non-empty lyric lines for drummer bar count
-  const lineCount = isDrummer ? section.lines.filter(l => typeof l === 'string' && l.trim()).length : 0;
-
-  // Pre-compute lines with running modulate offset
   const renderLines = () => {
     if (isDrummer) {
-      // Drummer view: only show modulate badges
       return section.lines.map((line, i) => {
         if (typeof line === 'object' && line.type === 'modulate') {
           return <ModulateBadge key={i} semitones={line.semitones} />;
@@ -157,9 +111,9 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
         return <ModulateBadge key={i} semitones={line.semitones} />;
       }
       if (typeof line === 'object' && line.type === 'tab') {
-        return <TabBlock key={i} data={line} />;
+        return showTabs ? <div key={i} className="my-6 scale-[1.02] origin-left"><TabBlock data={line} /></div> : null;
       }
-      if (!line.trim()) return <div key={i} style={{ height: 5 }} />;
+      if (!line.trim()) return <div key={i} className="h-4" />;
 
       const { clean, notes } = extractInlineNotes(line);
       const effectiveTranspose = transpose + modulateOffset + runningMod;
@@ -167,39 +121,26 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
       const hasChords = parts.some(p => p.chord);
       const hasNotes = showInlineNotes && notes.length > 0;
 
-      if (isVocalist) {
-        // Vocalist: lyrics only, no chords
+      if (!hasChords || displayRole === 'vocalist') {
         const lyricsText = parts.map(p => p.text).join('');
         return (
-          <div key={i} style={{
-            display: hasNotes ? 'flex' : 'block', alignItems: 'flex-end',
-            fontSize: 15, color: 'var(--text)',
-            lineHeight: '21px', marginBottom: 1,
-          }}>
-            <span style={{ whiteSpace: 'pre-wrap' }}>{lyricsText || clean}</span>
-            {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
-          </div>
-        );
-      }
-
-      if (!hasChords) {
-        return (
-          <div key={i} style={{
-            display: hasNotes ? 'flex' : 'block', alignItems: 'flex-end',
-            fontSize: 15, color: 'var(--text)',
-            lineHeight: '21px', marginBottom: 1,
-          }}>
-            <span style={{ whiteSpace: 'pre-wrap' }}>{clean}</span>
+          <div key={i} className="flex items-end mb-1 transition-all group/line">
+            <span className={cn(
+              "whitespace-pre-wrap transition-colors",
+              displayRole === 'vocalist' ? "text-xl font-medium" : "text-base text-foreground font-normal"
+            )}>
+              {lyricsText || clean}
+            </span>
             {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
           </div>
         );
       }
 
       return (
-        <div key={i} style={{ display: 'flex', alignItems: 'flex-end', marginBottom: 1, lineHeight: 1 }}>
-          <span style={{ whiteSpace: 'pre-wrap' }}>
+        <div key={i} className="flex items-end mb-1 leading-none group/line">
+          <span className="whitespace-pre-wrap">
             {parts.map((p, j) => (
-              <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} />
+              <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} role={displayRole} />
             ))}
           </span>
           {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
@@ -209,69 +150,47 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
   };
 
   return (
-    <div style={{
-      background: s.bg, border: `1.5px solid ${s.b}88`,
-      borderRadius: 10, padding: '12px 16px', marginBottom: 8,
-      position: 'relative',
-    }}>
-      {/* Left accent bar */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, bottom: 0, width: 3,
-        background: s.b, borderRadius: '3px 0 0 3px',
-      }} />
+    <div className="rounded-2xl border border-accents-2 bg-background p-6 relative shadow-geist-sm transition-all hover:shadow-geist overflow-hidden">
+      {/* Dynamic Left Bar */}
+      <div className="absolute top-0 left-0 bottom-0 w-1.5 transition-all group-hover:w-2 shadow-[2px_0_10px_rgba(0,0,0,0.05)]" style={{ background: s.b }} />
 
-      {/* Section header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        marginBottom: (!isDrummer && section.lines.length) ? 8 : 0,
-      }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 28, height: 28, borderRadius: '50%',
-          border: `2px solid ${s.d}`, color: s.d,
-          fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
-        }}>
+      {/* Header Section */}
+      <div className={cn(
+        "flex items-center gap-4",
+        (!isDrummer && section.lines.length) ? "mb-6" : ""
+      )}>
+        <Badge variant="outline" className="w-10 h-10 p-0 flex items-center justify-center font-mono text-sm font-black shrink-0 border-2 border-accents-2 shadow-sm transition-transform hover:rotate-6" style={{ color: s.d, backgroundColor: `${s.b}08` }}>
           {s.l}
-        </span>
-        <span style={{
-          fontSize: 13, fontWeight: 700, color: 'var(--text-bright)',
-        }}>
-          {section.type}
-        </span>
-        {isDrummer && lineCount > 0 && (
-          <span style={{
-            fontSize: 11, fontWeight: 600, fontFamily: 'var(--fm)',
-            color: 'var(--text-dim)', opacity: 0.6,
-          }}>
-            {lineCount} line{lineCount !== 1 ? 's' : ''}
+        </Badge>
+        <div className="flex flex-col">
+          <span className="text-xs font-black text-accents-4 uppercase tracking-[0.2em] font-mono leading-none mb-1">
+             Phase Segment
           </span>
-        )}
+          <span className="text-lg font-black text-foreground uppercase tracking-tight leading-none italic">
+            {section.type}
+          </span>
+        </div>
+
         {section.note && (
-          <span style={{
-            fontSize: isDrummer ? 12 : 10.5,
-            color: isDrummer ? 'var(--text-muted)' : 'var(--text-dim)',
-            fontStyle: 'italic', marginLeft: 'auto',
-            maxWidth: isDrummer ? '60%' : '45%', textAlign: 'right', lineHeight: 1.3,
-            fontWeight: isDrummer ? 600 : 400,
-          }}>
-            {section.note}
-          </span>
+          <div className="ml-auto flex flex-col items-end">
+             <span className="text-[9px] font-black text-accents-3 uppercase tracking-widest font-mono mb-1">DYNAMIC CUE</span>
+             <span className={cn(
+               "text-xs font-bold leading-tight uppercase tracking-tight italic",
+               isDrummer ? "text-geist-link font-black" : "text-accents-5"
+             )}>
+               {section.note}
+             </span>
+          </div>
         )}
       </div>
 
-      {/* Drummer modulate badges (no lyric content) */}
-      {isDrummer && (
-        <div style={{ paddingLeft: 36 }}>
-          {renderLines()}
-        </div>
-      )}
-
-      {/* Chord/lyric lines (non-drummer) */}
-      {!isDrummer && section.lines.length > 0 && (
-        <div style={{ paddingLeft: 36 }}>
-          {renderLines()}
-        </div>
-      )}
+      {/* Primary Execution Content */}
+      <div className={cn(
+        "transition-all duration-500",
+        displayRole === 'vocalist' ? "pl-0" : "pl-14"
+      )}>
+        {renderLines()}
+      </div>
     </div>
   );
 }

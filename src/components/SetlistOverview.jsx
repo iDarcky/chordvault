@@ -1,31 +1,28 @@
 import { useMemo } from 'react';
 import { transposeKey, sectionStyle } from '../music';
-
-const btnStyle = {
-  border: 'none', borderRadius: 7, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: 5,
-  fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
-};
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
+import { Card, CardContent } from './ui/Card';
+import PageHeader from './PageHeader';
 
 export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay }) {
   const getSong = (id) => songs.find(s => s.id === id);
 
-  const { songCount, breakCount, totalDuration } = useMemo(() => {
-    let sc = 0, bc = 0, dur = 0;
+  const { songCount, totalDuration } = useMemo(() => {
+    let sc = 0, dur = 0;
     for (const it of setlist.items) {
       if (it.type === 'break') {
-        bc++;
         dur += it.duration || 0;
       } else {
         sc++;
-        const s = getSong(it.songId);
+        const s = songs.find(s => s.id === it.songId);
         if (s) {
           const bpm = s.tempo || 120;
           dur += Math.round(240 / bpm * s.sections.length);
         }
       }
     }
-    return { songCount: sc, breakCount: bc, totalDuration: dur };
+    return { songCount: sc, totalDuration: dur };
   }, [setlist, songs]);
 
   const dateStr = new Date(setlist.date + 'T12:00:00').toLocaleDateString('en-US', {
@@ -33,186 +30,139 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg, rgba(11,11,15,0.92))', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{
-            background: 'none', border: 'none', color: '#94a3b8',
-            cursor: 'pointer', padding: 4,
-          }}>
-            &#8592; Back
-          </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
-            {setlist.name || 'Untitled Setlist'}
-          </span>
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      <PageHeader title={setlist.name || 'Untitled Setlist'}>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={onBack} className="h-9 px-4 hidden md:flex">
+            BACK
+          </Button>
+          <Button variant="secondary" size="sm" onClick={onExport} className="h-9 px-4">
+            EXPORT
+          </Button>
+          <Button variant="secondary" size="sm" onClick={onEdit} className="h-9 px-4">
+            EDIT
+          </Button>
+          <Button size="sm" onClick={onPlay} className="h-9 px-6 font-black rounded-full shadow-geist active:scale-95">
+            INITIATE LIVE
+          </Button>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={onExport} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-          }}>
-            &#8595; Export
-          </button>
-          <button onClick={onEdit} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-          }}>
-            Edit
-          </button>
-          <button onClick={onPlay} style={{
-            ...btnStyle, background: 'var(--accent-soft)',
-            border: '1px solid var(--accent-border)',
-            color: 'var(--accent-text)', padding: '7px 16px',
-          }}>
-            Live
-          </button>
-        </div>
-      </div>
+      </PageHeader>
 
-      {/* Meta */}
-      <div style={{ padding: '16px 18px 8px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{
-          padding: '4px 10px', borderRadius: 6,
-          background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-          fontSize: 12, fontWeight: 600, color: 'var(--accent-text)',
-        }}>
-          {setlist.service || 'Service'}
-        </span>
-        <span style={{ fontSize: 13, color: 'var(--text)' }}>{dateStr}</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>
-          {songCount} song{songCount !== 1 ? 's' : ''}
-          {breakCount > 0 && ` + ${breakCount} break${breakCount !== 1 ? 's' : ''}`}
-          {totalDuration > 0 && ` · ~${totalDuration} min`}
-        </span>
-      </div>
-
-      {/* Items */}
-      <div style={{ padding: '8px 18px 40px' }}>
-        {setlist.items.map((item, idx) => {
-          // Break item
-          if (item.type === 'break') {
-            return (
-              <div key={idx} style={{
-                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-                padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
-              }}>
-                <span style={{
-                  fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
-                  fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
-                }}>
-                  {idx + 1}
-                </span>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: 'rgba(107,114,128,0.15)',
-                  border: '1px solid rgba(107,114,128,0.3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, color: 'rgba(255,255,255,0.4)',
-                }}>
-                  &#9646;
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                    fontStyle: 'italic',
-                  }}>
-                    {item.label || 'Break'}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                    {item.duration > 0 && (
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>
-                        {item.duration} min
-                      </span>
-                    )}
-                    {item.note && (
-                      <span style={{ fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic' }}>
-                        {item.note}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          }
-
-          // Song item
-          const song = getSong(item.songId);
-          if (!song) return null;
-          const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-          const displayKey = transposeKey(song.key, item.transpose);
-
-          return (
-            <div key={idx} style={{
-              display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-              borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-              padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
-            }}>
-              <span style={{
-                fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
-                fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
-              }}>
-                {idx + 1}
-              </span>
-              <div style={{
-                width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                border: `1px solid ${s.b}44`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
-              }}>
-                {displayKey}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {song.title}
-                </div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
-                  {song.artist} · {song.tempo} bpm · {song.time}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-                {item.transpose !== 0 && (
-                  <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
-                    fontFamily: 'var(--fm)', color: 'var(--chord)',
-                    background: 'rgba(226,168,50,0.1)', border: '1px solid rgba(226,168,50,0.2)',
-                  }}>
-                    {song.key} → {displayKey}
-                  </span>
-                )}
-                {(item.capo || 0) > 0 && (
-                  <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
-                    fontFamily: 'var(--fm)', color: 'var(--accent-text)',
-                    background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-                  }}>
-                    Capo {item.capo}
-                  </span>
-                )}
-                {item.note && (
-                  <span style={{
-                    fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic',
-                    maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {item.note}
-                  </span>
-                )}
+      <div className="px-6 pb-32 max-w-5xl mx-auto mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Master Identification Card */}
+        <Card className="mb-12 bg-foreground text-background border-none shadow-2xl rounded-3xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-background/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
+          <CardContent className="p-10 flex flex-col md:flex-row items-center gap-8 relative z-10">
+            <div className="w-20 h-20 rounded-2xl bg-background/10 backdrop-blur-md flex items-center justify-center font-black text-4xl shadow-inner border border-background/20">
+               {songCount}
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <Badge className="bg-background text-foreground mb-4 font-black tracking-[0.2em] h-6 px-4 rounded-full border-none">
+                {setlist.service?.toUpperCase() || 'SERVICE'} PERFORMANCE
+              </Badge>
+              <h2 className="text-3xl font-black tracking-tighter uppercase italic leading-tight">
+                {setlist.name || 'PERFORMANCE REPOSITORY'}
+              </h2>
+              <div className="flex items-center justify-center md:justify-start gap-4 mt-3 opacity-60">
+                <span className="text-sm font-bold tracking-widest">{dateStr.toUpperCase()}</span>
+                <span className="font-mono text-xs">&middot;</span>
+                <span className="text-sm font-black font-mono">{totalDuration} MIN TOTAL</span>
               </div>
             </div>
-          );
-        })}
+          </CardContent>
+        </Card>
+
+        {/* Sequencing Engine List */}
+        <div className="space-y-4">
+          <SectionHeader>Order of Execution</SectionHeader>
+
+          <div className="space-y-2">
+            {setlist.items.map((item, idx) => {
+              if (item.type === 'break') {
+                return (
+                  <div key={idx} className="flex items-center gap-6 p-6 rounded-2xl border border-accents-2 bg-accents-1/20 transition-all hover:bg-accents-1 group">
+                    <div className="w-8 font-mono text-xs font-black text-accents-3 tracking-tighter">
+                      {String(idx + 1).padStart(2, '0')}
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-accents-2 flex items-center justify-center text-accents-4 text-2xl font-black shadow-inner">
+                      &middot;
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-base font-black text-accents-5 uppercase tracking-tight italic">
+                        {item.label || 'TRANSITION BREAK'}
+                      </div>
+                      {item.duration > 0 && (
+                        <div className="text-[10px] font-black text-accents-3 uppercase tracking-[0.2em] font-mono mt-1">
+                          ALLOCATION: {item.duration} MIN
+                        </div>
+                      )}
+                    </div>
+                    {item.note && (
+                      <div className="text-xs text-accents-4 opacity-70 font-bold uppercase tracking-widest bg-accents-1 px-3 py-1 rounded-full border border-accents-2">
+                        {item.note}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              const song = getSong(item.songId);
+              if (!song) return null;
+              const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
+              const displayKey = transposeKey(song.key, item.transpose);
+
+              return (
+                <div key={idx} className="flex items-center gap-6 p-6 rounded-2xl border border-accents-2 bg-background transition-all hover:border-foreground hover:shadow-geist group active:scale-[0.995]">
+                  <div className="w-8 font-mono text-xs font-black text-accents-3 tracking-tighter">
+                    {String(idx + 1).padStart(2, '0')}
+                  </div>
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center font-mono text-sm font-black shrink-0 border-2 border-accents-2 shadow-sm transition-all group-hover:rotate-3 group-hover:scale-110"
+                    style={{ background: `${s.b}15`, color: s.d, borderColor: `${s.b}30` }}
+                  >
+                    {displayKey}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-lg font-black text-foreground uppercase tracking-tight group-hover:text-geist-link transition-colors truncate">
+                      {song.title}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[10px] font-black text-accents-4 uppercase tracking-widest">{song.artist}</span>
+                      <span className="text-accents-2 font-mono">&middot;</span>
+                      <span className="text-[10px] font-black text-accents-4 font-mono">{song.tempo} BPM</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {item.transpose !== 0 && (
+                      <Badge variant="outline" className="font-mono text-[9px] font-black border-geist-link/20 text-geist-link bg-geist-link/5 rounded-full h-6 px-3">
+                        {song.key} &rarr; {displayKey}
+                      </Badge>
+                    )}
+                    {(item.capo || 0) > 0 && (
+                      <Badge variant="outline" className="font-mono text-[9px] font-black border-foreground text-background bg-foreground rounded-full h-6 px-3">
+                        CAPO {item.capo}
+                      </Badge>
+                    )}
+                    {item.note && (
+                      <div className="text-[10px] font-black text-accents-3 uppercase tracking-tighter italic border-l border-accents-2 pl-4 py-1 ml-2 hidden md:block">
+                        {item.note}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function SectionHeader({ children }) {
+  return (
+    <h2 className="text-[10px] font-black text-accents-4 uppercase tracking-[0.4em] mb-6 px-1 font-mono italic">
+      {children}
+    </h2>
   );
 }
