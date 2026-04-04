@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { parseSongMd, generateId } from './parser';
+import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
 import { createSyncEngine } from './sync/engine';
@@ -14,6 +14,8 @@ import SetlistBuilder from './components/SetlistBuilder';
 import SetlistPlayer from './components/SetlistPlayer';
 import Settings from './components/Settings';
 import SetlistOverview from './components/SetlistOverview';
+import Setlists from './components/Setlists';
+import BottomNav from './components/BottomNav';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
 export default function App() {
@@ -23,7 +25,6 @@ export default function App() {
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
-  const [libraryTab, setLibraryTab] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
   const syncEngineRef = useRef(null);
@@ -137,16 +138,15 @@ export default function App() {
   }, [settings?.theme]);
 
   // Navigation with history stack
-  const navigate = useCallback((nextView, { song, setlist, replace, tab } = {}) => {
+  const navigate = useCallback((nextView, { song, setlist, replace } = {}) => {
     if (!replace) {
-      historyRef.current.push({ view, song: currentSong, setlist: currentSetlist, libraryTab });
+      historyRef.current.push({ view, song: currentSong, setlist: currentSetlist });
       window.history.pushState(null, '');
     }
-    if (tab !== undefined) setLibraryTab(tab);
     if (song !== undefined) setCurrentSong(song);
     if (setlist !== undefined) setCurrentSetlist(setlist);
     setView(nextView);
-  }, [view, currentSong, currentSetlist, libraryTab]);
+  }, [view, currentSong, currentSetlist]);
 
   const goBack = useCallback(() => {
     const prev = historyRef.current.pop();
@@ -154,12 +154,10 @@ export default function App() {
       setView(prev.view);
       setCurrentSong(prev.song);
       setCurrentSetlist(prev.setlist);
-      setLibraryTab(prev.libraryTab || null);
     } else {
       setView('home');
       setCurrentSong(null);
       setCurrentSetlist(null);
-      setLibraryTab(null);
     }
   }, []);
 
@@ -175,15 +173,21 @@ export default function App() {
     return () => window.removeEventListener('popstate', handler);
   }, [goBack]);
 
+  // Navigate between main pages (no history push)
+  const goToMainView = (viewName) => {
+    setView(viewName);
+    setCurrentSong(null);
+    setCurrentSetlist(null);
+  };
+
   // Navigation shortcuts
-  const goHome = () => navigate('home', { song: null, setlist: null });
-  const goLibrary = (tab) => navigate('library', { song: null, setlist: null, tab: tab || null });
+  const goLibrary = () => goToMainView('library');
+  const goSetlists = () => goToMainView('setlists');
   const goChart = (song) => navigate('chart', { song });
   const goEditor = (song = null) => navigate('editor', { song });
   const goSetlistBuild = (sl = null) => navigate('setlist-build', { setlist: sl });
   const goSetlistView = (sl) => navigate('setlist-view', { setlist: sl });
   const goSetlistPlay = (sl) => navigate('setlist-play', { setlist: sl });
-  const goSettings = () => navigate('settings');
 
   // Song CRUD
   const handleSaveSong = (song) => {
@@ -270,7 +274,7 @@ export default function App() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-          Loading ChordVault...
+          Loading Setlists MD...
         </div>
       </div>
     );
@@ -308,33 +312,31 @@ export default function App() {
         <Dashboard
           songs={songs}
           setlists={setlists}
-          syncState={syncState}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
-          onImportSong={handleImportSong}
           onNewSetlist={() => goSetlistBuild()}
           onViewSetlist={goSetlistView}
           onPlaySetlist={goSetlistPlay}
           onGoLibrary={goLibrary}
-          onGoSetlists={() => goLibrary('setlists')}
-          onGoSettings={goSettings}
-          onSyncNow={triggerSync}
+          onGoSetlists={goSetlists}
         />
       )}
       {view === 'library' && (
         <Library
           songs={songs}
-          setlists={setlists}
-          initialTab={libraryTab}
-          onBack={goBack}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
           onImportSong={handleImportSong}
-          onNewSetlist={() => goSetlistBuild()}
-          onPlaySetlist={goSetlistPlay}
+        />
+      )}
+      {view === 'setlists' && (
+        <Setlists
+          songs={songs}
+          setlists={setlists}
           onViewSetlist={goSetlistView}
+          onPlaySetlist={goSetlistPlay}
+          onNewSetlist={() => goSetlistBuild()}
           onImportSetlist={handleImportSetlist}
-          onSettings={goSettings}
         />
       )}
       {view === 'chart' && currentSong && (
@@ -394,14 +396,28 @@ export default function App() {
         <Settings
           settings={settings}
           onUpdate={setSettings}
-          onBack={goBack}
           onClearAll={handleClearAll}
+          onDownloadSongs={() => {
+            songs.forEach(s => {
+              const md = songToMd(s);
+              const blob = new Blob([md], { type: 'text/markdown' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = s.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.md';
+              a.click();
+              URL.revokeObjectURL(url);
+            });
+          }}
           songCount={songs.length}
           setlistCount={setlists.length}
           syncState={syncState}
           onSyncStateChange={setSyncState}
           onSyncNow={triggerSync}
         />
+      )}
+      {['home', 'library', 'setlists', 'settings'].includes(view) && (
+        <BottomNav activeView={view} onNavigate={goToMainView} />
       )}
     </>
   );

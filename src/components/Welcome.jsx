@@ -32,7 +32,7 @@ export default function Welcome({ onGetStarted, onImport }) {
         width: 600,
         height: 600,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, var(--accent-soft) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
@@ -41,7 +41,7 @@ export default function Welcome({ onGetStarted, onImport }) {
         width: 80,
         height: 80,
         borderRadius: 20,
-        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        background: 'linear-gradient(135deg, #53796F, #6b9e91)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -49,9 +49,9 @@ export default function Welcome({ onGetStarted, onImport }) {
         fontSize: 32,
         fontWeight: 700,
         marginBottom: 24,
-        boxShadow: '0 8px 32px rgba(99,102,241,0.3)',
+        boxShadow: '0 8px 32px var(--accent-border)',
       }}>
-        CV
+        SM
       </div>
 
       {/* Title */}
@@ -63,7 +63,7 @@ export default function Welcome({ onGetStarted, onImport }) {
         letterSpacing: '-0.02em',
         textAlign: 'center',
       }}>
-        ChordVault
+        Setlists MD
       </h1>
 
       {/* Tagline */}
@@ -99,13 +99,13 @@ export default function Welcome({ onGetStarted, onImport }) {
           padding: '14px 48px',
           borderRadius: 12,
           border: 'none',
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+          background: 'linear-gradient(135deg, #53796F, #6b9e91)',
           color: '#fff',
           fontSize: 16,
           fontWeight: 700,
           cursor: 'pointer',
           fontFamily: 'var(--fb)',
-          boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
+          boxShadow: '0 4px 16px var(--accent-border)',
         }}
       >
         Get Started

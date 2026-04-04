@@ -1,5 +1,5 @@
 // Cloud storage folder name
-export const FOLDER_NAME = 'ChordVault';
+export const FOLDER_NAME = 'SetlistsMD';
 
 // Subfolders
 export const SONGS_FOLDER = 'Songs';

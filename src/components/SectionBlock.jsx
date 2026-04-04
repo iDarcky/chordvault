@@ -25,9 +25,9 @@ function ChordToken({ chord, text, transpose }) {
 
 const LEADER_STYLES = {
   none: { border: 'none' },
-  dashes: { backgroundImage: 'repeating-linear-gradient(to right, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  dots: { backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)', backgroundSize: '6px 3px', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  arrow: { backgroundImage: 'repeating-linear-gradient(to right, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center', arrow: true },
+  dashes: { backgroundImage: 'repeating-linear-gradient(to right, var(--text-dim) 0px, var(--text-dim) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
+  dots: { backgroundImage: 'radial-gradient(circle, var(--text-dim) 1px, transparent 1px)', backgroundSize: '6px 3px', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
+  arrow: { backgroundImage: 'repeating-linear-gradient(to right, var(--text-dim) 0px, var(--text-dim) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center', arrow: true },
 };
 
 function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
@@ -77,7 +77,6 @@ function ModulateBadge({ semitones }) {
         fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)',
         color: 'var(--accent-text)', background: 'var(--accent-soft)',
         borderRadius: 4, padding: '2px 8px',
-        letterSpacing: '0.04em', textTransform: 'uppercase',
       }}>
         Key Change: {sign}{semitones}
       </span>
@@ -91,7 +90,7 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
   if (collapsed) {
     return (
       <div style={{
-        background: s.bg, border: `1.5px solid ${s.b}88`,
+        background: `${s.b}0a`, border: `1.5px solid ${s.b}33`,
         borderRadius: 10, padding: '10px 16px', marginBottom: 8,
         position: 'relative', opacity: 0.7,
       }}>
@@ -110,7 +109,6 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
           </span>
           <span style={{
             fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
-            letterSpacing: '0.05em', textTransform: 'uppercase',
           }}>
             {section.type}
           </span>
@@ -237,7 +235,6 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
         </span>
         <span style={{
           fontSize: 13, fontWeight: 700, color: 'var(--text-bright)',
-          letterSpacing: '0.05em', textTransform: 'uppercase',
         }}>
           {section.type}
         </span>

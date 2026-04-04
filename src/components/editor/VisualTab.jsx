@@ -441,7 +441,6 @@ function MetadataOverlay({ meta, onSave, onClose }) {
           <label key={f.key} style={{ display: 'block', marginBottom: 10 }}>
             <span style={{
               fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.06em',
               display: 'block', marginBottom: 3,
             }}>
               {f.label}
@@ -489,7 +488,7 @@ const inputStyle = {
 
 const popupBtnStyle = {
   background: 'var(--accent-soft)',
-  border: '1px solid rgba(99,102,241,0.3)',
+  border: '1px solid var(--accent-border)',
   borderRadius: 6, padding: '6px 14px',
   color: 'var(--accent-text)', fontSize: 12,
   fontWeight: 600, cursor: 'pointer',

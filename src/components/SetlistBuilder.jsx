@@ -13,7 +13,6 @@ const inputStyle = {
 
 const labelStyle = {
   fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  textTransform: 'uppercase', letterSpacing: '0.07em',
   fontFamily: 'var(--fm)', display: 'block', marginBottom: 4,
 };
 
@@ -94,7 +93,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
       {/* Header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(11,11,15,0.92)', backdropFilter: 'blur(16px)',
+        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(255,255,255,0.05)',
         padding: '14px 18px 10px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -127,7 +126,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
           )}
           <button onClick={handleSave} style={{
             background: 'var(--accent-soft)',
-            border: '1px solid rgba(99,102,241,0.3)',
+            border: '1px solid var(--accent-border)',
             borderRadius: 7, padding: '7px 18px',
             color: 'var(--accent-text)', fontSize: 13,
             fontWeight: 600, cursor: 'pointer',
@@ -274,8 +273,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <span style={{
                       fontSize: 8, color: 'var(--text-dim)',
-                      textTransform: 'uppercase', letterSpacing: '0.1em',
-                    }}>
+                      }}>
                       Min
                     </span>
                     <input
@@ -367,7 +365,6 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 }}>
                   <span style={{
                     fontSize: 8, color: 'var(--text-dim)',
-                    textTransform: 'uppercase', letterSpacing: '0.1em',
                   }}>
                     Key
                   </span>
@@ -394,7 +391,6 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 }}>
                   <span style={{
                     fontSize: 8, color: 'var(--text-dim)',
-                    textTransform: 'uppercase', letterSpacing: '0.1em',
                   }}>
                     Capo
                   </span>
@@ -445,7 +441,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
         {/* Add song */}
         {adding ? (
           <div style={{
-            border: '1px solid rgba(99,102,241,0.2)',
+            border: '1px solid var(--accent-border)',
             borderRadius: 10, overflow: 'hidden', marginTop: 8,
           }}>
             <div style={{

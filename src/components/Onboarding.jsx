@@ -5,25 +5,25 @@ const STEPS = [
     icon: '\u266B',
     title: 'Your Song Library',
     description: 'All your chord charts in one place. Import .md files or create from scratch with our visual editor.',
-    color: '#6366f1',
+    color: '#53796F',
   },
   {
     icon: '\u2630',
     title: 'Live Setlists',
     description: 'Build setlists for worship services. Reorder songs, set per-song transpose, and add band notes.',
-    color: '#8b5cf6',
+    color: '#6b9e91',
   },
   {
     icon: '\u25B6',
     title: 'Play Mode',
     description: 'Full-screen chord charts with transpose, multi-column layout, and foot pedal navigation.',
-    color: '#a78bfa',
+    color: '#457a6e',
   },
   {
     icon: '\u2601',
     title: 'Sync Everywhere',
     description: 'Connect Google Drive, Dropbox, or OneDrive to sync your songs across all your devices.',
-    color: '#818cf8',
+    color: '#3a6b5f',
   },
 ];
 
@@ -152,13 +152,13 @@ export default function Onboarding({ onComplete }) {
             padding: '12px 36px',
             borderRadius: 10,
             border: 'none',
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
             color: '#fff',
             fontSize: 14,
             fontWeight: 700,
             cursor: 'pointer',
             fontFamily: 'var(--fb)',
-            boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
+            boxShadow: '0 4px 16px var(--accent-border)',
           }}
         >
           {isLast ? "Let's Go" : 'Next'}

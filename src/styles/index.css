@@ -1,39 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
   --bg: #0b0b0f;
   --surface: rgba(255,255,255,0.03);
+  --card: rgba(255,255,255,0.05);
   --border: rgba(255,255,255,0.06);
-  --text: #d6dce6;
-  --text-bright: #eef1f5;
-  --text-muted: rgba(255,255,255,0.35);
-  --text-dim: rgba(255,255,255,0.25);
+  --select: rgba(255,255,255,0.08);
+  --text: #ededed;
+  --text-bright: #fafafa;
+  --text-muted: #888888;
+  --text-dim: #666666;
   --chord: #e2a832;
-  --accent: #6366f1;
-  --accent-soft: rgba(99,102,241,0.15);
-  --accent-text: #a5b4fc;
+  --accent: #53796F;
+  --accent-soft: rgba(83,121,111,0.15);
+  --accent-text: #7fb3a6;
+  --accent-border: rgba(83,121,111,0.3);
   --danger: #f87171;
   --danger-soft: rgba(239,68,68,0.1);
   --header-bg: rgba(11,11,15,0.92);
-  --fb: 'DM Sans', sans-serif;
-  --fm: 'Azeret Mono', monospace;
+  --fb: 'Inter', sans-serif;
+  --fm: 'JetBrains Mono', monospace;
 }
 
 [data-theme="light"] {
-  --bg: #f5f5f7;
-  --surface: rgba(0,0,0,0.04);
-  --border: rgba(0,0,0,0.08);
-  --text: #374151;
-  --text-bright: #111827;
-  --text-muted: rgba(0,0,0,0.45);
-  --text-dim: rgba(0,0,0,0.25);
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --border: rgba(0,0,0,0.06);
+  --select: #EBEBEB;
+  --text: #171717;
+  --text-bright: #000000;
+  --text-muted: #666666;
+  --text-dim: #999999;
   --chord: #b45309;
-  --accent: #6366f1;
-  --accent-soft: rgba(99,102,241,0.12);
-  --accent-text: #4f46e5;
+  --accent: #53796F;
+  --accent-soft: rgba(83,121,111,0.10);
+  --accent-text: #3d5b53;
+  --accent-border: rgba(83,121,111,0.25);
   --danger: #dc2626;
   --danger-soft: rgba(239,68,68,0.08);
-  --header-bg: rgba(245,245,247,0.92);
+  --header-bg: #FAFAFA;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

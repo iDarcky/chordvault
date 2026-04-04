@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
+import PageHeader from './PageHeader';
 
 const labelStyle = {
   fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  textTransform: 'uppercase', letterSpacing: '0.07em',
   fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
 };
 
@@ -23,7 +23,7 @@ const activeBtn = (active) => ({
   background: active ? 'var(--accent-soft)' : 'var(--surface)',
 });
 
-export default function Settings({ settings, onUpdate, onBack, onClearAll, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
+export default function Settings({ settings, onUpdate, onClearAll, onDownloadSongs, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
   const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
@@ -41,26 +41,9 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', color: '#94a3b8',
-          cursor: 'pointer', padding: 4,
-        }}>
-          &#8592; Back
-        </button>
-        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
-          Settings
-        </span>
-      </div>
+      <PageHeader title="Settings" />
 
-      <div style={{ padding: '16px 18px', maxWidth: 500 }}>
+      <div style={{ padding: '16px 18px 80px', maxWidth: 500 }}>
         {/* Theme */}
         <div style={{ marginBottom: 24 }}>
           <label style={labelStyle}>Theme</label>
@@ -218,10 +201,18 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
             padding: '12px 14px', borderRadius: 8,
             background: 'var(--surface)', border: '1px solid var(--border)',
             marginBottom: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
               {songCount} song{songCount !== 1 ? 's' : ''} · {setlistCount} setlist{setlistCount !== 1 ? 's' : ''}
             </span>
+            {onDownloadSongs && songCount > 0 && (
+              <button onClick={onDownloadSongs} style={{
+                ...cB, padding: '4px 12px', fontSize: 11,
+              }}>
+                Download songs
+              </button>
+            )}
           </div>
           <button
             onClick={() => { if (confirm('Delete ALL songs and setlists? This cannot be undone.')) onClearAll(); }}
@@ -242,7 +233,7 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
           background: 'var(--surface)', border: '1px solid var(--border)',
         }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)', marginBottom: 4 }}>
-            ChordVault
+            Setlists MD
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
             Free, offline-first chord chart app for worship teams.

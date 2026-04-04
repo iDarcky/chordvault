@@ -55,23 +55,23 @@ export function semitonesBetween(fromKey, toKey) {
   return (ti - fi + 12) % 12;
 }
 
-// Section type → colors, label, background
+// Section type → colors, label
 const SECTION_COLORS = {
-  Intro:        { b: '#6366f1', d: '#818cf8', l: 'I',  bg: '#12122a' },
-  Refrain:      { b: '#8b5cf6', d: '#a78bfa', l: 'Rf', bg: '#16122a' },
-  Verse:        { b: '#22c55e', d: '#4ade80', l: 'V',  bg: '#0f1a0f' },
-  'Pre Chorus': { b: '#f59e0b', d: '#fbbf24', l: 'Pc', bg: '#1a1510' },
-  Chorus:       { b: '#ec4899', d: '#f472b6', l: 'C',  bg: '#1a0f1a' },
-  Bridge:       { b: '#06b6d4', d: '#22d3ee', l: 'B',  bg: '#0f1a1a' },
-  Instrumental: { b: '#eab308', d: '#facc15', l: 'It', bg: '#1a1a10' },
-  Ending:       { b: '#f43f5e', d: '#fb7185', l: 'E',  bg: '#1a1015' },
-  Tag:          { b: '#3b82f6', d: '#60a5fa', l: 'T',  bg: '#10151a' },
-  Interlude:    { b: '#a855f7', d: '#c084fc', l: 'Il', bg: '#15101a' },
-  Vamp:         { b: '#d97706', d: '#fbbf24', l: 'Vm', bg: '#1a1510' },
-  Outro:        { b: '#ef4444', d: '#f87171', l: 'O',  bg: '#1a1010' },
+  Intro:        { b: '#6366f1', d: '#818cf8', l: 'I' },
+  Refrain:      { b: '#8b5cf6', d: '#a78bfa', l: 'Rf' },
+  Verse:        { b: '#22c55e', d: '#4ade80', l: 'V' },
+  'Pre Chorus': { b: '#f59e0b', d: '#fbbf24', l: 'Pc' },
+  Chorus:       { b: '#ec4899', d: '#f472b6', l: 'C' },
+  Bridge:       { b: '#06b6d4', d: '#22d3ee', l: 'B' },
+  Instrumental: { b: '#eab308', d: '#facc15', l: 'It' },
+  Ending:       { b: '#f43f5e', d: '#fb7185', l: 'E' },
+  Tag:          { b: '#3b82f6', d: '#60a5fa', l: 'T' },
+  Interlude:    { b: '#a855f7', d: '#c084fc', l: 'Il' },
+  Vamp:         { b: '#d97706', d: '#fbbf24', l: 'Vm' },
+  Outro:        { b: '#ef4444', d: '#f87171', l: 'O' },
 };
 
-const DEFAULT_STYLE = { b: '#6b7280', d: '#9ca3af', l: '?', bg: '#141418' };
+const DEFAULT_STYLE = { b: '#6b7280', d: '#9ca3af', l: '?' };
 
 // Get colors for a section type (e.g. "Verse 1" → Verse colors)
 export function sectionStyle(type) {

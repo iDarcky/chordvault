@@ -1,17 +1,23 @@
 import { useState, useMemo, useRef } from 'react';
-import { transposeKey, sectionStyle } from '../music';
-import { songToMd } from '../parser';
+import PageHeader from './PageHeader';
+import SearchIcon from './SearchIcon';
 
 export default function Library({
-  songs, setlists, initialTab, onBack,
-  onSelectSong, onNewSong, onImportSong,
-  onNewSetlist, onPlaySetlist, onViewSetlist, onImportSetlist, onSettings,
+  songs, onSelectSong, onNewSong, onImportSong,
 }) {
   const [query, setQuery] = useState('');
-  const [tab, setTab] = useState(initialTab || 'songs');
   const [sort, setSort] = useState('title');
+  const [tagFilter, setTagFilter] = useState([]);
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const fileRef = useRef(null);
-  const setlistFileRef = useRef(null);
+
+  // Collect all unique tags
+  const allTags = useMemo(() => {
+    const tags = new Set();
+    songs.forEach(s => (s.tags || []).forEach(t => tags.add(t)));
+    return [...tags].sort();
+  }, [songs]);
 
   const filtered = useMemo(() => {
     let list = songs;
@@ -23,13 +29,38 @@ export default function Library({
         s.key.toLowerCase().includes(q)
       );
     }
+    if (tagFilter.length > 0) {
+      list = list.filter(s =>
+        tagFilter.some(t => (s.tags || []).includes(t))
+      );
+    }
     const sorted = [...list];
     if (sort === 'title') sorted.sort((a, b) => a.title.localeCompare(b.title));
     else if (sort === 'artist') sorted.sort((a, b) => a.artist.localeCompare(b.artist));
     else if (sort === 'key') sorted.sort((a, b) => a.key.localeCompare(b.key));
-    else if (sort === 'newest') sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     return sorted;
-  }, [songs, query, sort]);
+  }, [songs, query, sort, tagFilter]);
+
+  const grouped = useMemo(() => {
+    const groups = [];
+    let currentLabel = null;
+    for (const song of filtered) {
+      let label;
+      if (sort === 'title') {
+        label = (song.title[0] || '#').toUpperCase();
+      } else if (sort === 'artist') {
+        label = song.artist || 'Unknown';
+      } else {
+        label = song.key || '?';
+      }
+      if (label !== currentLabel) {
+        groups.push({ label, songs: [] });
+        currentLabel = label;
+      }
+      groups[groups.length - 1].songs.push(song);
+    }
+    return groups;
+  }, [filtered, sort]);
 
   const handleFiles = async (e) => {
     for (const file of Array.from(e.target.files)) {
@@ -39,423 +70,311 @@ export default function Library({
     e.target.value = '';
   };
 
-  const handleExport = (song) => {
-    const md = songToMd(song);
-    const blob = new Blob([md], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = song.title
-      .replace(/[^a-zA-Z0-9 ]/g, '')
-      .replace(/\s+/g, '-')
-      .toLowerCase() + '.md';
-    a.click();
-    URL.revokeObjectURL(url);
+  const toggleTag = (tag) => {
+    setTagFilter(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
   };
 
-  const handleExportAll = () => songs.forEach(s => handleExport(s));
-
-  const btnStyle = {
-    border: 'none', borderRadius: 7, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', gap: 5,
-    fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
-  };
+  const sortBtnStyle = (active) => ({
+    border: 'none', borderRadius: 6, cursor: 'pointer',
+    display: 'flex', alignItems: 'center',
+    fontFamily: 'var(--fb)', fontWeight: 500, fontSize: 12,
+    padding: '5px 10px',
+    color: active ? 'var(--text-bright)' : 'var(--text-muted)',
+    background: active ? 'var(--select)' : 'transparent',
+  });
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        padding: '28px 20px 0',
-        background: 'linear-gradient(180deg, rgba(99,102,241,0.06) 0%, transparent 100%)',
-      }}>
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 16,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {onBack && (
-              <button onClick={onBack} style={{
-                background: 'none', border: 'none', color: '#94a3b8',
-                cursor: 'pointer', padding: '4px 2px', fontSize: 18,
-                display: 'flex', alignItems: 'center',
-              }}>
-                &#8592;
-              </button>
-            )}
-            <div style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 16, fontWeight: 700,
+      <PageHeader title="Library" />
+
+      {/* Search bar + Tags filter */}
+      <div style={{ padding: '0 24px 8px' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search..."
+              style={{
+                width: '100%', padding: '9px 12px 9px 36px',
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: 8, color: 'var(--text)',
+                fontSize: 14, outline: 'none',
+                fontFamily: 'var(--fb)', boxSizing: 'border-box',
+              }}
+            />
+            <span style={{
+              position: 'absolute', left: 11, top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'flex', color: 'var(--text-dim)',
             }}>
-              CV
-            </div>
-            <div>
-              <h1 style={{
-                margin: 0, fontSize: 22, fontWeight: 700,
-                color: 'var(--text-bright)', letterSpacing: '-0.02em',
-              }}>
-                ChordVault
-              </h1>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                {songs.length} song{songs.length !== 1 ? 's' : ''} · {setlists.length} setlist{setlists.length !== 1 ? 's' : ''}
-              </div>
-            </div>
+              <SearchIcon size={16} />
+            </span>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {onSettings && (
-              <button onClick={onSettings} style={{
-                ...btnStyle, background: 'var(--surface)',
-                border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 10px',
-                fontSize: 16,
-              }}>
-                &#9881;
+
+          {/* Tags dropdown */}
+          {allTags.length > 0 && (
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowTagDropdown(v => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 12px', borderRadius: 8,
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg)', cursor: 'pointer',
+                  fontFamily: 'var(--fb)', fontSize: 13, fontWeight: 500,
+                  color: tagFilter.length > 0 ? 'var(--text-bright)' : 'var(--text-muted)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tagFilter.length > 0 && (
+                  <span style={{
+                    display: 'flex', gap: 2,
+                  }}>
+                    {tagFilter.slice(0, 3).map(t => (
+                      <span key={t} style={{
+                        width: 8, height: 8, borderRadius: '50%',
+                        background: 'var(--accent)',
+                      }} />
+                    ))}
+                  </span>
+                )}
+                Tags{tagFilter.length > 0 ? ` ${tagFilter.length}/${allTags.length}` : ''}
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ marginLeft: 2 }}>
+                  <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
-            )}
-            {tab === 'songs' && (
-              <>
-                <button onClick={handleExportAll} style={{
-                  ...btnStyle, background: 'var(--surface)',
-                  border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-                }}>
-                  All .md
-                </button>
-                <button onClick={() => fileRef.current?.click()} style={{
-                  ...btnStyle, background: 'var(--surface)',
-                  border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-                }}>
-                  Import
-                </button>
-                <input ref={fileRef} type="file" accept=".md,.txt" multiple
-                  onChange={handleFiles} style={{ display: 'none' }} />
-                <button onClick={onNewSong} style={{
-                  ...btnStyle, background: 'var(--accent-soft)',
-                  border: '1px solid rgba(99,102,241,0.3)',
-                  color: 'var(--accent-text)', padding: '7px 16px',
-                }}>
-                  + New Song
-                </button>
-              </>
-            )}
-            {tab === 'setlists' && (
-              <>
-                <button onClick={() => setlistFileRef.current?.click()} style={{
-                  ...btnStyle, background: 'var(--surface)',
-                  border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-                }}>
-                  Import
-                </button>
-                <input ref={setlistFileRef} type="file" accept=".zip"
-                  onChange={e => {
-                    if (e.target.files[0]) onImportSetlist(e.target.files[0]);
-                    e.target.value = '';
-                  }}
-                  style={{ display: 'none' }} />
-                <button onClick={onNewSetlist} style={{
-                  ...btnStyle, background: 'var(--accent-soft)',
-                  border: '1px solid rgba(99,102,241,0.3)',
-                  color: 'var(--accent-text)', padding: '7px 16px',
-                }}>
-                  + New Setlist
-                </button>
-              </>
-            )}
-          </div>
+
+              {showTagDropdown && (
+                <>
+                  <div onClick={() => setShowTagDropdown(false)} style={{ position: 'fixed', inset: 0, zIndex: 49 }} />
+                  <div style={{
+                    position: 'absolute', right: 0, top: 'calc(100% + 4px)',
+                    background: 'var(--surface)', border: '1px solid var(--border)',
+                    borderRadius: 10, padding: '6px 0', zIndex: 50,
+                    minWidth: 180, boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+                  }}>
+                    {allTags.map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          width: '100%', padding: '8px 14px',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          fontFamily: 'var(--fb)', fontSize: 13,
+                          color: 'var(--text)', textAlign: 'left',
+                        }}
+                      >
+                        <span style={{
+                          width: 18, height: 18, borderRadius: 4,
+                          border: tagFilter.includes(tag) ? 'none' : '1px solid var(--border)',
+                          background: tagFilter.includes(tag) ? 'var(--accent)' : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#fff', fontSize: 11, flexShrink: 0,
+                        }}>
+                          {tagFilter.includes(tag) && '\u2713'}
+                        </span>
+                        {tag}
+                      </button>
+                    ))}
+                    {tagFilter.length > 0 && (
+                      <button
+                        onClick={() => setTagFilter([])}
+                        style={{
+                          width: '100%', padding: '8px 14px',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          borderTop: '1px solid var(--border)',
+                          fontFamily: 'var(--fb)', fontSize: 12,
+                          color: 'var(--text-muted)', textAlign: 'center',
+                          marginTop: 4,
+                        }}
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Upcoming setlists */}
-        {(() => {
-          const today = new Date().toISOString().slice(0, 10);
-          const upcoming = setlists
-            .filter(sl => sl.date >= today)
-            .sort((a, b) => a.date.localeCompare(b.date));
-          if (upcoming.length === 0) return null;
-          return (
-            <div style={{ padding: '12px 0 8px' }}>
-              <div style={{
-                fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-                textTransform: 'uppercase', letterSpacing: '0.07em',
-                fontFamily: 'var(--fm)', marginBottom: 8, padding: '0 2px',
-              }}>
-                Upcoming
-              </div>
-              {upcoming.map(sl => {
-                const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-                  weekday: 'short', month: 'short', day: 'numeric',
-                });
-                return (
-                  <div key={sl.id} style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px', marginBottom: 4,
-                    borderRadius: 8, background: 'rgba(99,102,241,0.04)',
-                    border: '1px solid rgba(99,102,241,0.1)',
-                  }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{
-                        fontSize: 13, fontWeight: 600, color: 'var(--text-bright)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {sl.name || 'Untitled'}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                        {dateStr} · {sl.service}
-                      </div>
-                    </div>
-                    <button onClick={() => onPlaySetlist(sl)} style={{
-                      ...btnStyle, background: 'var(--accent-soft)',
-                      border: '1px solid rgba(99,102,241,0.3)',
-                      color: 'var(--accent-text)', padding: '5px 14px',
-                      flexShrink: 0,
-                    }}>
-                      Live
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })()}
-
-        {/* Tab switch */}
-        <div style={{
-          display: 'flex', gap: 0,
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}>
-          {[{ id: 'songs', label: 'Songs' }, { id: 'setlists', label: 'Setlists' }].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none',
-              borderBottom: tab === t.id ? '2px solid var(--accent)' : '2px solid transparent',
-              color: tab === t.id ? 'var(--text)' : 'var(--text-muted)',
-              padding: '10px 20px', fontSize: 13, fontWeight: 600,
-              cursor: 'pointer', fontFamily: 'var(--fb)',
-            }}>
-              {t.label}
+        {/* Sort row */}
+        <div style={{ display: 'flex', gap: 2, marginTop: 8 }}>
+          {[
+            { id: 'title', label: 'Title' },
+            { id: 'artist', label: 'Artist' },
+            { id: 'key', label: 'Key' },
+          ].map(s => (
+            <button key={s.id} onClick={() => setSort(s.id)} style={sortBtnStyle(sort === s.id)}>
+              {s.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Songs tab */}
-      {tab === 'songs' && (
-        <>
-          <div style={{ padding: '12px 20px 0' }}>
-            <div style={{ position: 'relative' }}>
-              <input
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Search songs, artists, keys..."
-                style={{
-                  width: '100%', padding: '10px 12px 10px 36px',
-                  background: 'var(--surface)',
-                  border: '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: 8, color: 'var(--text)',
-                  fontSize: 14, outline: 'none',
-                  fontFamily: 'var(--fb)', boxSizing: 'border-box',
-                }}
-              />
-              <span style={{
-                position: 'absolute', left: 12, top: '50%',
-                transform: 'translateY(-50%)', color: 'var(--text-dim)',
-                fontSize: 14,
-              }}>
-                &#128269;
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
-              {[
-                { id: 'title', label: 'Title' },
-                { id: 'artist', label: 'Artist' },
-                { id: 'key', label: 'Key' },
-                { id: 'newest', label: 'Newest' },
-              ].map(s => (
-                <button key={s.id} onClick={() => setSort(s.id)} style={{
-                  ...btnStyle, padding: '4px 10px', fontSize: 11,
-                  borderColor: sort === s.id ? 'var(--accent)' : 'var(--border)',
-                  color: sort === s.id ? 'var(--accent-text)' : 'var(--text-muted)',
-                  background: sort === s.id ? 'var(--accent-soft)' : 'transparent',
-                }}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
+      {/* Song list — grouped */}
+      <div style={{ padding: '0 24px', paddingBottom: 100 }}>
+        <div style={{
+          fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+          fontFamily: 'var(--fm)', marginBottom: 8,
+        }}>
+          All Songs
+        </div>
+
+        {filtered.length === 0 && (
+          <div style={{
+            textAlign: 'center', padding: '48px 20px',
+            color: 'var(--text-dim)', fontSize: 14,
+            border: '1px solid var(--border)', borderRadius: 10,
+          }}>
+            {songs.length === 0
+              ? 'No songs yet. Tap + to create or import.'
+              : 'No songs match your search.'}
           </div>
-          <div style={{ padding: '8px 20px 40px' }}>
-            {filtered.length === 0 && (
-              <div style={{
-                textAlign: 'center', padding: '48px 20px',
-                color: 'var(--text-dim)', fontSize: 14,
-              }}>
-                {songs.length === 0
-                  ? 'No songs yet. Import .md files or create a new song.'
-                  : 'No songs match your search.'}
-              </div>
-            )}
-            {filtered.map((song, i) => {
-              const s = song.sections?.length
-                ? sectionStyle(song.sections[0].type)
-                : { b: '#6b7280', d: '#9ca3af' };
-              return (
+        )}
+
+        {grouped.map(group => (
+          <div key={group.label} style={{ marginBottom: 16 }}>
+            <div style={{
+              fontSize: sort === 'title' ? 18 : 14,
+              fontWeight: 700,
+              color: 'var(--text-dim)',
+              fontFamily: sort === 'key' ? 'var(--fm)' : 'var(--fb)',
+              marginBottom: 6,
+              padding: '0 2px',
+            }}>
+              {group.label}
+            </div>
+            <div style={{
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              overflow: 'hidden',
+            }}>
+              {group.songs.map((song, i) => (
                 <div
                   key={song.id || i}
                   onClick={() => onSelectSong(song)}
                   role="button"
                   tabIndex={0}
                   style={{
-                    width: '100%', display: 'flex', alignItems: 'center',
-                    gap: 14, padding: '14px 14px', marginBottom: 4,
-                    borderRadius: 10, background: 'rgba(255,255,255,0.015)',
-                    border: '1px solid rgba(255,255,255,0.04)',
-                    cursor: 'pointer', textAlign: 'left',
-                    boxSizing: 'border-box',
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    borderBottom: i < group.songs.length - 1 ? '1px solid var(--border)' : 'none',
+                    cursor: 'pointer', boxSizing: 'border-box', background: 'var(--card)',
                   }}
                 >
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 9, flexShrink: 0,
-                    background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                    border: `1px solid ${s.b}44`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--fm)', fontSize: 14, fontWeight: 700, color: s.d,
-                  }}>
-                    {song.key}
-                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: 15, fontWeight: 600, color: 'var(--text-bright)',
+                      fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {song.title}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
-                      {song.artist}
-                    </div>
-                  </div>
-                  <div style={{
-                    display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0,
-                  }}>
-                    <span style={{
-                      fontSize: 11.5, color: 'var(--text-muted)', fontFamily: 'var(--fm)',
+                    <div style={{
+                      fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
+                      display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
                     }}>
-                      {song.tempo} bpm
-                    </span>
-                    <span style={{
-                      fontSize: 11.5, color: 'var(--text-dim)', fontFamily: 'var(--fm)',
-                    }}>
-                      {song.time}
-                    </span>
-                    <button
-                      onClick={e => { e.stopPropagation(); handleExport(song); }}
-                      style={{
-                        background: 'none', border: 'none',
-                        color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-                        padding: 4, display: 'flex', fontSize: 14,
-                      }}
-                    >
-                      &#8595;
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Setlists tab */}
-      {tab === 'setlists' && (
-        <div style={{ padding: '12px 20px 40px' }}>
-          {setlists.length === 0 && (
-            <div style={{
-              textAlign: 'center', padding: '48px 20px',
-              color: 'var(--text-dim)', fontSize: 14,
-            }}>
-              No setlists yet. Create one for this Sunday.
-            </div>
-          )}
-          {[...setlists].sort((a, b) => new Date(b.date) - new Date(a.date)).map(sl => {
-            const songCount = sl.items?.length || 0;
-            const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-              weekday: 'short', month: 'short', day: 'numeric',
-            });
-            return (
-              <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
-                marginBottom: 8, borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.06)',
-                overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
-                cursor: 'pointer',
-              }}>
-                <div style={{
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'space-between', padding: '14px 16px',
-                }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-bright)' }}>
-                      {sl.name || 'Untitled Setlist'}
-                    </div>
-                    <div style={{ display: 'flex', gap: 10, marginTop: 3 }}>
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{dateStr}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>{sl.service}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>
-                        {songCount} song{songCount !== 1 ? 's' : ''}
+                      <span>{song.artist}</span>
+                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                      <span style={{ fontFamily: 'var(--fm)', fontSize: 11, fontWeight: 600, color: 'var(--chord)' }}>
+                        {song.key}
                       </span>
+                      {song.tempo && (
+                        <>
+                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.tempo} bpm</span>
+                        </>
+                      )}
+                      {song.time && (
+                        <>
+                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.time}</span>
+                        </>
+                      )}
+                      {(song.tags || []).length > 0 && (
+                        <>
+                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                          {song.tags.map(t => (
+                            <span key={t} style={{
+                              fontSize: 10, padding: '1px 6px', borderRadius: 4,
+                              background: 'var(--accent-soft)', color: 'var(--accent-text)',
+                              fontWeight: 500,
+                            }}>
+                              {t}
+                            </span>
+                          ))}
+                        </>
+                      )}
                     </div>
                   </div>
-                  <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-                    ...btnStyle, background: 'var(--accent-soft)',
-                    border: '1px solid rgba(99,102,241,0.3)',
-                    color: 'var(--accent-text)', padding: '6px 14px',
-                  }}>
-                    Live
-                  </button>
                 </div>
-                {songCount > 0 && (
-                  <div style={{
-                    padding: '0 16px 12px', display: 'flex',
-                    gap: 4, flexWrap: 'wrap',
-                  }}>
-                    {sl.items.map((it, i) => {
-                      if (it.type === 'break') {
-                        return (
-                          <span key={i} style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 4,
-                            padding: '3px 8px', borderRadius: 12,
-                            background: 'var(--surface)',
-                            border: '1px solid rgba(107,114,128,0.2)',
-                            fontSize: 11, color: 'rgba(255,255,255,0.3)',
-                            fontStyle: 'italic',
-                          }}>
-                            {it.label || 'Break'}
-                          </span>
-                        );
-                      }
-                      const song = songs.find(s => s.id === it.songId);
-                      if (!song) return null;
-                      return (
-                        <span key={i} style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 4,
-                          padding: '3px 8px', borderRadius: 12,
-                          background: 'var(--surface)',
-                          border: '1px solid var(--border)',
-                          fontSize: 11, color: 'rgba(255,255,255,0.45)',
-                        }}>
-                          <span style={{
-                            fontFamily: 'var(--fm)', fontWeight: 700,
-                            color: 'var(--chord)', fontSize: 10,
-                          }}>
-                            {transposeKey(song.key, it.transpose)}
-                          </span>
-                          {song.title}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* FAB */}
+      {fabOpen && (
+        <div onClick={() => setFabOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 89 }} />
       )}
+      <div style={{
+        position: 'fixed', bottom: 80, right: 20,
+        display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
+        gap: 8, zIndex: 90,
+      }}>
+        {fabOpen && (
+          <>
+            <button onClick={() => { setFabOpen(false); onNewSong(); }} style={{
+              borderRadius: 24, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 5,
+              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
+              padding: '10px 18px',
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-bright)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            }}>
+              New Song
+            </button>
+            <button onClick={() => { setFabOpen(false); fileRef.current?.click(); }} style={{
+              borderRadius: 24, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 5,
+              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
+              padding: '10px 18px',
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-bright)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            }}>
+              Import .md
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => setFabOpen(prev => !prev)}
+          style={{
+            width: 56, height: 56, borderRadius: 28,
+            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
+            border: 'none', color: '#fff',
+            fontSize: 28, fontWeight: 300, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
+            transition: 'transform 0.2s',
+            transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+          }}
+        >
+          +
+        </button>
+      </div>
+      <input ref={fileRef} type="file" accept=".md,.txt" multiple
+        onChange={handleFiles} style={{ display: 'none' }} />
     </div>
   );
 }

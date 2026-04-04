@@ -68,7 +68,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           </button>
           <button onClick={onPlay} style={{
             ...btnStyle, background: 'var(--accent-soft)',
-            border: '1px solid rgba(99,102,241,0.3)',
+            border: '1px solid var(--accent-border)',
             color: 'var(--accent-text)', padding: '7px 16px',
           }}>
             Live
@@ -80,7 +80,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
       <div style={{ padding: '16px 18px 8px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{
           padding: '4px 10px', borderRadius: 6,
-          background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.2)',
+          background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
           fontSize: 12, fontWeight: 600, color: 'var(--accent-text)',
         }}>
           {setlist.service || 'Service'}
@@ -195,7 +195,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                   <span style={{
                     padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
                     fontFamily: 'var(--fm)', color: 'var(--accent-text)',
-                    background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.2)',
+                    background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
                   }}>
                     Capo {item.capo}
                   </span>
