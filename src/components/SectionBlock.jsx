@@ -249,7 +249,7 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
         {section.note && (
           <span style={{
             fontSize: isDrummer ? 12 : 10.5,
-            color: isDrummer ? 'var(--text-muted)' : 'rgba(255,255,255,0.28)',
+            color: isDrummer ? 'var(--text-muted)' : 'var(--text-dim)',
             fontStyle: 'italic', marginLeft: 'auto',
             maxWidth: isDrummer ? '60%' : '45%', textAlign: 'right', lineHeight: 1.3,
             fontWeight: isDrummer ? 600 : 400,
