@@ -274,7 +274,7 @@ export default function App() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-          Loading ChordVault...
+          Loading Setlists MD...
         </div>
       </div>
     );

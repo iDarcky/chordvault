@@ -233,7 +233,7 @@ export default function Settings({ settings, onUpdate, onClearAll, onDownloadSon
           background: 'var(--surface)', border: '1px solid var(--border)',
         }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)', marginBottom: 4 }}>
-            ChordVault
+            Setlists MD
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
             Free, offline-first chord chart app for worship teams.

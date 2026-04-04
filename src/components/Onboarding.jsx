@@ -17,13 +17,13 @@ const STEPS = [
     icon: '\u25B6',
     title: 'Play Mode',
     description: 'Full-screen chord charts with transpose, multi-column layout, and foot pedal navigation.',
-    color: '#a78bfa',
+    color: '#457a6e',
   },
   {
     icon: '\u2601',
     title: 'Sync Everywhere',
     description: 'Connect Google Drive, Dropbox, or OneDrive to sync your songs across all your devices.',
-    color: '#818cf8',
+    color: '#3a6b5f',
   },
 ];
 

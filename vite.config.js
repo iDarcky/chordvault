@@ -8,9 +8,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'ChordVault',
-        short_name: 'ChordVault',
-        description: 'Chord charts for worship',
+        name: 'Setlists MD',
+        short_name: 'Setlists MD',
+        description: 'Chord charts for worship teams',
         theme_color: '#0b0b0f',
         background_color: '#0b0b0f',
         display: 'standalone',

@@ -57,7 +57,7 @@ export default function Dashboard({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <PageHeader title="ChordVault">
+      <PageHeader title="Setlists MD">
         <button onClick={() => setShowSearch(true)} style={{
           ...btnStyle, background: 'var(--surface)',
           border: '1px solid var(--border)', color: 'var(--text-muted)',

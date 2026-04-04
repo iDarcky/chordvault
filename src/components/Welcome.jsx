@@ -51,7 +51,7 @@ export default function Welcome({ onGetStarted, onImport }) {
         marginBottom: 24,
         boxShadow: '0 8px 32px var(--accent-border)',
       }}>
-        CV
+        SM
       </div>
 
       {/* Title */}
@@ -63,7 +63,7 @@ export default function Welcome({ onGetStarted, onImport }) {
         letterSpacing: '-0.02em',
         textAlign: 'center',
       }}>
-        ChordVault
+        Setlists MD
       </h1>
 
       {/* Tagline */}
