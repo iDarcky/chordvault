@@ -312,16 +312,13 @@ export default function App() {
         <Dashboard
           songs={songs}
           setlists={setlists}
-          syncState={syncState}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
-          onImportSong={handleImportSong}
           onNewSetlist={() => goSetlistBuild()}
           onViewSetlist={goSetlistView}
           onPlaySetlist={goSetlistPlay}
           onGoLibrary={goLibrary}
           onGoSetlists={goSetlists}
-          onSyncNow={triggerSync}
         />
       )}
       {view === 'library' && (
