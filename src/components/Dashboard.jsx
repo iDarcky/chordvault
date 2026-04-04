@@ -57,16 +57,7 @@ export default function Dashboard({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{
-        padding: '20px 24px 12px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <h1 style={{
-          margin: 0, fontSize: 20, fontWeight: 700,
-          color: 'var(--text-bright)', letterSpacing: '-0.02em',
-        }}>
-          ChordVault
-        </h1>
+      <PageHeader title="ChordVault">
         <button onClick={() => setShowSearch(true)} style={{
           ...btnStyle, background: 'var(--surface)',
           border: '1px solid var(--border)', color: 'var(--text-muted)',
@@ -74,7 +65,7 @@ export default function Dashboard({
         }}>
           <SearchIcon size={14} /> Search
         </button>
-      </div>
+      </PageHeader>
 
       <div style={{ padding: '0 24px 80px' }}>
         {/* Upcoming Setlists */}

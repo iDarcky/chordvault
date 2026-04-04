@@ -165,7 +165,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
           {compact && navOverride && <div>{navOverride}</div>}
         </div>
 
-        <StructureRibbon structure={song.structure || []} compact={compact} />
+        <StructureRibbon structure={song.structure || []} compact />
 
         {/* Controls row — hidden in compact mode */}
         {!compact && (

@@ -41,6 +41,27 @@ export default function Library({
     return sorted;
   }, [songs, query, sort, tagFilter]);
 
+  const grouped = useMemo(() => {
+    const groups = [];
+    let currentLabel = null;
+    for (const song of filtered) {
+      let label;
+      if (sort === 'title') {
+        label = (song.title[0] || '#').toUpperCase();
+      } else if (sort === 'artist') {
+        label = song.artist || 'Unknown';
+      } else {
+        label = song.key || '?';
+      }
+      if (label !== currentLabel) {
+        groups.push({ label, songs: [] });
+        currentLabel = label;
+      }
+      groups[groups.length - 1].songs.push(song);
+    }
+    return groups;
+  }, [filtered, sort]);
+
   const handleFiles = async (e) => {
     for (const file of Array.from(e.target.files)) {
       const text = await file.text();
@@ -66,7 +87,7 @@ export default function Library({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <PageHeader title="All Songs" />
+      <PageHeader title="Library" />
 
       {/* Search bar + Tags filter */}
       <div style={{ padding: '0 24px 8px' }}>
@@ -196,84 +217,107 @@ export default function Library({
         </div>
       </div>
 
-      {/* Song list — Vercel branch-style rows */}
+      {/* Song list — grouped */}
       <div style={{ padding: '0 24px', paddingBottom: 100 }}>
         <div style={{
-          border: '1px solid var(--border)',
-          borderRadius: 10,
-          overflow: 'hidden',
+          fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+          fontFamily: 'var(--fm)', marginBottom: 8,
         }}>
-          {filtered.length === 0 && (
-            <div style={{
-              textAlign: 'center', padding: '48px 20px',
-              color: 'var(--text-dim)', fontSize: 14,
-            }}>
-              {songs.length === 0
-                ? 'No songs yet. Tap + to create or import.'
-                : 'No songs match your search.'}
-            </div>
-          )}
-          {filtered.map((song, i) => (
-            <div
-              key={song.id || i}
-              onClick={() => onSelectSong(song)}
-              role="button"
-              tabIndex={0}
-              style={{
-                display: 'flex', alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '14px 16px',
-                borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
-                cursor: 'pointer', boxSizing: 'border-box',
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {song.title}
-                </div>
-                <div style={{
-                  fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-                  display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-                }}>
-                  <span>{song.artist}</span>
-                  <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                  <span style={{ fontFamily: 'var(--fm)', fontSize: 11, fontWeight: 600, color: 'var(--chord)' }}>
-                    {song.key}
-                  </span>
-                  {song.tempo && (
-                    <>
-                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.tempo} bpm</span>
-                    </>
-                  )}
-                  {song.time && (
-                    <>
-                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.time}</span>
-                    </>
-                  )}
-                  {(song.tags || []).length > 0 && (
-                    <>
-                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      {song.tags.map(t => (
-                        <span key={t} style={{
-                          fontSize: 10, padding: '1px 6px', borderRadius: 4,
-                          background: 'var(--accent-soft)', color: 'var(--accent-text)',
-                          fontWeight: 500,
-                        }}>
-                          {t}
-                        </span>
-                      ))}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+          All Songs
         </div>
+
+        {filtered.length === 0 && (
+          <div style={{
+            textAlign: 'center', padding: '48px 20px',
+            color: 'var(--text-dim)', fontSize: 14,
+            border: '1px solid var(--border)', borderRadius: 10,
+          }}>
+            {songs.length === 0
+              ? 'No songs yet. Tap + to create or import.'
+              : 'No songs match your search.'}
+          </div>
+        )}
+
+        {grouped.map(group => (
+          <div key={group.label} style={{ marginBottom: 16 }}>
+            <div style={{
+              fontSize: sort === 'title' ? 18 : 14,
+              fontWeight: 700,
+              color: 'var(--text-bright)',
+              fontFamily: sort === 'key' ? 'var(--fm)' : 'var(--fb)',
+              marginBottom: 6,
+              padding: '0 2px',
+            }}>
+              {group.label}
+            </div>
+            <div style={{
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              overflow: 'hidden',
+            }}>
+              {group.songs.map((song, i) => (
+                <div
+                  key={song.id || i}
+                  onClick={() => onSelectSong(song)}
+                  role="button"
+                  tabIndex={0}
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    borderBottom: i < group.songs.length - 1 ? '1px solid var(--border)' : 'none',
+                    cursor: 'pointer', boxSizing: 'border-box',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {song.title}
+                    </div>
+                    <div style={{
+                      fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
+                      display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+                    }}>
+                      <span>{song.artist}</span>
+                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                      <span style={{ fontFamily: 'var(--fm)', fontSize: 11, fontWeight: 600, color: 'var(--chord)' }}>
+                        {song.key}
+                      </span>
+                      {song.tempo && (
+                        <>
+                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.tempo} bpm</span>
+                        </>
+                      )}
+                      {song.time && (
+                        <>
+                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.time}</span>
+                        </>
+                      )}
+                      {(song.tags || []).length > 0 && (
+                        <>
+                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                          {song.tags.map(t => (
+                            <span key={t} style={{
+                              fontSize: 10, padding: '1px 6px', borderRadius: 4,
+                              background: 'var(--accent-soft)', color: 'var(--accent-text)',
+                              fontWeight: 500,
+                            }}>
+                              {t}
+                            </span>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* FAB */}

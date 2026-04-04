@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
+import PageHeader from './PageHeader';
 
 const labelStyle = {
   fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
@@ -40,17 +41,7 @@ export default function Settings({ settings, onUpdate, onClearAll, onDownloadSon
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        padding: '20px 24px 12px',
-      }}>
-        <h1 style={{
-          margin: 0, fontSize: 20, fontWeight: 700,
-          color: 'var(--text-bright)', letterSpacing: '-0.02em',
-        }}>
-          Settings
-        </h1>
-      </div>
+      <PageHeader title="Settings" />
 
       <div style={{ padding: '16px 18px 80px', maxWidth: 500 }}>
         {/* Theme */}

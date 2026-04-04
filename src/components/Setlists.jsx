@@ -6,6 +6,7 @@ const btnStyle = {
   border: 'none', borderRadius: 7, cursor: 'pointer',
   display: 'flex', alignItems: 'center', gap: 5,
   fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
+  padding: '7px 12px',
 };
 
 export default function Setlists({
@@ -111,38 +112,27 @@ export default function Setlists({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{
-        padding: '20px 24px 12px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <h1 style={{
-          margin: 0, fontSize: 20, fontWeight: 700,
-          color: 'var(--text-bright)', letterSpacing: '-0.02em',
+      <PageHeader title="Setlists">
+        <button onClick={() => fileRef.current?.click()} style={{
+          ...btnStyle, background: 'var(--surface)',
+          border: '1px solid var(--border)', color: 'var(--text-muted)',
         }}>
-          Setlists
-        </h1>
-        <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={() => fileRef.current?.click()} style={{
-              ...btnStyle, background: 'var(--surface)',
-              border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-            }}>
-              Import
-            </button>
-            <input ref={fileRef} type="file" accept=".zip"
-              onChange={e => {
-                if (e.target.files[0]) onImportSetlist(e.target.files[0]);
-                e.target.value = '';
-              }}
-              style={{ display: 'none' }} />
-            <button onClick={onNewSetlist} style={{
-              ...btnStyle, background: 'var(--accent-soft)',
-              border: '1px solid rgba(99,102,241,0.3)',
-              color: 'var(--accent-text)', padding: '7px 16px',
-            }}>
-              + New Setlist
-            </button>
-          </div>
-      </div>
+          Import
+        </button>
+        <input ref={fileRef} type="file" accept=".zip"
+          onChange={e => {
+            if (e.target.files[0]) onImportSetlist(e.target.files[0]);
+            e.target.value = '';
+          }}
+          style={{ display: 'none' }} />
+        <button onClick={onNewSetlist} style={{
+          ...btnStyle, background: 'var(--accent-soft)',
+          border: '1px solid rgba(99,102,241,0.3)',
+          color: 'var(--accent-text)',
+        }}>
+          + New Setlist
+        </button>
+      </PageHeader>
 
       <div style={{ padding: '0 24px', paddingBottom: 80 }}>
         {setlists.length === 0 && (
