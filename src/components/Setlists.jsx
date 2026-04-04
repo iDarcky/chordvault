@@ -169,7 +169,6 @@ export default function Setlists({
           <div style={{ marginBottom: 24 }}>
             <div style={{
               fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
               fontFamily: 'var(--fm)', marginBottom: 8,
             }}>
               Upcoming
@@ -183,7 +182,6 @@ export default function Setlists({
           <div>
             <div style={{
               fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
               fontFamily: 'var(--fm)', marginBottom: 8,
             }}>
               All

@@ -4,7 +4,6 @@ import { setActiveProvider, clearProvider, getSyncState } from '../../sync/token
 
 const labelStyle = {
   fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  textTransform: 'uppercase', letterSpacing: '0.07em',
   fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
 };
 

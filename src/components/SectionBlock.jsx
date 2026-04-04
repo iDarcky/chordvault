@@ -77,7 +77,6 @@ function ModulateBadge({ semitones }) {
         fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)',
         color: 'var(--accent-text)', background: 'var(--accent-soft)',
         borderRadius: 4, padding: '2px 8px',
-        letterSpacing: '0.04em', textTransform: 'uppercase',
       }}>
         Key Change: {sign}{semitones}
       </span>
@@ -110,7 +109,6 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
           </span>
           <span style={{
             fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
-            letterSpacing: '0.05em', textTransform: 'uppercase',
           }}>
             {section.type}
           </span>
@@ -237,7 +235,6 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
         </span>
         <span style={{
           fontSize: 13, fontWeight: 700, color: 'var(--text-bright)',
-          letterSpacing: '0.05em', textTransform: 'uppercase',
         }}>
           {section.type}
         </span>

@@ -34,7 +34,6 @@ export function MetaPill({ label, value, highlight }) {
     }}>
       <span style={{
         fontSize: 9.5, fontWeight: 600, color: 'var(--text-muted)',
-        textTransform: 'uppercase', letterSpacing: '0.08em',
       }}>
         {label}
       </span>

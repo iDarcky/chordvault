@@ -181,7 +181,7 @@ export default function FormTab({ md, onChange }) {
         padding: 14, borderRadius: 10,
         background: 'var(--surface)', border: '1px solid var(--border)',
       }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 10 }}>
           Song Info
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -368,7 +368,6 @@ function FieldLabel({ children }) {
   return (
     <span style={{
       fontSize: 9.5, fontWeight: 600, color: 'var(--text-muted)',
-      textTransform: 'uppercase', letterSpacing: '0.06em',
       display: 'block', marginBottom: 3,
     }}>
       {children}

@@ -441,7 +441,6 @@ function MetadataOverlay({ meta, onSave, onClose }) {
           <label key={f.key} style={{ display: 'block', marginBottom: 10 }}>
             <span style={{
               fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.06em',
               display: 'block', marginBottom: 3,
             }}>
               {f.label}

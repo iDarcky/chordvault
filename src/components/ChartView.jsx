@@ -93,7 +93,6 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
 
   const labelStyle = {
     fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-    textTransform: 'uppercase', letterSpacing: '0.07em',
   };
 
   return (

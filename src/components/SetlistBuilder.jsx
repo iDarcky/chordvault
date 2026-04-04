@@ -13,7 +13,6 @@ const inputStyle = {
 
 const labelStyle = {
   fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  textTransform: 'uppercase', letterSpacing: '0.07em',
   fontFamily: 'var(--fm)', display: 'block', marginBottom: 4,
 };
 
@@ -274,8 +273,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <span style={{
                       fontSize: 8, color: 'var(--text-dim)',
-                      textTransform: 'uppercase', letterSpacing: '0.1em',
-                    }}>
+                      }}>
                       Min
                     </span>
                     <input
@@ -367,7 +365,6 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 }}>
                   <span style={{
                     fontSize: 8, color: 'var(--text-dim)',
-                    textTransform: 'uppercase', letterSpacing: '0.1em',
                   }}>
                     Key
                   </span>
@@ -394,7 +391,6 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 }}>
                   <span style={{
                     fontSize: 8, color: 'var(--text-dim)',
-                    textTransform: 'uppercase', letterSpacing: '0.1em',
                   }}>
                     Capo
                   </span>

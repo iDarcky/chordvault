@@ -86,7 +86,6 @@ export default function Dashboard({
           <div style={{ marginBottom: 28 }}>
             <div style={{
               fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
               fontFamily: 'var(--fm)', marginBottom: 8,
             }}>
               Upcoming
@@ -134,7 +133,6 @@ export default function Dashboard({
           <div style={{ marginBottom: 28 }}>
             <div style={{
               fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
               fontFamily: 'var(--fm)', marginBottom: 8,
             }}>
               Recent Songs
@@ -337,8 +335,7 @@ export default function Dashboard({
               <div style={{ marginBottom: 20 }}>
                 <div style={{
                   fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-                  textTransform: 'uppercase', letterSpacing: '0.07em',
-                  fontFamily: 'var(--fm)', marginBottom: 8,
+                      fontFamily: 'var(--fm)', marginBottom: 8,
                 }}>
                   Songs
                 </div>
@@ -390,8 +387,7 @@ export default function Dashboard({
               <div>
                 <div style={{
                   fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-                  textTransform: 'uppercase', letterSpacing: '0.07em',
-                  fontFamily: 'var(--fm)', marginBottom: 8,
+                      fontFamily: 'var(--fm)', marginBottom: 8,
                 }}>
                   Setlists
                 </div>
