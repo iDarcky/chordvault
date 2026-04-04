@@ -9,7 +9,7 @@ export function StructureRibbon({ structure, compact }) {
           <span key={i} style={{
             display: 'inline-flex', alignItems: 'center', gap: compact ? 3 : 4,
             padding: compact ? '2px 6px' : '3px 9px', borderRadius: 16,
-            border: `1.5px solid ${s.b}44`, background: `${s.bg}88`,
+            border: `1.5px solid ${s.b}33`, background: `${s.b}0a`,
             color: s.d, fontSize: compact ? 10 : 10.5, fontWeight: 600,
             fontFamily: 'var(--fm)', whiteSpace: 'nowrap',
           }}>

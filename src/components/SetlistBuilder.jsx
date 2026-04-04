@@ -93,7 +93,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
       {/* Header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(11,11,15,0.92)', backdropFilter: 'blur(16px)',
+        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(255,255,255,0.05)',
         padding: '14px 18px 10px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',

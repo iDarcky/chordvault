@@ -148,7 +148,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
             flexShrink: 0, display: 'flex', alignItems: 'center',
             gap: 6, padding: '5px 10px', borderRadius: 8,
             border: `1px solid ${active ? s.b + '66' : 'rgba(255,255,255,0.04)'}`,
-            background: active ? s.bg : 'transparent',
+            background: active ? `${s.b}15` : 'transparent',
             cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
           }}>
             <span style={{
