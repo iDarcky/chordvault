@@ -74,7 +74,7 @@ function ModulateBadge({ semitones }) {
       borderBottom: '1px dashed var(--accent)',
     }}>
       <span style={{
-        fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)',
+        fontSize: 10, fontWeight: 400, fontFamily: 'var(--fm)',
         color: 'var(--accent-text)', background: 'var(--accent-soft)',
         borderRadius: 4, padding: '2px 8px',
         letterSpacing: '0.04em', textTransform: 'uppercase',
@@ -104,12 +104,12 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: 22, height: 22, borderRadius: '50%',
             border: `2px solid ${s.d}`, color: s.d,
-            fontSize: 8, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
+            fontSize: 8, fontWeight: 400, fontFamily: 'var(--fm)', flexShrink: 0,
           }}>
             {s.l}
           </span>
           <span style={{
-            fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
+            fontSize: 12, fontWeight: 500, color: 'var(--text-muted)',
             letterSpacing: '0.05em', textTransform: 'uppercase',
           }}>
             {section.type}
@@ -231,12 +231,12 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: 28, height: 28, borderRadius: '50%',
           border: `2px solid ${s.d}`, color: s.d,
-          fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
+          fontSize: 10, fontWeight: 400, fontFamily: 'var(--fm)', flexShrink: 0,
         }}>
           {s.l}
         </span>
         <span style={{
-          fontSize: 13, fontWeight: 700, color: 'var(--text-bright)',
+          fontSize: 13, fontWeight: 500, color: 'var(--text-bright)',
           letterSpacing: '0.05em', textTransform: 'uppercase',
         }}>
           {section.type}

@@ -54,13 +54,13 @@ export default function Dashboard({
               width: 38, height: 38, borderRadius: 10,
               background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 16, fontWeight: 700,
+              color: '#fff', fontSize: 16, fontWeight: 500,
             }}>
               CV
             </div>
             <div>
               <h1 style={{
-                margin: 0, fontSize: 22, fontWeight: 700,
+                margin: 0, fontSize: 22, fontWeight: 500,
                 color: 'var(--text-bright)', letterSpacing: '-0.02em',
               }}>
                 ChordVault
@@ -227,7 +227,7 @@ export default function Dashboard({
                     background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
                     border: `1px solid ${s.b}44`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
+                    fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 500, color: s.d,
                   }}>
                     {song.key}
                   </div>
