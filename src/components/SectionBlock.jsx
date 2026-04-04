@@ -1,280 +1,60 @@
-import { transposeChord, sectionStyle } from '../music';
-import { parseLine, extractInlineNotes } from '../parser';
-import TabBlock from './TabBlock';
+import { sectionStyle } from '../music';
+import { parseLine } from '../parser';
+import { useMemo } from 'react';
 
-function ChordToken({ chord, text, transpose }) {
-  const transposed = chord ? transposeChord(chord, transpose) : '';
-  return (
-    <span style={{ display: 'inline-block', verticalAlign: 'top', marginRight: 1 }}>
-      <span style={{
-        display: 'block', fontFamily: 'var(--fm)', fontWeight: 500,
-        fontSize: 13, color: 'var(--chord)', height: 19, lineHeight: '19px',
-        whiteSpace: 'pre', letterSpacing: '0.01em',
-      }}>
-        {transposed || '\u00A0'}
-      </span>
-      <span style={{
-        display: 'block', fontFamily: 'var(--fb)', fontSize: 15,
-        color: 'var(--text)', lineHeight: '21px', whiteSpace: 'pre',
-      }}>
-        {text || '\u00A0'}
-      </span>
-    </span>
-  );
-}
+export default function SectionBlock({ section, transpose, size, showInlineNotes, inlineNoteStyle, displayRole }) {
+  const isVocalist = displayRole === 'vocalist';
+  const isDrummer = displayRole === 'drummer';
+  const isLeader = displayRole === 'leader';
 
-const LEADER_STYLES = {
-  none: { border: 'none' },
-  dashes: { backgroundImage: 'repeating-linear-gradient(to right, var(--border) 0px, var(--border) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  dots: { backgroundImage: 'radial-gradient(circle, var(--text-dim) 1px, transparent 1px)', backgroundSize: '6px 3px', backgroundRepeat: 'repeat-x', backgroundPosition: 'center' },
-  arrow: { backgroundImage: 'repeating-linear-gradient(to right, var(--border) 0px, var(--border) 8px, transparent 8px, transparent 14px)', backgroundRepeat: 'repeat-x', backgroundPosition: 'center', arrow: true },
-};
+  const style = useMemo(() => sectionStyle(section.type), [section.type]);
 
-function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
-  const style = LEADER_STYLES[leaderStyle] || LEADER_STYLES.dashes;
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'flex-end',
-      flex: 1, minWidth: 40, marginLeft: 6,
-    }}>
-      {leaderStyle !== 'none' && (
-        <span style={{
-          flex: 1, alignSelf: 'center',
-          ...style,
-          height: 2,
-          marginRight: style.arrow ? 0 : 6,
-          minWidth: 20,
-        }} />
-      )}
-      {leaderStyle === 'none' && <span style={{ flex: 1 }} />}
-      {style.arrow && (
-        <span style={{
-          alignSelf: 'center', color: 'var(--border)',
-          fontSize: 9, lineHeight: 1, marginRight: 6,
-        }}>&#9656;</span>
-      )}
-      <span style={{
-        fontSize: 10.5, fontStyle: 'italic', whiteSpace: 'nowrap',
-        color: 'var(--chord)', opacity: 0.7,
-        fontFamily: 'var(--fb)', lineHeight: '19px',
-      }}>
-        {notes.join(' · ')}
-      </span>
-    </span>
-  );
-}
-
-function ModulateBadge({ semitones }) {
-  const sign = semitones > 0 ? '+' : '';
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      margin: '6px 0', padding: '4px 0',
-      borderTop: '1px dashed var(--accent)',
-      borderBottom: '1px dashed var(--accent)',
-    }}>
-      <span style={{
-        fontSize: 10, fontWeight: 500, fontFamily: 'var(--fm)',
-        color: 'var(--accent-text)', background: 'var(--accent-soft)',
-        borderRadius: 4, padding: '2px 8px',
-        letterSpacing: '0.04em', textTransform: 'uppercase',
-      }}>
-        Key Change: {sign}{semitones}
-      </span>
-    </div>
-  );
-}
-
-export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', collapsed = false }) {
-  const s = sectionStyle(section.type);
-
-  if (collapsed) {
+  if (isDrummer) {
     return (
-      <div style={{
-        background: s.bg, border: `1.5px solid ${s.b}88`,
-        borderRadius: 10, padding: '10px 16px', marginBottom: 8,
-        position: 'relative', opacity: 0.7,
-      }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, bottom: 0, width: 3,
-          background: s.b, borderRadius: '3px 0 0 3px',
-        }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 22, height: 22, borderRadius: '50%',
-            border: `2px solid ${s.d}`, color: s.d,
-            fontSize: 8, fontWeight: 500, fontFamily: 'var(--fm)', flexShrink: 0,
-          }}>
-            {s.l}
-          </span>
-          <span style={{
-            fontSize: 12, fontWeight: 500, color: 'var(--text-muted)',
-            letterSpacing: '0.05em', textTransform: 'uppercase',
-          }}>
-            {section.type}
-          </span>
-          <span style={{
-            fontSize: 10, color: 'var(--text-dim)', fontStyle: 'italic',
-            fontFamily: 'var(--fb)',
-          }}>
-            (see above)
-          </span>
-          {section.note && (
-            <span style={{
-              fontSize: 10.5, color: 'var(--text-muted)',
-              fontStyle: 'italic', marginLeft: 'auto',
-              maxWidth: '45%', textAlign: 'right', lineHeight: 1.3,
-            }}>
-              {section.note}
-            </span>
-          )}
+      <div style={{ marginBottom: 32 * size, padding: '16px 20px', borderRadius: 12, background: 'var(--surface)', border: `1px solid ${style.b}33`, borderLeft: `4px solid ${style.b}` }}>
+        <h4 style={{ fontSize: 13, fontWeight: 800, color: style.b, margin: '0 0 4px', textTransform: 'uppercase' }}>{section.type}</h4>
+        <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-muted)' }}>
+          {section.lines.filter(l => typeof l === 'object' && l.type === 'modulate').map((l, i) => (
+            <div key={i}>MODULATE {l.semitones > 0 ? '+' : ''}{l.semitones}</div>
+          ))}
         </div>
       </div>
     );
   }
 
-  const isDrummer = displayRole === 'drummer';
-  const isVocalist = displayRole === 'vocalist';
-
-  // Count non-empty lyric lines for drummer bar count
-  const lineCount = isDrummer ? section.lines.filter(l => typeof l === 'string' && l.trim()).length : 0;
-
-  // Pre-compute lines with running modulate offset
-  const renderLines = () => {
-    if (isDrummer) {
-      // Drummer view: only show modulate badges
-      return section.lines.map((line, i) => {
-        if (typeof line === 'object' && line.type === 'modulate') {
-          return <ModulateBadge key={i} semitones={line.semitones} />;
-        }
-        return null;
-      }).filter(Boolean);
-    }
-
-    let runningMod = 0;
-    return section.lines.map((line, i) => {
-      if (typeof line === 'object' && line.type === 'modulate') {
-        runningMod += line.semitones;
-        return <ModulateBadge key={i} semitones={line.semitones} />;
-      }
-      if (typeof line === 'object' && line.type === 'tab') {
-        return <TabBlock key={i} data={line} />;
-      }
-      if (!line.trim()) return <div key={i} style={{ height: 5 }} />;
-
-      const { clean, notes } = extractInlineNotes(line);
-      const effectiveTranspose = transpose + modulateOffset + runningMod;
-      const parts = parseLine(clean);
-      const hasChords = parts.some(p => p.chord);
-      const hasNotes = showInlineNotes && notes.length > 0;
-
-      if (isVocalist) {
-        // Vocalist: lyrics only, no chords
-        const lyricsText = parts.map(p => p.text).join('');
-        return (
-          <div key={i} style={{
-            display: hasNotes ? 'flex' : 'block', alignItems: 'flex-end',
-            fontSize: 15, color: 'var(--text)',
-            lineHeight: '21px', marginBottom: 1,
-          }}>
-            <span style={{ whiteSpace: 'pre-wrap' }}>{lyricsText || clean}</span>
-            {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
-          </div>
-        );
-      }
-
-      if (!hasChords) {
-        return (
-          <div key={i} style={{
-            display: hasNotes ? 'flex' : 'block', alignItems: 'flex-end',
-            fontSize: 15, color: 'var(--text)',
-            lineHeight: '21px', marginBottom: 1,
-          }}>
-            <span style={{ whiteSpace: 'pre-wrap' }}>{clean}</span>
-            {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
-          </div>
-        );
-      }
-
-      return (
-        <div key={i} style={{ display: 'flex', alignItems: 'flex-end', marginBottom: 1, lineHeight: 1 }}>
-          <span style={{ whiteSpace: 'pre-wrap' }}>
-            {parts.map((p, j) => (
-              <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} />
-            ))}
-          </span>
-          {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
-        </div>
-      );
-    });
-  };
-
   return (
-    <div style={{
-      background: s.bg, border: `1.5px solid ${s.b}88`,
-      borderRadius: 10, padding: '12px 16px', marginBottom: 8,
-      position: 'relative',
-    }}>
-      {/* Left accent bar */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, bottom: 0, width: 3,
-        background: s.b, borderRadius: '3px 0 0 3px',
-      }} />
-
-      {/* Section header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        marginBottom: (!isDrummer && section.lines.length) ? 8 : 0,
-      }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 28, height: 28, borderRadius: '50%',
-          border: `2px solid ${s.d}`, color: s.d,
-          fontSize: 10, fontWeight: 500, fontFamily: 'var(--fm)', flexShrink: 0,
-        }}>
-          {s.l}
-        </span>
-        <span style={{
-          fontSize: 13, fontWeight: 500, color: 'var(--text-bright)',
-          letterSpacing: '0.05em', textTransform: 'uppercase',
-        }}>
-          {section.type}
-        </span>
-        {isDrummer && lineCount > 0 && (
-          <span style={{
-            fontSize: 11, fontWeight: 500, fontFamily: 'var(--fm)',
-            color: 'var(--text-dim)', opacity: 0.6,
-          }}>
-            {lineCount} line{lineCount !== 1 ? 's' : ''}
-          </span>
-        )}
-        {section.note && (
-          <span style={{
-            fontSize: isDrummer ? 12 : 10.5,
-            color: isDrummer ? 'var(--text-muted)' : 'var(--text-dim)',
-            fontStyle: 'italic', marginLeft: 'auto',
-            maxWidth: isDrummer ? '60%' : '45%', textAlign: 'right', lineHeight: 1.3,
-            fontWeight: isDrummer ? 600 : 400,
-          }}>
-            {section.note}
-          </span>
-        )}
+    <div className="animate-in" style={{ marginBottom: 40 * size }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }}>
+         <h4 style={{ fontSize: 11, fontWeight: 800, color: style.b, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{section.type}</h4>
+         <div style={{ flex: 1, height: 1, background: `linear-gradient(to right, ${style.b}33, transparent)` }} />
       </div>
 
-      {/* Drummer modulate badges (no lyric content) */}
-      {isDrummer && (
-        <div style={{ paddingLeft: 36 }}>
-          {renderLines()}
-        </div>
-      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 * size }}>
+        {section.lines.map((line, li) => {
+          if (typeof line === 'object') return null; // Logic handled at chart level
+          return (
+             <div key={li} style={{ lineHeight: 1.6, fontSize: 16 * size }}>
+                <LineContent line={line} transpose={transpose} showChords={!isVocalist} />
+             </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
-      {/* Chord/lyric lines (non-drummer) */}
-      {!isDrummer && section.lines.length > 0 && (
-        <div style={{ paddingLeft: 36 }}>
-          {renderLines()}
-        </div>
-      )}
+function LineContent({ line, transpose, showChords }) {
+  const parts = parseLine(line);
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: 4 }}>
+      {parts.map((p, i) => (
+        <span key={i} style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', marginTop: showChords ? 20 : 0 }}>
+          {showChords && p.chord && (
+            <span style={{ position: 'absolute', top: -20, left: 0, fontSize: '0.85em', fontWeight: 800, color: 'var(--chord)', fontFamily: 'var(--fm)' }}>{p.chord}</span>
+          )}
+          <span>{p.text || '\u00A0'}</span>
+        </span>
+      ))}
     </div>
   );
 }

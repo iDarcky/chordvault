@@ -30,7 +30,7 @@ export async function saveSetlists(setlists) {
 }
 
 export const DEFAULT_SETTINGS = {
-  theme: 'light',
+  theme: 'dark',
   defaultColumns: 'auto',
   defaultFontSize: 'M',
   pedalNext: 'ArrowRight',

@@ -1,30 +1,9 @@
 import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
-
-const labelStyle = {
-  fontSize: 10, fontWeight: 500, color: 'var(--text-muted)',
-  textTransform: 'uppercase', letterSpacing: '0.07em',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
-};
-
-const cB = {
-  borderRadius: 0,
-  border: '1px solid var(--border)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 500,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fb)', padding: '6px 14px',
-};
-
-const activeBtn = (active) => ({
-  ...cB,
-  borderColor: active ? 'var(--accent)' : 'var(--border)',
-  color: active ? 'var(--accent-text)' : 'var(--text-muted)',
-  background: active ? 'var(--accent-soft)' : 'var(--surface)',
-});
+import { saveSettings } from '../storage';
 
 export default function Settings({ settings, onUpdate, onBack, onClearAll, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
-  const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
+  const [detectingKey, setDetectingKey] = useState(null);
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
 
@@ -40,216 +19,59 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', color: '#94a3b8',
-          cursor: 'pointer', padding: 4,
-        }}>
-          &#8592; Back
-        </button>
-        <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-bright)' }}>
-          Settings
-        </span>
-      </div>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 100 }}>
+      <header className="glass-header" style={{ padding: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--surface-alt)' }}>←</button>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Settings</h1>
+        </div>
+      </header>
 
-      <div style={{ padding: '16px 18px', maxWidth: 500 }}>
-        {/* Theme */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Theme</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['dark', 'light'].map(t => (
-              <button key={t} onClick={() => update('theme', t)} style={activeBtn(settings.theme === t)}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
+      <main style={{ padding: '32px 20px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <section>
+          <h3 style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Appearance</h3>
+          <div className="bento-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {['light', 'dark'].map(t => (
+              <button key={t} onClick={() => update('theme', t)} style={{
+                height: 48, borderRadius: 12, background: settings.theme === t ? 'var(--accent)' : 'var(--surface-alt)',
+                color: settings.theme === t ? '#fff' : 'var(--text)', border: 'none', fontWeight: 700
+              }}>{t.toUpperCase()}</button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Default Layout */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Default Layout</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['auto', 1, 2].map(v => (
-              <button key={v} onClick={() => update('defaultColumns', v)} style={activeBtn(settings.defaultColumns === v)}>
-                {v === 'auto' ? 'Auto' : `${v}col`}
-              </button>
-            ))}
+        <section>
+          <h3 style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Layout</h3>
+          <div className="bento-card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <span style={{ fontSize: 15, fontWeight: 600 }}>Default Columns</span>
+               <div style={{ display: 'flex', gap: 8 }}>
+                 {['auto', 1, 2].map(v => (
+                   <button key={v} onClick={() => update('defaultColumns', v)} style={{ width: 44, height: 36, borderRadius: 8, background: settings.defaultColumns === v ? 'var(--accent)' : 'var(--surface-alt)', color: settings.defaultColumns === v ? '#fff' : 'var(--text)', fontSize: 12 }}>{v}</button>
+                 ))}
+               </div>
+             </div>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+               <span style={{ fontSize: 15, fontWeight: 600 }}>Text Size</span>
+               <div style={{ display: 'flex', gap: 8 }}>
+                 {['S', 'M', 'L'].map(v => (
+                   <button key={v} onClick={() => update('defaultFontSize', v)} style={{ width: 44, height: 36, borderRadius: 8, background: settings.defaultFontSize === v ? 'var(--accent)' : 'var(--surface-alt)', color: settings.defaultFontSize === v ? '#fff' : 'var(--text)', fontSize: 12 }}>{v}</button>
+                 ))}
+               </div>
+             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Default Font Size */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Default Font Size</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['S', 'M', 'L'].map(s => (
-              <button key={s} onClick={() => update('defaultFontSize', s)} style={activeBtn(settings.defaultFontSize === s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
+        <SyncSettings syncState={syncState} onSyncStateChange={onSyncStateChange} onSyncNow={onSyncNow} />
 
-        {/* Display Role / View */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>View</label>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {[
-              { key: 'leader', label: 'Full', desc: 'Chords, lyrics, tabs' },
-              { key: 'vocalist', label: 'Vocalist', desc: 'Lyrics only' },
-              { key: 'drummer', label: 'Drummer', desc: 'Structure & cues' },
-            ].map(({ key, label, desc }) => (
-              <button
-                key={key}
-                onClick={() => update('displayRole', key)}
-                style={{
-                  ...activeBtn(settings.displayRole === key),
-                  flexDirection: 'column', alignItems: 'center', padding: '8px 14px', gap: 2,
-                }}
-              >
-                <span style={{ fontSize: 12 }}>{label}</span>
-                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 400 }}>{desc}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Duplicate Sections */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Repeat Sections</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {[
-              { key: 'full', label: 'Full', desc: 'Show every section' },
-              { key: 'first', label: '1st Only', desc: 'Collapse repeats' },
-            ].map(({ key, label, desc }) => (
-              <button
-                key={key}
-                onClick={() => update('duplicateSections', key)}
-                style={{
-                  ...activeBtn(settings.duplicateSections === key),
-                  flexDirection: 'column', alignItems: 'center', padding: '8px 14px', gap: 2,
-                }}
-              >
-                <span style={{ fontSize: 12 }}>{label}</span>
-                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 400 }}>{desc}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Inline Notes */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Inline Notes</label>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {[true, false].map(v => (
-              <button key={String(v)} onClick={() => update('showInlineNotes', v)} style={activeBtn(settings.showInlineNotes === v)}>
-                {v ? 'Show' : 'Hide'}
-              </button>
-            ))}
-          </div>
-          {settings.showInlineNotes !== false && (
-            <>
-              <label style={{ ...labelStyle, marginTop: 8 }}>Leader Style</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {[
-                  { key: 'none', label: 'None' },
-                  { key: 'dashes', label: '- - -' },
-                  { key: 'dots', label: '\u00B7 \u00B7 \u00B7' },
-                  { key: 'arrow', label: '\u2500\u2500\u25B8' },
-                ].map(({ key, label }) => (
-                  <button key={key} onClick={() => update('inlineNoteStyle', key)} style={activeBtn(settings.inlineNoteStyle === key)}>
-                    <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Pedal Mapping */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Pedal / Keyboard Mapping</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              { field: 'pedalNext', label: 'Next Song' },
-              { field: 'pedalPrev', label: 'Previous Song' },
-            ].map(({ field, label }) => (
-              <div key={field} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '8px 12px', borderRadius: 0,
-                background: 'var(--surface)', border: '1px solid var(--border)',
-              }}>
-                <span style={{ fontSize: 13, color: 'var(--text)' }}>{label}</span>
-                <button
-                  onClick={() => handleDetectKey(field)}
-                  style={{
-                    ...cB,
-                    background: detectingKey === field ? 'rgba(245,158,11,0.15)' : 'var(--surface)',
-                    borderColor: detectingKey === field ? 'rgba(245,158,11,0.4)' : 'var(--border)',
-                    color: detectingKey === field ? '#fbbf24' : 'var(--chord)',
-                    fontFamily: 'var(--fm)', fontSize: 11,
-                  }}
-                >
-                  {detectingKey === field ? 'Press a key...' : settings[field]}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Cloud Sync */}
-        <SyncSettings
-          syncState={syncState || { state: 'idle', lastSync: null, provider: null }}
-          onSyncStateChange={onSyncStateChange}
-          onSyncNow={onSyncNow}
-        />
-
-        {/* Data */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>Data</label>
-          <div style={{
-            padding: '12px 14px', borderRadius: 0,
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            marginBottom: 8,
-          }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              {songCount} song{songCount !== 1 ? 's' : ''} · {setlistCount} setlist{setlistCount !== 1 ? 's' : ''}
-            </span>
-          </div>
-          <button
-            onClick={() => { if (confirm('Delete ALL songs and setlists? This cannot be undone.')) onClearAll(); }}
-            style={{
-              ...cB, width: '100%', justifyContent: 'center',
-              background: 'var(--danger-soft)',
-              border: 'none',
-              color: 'var(--danger)',
-            }}
-          >
-            Clear All Data
-          </button>
-        </div>
-
-        {/* About */}
-        <div style={{
-          padding: '12px 14px', borderRadius: 0,
-          background: 'var(--surface)', border: '1px solid var(--border)',
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-bright)', marginBottom: 4 }}>
-            ChordVault
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            Free, offline-first chord chart app for worship teams.
-            Songs are portable .md files.
-          </div>
-        </div>
-      </div>
+        <section>
+           <h3 style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Data Management</h3>
+           <div className="bento-card" style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent)' }}>
+              <p style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>Deleting your local data is permanent. Make sure your cloud sync is complete.</p>
+              <button onClick={() => confirm('Delete everything?') && onClearAll()} style={{ width: '100%', background: 'var(--accent)', color: '#fff', borderRadius: 12 }}>CLEAR ALL DATA</button>
+           </div>
+        </section>
+      </main>
     </div>
   );
 }

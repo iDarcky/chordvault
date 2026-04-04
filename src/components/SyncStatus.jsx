@@ -9,10 +9,10 @@ export default function SyncStatus({ syncState, onClick }) {
   };
 
   const labels = {
-    idle: provider ? 'Idle' : 'Offline',
-    syncing: 'Syncing...',
-    synced: lastSync ? formatRelative(lastSync) : 'Synced',
-    error: 'Sync error',
+    idle: provider ? 'IDLE' : 'OFFLINE',
+    syncing: 'SYNCING',
+    synced: lastSync ? formatRelative(lastSync).toUpperCase() : 'SYNCED',
+    error: 'ERROR',
   };
 
   return (
@@ -21,27 +21,26 @@ export default function SyncStatus({ syncState, onClick }) {
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 6,
-        padding: '5px 10px',
-        borderRadius: 20,
+        gap: 8,
+        padding: '6px 12px',
+        borderRadius: 30,
         border: '1px solid var(--border)',
         background: 'var(--surface)',
-        cursor: 'pointer',
-        fontFamily: 'var(--fb)',
-        fontSize: 11,
-        fontWeight: 500,
+        fontSize: 10,
+        fontWeight: 700,
         color: 'var(--text-muted)',
+        letterSpacing: '0.05em',
+        minHeight: 'auto'
       }}
     >
       <span style={{
-        width: 7,
-        height: 7,
+        width: 6,
+        height: 6,
         borderRadius: '50%',
         background: dotColors[state] || dotColors.idle,
-        display: 'inline-block',
-        animation: state === 'syncing' ? 'pulse 1.5s infinite' : 'none',
+        boxShadow: state === 'syncing' ? '0 0 8px var(--accent)' : 'none'
       }} />
-      {labels[state] || 'Offline'}
+      {labels[state] || 'OFFLINE'}
     </button>
   );
 }

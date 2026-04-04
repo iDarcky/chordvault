@@ -1,46 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
 :root {
-  /* Sharp Swiss Style (Default Light) */
-  --bg: #ffffff;
-  --surface: #ffffff;
-  --surface-alt: #f1f3f5;
-  --border: #1a1a1a;       /* Strong black border */
-  --text: #1a1a1a;
-  --text-bright: #000000;
-  --text-muted: #4a4a4a;
-  --text-dim: #999999;
-  --chord: #b45309;
-  --accent: #a63446;       /* Cherry Rose Block */
-  --accent-soft: #fef2f2;
-  --accent-text: #ffffff;
-  --success: #059669;
-  --warning: #d97706;
-  --danger: #dc2626;
+  /* ChordVault 2026: Deep Slate & Obsidian (Default Dark) */
+  --bg: #09090b;           /* Obsidian */
+  --surface: #18181b;      /* Slate-900 */
+  --surface-alt: #27272a;  /* Slate-800 */
+  --border: rgba(255,255,255,0.08);
+  --border-bright: rgba(255,255,255,0.15);
+  --text: #e4e4e7;         /* Zinc-200 */
+  --text-bright: #ffffff;
+  --text-muted: #a1a1aa;   /* Zinc-400 */
+  --text-dim: #71717a;     /* Zinc-500 */
+  --chord: #fbbf24;        /* Amber-400 */
+  --accent: #f43f5e;       /* Rose-500 (Vibrant Cherry Rose) */
+  --accent-soft: rgba(244,63,94,0.1);
+  --accent-glow: rgba(244,63,94,0.4);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --header-bg: rgba(9,9,11,0.85);
 
   --fb: 'Inter', sans-serif;
   --fm: 'JetBrains Mono', monospace;
-  --radius: 0px;           /* SHARP EDGES */
-  --bw: 1.5px;             /* Standard Border Width */
+  --radius: 16px;
+  --radius-sm: 8px;
+  --glass: blur(20px);
+  --shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="dark"] {
-  /* Sharp Swiss Dark */
-  --bg: #131515;
-  --surface: #1a1c1c;
-  --surface-alt: #2b2c28;
-  --border: #ffffff;
-  --text: #ffffff;
-  --text-bright: #ffffff;
-  --text-muted: #999999;
-  --text-dim: #666666;
-  --chord: #e2a832;
-  --accent: #a63446;
-  --accent-soft: #2d1a1c;
-  --accent-text: #ffffff;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef233c;
+[data-theme="light"] {
+  /* ChordVault 2026: Soft Ivory & Clean Zinc */
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-alt: #f4f4f5;
+  --border: rgba(0,0,0,0.06);
+  --border-bright: rgba(0,0,0,0.1);
+  --text: #18181b;
+  --text-bright: #000000;
+  --text-muted: #71717a;
+  --text-dim: #a1a1aa;
+  --chord: #b45309;
+  --accent: #e11d48;       /* Rose-600 */
+  --accent-soft: rgba(225,29,72,0.05);
+  --accent-glow: rgba(225,29,72,0.2);
+  --header-bg: rgba(250,250,250,0.85);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -49,67 +52,121 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--fb);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
+  transition: background-color 0.4s ease;
 }
 
+html { scroll-behavior: smooth; }
+
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;         /* HEAVY SWISS TITLES */
+  font-weight: 600;
   color: var(--text-bright);
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
+  letter-spacing: -0.025em;
 }
 
 button {
   min-height: 40px;
   font-family: var(--fb);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-weight: 600;
   border: none;
-  background: var(--accent);
-  color: var(--accent-text);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
-  border-radius: var(--radius);
-  padding: 10px 20px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.15s;
+  gap: 8px;
 }
 
-button:hover { opacity: 0.9; }
-button:active { transform: translateY(1px); }
+button:hover {
+  background: var(--surface-alt);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button.primary {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+button.primary:hover {
+  background: #fb7185; /* Lightened Rose */
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
 
 input {
   font-family: var(--fb);
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 12px 16px;
   outline: none;
-  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 textarea {
   font-family: var(--fm);
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   outline: none;
   padding: 16px;
+  transition: all 0.2s ease;
+}
+
+textarea:focus {
+  border-color: var(--accent);
+}
+
+.bento-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.bento-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.glass-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--header-bg);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  border-bottom: 1px solid var(--border);
 }
 
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { scrollbar-width: none; }
 
-@media (max-width: 639px) {
-  button { min-height: 48px; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Swiss Grid Lines */
-.swiss-border-bottom { border-bottom: var(--bw) solid var(--border); }
-.swiss-border-top { border-top: var(--bw) solid var(--border); }
+.animate-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}

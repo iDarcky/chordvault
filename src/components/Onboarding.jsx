@@ -1,97 +1,47 @@
 import { useState } from 'react';
 
-const ONBOARDING_STEPS = [
+const STEPS = [
   {
-    title: 'Your Music, Your Way',
-    description: 'Create and edit charts using a simple markdown format. Chords go in [brackets] and lyrics follow.',
-    icon: '\uD83D\uDCDD',
-    color: 'var(--accent)',
+    title: 'Precision Charts',
+    desc: 'Write in simple markdown. We handle the formatting, transposing, and layout automatically.',
+    icon: '✦',
   },
   {
-    title: 'Transpose Anywhere',
-    description: 'Instant transposition and capo support. Change keys for your entire team in seconds.',
-    icon: '\u266B',
-    color: 'var(--warning)',
+    title: 'Cloud Core',
+    desc: 'Securely sync your library across every device. Your team is always on the same page.',
+    icon: '☁',
   },
   {
-    title: 'Live Mode',
-    description: 'Smooth, focus-oriented display for rehearsals and services. Multi-column and custom font sizes.',
-    icon: '\u25B6',
-    color: 'var(--accent)',
-  },
+    title: 'Live Flow',
+    desc: 'A distraction-free stage mode built for focus. Performance-ready, anywhere.',
+    icon: '▶',
+  }
 ];
 
 export default function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0);
-  const current = ONBOARDING_STEPS[step];
-
-  const handleNext = () => {
-    if (step < ONBOARDING_STEPS.length - 1) {
-      setStep(step + 1);
-    } else {
-      onComplete();
-    }
-  };
+  const cur = STEPS[step];
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 24px',
-      border: '20px solid var(--border)',
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: 500,
-        background: 'var(--bg)',
-        border: 'var(--bw) solid var(--border)',
-        padding: '60px 40px',
-        textAlign: 'center',
-      }}>
-        <div style={{
-          width: 80,
-          height: 80,
-          border: 'var(--bw) solid var(--border)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 40,
-          margin: '0 auto 40px',
-          color: current.color,
-        }}>
-          {current.icon}
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div className="bento-card animate-in" style={{ maxWidth: 440, padding: '48px 40px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 300, height: 200, background: 'var(--accent-glow)', filter: 'blur(80px)', opacity: 0.3 }} />
+
+        <div style={{ width: 80, height: 80, borderRadius: 20, background: 'var(--surface-alt)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, margin: '0 auto 32px', color: 'var(--accent)' }}>
+          {cur.icon}
         </div>
 
-        <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0, textTransform: 'uppercase' }}>
-          {current.title}
-        </h2>
+        <h2 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 16px' }}>{cur.title}</h2>
+        <p style={{ fontSize: 17, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 48, fontWeight: 500 }}>{cur.desc}</p>
 
-        <p style={{
-          margin: '24px 0 48px',
-          fontSize: 16,
-          color: 'var(--text-muted)',
-          lineHeight: 1.6,
-          fontWeight: 500,
-        }}>
-          {current.description}
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 40 }}>
+          {STEPS.map((_, i) => (
+            <div key={i} style={{ width: i === step ? 32 : 8, height: 8, borderRadius: 4, background: i === step ? 'var(--accent)' : 'var(--border)', transition: 'all 0.3s' }} />
+          ))}
+        </div>
 
-        <button
-          onClick={handleNext}
-          style={{
-            width: '100%',
-            padding: '20px',
-            background: 'var(--accent)',
-            fontSize: 16,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-          }}
-        >
-          {step === ONBOARDING_STEPS.length - 1 ? "LET'S GO" : 'CONTINUE'}
+        <button className="primary" onClick={() => step < STEPS.length - 1 ? setStep(step + 1) : onComplete()} style={{ width: '100%', padding: '16px', borderRadius: 14, fontSize: 15 }}>
+          {step === STEPS.length - 1 ? 'LAUNCH VAULT' : 'CONTINUE'}
         </button>
       </div>
     </div>
