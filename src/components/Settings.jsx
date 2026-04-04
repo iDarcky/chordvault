@@ -8,7 +8,7 @@ const labelStyle = {
 };
 
 const cB = {
-  borderRadius: 6,
+  borderRadius: 0,
   border: '1px solid var(--border)',
   background: 'var(--surface)', color: 'var(--text)',
   fontSize: 12, cursor: 'pointer', fontWeight: 500,
@@ -183,7 +183,7 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
             ].map(({ field, label }) => (
               <div key={field} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '8px 12px', borderRadius: 8,
+                padding: '8px 12px', borderRadius: 0,
                 background: 'var(--surface)', border: '1px solid var(--border)',
               }}>
                 <span style={{ fontSize: 13, color: 'var(--text)' }}>{label}</span>
@@ -215,7 +215,7 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
         <div style={{ marginBottom: 24 }}>
           <label style={labelStyle}>Data</label>
           <div style={{
-            padding: '12px 14px', borderRadius: 8,
+            padding: '12px 14px', borderRadius: 0,
             background: 'var(--surface)', border: '1px solid var(--border)',
             marginBottom: 8,
           }}>
@@ -238,7 +238,7 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
 
         {/* About */}
         <div style={{
-          padding: '12px 14px', borderRadius: 8,
+          padding: '12px 14px', borderRadius: 0,
           background: 'var(--surface)', border: '1px solid var(--border)',
         }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-bright)', marginBottom: 4 }}>

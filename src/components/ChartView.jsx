@@ -76,7 +76,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     : song.sections.length;
 
   const btnStyle = {
-    width: 28, height: 28, borderRadius: 6,
+    width: 28, height: 28, borderRadius: 0,
     border: '1px solid var(--border)',
     background: 'var(--surface)', color: 'var(--text)',
     fontSize: 15, cursor: 'pointer',

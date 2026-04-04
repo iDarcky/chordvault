@@ -1,218 +1,69 @@
-import { useMemo } from 'react';
-import { transposeKey, sectionStyle } from '../music';
-
-const btnStyle = {
-  border: 'none', borderRadius: 7, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: 5,
-  fontFamily: 'var(--fb)', fontWeight: 500, fontSize: 12,
-};
+import { transposeKey } from '../music';
 
 export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay }) {
-  const getSong = (id) => songs.find(s => s.id === id);
-
-  const { songCount, breakCount, totalDuration } = useMemo(() => {
-    let sc = 0, bc = 0, dur = 0;
-    for (const it of setlist.items) {
-      if (it.type === 'break') {
-        bc++;
-        dur += it.duration || 0;
-      } else {
-        sc++;
-        const s = getSong(it.songId);
-        if (s) {
-          const bpm = s.tempo || 120;
-          dur += Math.round(240 / bpm * s.sections.length);
-        }
-      }
-    }
-    return { songCount: sc, breakCount: bc, totalDuration: dur };
-  }, [setlist, songs]);
-
-  const dateStr = new Date(setlist.date + 'T12:00:00').toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  });
+  const songList = setlist.items || [];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', border: 'var(--bw) solid var(--border)' }}>
       {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)',
-        borderBottom: '1px solid var(--border)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      <header style={{
+        padding: '40px 24px',
+        borderBottom: 'var(--bw) solid var(--border)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div>
           <button onClick={onBack} style={{
-            background: 'none', border: 'none', color: '#94a3b8',
-            cursor: 'pointer', padding: 4,
-          }}>
-            &#8592; Back
-          </button>
-          <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-bright)' }}>
-            {setlist.name || 'Untitled Setlist'}
-          </span>
+            background: 'var(--text-bright)', color: 'var(--bg)',
+            padding: '8px 12px', minHeight: 'auto', fontSize: 14, marginBottom: 16
+          }}>← BACK</button>
+          <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0 }}>{setlist.name || 'Setlist'}</h1>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 6 }}>{setlist.date} / {setlist.service}</p>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={onExport} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-          }}>
-            &#8595; Export
-          </button>
-          <button onClick={onEdit} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-          }}>
-            Edit
-          </button>
-          <button onClick={onPlay} style={{
-            ...btnStyle, background: 'var(--accent-soft)',
-            border: '1px solid var(--accent)',
-            color: 'var(--accent-text)', padding: '7px 16px',
-          }}>
-            Live
-          </button>
-        </div>
-      </div>
+      </header>
 
-      {/* Meta */}
-      <div style={{ padding: '16px 18px 8px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{
-          padding: '4px 10px', borderRadius: 6,
-          background: 'var(--accent-soft)', border: '1px solid var(--accent)',
-          fontSize: 12, fontWeight: 500, color: 'var(--accent-text)',
-        }}>
-          {setlist.service || 'Service'}
-        </span>
-        <span style={{ fontSize: 13, color: 'var(--text)' }}>{dateStr}</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>
-          {songCount} song{songCount !== 1 ? 's' : ''}
-          {breakCount > 0 && ` + ${breakCount} break${breakCount !== 1 ? 's' : ''}`}
-          {totalDuration > 0 && ` · ~${totalDuration} min`}
-        </span>
-      </div>
+      {/* Actions */}
+      <section style={{ padding: '32px 24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        <button onClick={onPlay} style={{ background: 'var(--accent)', padding: '16px' }}>PLAY</button>
+        <button onClick={onEdit} style={{ background: 'var(--text-bright)', color: 'var(--bg)', padding: '16px' }}>EDIT</button>
+        <button onClick={onExport} style={{ background: 'var(--bg)', border: 'var(--bw) solid var(--border)', color: 'var(--text)', padding: '16px' }}>EXPORT</button>
+      </section>
 
-      {/* Items */}
-      <div style={{ padding: '8px 18px 40px' }}>
-        {setlist.items.map((item, idx) => {
-          // Break item
-          if (item.type === 'break') {
+      {/* Song List */}
+      <main style={{ padding: '0 24px 60px' }}>
+        <h2 style={{ fontSize: 14, marginBottom: 24 }}>ORDER OF SERVICE</h2>
+        <div style={{ borderTop: 'var(--bw) solid var(--border)' }}>
+          {songList.map((it, idx) => {
+            if (it.type === 'break') {
+              return (
+                <div key={idx} style={{
+                  padding: '24px 0', borderBottom: 'var(--bw) solid var(--border)',
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  color: 'var(--text-dim)', fontStyle: 'italic'
+                }}>
+                  <div style={{ fontSize: 14 }}>{String(idx + 1).padStart(2, '0')}</div>
+                  <div style={{ fontSize: 18 }}>{it.label || 'BREAK'}</div>
+                </div>
+              );
+            }
+            const song = songs.find(s => s.id === it.songId);
+            if (!song) return null;
             return (
               <div key={idx} style={{
-                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-                borderRadius: 10, border: '1px solid var(--border)',
-                padding: '12px 16px', background: 'var(--surface)',
+                padding: '24px 0', borderBottom: 'var(--bw) solid var(--border)',
+                display: 'flex', alignItems: 'center', gap: 20
               }}>
-                <span style={{
-                  fontSize: 13, fontWeight: 500, color: 'var(--text-dim)',
-                  fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
-                }}>
-                  {idx + 1}
-                </span>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, color: 'var(--text-muted)',
-                }}>
-                  &#9646;
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-                    fontStyle: 'italic',
-                  }}>
-                    {item.label || 'Break'}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                    {item.duration > 0 && (
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>
-                        {item.duration} min
-                      </span>
-                    )}
-                    {item.note && (
-                      <span style={{ fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic' }}>
-                        {item.note}
-                      </span>
-                    )}
-                  </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-dim)' }}>{String(idx + 1).padStart(2, '0')}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>{song.title}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 4 }}>{transposeKey(song.key, it.transpose)} / {song.artist}</div>
                 </div>
               </div>
             );
-          }
-
-          // Song item
-          const song = getSong(item.songId);
-          if (!song) return null;
-          const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-          const displayKey = transposeKey(song.key, item.transpose);
-
-          return (
-            <div key={idx} style={{
-              display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-              borderRadius: 10, border: '1px solid var(--border)',
-              padding: '12px 16px', background: 'var(--surface)',
-            }}>
-              <span style={{
-                fontSize: 13, fontWeight: 500, color: 'var(--text-dim)',
-                fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
-              }}>
-                {idx + 1}
-              </span>
-              <div style={{
-                width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                background: 'var(--bg)',
-                border: `1px solid ${s.b}44`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 500, color: s.d,
-              }}>
-                {displayKey}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {song.title}
-                </div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
-                  {song.artist} · {song.tempo} bpm · {song.time}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-                {item.transpose !== 0 && (
-                  <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 500,
-                    fontFamily: 'var(--fm)', color: 'var(--chord)',
-                    background: 'var(--warning)', border: 'none', color: '#000',
-                  }}>
-                    {song.key} → {displayKey}
-                  </span>
-                )}
-                {(item.capo || 0) > 0 && (
-                  <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 500,
-                    fontFamily: 'var(--fm)', color: 'var(--accent-text)',
-                    background: 'var(--accent-soft)', border: '1px solid var(--accent)',
-                  }}>
-                    Capo {item.capo}
-                  </span>
-                )}
-                {item.note && (
-                  <span style={{
-                    fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic',
-                    maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {item.note}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+          })}
+        </div>
+      </main>
     </div>
   );
 }

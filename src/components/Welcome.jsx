@@ -20,95 +20,30 @@ export default function Welcome({ onGetStarted, onImport }) {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '40px 24px',
+      border: '20px solid var(--border)',
     }}>
-      {/* Zen-Modern Branding */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
-        marginBottom: 48,
+        gap: 16,
+        marginBottom: 60,
+        padding: '24px',
+        border: 'var(--bw) solid var(--border)'
       }}>
-        <div style={{
-          width: 14,
-          height: 14,
-          background: 'var(--accent)',
-          borderRadius: 2,
-        }} />
-        <h1 style={{
-          margin: 0,
-          fontSize: 28,
-          fontWeight: 400,
-          letterSpacing: '-0.04em',
-          color: 'var(--text-bright)',
-        }}>
-          ChordVault
-        </h1>
+        <div style={{ width: 24, height: 24, background: 'var(--accent)', borderRadius: 0 }} />
+        <h1 style={{ fontSize: 36, fontWeight: 700, margin: 0 }}>ChordVault</h1>
       </div>
 
-      <div style={{ maxWidth: 360, textAlign: 'center' }}>
-        <p style={{
-          fontSize: 18,
-          color: 'var(--text)',
-          fontFamily: 'var(--fb)',
-          lineHeight: 1.5,
-          marginBottom: 12,
-        }}>
-          Modern chord charts for worship teams.
-        </p>
-        <p style={{
-          fontSize: 14,
-          color: 'var(--text-muted)',
-          fontFamily: 'var(--fb)',
-          lineHeight: 1.6,
-        }}>
-          Offline-first. Portable markdown files.
-          Built for focus and clarity.
-        </p>
+      <div style={{ maxWidth: 400, textAlign: 'center', marginBottom: 60 }}>
+        <p style={{ fontSize: 24, fontWeight: 700, textTransform: 'uppercase', marginBottom: 12 }}>Modern Worship Charts</p>
+        <p style={{ fontSize: 16, color: 'var(--text-muted)', fontWeight: 500 }}>BEYOND PORTABLE. BEYOND PDF. BEYOND REPLACEMENT.</p>
       </div>
 
-      <div style={{ marginTop: 64, display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 280 }}>
-        <button
-          onClick={onGetStarted}
-          style={{
-            padding: '14px',
-            borderRadius: 8,
-            background: 'var(--text-bright)',
-            color: 'var(--bg)',
-            fontSize: 15,
-            fontWeight: 500,
-            cursor: 'pointer',
-            fontFamily: 'var(--fb)',
-          }}
-        >
-          Get Started
-        </button>
-
-        <button
-          onClick={() => fileRef.current?.click()}
-          style={{
-            padding: '14px',
-            borderRadius: 8,
-            background: 'transparent',
-            border: '1px solid var(--border)',
-            color: 'var(--text)',
-            fontSize: 14,
-            fontWeight: 500,
-            cursor: 'pointer',
-            fontFamily: 'var(--fb)',
-          }}
-        >
-          Import .md files
-        </button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, width: '100%', maxWidth: 300 }}>
+        <button onClick={onGetStarted} style={{ background: 'var(--accent)', padding: '20px' }}>GET STARTED</button>
+        <button onClick={() => fileRef.current?.click()} style={{ background: 'var(--text-bright)', color: 'var(--bg)', padding: '20px' }}>IMPORT .MD</button>
       </div>
-
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".md,.txt"
-        multiple
-        onChange={handleFiles}
-        style={{ display: 'none' }}
-      />
+      <input ref={fileRef} type="file" accept=".md,.txt" multiple onChange={handleFiles} style={{ display: 'none' }} />
     </div>
   );
 }

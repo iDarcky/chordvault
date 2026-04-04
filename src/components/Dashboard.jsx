@@ -33,86 +33,110 @@ export default function Dashboard({
   }, [setlists]);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 60 }}>
-      {/* Header */}
-      <header style={{ padding: '40px 24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', border: 'var(--bw) solid var(--border)' }}>
+      {/* Header Area */}
+      <header style={{
+        padding: '40px 24px',
+        borderBottom: 'var(--bw) solid var(--border)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start'
+      }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <div style={{ width: 10, height: 10, background: 'var(--accent)', borderRadius: 1 }} />
-            <h1 style={{ fontSize: 24, fontWeight: 500 }}>ChordVault</h1>
-          </div>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            {songs.length} songs · {setlists.length} setlists
+          <h1 style={{ fontSize: 32, fontWeight: 700, margin: 0 }}>ChordVault</h1>
+          <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)', marginTop: 4 }}>
+            {songs.length} SONGS / {setlists.length} SETLISTS
           </p>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <SyncStatus syncState={syncState} onClick={onSyncNow} />
-          <button onClick={onGoSettings} style={{ fontSize: 20, color: 'var(--text-muted)' }}>⚙</button>
+          <button onClick={onGoSettings} style={{
+            background: 'var(--text-bright)', color: 'var(--bg)',
+            padding: '8px 12px', fontSize: 20, minHeight: 'auto'
+          }}>⚙</button>
         </div>
       </header>
 
-      <main style={{ padding: '0 24px' }}>
-        {/* Actions */}
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 56 }}>
+      <main style={{ padding: '40px 24px' }}>
+        {/* Bold Quick Actions */}
+        <section style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 'var(--bw)',
+          background: 'var(--border)',
+          border: 'var(--bw) solid var(--border)',
+          marginBottom: 60
+        }}>
           {[
             { label: 'New', icon: '+', action: onNewSong },
             { label: 'Import', icon: '↑', action: () => fileRef.current?.click() },
             { label: 'Setlist', icon: '☰', action: onNewSetlist },
           ].map(btn => (
             <button key={btn.label} onClick={btn.action} style={{
-              flexDirection: 'column', gap: 6, padding: '16px 8px',
-              background: 'var(--surface-alt)', color: 'var(--text)', fontSize: 12,
+              flexDirection: 'column', gap: 8, padding: '24px 8px',
+              background: 'var(--bg)', color: 'var(--text)',
+              fontSize: 14, fontWeight: 700
             }}>
-              <span style={{ fontSize: 20 }}>{btn.icon}</span>
+              <span style={{ fontSize: 24 }}>{btn.icon}</span>
               {btn.label}
             </button>
           ))}
         </section>
         <input ref={fileRef} type="file" accept=".md,.txt" multiple onChange={handleFiles} style={{ display: 'none' }} />
 
-        {/* Content */}
+        {/* Dynamic Content - Structural Lines */}
         {upcomingSetlists.length > 0 && (
-          <section style={{ marginBottom: 48 }}>
-            <h2 style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Upcoming</h2>
+          <section style={{ marginBottom: 60 }}>
+            <h2 style={{ fontSize: 14, marginBottom: 20 }}>Upcoming Setlists</h2>
             {upcomingSetlists.map(sl => (
               <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '20px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer'
+                padding: '24px 0', borderTop: 'var(--bw) solid var(--border)', cursor: 'pointer'
               }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 500 }}>{sl.name || 'Untitled'}</div>
-                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>{sl.date}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>{sl.name || 'Untitled Setlist'}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 4 }}>{sl.date} / {sl.items?.length || 0} SONGS</div>
                 </div>
                 <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-                  padding: '6px 14px', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: 12
-                }}>Live</button>
+                  padding: '8px 24px', fontSize: 13, minHeight: 'auto'
+                }}>LIVE</button>
               </div>
             ))}
           </section>
         )}
 
-        <section style={{ marginBottom: 56 }}>
-          <h2 style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Recent</h2>
-          {recentSongs.length > 0 ? recentSongs.map(song => (
-            <div key={song.id} onClick={() => onSelectSong(song)} style={{
-              display: 'flex', alignItems: 'center', gap: 16,
-              padding: '20px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer'
-            }}>
-              <div style={{ width: 6, height: 6, background: 'var(--border)', borderRadius: '50%' }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 16, fontWeight: 500 }}>{song.title}</div>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{song.artist}</div>
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text-dim)', fontFamily: 'var(--fm)' }}>{song.key}</div>
+        <section style={{ marginBottom: 60 }}>
+          <h2 style={{ fontSize: 14, marginBottom: 20 }}>Recent Songs</h2>
+          {recentSongs.length > 0 ? (
+            <div style={{ borderTop: 'var(--bw) solid var(--border)' }}>
+              {recentSongs.map(song => (
+                <div key={song.id} onClick={() => onSelectSong(song)} style={{
+                  display: 'flex', alignItems: 'center', gap: 20,
+                  padding: '20px 0', borderBottom: 'var(--bw) solid var(--border)', cursor: 'pointer'
+                }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, minWidth: 32 }}>{song.key}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700 }}>{song.title}</div>
+                    <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 2 }}>{song.artist}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          )) : (
-            <p style={{ fontSize: 14, color: 'var(--text-dim)', textAlign: 'center', padding: '20px 0' }}>No songs yet.</p>
+          ) : (
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', borderTop: 'var(--bw) solid var(--border)', paddingTop: 20 }}>NO SONGS YET</p>
           )}
         </section>
 
-        <nav style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <button onClick={onGoLibrary} style={{ background: 'var(--surface-alt)', fontSize: 14 }}>Library</button>
-          <button onClick={onGoSetlists} style={{ background: 'var(--surface-alt)', fontSize: 14 }}>Setlists</button>
+        {/* Global Navigation Blocks */}
+        <nav style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 'var(--bw)',
+          background: 'var(--border)',
+          border: 'var(--bw) solid var(--border)'
+        }}>
+          <button onClick={onGoLibrary} style={{ background: 'var(--bg)', color: 'var(--text)', padding: '20px' }}>Library</button>
+          <button onClick={onGoSetlists} style={{ background: 'var(--bg)', color: 'var(--text)', padding: '20px' }}>Setlists</button>
         </nav>
       </main>
     </div>

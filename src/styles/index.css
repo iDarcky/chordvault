@@ -1,42 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
-  /* Zen-Modern Light (Default) */
-  --bg: #ffffff;           /* Pure white */
+  /* Sharp Swiss Style (Default Light) */
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-alt: #f8f9fa;  /* Extremely subtle grey */
-  --border: #f1f3f5;       /* Very faint border */
-  --text: #1a1a1a;         /* Near black */
+  --surface-alt: #f1f3f5;
+  --border: #1a1a1a;       /* Strong black border */
+  --text: #1a1a1a;
   --text-bright: #000000;
-  --text-muted: #6b7280;
-  --text-dim: #adb5bd;
+  --text-muted: #4a4a4a;
+  --text-dim: #999999;
   --chord: #b45309;
-  --accent: #a63446;       /* Cherry Rose Hanko */
-  --accent-soft: #fff1f2;
-  --accent-text: #a63446;
-  --success: #10b981;
-  --warning: #f59e0b;
+  --accent: #a63446;       /* Cherry Rose Block */
+  --accent-soft: #fef2f2;
+  --accent-text: #ffffff;
+  --success: #059669;
+  --warning: #d97706;
   --danger: #dc2626;
 
   --fb: 'Inter', sans-serif;
   --fm: 'JetBrains Mono', monospace;
-  --radius: 12px;
+  --radius: 0px;           /* SHARP EDGES */
+  --bw: 1.5px;             /* Standard Border Width */
 }
 
 [data-theme="dark"] {
-  /* Zen-Modern Dark */
-  --bg: #121212;           /* Deep neutral grey */
-  --surface: #1e1e1e;
-  --surface-alt: #252525;
-  --border: #2a2a2a;
-  --text: #e9ecef;
+  /* Sharp Swiss Dark */
+  --bg: #131515;
+  --surface: #1a1c1c;
+  --surface-alt: #2b2c28;
+  --border: #ffffff;
+  --text: #ffffff;
   --text-bright: #ffffff;
-  --text-muted: #adb5bd;
-  --text-dim: #6c757d;
+  --text-muted: #999999;
+  --text-dim: #666666;
   --chord: #e2a832;
   --accent: #a63446;
   --accent-soft: #2d1a1c;
-  --accent-text: #f87171;
+  --accent-text: #ffffff;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef233c;
@@ -48,51 +49,55 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--fb);
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
-  letter-spacing: -0.015em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 500;
+  font-weight: 700;         /* HEAVY SWISS TITLES */
   color: var(--text-bright);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
 }
 
 button {
   min-height: 40px;
   font-family: var(--fb);
-  font-weight: 500;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   border: none;
-  background: transparent;
+  background: var(--accent);
+  color: var(--accent-text);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: var(--radius);
+  padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.15s;
 }
 
-button:hover { opacity: 0.8; }
-button:active { transform: scale(0.98); }
+button:hover { opacity: 0.9; }
+button:active { transform: translateY(1px); }
 
 input {
   font-family: var(--fb);
-  background: var(--surface-alt);
+  background: var(--bg);
   color: var(--text);
-  border: none;
+  border: var(--bw) solid var(--border);
   border-radius: var(--radius);
   padding: 12px 16px;
   outline: none;
+  font-weight: 500;
 }
 
 textarea {
   font-family: var(--fm);
-  background: var(--surface-alt);
+  background: var(--bg);
   color: var(--text);
-  border: none;
+  border: var(--bw) solid var(--border);
   border-radius: var(--radius);
   outline: none;
   padding: 16px;
@@ -104,3 +109,7 @@ textarea {
 @media (max-width: 639px) {
   button { min-height: 48px; }
 }
+
+/* Swiss Grid Lines */
+.swiss-border-bottom { border-bottom: var(--bw) solid var(--border); }
+.swiss-border-top { border-top: var(--bw) solid var(--border); }

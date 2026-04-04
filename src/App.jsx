@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { saveSongs, loadSongs, saveSetlists, loadSetlists, saveSettings, loadSettings, clearAll } from './storage';
-import { generateId } from "./parser";
-import { parseSongMd } from './parser';
+import { parseSongMd, generateId } from './parser';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
@@ -47,7 +46,6 @@ export default function App() {
     }
   }, [songs, setlists]);
 
-  // Initial load
   useEffect(() => {
     (async () => {
       const savedSongs = await loadSongs();
@@ -68,24 +66,16 @@ export default function App() {
       if (!initialSettings.onboardingComplete && (!savedSongs || savedSongs.length === 0)) {
         setView('welcome');
       }
-
       setLoaded(true);
 
-      // Setup Sync Engine
       const engine = createSyncEngine((st) => setSyncState(st));
       syncEngineRef.current = engine;
       if (engine) {
-        engine.fullSync(savedSongs || [], savedSetlists || []).then(result => {
-          if (result.changed) {
-            setSongs(result.songs);
-            setSetlists(result.setlists);
-          }
-        }).catch(err => console.error('Startup sync failed:', err));
+        engine.fullSync(savedSongs || [], savedSetlists || []).catch(err => console.error('Startup sync failed:', err));
       }
     })();
   }, []);
 
-  // Auto-save when data changes
   useEffect(() => {
     if (loaded) {
       saveSongs(songs);
@@ -127,17 +117,6 @@ export default function App() {
       setCurrentSetlist(null);
     }
   }, []);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (historyRef.current.length > 0) {
-        e.preventDefault();
-        goBack();
-      }
-    };
-    window.addEventListener('popstate', handler);
-    return () => window.removeEventListener('popstate', handler);
-  }, [goBack]);
 
   const handleSaveSong = (song) => {
     setSongs(prev => {
@@ -184,29 +163,6 @@ export default function App() {
     setSetlists([]);
     historyRef.current = [];
     setView('home');
-  };
-
-  const handleExportSetlist = async (sl) => {
-    const blob = await exportSetlistZip(sl, songs);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = (sl.name || 'setlist').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.zip';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImportSetlist = async (file) => {
-    try {
-      const { setlist, newSongs } = await importSetlistZip(file, songs);
-      if (newSongs.length > 0) {
-        setSongs(prev => [...prev, ...newSongs]);
-      }
-      setSetlists(prev => [...prev, setlist]);
-      alert('Import successful');
-    } catch {
-      alert('Failed to import setlist zip.');
-    }
   };
 
   if (!loaded) return null;
@@ -260,7 +216,6 @@ export default function App() {
           onNewSetlist={() => navigate('setlist-build')}
           onPlaySetlist={(sl) => navigate('setlist-play', { setlist: sl })}
           onViewSetlist={(sl) => navigate('setlist-view', { setlist: sl })}
-          onImportSetlist={handleImportSetlist}
           onSettings={() => navigate('settings')}
         />
       )}
@@ -282,7 +237,6 @@ export default function App() {
         <SetlistOverview
           setlist={currentSetlist} songs={songs} onBack={goBack}
           onEdit={() => navigate('setlist-build', { setlist: currentSetlist })}
-          onExport={() => handleExportSetlist(currentSetlist)}
           onPlay={() => navigate('setlist-play', { setlist: currentSetlist })}
         />
       )}
