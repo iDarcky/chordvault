@@ -49,7 +49,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           }}>
             &#8592; Back
           </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+          <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-bright)' }}>
             {setlist.name || 'Untitled Setlist'}
           </span>
         </div>
@@ -105,7 +105,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                 padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
               }}>
                 <span style={{
-                  fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
+                  fontSize: 13, fontWeight: 500, color: 'var(--text-dim)',
                   fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
                 }}>
                   {idx + 1}
@@ -156,7 +156,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
               padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
             }}>
               <span style={{
-                fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
+                fontSize: 13, fontWeight: 500, color: 'var(--text-dim)',
                 fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
               }}>
                 {idx + 1}
@@ -166,7 +166,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                 background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
                 border: `1px solid ${s.b}44`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
+                fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 500, color: s.d,
               }}>
                 {displayKey}
               </div>
@@ -184,7 +184,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
               <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
                 {item.transpose !== 0 && (
                   <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
+                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 500,
                     fontFamily: 'var(--fm)', color: 'var(--chord)',
                     background: 'rgba(226,168,50,0.1)', border: '1px solid rgba(226,168,50,0.2)',
                   }}>
@@ -193,7 +193,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                 )}
                 {(item.capo || 0) > 0 && (
                   <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
+                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 500,
                     fontFamily: 'var(--fm)', color: 'var(--accent-text)',
                     background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.2)',
                   }}>
