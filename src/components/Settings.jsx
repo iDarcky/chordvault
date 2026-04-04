@@ -23,7 +23,7 @@ const activeBtn = (active) => ({
   background: active ? 'var(--accent-soft)' : 'var(--surface)',
 });
 
-export default function Settings({ settings, onUpdate, onBack, onClearAll, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
+export default function Settings({ settings, onUpdate, onClearAll, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
   const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
@@ -49,18 +49,12 @@ export default function Settings({ settings, onUpdate, onBack, onClearAll, songC
         padding: '14px 18px 10px',
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', color: '#94a3b8',
-          cursor: 'pointer', padding: 4,
-        }}>
-          &#8592; Back
-        </button>
         <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
           Settings
         </span>
       </div>
 
-      <div style={{ padding: '16px 18px', maxWidth: 500 }}>
+      <div style={{ padding: '16px 18px 80px', maxWidth: 500 }}>
         {/* Theme */}
         <div style={{ marginBottom: 24 }}>
           <label style={labelStyle}>Theme</label>

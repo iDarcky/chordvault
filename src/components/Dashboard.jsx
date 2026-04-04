@@ -12,7 +12,7 @@ export default function Dashboard({
   songs, setlists, syncState,
   onSelectSong, onNewSong, onImportSong,
   onNewSetlist, onViewSetlist, onPlaySetlist,
-  onGoLibrary, onGoSetlists, onGoSettings, onSyncNow,
+  onGoLibrary, onGoSetlists, onSyncNow,
 }) {
   const fileRef = useRef(null);
 
@@ -72,18 +72,11 @@ export default function Dashboard({
           </div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <SyncStatus syncState={syncState} onClick={onSyncNow} />
-            <button onClick={onGoSettings} style={{
-              ...btnStyle, background: 'var(--surface)',
-              border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 10px',
-              fontSize: 16,
-            }}>
-              &#9881;
-            </button>
           </div>
         </div>
       </div>
 
-      <div style={{ padding: '0 20px 40px' }}>
+      <div style={{ padding: '0 20px 80px' }}>
         {/* Quick Actions */}
         <div style={{
           display: 'grid',
