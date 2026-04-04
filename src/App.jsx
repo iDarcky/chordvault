@@ -23,6 +23,7 @@ export default function App() {
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [libraryTab, setLibraryTab] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
   const syncEngineRef = useRef(null);
@@ -136,7 +137,7 @@ export default function App() {
 
   // Navigation handlers
   const goHome = () => { setView('home'); setCurrentSong(null); setCurrentSetlist(null); };
-  const goLibrary = () => { setView('library'); setCurrentSong(null); setCurrentSetlist(null); };
+  const goLibrary = (tab) => { setLibraryTab(tab || null); setView('library'); setCurrentSong(null); setCurrentSetlist(null); };
   const goChart = (song) => { setCurrentSong(song); setView('chart'); };
   const goEditor = (song = null) => { setCurrentSong(song); setView('editor'); };
   const goSetlistBuild = (sl = null) => { setCurrentSetlist(sl); setView('setlist-build'); };
@@ -270,7 +271,7 @@ export default function App() {
           onViewSetlist={goSetlistView}
           onPlaySetlist={goSetlistPlay}
           onGoLibrary={goLibrary}
-          onGoSetlists={() => { setView('library'); }}
+          onGoSetlists={() => goLibrary('setlists')}
           onGoSettings={goSettings}
           onSyncNow={triggerSync}
         />
@@ -279,6 +280,7 @@ export default function App() {
         <Library
           songs={songs}
           setlists={setlists}
+          initialTab={libraryTab}
           onBack={goHome}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
