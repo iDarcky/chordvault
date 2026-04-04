@@ -23,6 +23,7 @@ export default function App() {
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [libraryTab, setLibraryTab] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
   const syncEngineRef = useRef(null);
@@ -135,16 +136,17 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', settings.theme);
   }, [settings?.theme]);
 
-  // Navigation with history stack + browser back button
-  const navigate = useCallback((nextView, { song, setlist, replace } = {}) => {
+  // Navigation with history stack
+  const navigate = useCallback((nextView, { song, setlist, replace, tab } = {}) => {
     if (!replace) {
-      historyRef.current.push({ view, song: currentSong, setlist: currentSetlist });
+      historyRef.current.push({ view, song: currentSong, setlist: currentSetlist, libraryTab });
       window.history.pushState(null, '');
     }
+    if (tab !== undefined) setLibraryTab(tab);
     if (song !== undefined) setCurrentSong(song);
     if (setlist !== undefined) setCurrentSetlist(setlist);
     setView(nextView);
-  }, [view, currentSong, currentSetlist]);
+  }, [view, currentSong, currentSetlist, libraryTab]);
 
   const goBack = useCallback(() => {
     const prev = historyRef.current.pop();
@@ -152,10 +154,12 @@ export default function App() {
       setView(prev.view);
       setCurrentSong(prev.song);
       setCurrentSetlist(prev.setlist);
+      setLibraryTab(prev.libraryTab || null);
     } else {
       setView('home');
       setCurrentSong(null);
       setCurrentSetlist(null);
+      setLibraryTab(null);
     }
   }, []);
 
@@ -173,7 +177,7 @@ export default function App() {
 
   // Navigation shortcuts
   const goHome = () => navigate('home', { song: null, setlist: null });
-  const goLibrary = () => navigate('library', { song: null, setlist: null });
+  const goLibrary = (tab) => navigate('library', { song: null, setlist: null, tab: tab || null });
   const goChart = (song) => navigate('chart', { song });
   const goEditor = (song = null) => navigate('editor', { song });
   const goSetlistBuild = (sl = null) => navigate('setlist-build', { setlist: sl });
@@ -312,7 +316,7 @@ export default function App() {
           onViewSetlist={goSetlistView}
           onPlaySetlist={goSetlistPlay}
           onGoLibrary={goLibrary}
-          onGoSetlists={() => navigate('library')}
+          onGoSetlists={() => goLibrary('setlists')}
           onGoSettings={goSettings}
           onSyncNow={triggerSync}
         />
@@ -321,6 +325,7 @@ export default function App() {
         <Library
           songs={songs}
           setlists={setlists}
+          initialTab={libraryTab}
           onBack={goBack}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}

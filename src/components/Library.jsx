@@ -3,12 +3,12 @@ import { transposeKey, sectionStyle } from '../music';
 import { songToMd } from '../parser';
 
 export default function Library({
-  songs, setlists, onBack,
+  songs, setlists, initialTab, onBack,
   onSelectSong, onNewSong, onImportSong,
   onNewSetlist, onPlaySetlist, onViewSetlist, onImportSetlist, onSettings,
 }) {
   const [query, setQuery] = useState('');
-  const [tab, setTab] = useState('songs');
+  const [tab, setTab] = useState(initialTab || 'songs');
   const [sort, setSort] = useState('title');
   const fileRef = useRef(null);
   const setlistFileRef = useRef(null);
