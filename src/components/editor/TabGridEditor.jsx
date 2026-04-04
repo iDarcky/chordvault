@@ -376,7 +376,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                       position: 'relative',
                       borderLeft: isBarLine ? '2px solid var(--text-dim)' : '1px solid var(--border)',
                       background: isCursor
-                        ? 'rgba(99,102,241,0.12)'
+                        ? 'var(--accent-soft)'
                         : cell !== null ? 'rgba(226,168,50,0.06)' : 'transparent',
                       cursor: 'pointer',
                       outline: isCursor ? '1px solid var(--accent)' : 'none',
@@ -497,7 +497,7 @@ const cancelBtnStyle = {
 };
 
 const insertBtnStyle = {
-  background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.3)',
+  background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
   borderRadius: 8, padding: '8px 22px',
   color: 'var(--accent-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
 };

@@ -28,7 +28,7 @@ export default function BottomNav({ activeView, onNavigate }) {
               gap: 2,
               height: 56,
               background: 'none', border: 'none',
-              color: active ? 'var(--accent-text)' : 'var(--text-muted)',
+              color: active ? 'var(--accent)' : 'var(--text-muted)',
               cursor: 'pointer',
               fontFamily: 'var(--fb)',
               fontSize: 10,

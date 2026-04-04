@@ -126,7 +126,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
           )}
           <button onClick={handleSave} style={{
             background: 'var(--accent-soft)',
-            border: '1px solid rgba(99,102,241,0.3)',
+            border: '1px solid var(--accent-border)',
             borderRadius: 7, padding: '7px 18px',
             color: 'var(--accent-text)', fontSize: 13,
             fontWeight: 600, cursor: 'pointer',
@@ -441,7 +441,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
         {/* Add song */}
         {adding ? (
           <div style={{
-            border: '1px solid rgba(99,102,241,0.2)',
+            border: '1px solid var(--accent-border)',
             borderRadius: 10, overflow: 'hidden', marginTop: 8,
           }}>
             <div style={{

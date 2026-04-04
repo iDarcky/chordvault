@@ -88,7 +88,7 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
                   ...cB, padding: '5px 12px',
                   color: 'var(--accent-text)',
                   background: 'var(--accent-soft)',
-                  borderColor: 'rgba(99,102,241,0.3)',
+                  borderColor: 'var(--accent-border)',
                 }}>
                   Sync Now
                 </button>

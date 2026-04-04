@@ -72,46 +72,63 @@ export default function Dashboard({
         {upcomingSetlists.length > 0 && (
           <div style={{ marginBottom: 28 }}>
             <div style={{
-              fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-              fontFamily: 'var(--fm)', marginBottom: 8,
+              fontSize: 16, fontWeight: 700, color: 'var(--text-dim)',
+              marginBottom: 6, padding: '0 2px',
             }}>
               Upcoming
             </div>
-            {upcomingSetlists.map(sl => {
-              const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-                weekday: 'short', month: 'short', day: 'numeric',
-              });
-              return (
-                <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 12px', marginBottom: 4,
-                  borderRadius: 10, background: 'rgba(99,102,241,0.04)',
-                  border: '1px solid rgba(99,102,241,0.1)',
-                  cursor: 'pointer',
-                }}>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {sl.name || 'Untitled'}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                      {dateStr}{sl.service ? ` \u00B7 ${sl.service}` : ''} · {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                  <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-                    ...btnStyle, background: 'var(--accent-soft)',
-                    border: '1px solid rgba(99,102,241,0.3)',
-                    color: 'var(--accent-text)', padding: '6px 14px',
-                    flexShrink: 0,
+            <div style={{
+              border: '1px solid var(--border)',
+              borderRadius: 10, overflow: 'hidden',
+            }}>
+              {upcomingSetlists.map((sl, i) => {
+                const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
+                  weekday: 'short', month: 'short', day: 'numeric',
+                });
+                return (
+                  <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    borderBottom: i < upcomingSetlists.length - 1 ? '1px solid var(--border)' : 'none',
+                    cursor: 'pointer', background: 'var(--card)',
                   }}>
-                    Live
-                  </button>
-                </div>
-              );
-            })}
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{
+                        fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {sl.name || 'Untitled'}
+                      </div>
+                      <div style={{
+                        fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
+                        display: 'flex', alignItems: 'center', gap: 6,
+                      }}>
+                        <span>{dateStr}</span>
+                        {sl.service && (
+                          <>
+                            <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                            <span>{sl.service}</span>
+                          </>
+                        )}
+                        <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                        <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>
+                          {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </div>
+                    <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
+                      ...btnStyle, background: 'var(--accent-soft)',
+                      border: '1px solid var(--accent-border)',
+                      color: 'var(--accent-text)', padding: '6px 14px',
+                      flexShrink: 0, marginLeft: 12,
+                    }}>
+                      Live
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -119,16 +136,16 @@ export default function Dashboard({
         {recentSongs.length > 0 && (
           <div style={{ marginBottom: 28 }}>
             <div style={{
-              fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-              fontFamily: 'var(--fm)', marginBottom: 8,
+              fontSize: 16, fontWeight: 700, color: 'var(--text-dim)',
+              marginBottom: 6, padding: '0 2px',
             }}>
-              Recent Songs
+              Recent
             </div>
-            {recentSongs.map(song => {
-              const s = song.sections?.length
-                ? sectionStyle(song.sections[0].type)
-                : { b: '#6b7280', d: '#9ca3af' };
-              return (
+            <div style={{
+              border: '1px solid var(--border)',
+              borderRadius: 10, overflow: 'hidden',
+            }}>
+              {recentSongs.map((song, i) => (
                 <div
                   key={song.id}
                   onClick={() => onSelectSong(song)}
@@ -136,40 +153,39 @@ export default function Dashboard({
                   tabIndex={0}
                   style={{
                     display: 'flex', alignItems: 'center',
-                    gap: 12, padding: '12px 12px', marginBottom: 4,
-                    borderRadius: 10, background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    cursor: 'pointer',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    borderBottom: i < recentSongs.length - 1 ? '1px solid var(--border)' : 'none',
+                    cursor: 'pointer', background: 'var(--card)',
                   }}
                 >
-                  <div style={{
-                    width: 38, height: 38, borderRadius: 8, flexShrink: 0,
-                    background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                    border: `1px solid ${s.b}44`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
-                  }}>
-                    {song.key}
-                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
+                      fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {song.title}
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                      {song.artist}
+                    <div style={{
+                      fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
+                      display: 'flex', alignItems: 'center', gap: 6,
+                    }}>
+                      <span>{song.artist}</span>
+                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                      <span style={{ fontFamily: 'var(--fm)', fontSize: 11, fontWeight: 600, color: 'var(--chord)' }}>
+                        {song.key}
+                      </span>
+                      {song.tempo && (
+                        <>
+                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.tempo} bpm</span>
+                        </>
+                      )}
                     </div>
                   </div>
-                  <span style={{
-                    fontSize: 11, color: 'var(--text-dim)', fontFamily: 'var(--fm)',
-                  }}>
-                    {song.tempo ? `${song.tempo}bpm` : ''}
-                  </span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         )}
 
@@ -226,7 +242,7 @@ export default function Dashboard({
               ...btnStyle,
               padding: '10px 18px',
               borderRadius: 24,
-              background: 'var(--surface)',
+              background: 'var(--card)',
               border: '1px solid var(--border)',
               color: 'var(--text-bright)',
               fontSize: 13,
@@ -238,7 +254,7 @@ export default function Dashboard({
               ...btnStyle,
               padding: '10px 18px',
               borderRadius: 24,
-              background: 'var(--surface)',
+              background: 'var(--card)',
               border: '1px solid var(--border)',
               color: 'var(--text-bright)',
               fontSize: 13,
@@ -252,11 +268,11 @@ export default function Dashboard({
           onClick={() => setFabOpen(prev => !prev)}
           style={{
             width: 56, height: 56, borderRadius: 28,
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
             border: 'none', color: '#fff',
             fontSize: 28, fontWeight: 300, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
             transition: 'transform 0.2s',
             transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
           }}

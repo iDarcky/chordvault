@@ -133,7 +133,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
             )}
             <button onClick={handleSave} style={{
               background: 'var(--accent-soft)',
-              border: '1px solid rgba(99,102,241,0.3)',
+              border: '1px solid var(--accent-border)',
               borderRadius: 7, padding: '6px 16px',
               color: 'var(--accent-text)', fontSize: 12,
               fontWeight: 600, cursor: 'pointer',

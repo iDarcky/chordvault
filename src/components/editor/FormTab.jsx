@@ -299,7 +299,7 @@ export default function FormTab({ md, onChange }) {
                         parsed.time = timePart ? timePart[1] : null;
                         setTabEditorTarget({ sectionIdx: idx, initialTab: parsed, replaceRange: { start: tb.start, end: tb.end } });
                       }} style={{
-                        background: 'var(--accent-soft)', border: '1px solid rgba(99,102,241,0.2)',
+                        background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
                         borderRadius: 5, padding: '2px 8px', cursor: 'pointer',
                         color: 'var(--accent-text)', fontSize: 10, fontWeight: 600,
                         fontFamily: 'var(--fm)',
@@ -331,7 +331,7 @@ export default function FormTab({ md, onChange }) {
       {/* Add Section button */}
       <button onClick={addSection} style={{
         background: 'var(--accent-soft)',
-        border: '1px dashed rgba(99,102,241,0.3)',
+        border: '1px dashed var(--accent-border)',
         borderRadius: 10, padding: '12px 0',
         color: 'var(--accent-text)', fontSize: 13,
         fontWeight: 600, cursor: 'pointer',

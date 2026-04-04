@@ -82,7 +82,7 @@ export default function Library({
     fontFamily: 'var(--fb)', fontWeight: 500, fontSize: 12,
     padding: '5px 10px',
     color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-    background: active ? 'var(--surface)' : 'transparent',
+    background: active ? 'var(--select)' : 'transparent',
   });
 
   return (
@@ -243,7 +243,7 @@ export default function Library({
             <div style={{
               fontSize: sort === 'title' ? 18 : 14,
               fontWeight: 700,
-              color: 'var(--text-bright)',
+              color: 'var(--text-dim)',
               fontFamily: sort === 'key' ? 'var(--fm)' : 'var(--fb)',
               marginBottom: 6,
               padding: '0 2px',
@@ -266,7 +266,7 @@ export default function Library({
                     justifyContent: 'space-between',
                     padding: '14px 16px',
                     borderBottom: i < group.songs.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer', boxSizing: 'border-box',
+                    cursor: 'pointer', boxSizing: 'border-box', background: 'var(--card)',
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -336,7 +336,7 @@ export default function Library({
               display: 'flex', alignItems: 'center', gap: 5,
               fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
               padding: '10px 18px',
-              background: 'var(--surface)',
+              background: 'var(--card)',
               border: '1px solid var(--border)',
               color: 'var(--text-bright)',
               boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
@@ -348,7 +348,7 @@ export default function Library({
               display: 'flex', alignItems: 'center', gap: 5,
               fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
               padding: '10px 18px',
-              background: 'var(--surface)',
+              background: 'var(--card)',
               border: '1px solid var(--border)',
               color: 'var(--text-bright)',
               boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
@@ -361,11 +361,11 @@ export default function Library({
           onClick={() => setFabOpen(prev => !prev)}
           style={{
             width: 56, height: 56, borderRadius: 28,
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
             border: 'none', color: '#fff',
             fontSize: 28, fontWeight: 300, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
             transition: 'transform 0.2s',
             transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
           }}
