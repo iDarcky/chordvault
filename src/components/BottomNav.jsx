@@ -9,9 +9,8 @@ export default function BottomNav({ activeView, onNavigate }) {
   return (
     <nav style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
-      height: 56,
       paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-      background: 'var(--surface)',
+      background: 'var(--bg)',
       borderTop: '1px solid var(--border)',
       display: 'flex',
       zIndex: 100,
@@ -27,6 +26,7 @@ export default function BottomNav({ activeView, onNavigate }) {
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
               gap: 2,
+              height: 56,
               background: 'none', border: 'none',
               color: active ? 'var(--accent-text)' : 'var(--text-muted)',
               cursor: 'pointer',
