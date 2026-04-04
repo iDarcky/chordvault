@@ -4,89 +4,72 @@ export default function RawTab({ md, onChange, textareaRef }) {
   const [showRef, setShowRef] = useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="flex flex-col h-full bg-background rounded-geist overflow-hidden border border-accents-2">
       {/* Syntax Reference Toggle */}
       <button
         onClick={() => setShowRef(v => !v)}
-        style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: 'var(--accent-text)', fontSize: 12, fontWeight: 600,
-          fontFamily: 'var(--fm)', padding: '8px 0', textAlign: 'left',
-          display: 'flex', alignItems: 'center', gap: 5,
-        }}
+        className="flex items-center gap-2 p-3 bg-accents-1 border-b border-accents-2 text-[11px] font-black uppercase tracking-widest text-accents-5 hover:text-foreground transition-colors border-none bg-transparent cursor-pointer w-full text-left"
       >
-        <span style={{ fontSize: 10 }}>{showRef ? '▾' : '▸'}</span>
+        <span className="text-[8px] opacity-60 transition-transform duration-200" style={{ transform: showRef ? 'rotate(90deg)' : 'rotate(0deg)' }}>&#9654;</span>
         Syntax Reference
       </button>
 
       {showRef && (
-        <div style={{
-          marginBottom: 10, padding: 12, borderRadius: 8,
-          background: 'var(--accent-soft)',
-          border: '1px solid var(--accent-soft)',
-          fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.7,
-          fontFamily: 'var(--fm)',
-        }}>
-          <div style={{ marginBottom: 6 }}>
-            <strong style={{ color: 'var(--text)' }}>Frontmatter</strong> (between <code>---</code> delimiters):
-          </div>
-          <div style={{ paddingLeft: 10, marginBottom: 8, color: 'var(--text-dim)' }}>
-            title: Song Name<br />
-            artist: Artist Name<br />
-            key: C<br />
-            tempo: 120<br />
-            time: 4/4<br />
-            structure: [Verse 1, Chorus, Verse 2, Chorus]<br />
-            <span style={{ opacity: 0.5 }}>tags, ccli, spotify, youtube, capo, notes — optional</span>
-          </div>
+        <div className="bg-accents-1/50 border-b border-accents-2 animate-in slide-in-from-top duration-200">
+          <div className="p-4 text-[11px] leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-accents-5">
+            <div>
+              <div className="font-black text-foreground mb-2 uppercase tracking-tighter">Identity (Frontmatter)</div>
+              <div className="bg-background p-2 rounded border border-accents-2 space-y-1">
+                <div>title: Song Name</div>
+                <div>artist: Artist Name</div>
+                <div>key: C</div>
+                <div>tempo: 120</div>
+                <div>time: 4/4</div>
+                <div className="opacity-50 mt-1 italic">// tags, ccli, capo, notes</div>
+              </div>
+            </div>
 
-          <div style={{ marginBottom: 6 }}>
-            <strong style={{ color: 'var(--text)' }}>Sections & Chords:</strong>
-          </div>
-          <div style={{ paddingLeft: 10, color: 'var(--text-dim)', marginBottom: 8 }}>
-            <strong style={{ color: 'var(--accent-text)' }}>## Section Name</strong> — starts a section (Verse, Chorus, Bridge, etc.)<br />
-            <strong style={{ color: 'var(--chord)' }}>[Chord]</strong>lyrics — inline chords above lyrics<br />
-            <strong style={{ color: 'var(--text-muted)' }}>&gt; note</strong> — band cue / performance note<br />
-            <span style={{ opacity: 0.5 }}>Blank lines between sections</span>
-          </div>
+            <div>
+              <div className="font-black text-foreground mb-2 uppercase tracking-tighter">Content Syntax</div>
+              <div className="bg-background p-2 rounded border border-accents-2 space-y-1">
+                <div><span className="text-foreground font-bold">## Section Name</span> (Starts section)</div>
+                <div><span className="text-geist-link font-bold">[Chord]</span>lyrics (Inline chords)</div>
+                <div><span className="text-accents-4 italic">&gt; band cue note</span> (Section note)</div>
+                <div><span className="text-geist-success font-bold">{'{modulate: +1}'}</span> (Key change)</div>
+              </div>
+            </div>
 
-          <div style={{ marginBottom: 6 }}>
-            <strong style={{ color: 'var(--text)' }}>Tab Blocks:</strong>
-          </div>
-          <div style={{ paddingLeft: 10, color: 'var(--text-dim)' }}>
-            <strong style={{ color: 'var(--accent-text)' }}>{'{'}</strong>tab{'}'} ... {'{'}/tab{'}'} — guitar tab block<br />
-            <strong style={{ color: 'var(--accent-text)' }}>{'{'}</strong>tab, time: 4/4{'}'} — with time signature<br />
-            <span style={{ color: 'var(--chord)' }}>e|--0--2h3--|--5-----|</span> — string lines (e B G D A E)<br />
-            <span style={{ opacity: 0.7 }}>Techniques: </span>
-            <strong style={{ color: 'var(--chord)' }}>h</strong> hammer-on &nbsp;
-            <strong style={{ color: 'var(--chord)' }}>p</strong> pull-off &nbsp;
-            <strong style={{ color: 'var(--chord)' }}>s</strong> slide &nbsp;
-            <strong style={{ color: 'var(--chord)' }}>b</strong> bend &nbsp;
-            <strong style={{ color: 'var(--chord)' }}>x</strong> mute &nbsp;
-            <strong style={{ color: 'var(--chord)' }}>~</strong> vibrato<br />
-            <span style={{ opacity: 0.5 }}>Use the Tab button in Visual/Form tab to open the grid editor</span>
+            <div className="md:col-span-2">
+              <div className="font-black text-foreground mb-2 uppercase tracking-tighter">Guitar Tab Blocks</div>
+              <div className="bg-background p-3 rounded border border-accents-2 overflow-x-auto whitespace-pre">
+                <span className="text-foreground font-bold">{'{tab, time: 4/4}'}</span>{'\n'}
+                e|--0--2h3--|--5-----|{'\n'}
+                B|--1--3----|--5-----|{'\n'}
+                <span className="text-foreground font-bold">{'{/tab}'}</span>
+              </div>
+              <div className="mt-2 flex gap-3 flex-wrap opacity-70">
+                <span><span className="text-foreground font-bold mr-1">h</span>hammer</span>
+                <span><span className="text-foreground font-bold mr-1">p</span>pull</span>
+                <span><span className="text-foreground font-bold mr-1">s</span>slide</span>
+                <span><span className="text-foreground font-bold mr-1">b</span>bend</span>
+                <span><span className="text-foreground font-bold mr-1">x</span>mute</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Textarea */}
-      <textarea
-        ref={textareaRef}
-        value={md}
-        onChange={e => onChange(e.target.value)}
-        spellCheck={false}
-        style={{
-          flex: 1, width: '100%', minHeight: '50vh',
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 8, padding: 16,
-          fontSize: 13.5, lineHeight: 1.6,
-          color: 'var(--text)', resize: 'vertical',
-          outline: 'none', caretColor: 'var(--chord)',
-          boxSizing: 'border-box',
-          fontFamily: 'var(--fm)',
-        }}
-      />
+      {/* Textarea Area */}
+      <div className="flex-1 relative bg-background p-4 flex flex-col min-h-[50vh]">
+        <textarea
+          ref={textareaRef}
+          value={md}
+          onChange={e => onChange(e.target.value)}
+          spellCheck={false}
+          className="flex-1 w-full bg-transparent border-none focus:ring-0 text-sm leading-relaxed font-mono resize-none outline-none p-0 caret-geist-link"
+          placeholder="Enter raw Markdown content..."
+        />
+      </div>
     </div>
   );
 }

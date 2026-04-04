@@ -117,7 +117,7 @@ export function createGoogleDriveProvider() {
     },
 
     async ensureFolder() {
-      // Create root ChordVault folder
+      // Create root Setlists MD folder
       const q = encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
       const result = await api(`/files?q=${q}&fields=files(id,name)`);
       if (result.files.length > 0) {

@@ -4,10 +4,17 @@ import SectionBlock from './SectionBlock';
 import { StructureRibbon, MetaPill } from './StructureRibbon';
 import ChordDiagram from './ChordDiagram';
 import { parseLine } from '../parser';
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
+import { cn } from '../lib/utils';
 
 const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
 
-export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', duplicateSections = 'full' }) {
+export default function ChartView({
+  song, onBack, onEdit, navOverride, compact, forceTranspose,
+  capo = 0, defaultColumns, defaultFontSize, showInlineNotes = true,
+  inlineNoteStyle = 'dashes', displayRole = 'leader', duplicateSections = 'full'
+}) {
   const [localTranspose, setLocalTranspose] = useState(0);
   const [cols, setCols] = useState(defaultColumns || 'auto');
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
@@ -20,7 +27,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
   const currentKey = transposeKey(song.key, transpose);
 
-    // Track scroll to collapse header
+  // Track scroll to collapse header
   useEffect(() => {
     if (compact) return;
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -43,7 +50,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     return offsets;
   }, [song.sections]);
 
-  // Compute which sections are collapsed (duplicate type, 1st-only mode)
+  // Compute which sections are collapsed
   const collapsedSections = useMemo(() => {
     if (duplicateSections !== 'first') return [];
     const seen = new Set();
@@ -55,7 +62,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     });
   }, [song.sections, duplicateSections]);
 
-  // Collect unique chord names from all sections (transposed)
+  // Collect unique chords
   const uniqueChords = useMemo(() => {
     if (!showDiagrams) return [];
     const seen = new Set();
@@ -85,120 +92,101 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     ? Math.ceil(song.sections.length / 2)
     : song.sections.length;
 
-  const btnStyle = {
-    height: 32, borderRadius: 8,
-    border: '1px solid var(--border)',
-    background: 'var(--surface)', color: 'var(--text)',
-    fontSize: 13, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: 'var(--fb)', fontWeight: 500,
-    padding: '0 10px',
-  };
-
-  const toggleStyle = (active) => ({
-    ...btnStyle,
-    borderColor: active ? 'var(--accent)' : 'var(--border)',
-    color: active ? 'var(--accent-text)' : 'var(--text-muted)',
-    background: active ? 'var(--accent-soft)' : 'var(--surface)',
-  });
-
   const handleKeyChange = (newKey) => {
     const semitones = semitonesBetween(song.key, newKey);
     setLocalTranspose(semitones);
   };
 
   return (
-    <div style={{ minHeight: compact ? 'auto' : '100vh', background: 'var(--bg)', paddingTop: compact ? 0 : 'env(safe-area-inset-top, 0px)' }}>
+    <div className={cn(
+      "bg-background",
+      compact ? "min-h-auto" : "min-h-screen pt-[env(safe-area-inset-top,0px)]"
+    )}>
       {/* Sticky header */}
-      <div ref={headerRef} style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: compact ? '10px 18px 6px' : '12px 18px 8px',
-        paddingTop: compact ? 10 : `calc(12px + env(safe-area-inset-top, 0px))`,
-        transition: 'padding 0.15s ease',
-      }}>
-        {/* Title row */}
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+      <div ref={headerRef} className={cn(
+        "sticky top-0 z-[100] bg-background/80 backdrop-blur-md border-b border-accents-2 transition-all duration-150",
+        compact ? "px-6 pt-3 pb-2" : "px-6 pt-4 pb-3"
+      )}>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             {!compact && (
-              <button onClick={onBack} style={{
-                background: 'none', border: 'none', color: 'var(--text-muted)',
-                cursor: 'pointer', padding: '4px 0', fontSize: 18, flexShrink: 0,
-                display: 'flex', alignItems: 'center',
-              }}>
+              <button onClick={onBack} className="p-2 -ml-2 text-accents-4 hover:text-foreground">
                 &#8592;
               </button>
             )}
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{
-                margin: 0, fontSize: compact ? 18 : (scrolled ? 16 : 20), fontWeight: 700,
-                color: 'var(--text-bright)', letterSpacing: '-0.02em',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                transition: 'font-size 0.15s ease',
-              }}>
+            <div className="min-w-0">
+              <h1 className={cn(
+                "font-bold text-foreground tracking-tight transition-all truncate",
+                compact ? "text-lg" : (scrolled ? "text-base" : "text-xl")
+              )}>
                 {song.title}
               </h1>
               {!compact && !scrolled && (
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
-                  {song.artist}
-                  {song.tempo ? ` · ${song.tempo} bpm` : ''}
-                  {song.time ? ` · ${song.time}` : ''}
-                  {song.ccli ? ` · CCLI ${song.ccli}` : ''}
+                <div className="text-xs text-accents-5 mt-0.5 truncate flex items-center gap-1.5">
+                  <span className="font-semibold">{song.artist}</span>
+                  {song.tempo && (
+                    <>
+                      <span className="text-accents-3">&middot;</span>
+                      <span className="font-mono bg-accents-1 px-1 rounded border border-accents-2">{song.tempo} BPM</span>
+                    </>
+                  )}
+                  {song.time && (
+                    <>
+                      <span className="text-accents-3">&middot;</span>
+                      <span className="font-mono">{song.time}</span>
+                    </>
+                  )}
                 </div>
               )}
             </div>
           </div>
-          {!compact && (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-              {/* Key selector */}
-              <select
-                value={currentKey}
-                onChange={e => handleKeyChange(e.target.value)}
-                style={{
-                  ...btnStyle,
-                  fontFamily: 'var(--fm)', fontWeight: 700, fontSize: 13,
-                  color: transpose !== 0 ? 'var(--chord)' : 'var(--text)',
-                  appearance: 'none', WebkitAppearance: 'none',
-                  padding: '0 24px 0 10px',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 8px center',
-                }}
-              >
-                {ALL_KEYS.map(k => (
-                  <option key={k} value={k}>{k}{k === song.key ? ' (original)' : ''}</option>
-                ))}
-              </select>
 
-              <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
-                Diagrams
-              </button>
- 
-              {!scrolled && onEdit && (
-                <button onClick={onEdit} style={btnStyle}>
-                  Edit
-                </button>
-              )}
-              {!scrolled && (
-                <button
-                  onClick={() => setShowSettings(v => !v)}
+          {!compact && (
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Key selector */}
+              <div className="relative">
+                <select
+                  value={currentKey}
+                  onChange={e => handleKeyChange(e.target.value)}
+                  className={cn(
+                    "h-9 px-3 pr-8 rounded-geist border text-xs font-mono font-bold appearance-none bg-background cursor-pointer transition-colors",
+                    transpose !== 0 ? "border-geist-link text-geist-link" : "border-accents-2 text-foreground"
+                  )}
                   style={{
-                    ...btnStyle,
-                    fontFamily: 'var(--fb)',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    borderColor: showSettings ? 'var(--accent)' : 'var(--border)',
-                    color: showSettings ? 'var(--accent-text)' : 'var(--text)',
-                    background: showSettings ? 'var(--accent-soft)' : 'var(--surface)',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 8px center',
                   }}
                 >
-                  Aa
-                </button>
+                  {ALL_KEYS.map(k => (
+                    <option key={k} value={k}>{k}{k === song.key ? ' (Original)' : ''}</option>
+                  ))}
+                </select>
+              </div>
+
+              <Button
+                variant={showDiagrams ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setShowDiagrams(v => !v)}
+                className="h-9 px-3 text-[11px] font-bold tracking-tight"
+              >
+                DIAGRAMS
+              </Button>
+
+              {!scrolled && onEdit && (
+                <Button variant="secondary" size="sm" onClick={onEdit} className="h-9 px-3 text-[11px] font-bold tracking-tight">
+                  EDIT
+                </Button>
               )}
+
+              <Button
+                variant={showSettings ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setShowSettings(v => !v)}
+                className="h-9 w-9 p-0 font-bold"
+              >
+                Aa
+              </Button>
             </div>
           )}
           {compact && navOverride && <div>{navOverride}</div>}
@@ -206,58 +194,53 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
          
         <StructureRibbon structure={song.structure || []} compact />
 
-        {/* Capo indicator — visible when not scrolled */}
-        {!compact && !scrolled && capo > 0 && (
-          <div style={{ paddingBottom: 4 }}>
-            <MetaPill label="Capo" value={`${capo} → ${transposeKey(song.key, chordTranspose)} shapes`} highlight />
-          </div>
-        )}
-
-        {/* Nav override for non-compact (not in title row) */}
-        {!compact && navOverride && !scrolled && (
-          <div style={{ paddingBottom: 4 }}>
-            {navOverride}
-          </div>
-        )}
-
         {/* Aa settings popover */}
         {showSettings && !compact && !scrolled && (
-          <div style={{
-            padding: '10px 0 6px',
-            borderTop: '1px solid var(--border)',
-            display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Layout</span>
-              <button onClick={() => setCols('auto')} style={toggleStyle(cols === 'auto')}>Auto</button>
-              {[1, 2].map(n => (
-                <button key={n} onClick={() => setCols(n)} style={toggleStyle(cols === n)}>
-                  {n}col
-                </button>
-              ))}
+          <div className="mt-3 pt-3 border-t border-accents-2 flex flex-wrap items-center gap-6 animate-in fade-in slide-in-from-top-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-accents-4 uppercase tracking-wider font-mono">Layout</span>
+              <div className="flex bg-accents-1 p-1 rounded-geist border border-accents-2">
+                {['auto', 1, 2].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setCols(n)}
+                    className={cn(
+                      "px-2.5 py-0.5 text-[10px] font-bold uppercase rounded transition-all",
+                      cols === n ? "bg-background shadow-sm text-foreground" : "text-accents-4 hover:text-accents-6"
+                    )}
+                  >
+                    {n === 'auto' ? 'Auto' : `${n} Col`}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Size</span>
-              {[{ l: 'S', v: 0.88 }, { l: 'M', v: 1 }, { l: 'L', v: 1.14 }].map(({ l, v }) => (
-                <button key={l} onClick={() => setSize(v)} style={toggleStyle(size === v)}>
-                  {l}
-                </button>
-              ))}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-accents-4 uppercase tracking-wider font-mono">Size</span>
+              <div className="flex bg-accents-1 p-1 rounded-geist border border-accents-2">
+                {[{ l: 'S', v: 0.88 }, { l: 'M', v: 1 }, { l: 'L', v: 1.14 }].map(({ l, v }) => (
+                  <button
+                    key={l}
+                    onClick={() => setSize(v)}
+                    className={cn(
+                      "px-2.5 py-0.5 text-[10px] font-bold uppercase rounded transition-all",
+                      size === v ? "bg-background shadow-sm text-foreground" : "text-accents-4 hover:text-accents-6"
+                    )}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
         {/* Chord diagram strip */}
         {showDiagrams && uniqueChords.length > 0 && (
-          <div style={{
-            display: 'flex', gap: 8, flexWrap: 'nowrap',
-            paddingTop: 8, paddingBottom: 4,
-            borderTop: '1px solid var(--border)',
-            marginTop: 4,
-            overflowX: 'auto',
-          }}>
+          <div className="mt-3 pt-3 border-t border-accents-2 flex gap-3 overflow-x-auto hide-scrollbar animate-in fade-in slide-in-from-top-1">
             {uniqueChords.map(chord => (
-                <ChordDiagram key={chord} chord={chord} size={80} />
+              <div key={chord} className="bg-accents-1 rounded-geist p-1 border border-accents-2 shrink-0">
+                <ChordDiagram chord={chord} size={80} />
+              </div>
             ))}
           </div>
         )}
@@ -265,24 +248,24 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
 
       {/* Chart body */}
       <div
-        className={cols === 'auto' ? 'chart-auto-cols' : undefined}
+        className={cn(
+          "p-6 pb-20",
+          cols === 'auto' ? "chart-auto-cols" : "grid gap-8",
+          cols === 1 && "grid-cols-1",
+          cols === 2 && "grid-cols-2"
+        )}
         style={{
-          ...(cols !== 'auto' && {
-            display: isExplicit2Col ? 'grid' : 'block',
-            gridTemplateColumns: isExplicit2Col ? '1fr 1fr' : '1fr',
-          }),
-          gap: 10, padding: '14px 16px 50px',
           transform: `scale(${size})`, transformOrigin: 'top left',
           width: size !== 1 ? `${100 / size}%` : '100%',
         }}
       >
-        <div>
+        <div className="space-y-6">
           {song.sections.slice(0, mid).map((sec, i) => (
             <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[i]} />
           ))}
         </div>
         {(isExplicit2Col || cols === 'auto') && (
-          <div>
+          <div className="space-y-6">
             {song.sections.slice(mid).map((sec, i) => (
               <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[mid + i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[mid + i]} />
             ))}

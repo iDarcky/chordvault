@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 
-const STRING_NAMES = ['e', 'B', 'G', 'D', 'A', 'E'];
 const STRING_SPACING = 18;
 const LABEL_WIDTH = 28;
 const PADDING_TOP = 12;
@@ -17,115 +16,105 @@ export default function TabBlock({ data }) {
   const totalWidth = LABEL_WIDTH + contentWidth + 16;
 
   return (
-    <svg
-      width="100%"
-      viewBox={`0 0 ${totalWidth} ${height}`}
-      preserveAspectRatio="xMinYMid meet"
-      style={{ display: 'block', margin: '6px 0', maxWidth: 800 }}
-    >
-      {/* String lines */}
-      {parsed.strings.map((str, i) => {
-        const y = PADDING_TOP + i * STRING_SPACING;
-        return (
-          <line
-            key={`line-${i}`}
-            x1={LABEL_WIDTH}
-            y1={y}
-            x2={LABEL_WIDTH + contentWidth}
-            y2={y}
-            stroke="var(--border)"
-            strokeWidth={1}
-          />
-        );
-      })}
-
-      {/* String labels */}
-      {parsed.strings.map((str, i) => {
-        const y = PADDING_TOP + i * STRING_SPACING;
-        return (
-          <text
-            key={`label-${i}`}
-            x={LABEL_WIDTH - 8}
-            y={y + 4}
-            fill="var(--text-muted)"
-            fontFamily="var(--fm)"
-            fontSize={11}
-            fontWeight={600}
-            textAnchor="end"
-          >
-            {str.note}
-          </text>
-        );
-      })}
-
-      {/* Bar lines */}
-      {parsed.barPositions.map((pos, i) => (
-        <line
-          key={`bar-${i}`}
-          x1={LABEL_WIDTH + pos * CHAR_WIDTH}
-          y1={PADDING_TOP - 4}
-          x2={LABEL_WIDTH + pos * CHAR_WIDTH}
-          y2={PADDING_TOP + (parsed.strings.length - 1) * STRING_SPACING + 4}
-          stroke="var(--text-dim)"
-          strokeWidth={1.5}
-        />
-      ))}
-
-      {/* Fret numbers and techniques */}
-      {parsed.strings.map((str, si) => {
-        const y = PADDING_TOP + si * STRING_SPACING;
-        return str.frets.map((f, fi) => (
-          <g key={`fret-${si}-${fi}`}>
-            {/* Background rect to break the line */}
-            <rect
-              x={LABEL_WIDTH + f.pos * CHAR_WIDTH - (f.fret >= 10 ? 7 : 4)}
-              y={y - 7}
-              width={f.fret >= 10 ? 16 : 10}
-              height={14}
-              fill="var(--bg)"
-              rx={2}
+    <div className="bg-accents-1/30 rounded-geist border border-accents-2 p-2 my-4 overflow-x-auto hide-scrollbar">
+      <svg
+        width={totalWidth}
+        height={height}
+        viewBox={`0 0 ${totalWidth} ${height}`}
+        className="block"
+      >
+        {/* String lines */}
+        {parsed.strings.map((str, i) => {
+          const y = PADDING_TOP + i * STRING_SPACING;
+          return (
+            <line
+              key={`line-${i}`}
+              x1={LABEL_WIDTH}
+              y1={y}
+              x2={LABEL_WIDTH + contentWidth}
+              y2={y}
+              stroke="var(--accents-2)"
+              strokeWidth={1}
             />
-            {/* Fret number */}
+          );
+        })}
+
+        {/* String labels */}
+        {parsed.strings.map((str, i) => {
+          const y = PADDING_TOP + i * STRING_SPACING;
+          return (
             <text
-              x={LABEL_WIDTH + f.pos * CHAR_WIDTH + (f.fret >= 10 ? 1 : 1)}
+              key={`label-${i}`}
+              x={LABEL_WIDTH - 8}
               y={y + 4}
-              fill="var(--chord)"
-              fontFamily="var(--fm)"
-              fontSize={12}
-              fontWeight={700}
-              textAnchor="middle"
+              fill="var(--accents-4)"
+              className="font-mono text-[11px] font-bold"
+              textAnchor="end"
             >
-              {f.fret}
+              {str.note}
             </text>
-            {/* Technique marker */}
-            {f.technique && (
+          );
+        })}
+
+        {/* Bar lines */}
+        {parsed.barPositions.map((pos, i) => (
+          <line
+            key={`bar-${i}`}
+            x1={LABEL_WIDTH + pos * CHAR_WIDTH}
+            y1={PADDING_TOP - 4}
+            x2={LABEL_WIDTH + pos * CHAR_WIDTH}
+            y2={PADDING_TOP + (parsed.strings.length - 1) * STRING_SPACING + 4}
+            stroke="var(--accents-3)"
+            strokeWidth={1.5}
+          />
+        ))}
+
+        {/* Fret numbers and techniques */}
+        {parsed.strings.map((str, si) => {
+          const y = PADDING_TOP + si * STRING_SPACING;
+          return str.frets.map((f, fi) => (
+            <g key={`fret-${si}-${fi}`}>
+              <rect
+                x={LABEL_WIDTH + f.pos * CHAR_WIDTH - (f.fret >= 10 ? 7 : 4)}
+                y={y - 7}
+                width={f.fret >= 10 ? 14 : 9}
+                height={14}
+                fill="var(--background)"
+                rx={2}
+              />
               <text
-                x={LABEL_WIDTH + (f.pos + 1) * CHAR_WIDTH + 2}
-                y={y - 6}
-                fill="var(--text-muted)"
-                fontFamily="var(--fm)"
-                fontSize={9}
-                fontWeight={600}
+                x={LABEL_WIDTH + f.pos * CHAR_WIDTH}
+                y={y + 4}
+                fill="var(--geist-link)"
+                className="font-mono text-[12px] font-black"
+                textAnchor="middle"
               >
-                {f.technique}
+                {f.fret}
               </text>
-            )}
-          </g>
-        ));
-      })}
-    </svg>
+              {f.technique && (
+                <text
+                  x={LABEL_WIDTH + (f.pos + 1) * CHAR_WIDTH}
+                  y={y - 6}
+                  fill="var(--accents-5)"
+                  className="font-mono text-[9px] font-bold"
+                >
+                  {f.technique}
+                </text>
+              )}
+            </g>
+          ));
+        })}
+      </svg>
+    </div>
   );
 }
 
 function parseForRender(data) {
   const result = { strings: [], barPositions: [], maxLen: 0 };
-
   if (!data || !data.strings || data.strings.length === 0) return result;
-
   for (const str of data.strings) {
     const content = str.content;
     if (content.length > result.maxLen) result.maxLen = content.length;
-
     const frets = [];
     let i = 0;
     while (i < content.length) {
@@ -150,14 +139,11 @@ function parseForRender(data) {
     }
     result.strings.push({ note: str.note, frets });
   }
-
-  // Find bar line positions from first string's content
   if (data.strings.length > 0) {
     const content = data.strings[0].content;
     for (let i = 0; i < content.length; i++) {
       if (content[i] === '|') result.barPositions.push(i);
     }
   }
-
   return result;
 }

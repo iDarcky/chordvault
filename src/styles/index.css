@@ -1,65 +1,92 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --bg: #0b0b0f;
-  --surface: rgba(255,255,255,0.03);
-  --card: rgba(255,255,255,0.05);
-  --border: rgba(255,255,255,0.06);
-  --select: rgba(255,255,255,0.08);
-  --text: #ededed;
-  --text-bright: #fafafa;
-  --text-muted: #888888;
-  --text-dim: #666666;
-  --chord: #e2a832;
-  --accent: #53796F;
-  --accent-soft: rgba(83,121,111,0.15);
-  --accent-text: #7fb3a6;
-  --accent-border: rgba(83,121,111,0.3);
-  --danger: #f87171;
-  --danger-soft: rgba(239,68,68,0.1);
-  --header-bg: rgba(11,11,15,0.92);
-  --fb: 'Inter', sans-serif;
-  --fm: 'JetBrains Mono', monospace;
+@font-face {
+  font-family: 'Geist';
+  src: url('../../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
-[data-theme="light"] {
-  --bg: #FAFAFA;
-  --surface: #FFFFFF;
-  --card: #FFFFFF;
-  --border: rgba(0,0,0,0.06);
-  --select: #EBEBEB;
-  --text: #171717;
-  --text-bright: #000000;
-  --text-muted: #666666;
-  --text-dim: #999999;
-  --chord: #b45309;
-  --accent: #53796F;
-  --accent-soft: rgba(83,121,111,0.10);
-  --accent-text: #3d5b53;
-  --accent-border: rgba(83,121,111,0.25);
-  --danger: #dc2626;
-  --danger-soft: rgba(239,68,68,0.08);
-  --header-bg: #FAFAFA;
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --accents-1: #fafafa;
+    --accents-2: #eaeaea;
+    --accents-3: #999999;
+    --accents-4: #888888;
+    --accents-5: #666666;
+    --accents-6: #444444;
+    --accents-7: #333333;
+    --accents-8: #111111;
+    --geist-success: #0070f3;
+    --geist-error: #ee0000;
+    --geist-warning: #f5a623;
+    --geist-link: #0070f3;
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--fb);
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none;
+    /* Legacy variables for compatibility during transition */
+    --bg: var(--background);
+    --surface: var(--accents-1);
+    --card: var(--background);
+    --border: var(--accents-2);
+    --text: var(--accents-7);
+    --text-bright: var(--foreground);
+    --text-muted: var(--accents-4);
+    --text-dim: var(--accents-3);
+    --chord: #b45309;
+    --accent: #0070f3;
+    --accent-soft: rgba(0, 112, 243, 0.1);
+    --accent-text: #0070f3;
+    --accent-border: rgba(0, 112, 243, 0.2);
+    --fb: 'Geist', sans-serif;
+    --fm: 'Geist Mono', monospace;
+  }
+
+  [data-theme="dark"] {
+    --background: #000000;
+    --foreground: #ffffff;
+    --accents-8: #fafafa;
+    --accents-7: #eaeaea;
+    --accents-6: #999999;
+    --accents-5: #888888;
+    --accents-4: #666666;
+    --accents-3: #444444;
+    --accents-2: #333333;
+    --accents-1: #111111;
+    --geist-success: #0070f3;
+    --geist-error: #ee0000;
+    --geist-warning: #f5a623;
+
+    /* Legacy dark */
+    --chord: #e2a832;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-accents-2;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 html { scroll-behavior: smooth; }
 
-button { min-height: 36px; font-family: var(--fb); }
-input { font-family: var(--fb); }
-textarea { font-family: var(--fm); }
-
-/* Scrollbar styling for the song strip in live mode */
+/* Scrollbar styling */
 .hide-scrollbar { scrollbar-width: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 
@@ -67,15 +94,6 @@ textarea { font-family: var(--fm); }
   body { min-height: -webkit-fill-available; }
 }
 
-/* Responsive: phone — larger touch targets, horizontal scroll ribbon */
 @media (max-width: 639px) {
   button { min-height: 44px; }
-}
-
-/* Auto column layout for chart body */
-@media (orientation: landscape) and (min-width: 768px) {
-  .chart-auto-cols { grid-template-columns: 1fr 1fr; display: grid; }
-}
-@media (orientation: portrait), (max-width: 767px) {
-  .chart-auto-cols { grid-template-columns: 1fr; display: block; }
 }

@@ -6,15 +6,15 @@ export default function ChordDiagram({ chord, size = 80 }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
     const shape = CHORD_SHAPES[chord];
     if (!shape) return;
 
-    // Clear previous render
-    containerRef.current.innerHTML = '';
+    container.innerHTML = '';
 
     try {
-      const chart = new SVGuitarChord(containerRef.current);
+      const chart = new SVGuitarChord(container);
 
       chart
         .configure({
@@ -39,37 +39,33 @@ export default function ChordDiagram({ chord, size = 80 }) {
         })
         .draw();
 
-      // Post-process SVG to inject CSS variable colors
-      const svg = containerRef.current.querySelector('svg');
+      const svg = container.querySelector('svg');
       if (svg) {
         svg.querySelectorAll('circle[fill]').forEach(el => {
           if (el.getAttribute('fill') !== 'none') {
-            el.setAttribute('fill', 'var(--accent)');
+            el.setAttribute('fill', 'var(--geist-link)');
           }
         });
         svg.querySelectorAll('text').forEach(el => {
-          el.setAttribute('fill', 'var(--text-muted)');
+          el.setAttribute('fill', 'var(--accents-4)');
         });
         svg.querySelectorAll('line, path, rect').forEach(el => {
           if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
-            el.setAttribute('stroke', 'var(--border)');
-          }
-          if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none' && el.tagName !== 'circle') {
-            el.setAttribute('fill', 'var(--text-dim)');
+            el.setAttribute('stroke', 'var(--accents-2)');
           }
         });
-        // Title text brighter
         const titleEl = svg.querySelector('text');
-        if (titleEl) titleEl.setAttribute('fill', 'var(--text-bright)');
-        // Set SVG dimensions
+        if (titleEl) {
+          titleEl.setAttribute('fill', 'var(--foreground)');
+          titleEl.style.fontWeight = '900';
+        }
         svg.setAttribute('width', size);
         svg.setAttribute('height', size + 16);
       }
-    } catch {
-      // Silently fail for unsupported chords
+    } catch (err) {
+      console.error('Failed to draw chord diagram', err);
     }
 
-    const container = containerRef.current;
     return () => {
       if (container) container.innerHTML = '';
     };
@@ -82,15 +78,8 @@ export default function ChordDiagram({ chord, size = 80 }) {
     <div
       ref={containerRef}
       title={chord}
-      style={{
-        width: size, height: size + 16,
-        display: 'inline-flex', flexShrink: 0,
-        alignItems: 'center', justifyContent: 'center',
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 8,
-        padding: 2,
-      }}
+      className="inline-flex shrink-0 items-center justify-center bg-background border border-accents-2 rounded-geist p-1 shadow-sm transition-transform hover:scale-105"
+      style={{ width: size, height: size + 16 }}
     />
   );
 }

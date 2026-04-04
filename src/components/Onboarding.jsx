@@ -1,29 +1,32 @@
 import { useState } from 'react';
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
+import { cn } from '../lib/utils';
 
 const STEPS = [
   {
     icon: '\u266B',
     title: 'Your Song Library',
     description: 'All your chord charts in one place. Import .md files or create from scratch with our visual editor.',
-    color: '#53796F',
+    color: '#0070f3',
   },
   {
     icon: '\u2630',
     title: 'Live Setlists',
     description: 'Build setlists for worship services. Reorder songs, set per-song transpose, and add band notes.',
-    color: '#6b9e91',
+    color: '#0070f3',
   },
   {
     icon: '\u25B6',
     title: 'Play Mode',
     description: 'Full-screen chord charts with transpose, multi-column layout, and foot pedal navigation.',
-    color: '#457a6e',
+    color: '#0070f3',
   },
   {
     icon: '\u2601',
     title: 'Sync Everywhere',
     description: 'Connect Google Drive, Dropbox, or OneDrive to sync your songs across all your devices.',
-    color: '#3a6b5f',
+    color: '#0070f3',
   },
 ];
 
@@ -33,136 +36,77 @@ export default function Onboarding({ onComplete }) {
   const isLast = step === STEPS.length - 1;
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 24px',
-      position: 'relative',
-    }}>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative font-sans">
       {/* Skip button */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={onComplete}
-        style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          fontSize: 13,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          padding: '8px 12px',
-        }}
+        className="absolute top-6 right-6 text-accents-4 hover:text-foreground text-[11px] font-bold tracking-widest uppercase"
       >
         Skip
-      </button>
+      </Button>
 
-      {/* Illustration */}
-      <div style={{
-        width: 120,
-        height: 120,
-        borderRadius: 30,
-        background: `linear-gradient(135deg, ${current.color}22, ${current.color}11)`,
-        border: `1px solid ${current.color}33`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: 48,
-        marginBottom: 32,
-      }}>
-        {current.icon}
-      </div>
-
-      {/* Title */}
-      <h2 style={{
-        margin: 0,
-        fontSize: 24,
-        fontWeight: 700,
-        color: 'var(--text-bright)',
-        textAlign: 'center',
-      }}>
-        {current.title}
-      </h2>
-
-      {/* Description */}
-      <p style={{
-        margin: '12px 0 0',
-        fontSize: 15,
-        color: 'var(--text-muted)',
-        textAlign: 'center',
-        maxWidth: 320,
-        lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
-      }}>
-        {current.description}
-      </p>
-
-      {/* Step dots */}
-      <div style={{
-        display: 'flex',
-        gap: 8,
-        marginTop: 40,
-      }}>
-        {STEPS.map((_, i) => (
-          <div
-            key={i}
-            style={{
-              width: i === step ? 24 : 8,
-              height: 8,
-              borderRadius: 4,
-              background: i === step ? 'var(--accent)' : 'var(--border)',
-              transition: 'all 0.2s ease',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Navigation */}
-      <div style={{
-        display: 'flex',
-        gap: 12,
-        marginTop: 32,
-      }}>
-        {step > 0 && (
-          <button
-            onClick={() => setStep(step - 1)}
-            style={{
-              padding: '12px 28px',
-              borderRadius: 10,
-              border: '1px solid var(--border)',
-              background: 'var(--surface)',
-              color: 'var(--text-muted)',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'var(--fb)',
-            }}
-          >
-            Back
-          </button>
-        )}
-        <button
-          onClick={() => isLast ? onComplete() : setStep(step + 1)}
-          style={{
-            padding: '12px 36px',
-            borderRadius: 10,
-            border: 'none',
-            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-            color: '#fff',
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'var(--fb)',
-            boxShadow: '0 4px 16px var(--accent-border)',
-          }}
+      {/* Content wrapper */}
+      <div className="flex flex-col items-center max-w-sm w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Illustration */}
+        <div
+          className="w-24 h-24 rounded-3xl flex items-center justify-center text-4xl mb-8 border border-accents-2 shadow-sm transition-transform hover:scale-105 duration-300"
+          style={{ background: `${current.color}10`, color: current.color }}
         >
-          {isLast ? "Let's Go" : 'Next'}
-        </button>
+          {current.icon}
+        </div>
+
+        {/* Title */}
+        <h2 className="text-2xl font-black text-foreground tracking-tighter mb-3 text-center uppercase italic">
+          {current.title}
+        </h2>
+
+        {/* Description */}
+        <p className="text-sm text-accents-5 text-center leading-relaxed mb-10 px-4 min-h-[60px]">
+          {current.description}
+        </p>
+
+        {/* Step dots */}
+        <div className="flex gap-2 mb-10">
+          {STEPS.map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "h-1 rounded-full transition-all duration-300",
+                i === step ? "w-8 bg-foreground" : "w-2 bg-accents-2"
+              )}
+            />
+          ))}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex gap-4 w-full">
+          {step > 0 && (
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => setStep(step - 1)}
+              className="flex-1 h-12 rounded-full font-bold tracking-widest text-[11px] uppercase border-accents-2"
+            >
+              Back
+            </Button>
+          )}
+          <Button
+            size="lg"
+            onClick={() => isLast ? onComplete() : setStep(step + 1)}
+            className="flex-1 h-12 rounded-full font-bold tracking-widest text-[11px] uppercase shadow-lg"
+          >
+            {isLast ? "Let's Go" : 'Next Step'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Step Indicator */}
+      <div className="absolute bottom-10">
+        <Badge variant="outline" className="font-mono text-[10px] tracking-[0.2em] border-accents-2 text-accents-3 px-3 py-1">
+          STEP {step + 1} OF {STEPS.length}
+        </Badge>
       </div>
     </div>
   );

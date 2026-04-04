@@ -1,29 +1,13 @@
 import { useState, useMemo } from 'react';
 import { transposeKey, sectionStyle, ALL_KEYS, semitonesBetween } from '../music';
 import { generateId } from '../parser';
-
-const inputStyle = {
-  width: '100%', padding: '9px 12px',
-  background: 'var(--surface)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 7, color: 'var(--text)',
-  fontSize: 14, outline: 'none',
-  fontFamily: 'var(--fb)', boxSizing: 'border-box',
-};
-
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 4,
-};
-
-const cB = {
-  width: 28, height: 28, borderRadius: 6,
-  border: '1px solid rgba(255,255,255,0.1)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 15, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fm)',
-};
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import { Badge } from './ui/Badge';
+import PageHeader from './PageHeader';
+import SearchIcon from './SearchIcon';
+import { cn } from '../lib/utils';
 
 export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete }) {
   const [name, setName] = useState(setlist?.name || '');
@@ -89,465 +73,235 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   }, 0);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{
-            background: 'none', border: 'none', color: '#94a3b8',
-            cursor: 'pointer', padding: 4,
-          }}>
-            &#8592; Back
-          </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
-            {setlist ? 'Edit Setlist' : 'New Setlist'}
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      <PageHeader title={setlist ? 'Edit Setlist' : 'New Setlist'}>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={onBack} className="md:flex hidden">
+            Back
+          </Button>
           {setlist && onDelete && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => { if (confirm('Delete this setlist?')) onDelete(setlist.id); }}
-              style={{
-                background: 'var(--danger-soft)',
-                border: '1px solid rgba(239,68,68,0.2)',
-                borderRadius: 7, padding: '7px 14px',
-                color: 'var(--danger)', fontSize: 13,
-                fontWeight: 600, cursor: 'pointer',
-              }}
+              className="text-geist-error hover:bg-geist-error/10 border-geist-error/20 h-9"
             >
               Delete
-            </button>
+            </Button>
           )}
-          <button onClick={handleSave} style={{
-            background: 'var(--accent-soft)',
-            border: '1px solid var(--accent-border)',
-            borderRadius: 7, padding: '7px 18px',
-            color: 'var(--accent-text)', fontSize: 13,
-            fontWeight: 600, cursor: 'pointer',
-          }}>
+          <Button size="sm" onClick={handleSave} className="px-6 font-bold uppercase tracking-widest text-[11px] h-9">
             Save
-          </button>
+          </Button>
         </div>
-      </div>
+      </PageHeader>
 
-      {/* Meta fields */}
-      <div style={{ padding: '16px 18px', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <label style={labelStyle}>Setlist Name</label>
-          <input
-            value={name} onChange={e => setName(e.target.value)}
-            placeholder="e.g. Sunday Morning Service" style={inputStyle}
-          />
-        </div>
-        <div style={{ flex: '0 0 150px' }}>
-          <label style={labelStyle}>Date</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
-        </div>
-        <div style={{ flex: '0 0 130px' }}>
-          <label style={labelStyle}>Service</label>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {['Morning', 'Evening', 'Special'].map(s => (
-              <button key={s} onClick={() => setService(s)} style={{
-                ...cB, padding: '6px 10px', width: 'auto', fontSize: 11,
-                borderColor: service === s ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-                color: service === s ? 'var(--accent-text)' : 'rgba(255,255,255,0.4)',
-                background: service === s ? 'var(--accent-soft)' : 'var(--surface)',
-              }}>
-                {s}
-              </button>
-            ))}
+      <div className="px-6 pb-24 space-y-8 mt-6">
+        {/* Meta Info */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1">
+            <label className="text-[10px] font-bold text-accents-4 uppercase tracking-widest mb-1.5 block font-mono">Setlist Name</label>
+            <Input
+              value={name} onChange={e => setName(e.target.value)}
+              placeholder="e.g. Sunday Morning Service"
+              className="bg-accents-1 border-accents-2 h-11"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-accents-4 uppercase tracking-widest mb-1.5 block font-mono">Date</label>
+            <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="bg-accents-1 border-accents-2 h-11" />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-accents-4 uppercase tracking-widest mb-1.5 block font-mono">Service</label>
+            <div className="flex bg-accents-1 p-1 rounded-geist border border-accents-2 h-11">
+              {['Morning', 'Evening', 'Special'].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setService(s)}
+                  className={cn(
+                    "flex-1 text-[10px] font-bold uppercase rounded transition-all",
+                    service === s ? "bg-background shadow-sm text-foreground" : "text-accents-4 hover:text-accents-6"
+                  )}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Song order */}
-      <div style={{ padding: '0 18px' }}>
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 10,
-        }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
-            Items ({items.length})
-            {breakCount > 0 && (
-              <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
-                {' '}({songCount} songs + {breakCount} breaks)
-              </span>
-            )}
-            {totalDuration > 0 && (
-              <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
-                {' '}· ~{totalDuration} min est.
-              </span>
-            )}
-          </span>
+        {/* List Header */}
+        <div className="flex items-center justify-between border-b border-accents-2 pb-2">
+          <h2 className="text-sm font-bold text-foreground tracking-tight uppercase">
+            Order of Service
+          </h2>
+          <div className="text-[10px] font-bold text-accents-4 font-mono">
+            {songCount} SONGS &middot; {breakCount} BREAKS &middot; ~{totalDuration} MIN
+          </div>
         </div>
 
-        {items.map((item, idx) => {
-          // Shared move/reorder column
-          const orderCol = (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', width: 44,
-              background: 'rgba(255,255,255,0.02)',
-              borderRight: '1px solid rgba(255,255,255,0.04)',
-              gap: 2, padding: '4px 0',
-            }}>
-              <button
-                onClick={() => idx > 0 && moveItem(idx, -1)}
-                disabled={idx === 0}
-                style={{
-                  background: 'none', border: 'none',
-                  color: idx > 0 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
-                  cursor: idx > 0 ? 'pointer' : 'default', padding: 2, display: 'flex',
-                  minHeight: 'auto',
-                }}
-              >
-                &#9650;
-              </button>
-              <span style={{
-                fontSize: 14, fontWeight: 700,
-                color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--fm)',
-              }}>
-                {idx + 1}
-              </span>
-              <button
-                onClick={() => idx < items.length - 1 && moveItem(idx, 1)}
-                disabled={idx === items.length - 1}
-                style={{
-                  background: 'none', border: 'none',
-                  color: idx < items.length - 1 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
-                  cursor: idx < items.length - 1 ? 'pointer' : 'default',
-                  padding: 2, display: 'flex', minHeight: 'auto',
-                }}
-              >
-                &#9660;
-              </button>
-            </div>
-          );
+        {/* Draggable Items List */}
+        <div className="space-y-3">
+          {items.map((item, idx) => {
+            const isBreak = item.type === 'break';
+            const song = !isBreak ? getSong(item.songId) : null;
+            const s = song ? sectionStyle(song.sections?.[0]?.type || 'Verse') : null;
 
-          // Break item
-          if (item.type === 'break') {
             return (
-              <div key={idx} style={{
-                display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
-                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-                overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
-              }}>
-                {orderCol}
-                <div style={{
-                  flex: 1, padding: '10px 14px',
-                  display: 'flex', alignItems: 'center', gap: 12,
-                }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                    background: 'rgba(107,114,128,0.15)',
-                    border: '1px solid rgba(107,114,128,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16, color: 'rgba(255,255,255,0.4)',
-                  }}>
-                    &#9646;
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <input
-                      value={item.label}
-                      onChange={e => updateBreakField(idx, 'label', e.target.value)}
-                      placeholder="e.g. Prayer, Announcements, Offering..."
-                      style={{
-                        ...inputStyle, padding: '5px 8px', fontSize: 13,
-                        fontWeight: 600, background: 'transparent',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                      }}
-                    />
-                  </div>
+              <div key={idx} className="flex items-stretch bg-background border border-accents-2 rounded-geist overflow-hidden group">
+                {/* Reorder controls */}
+                <div className="w-10 bg-accents-1/50 border-r border-accents-2 flex flex-col items-center justify-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => idx > 0 && moveItem(idx, -1)} className="p-1 hover:text-foreground border-none bg-transparent cursor-pointer disabled:opacity-20" disabled={idx === 0}>
+                    &#9650;
+                  </button>
+                  <span className="text-[10px] font-bold font-mono">{idx + 1}</span>
+                  <button onClick={() => idx < items.length - 1 && moveItem(idx, 1)} className="p-1 hover:text-foreground border-none bg-transparent cursor-pointer disabled:opacity-20" disabled={idx === items.length - 1}>
+                    &#9660;
+                  </button>
                 </div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 10px',
-                  borderLeft: '1px solid rgba(255,255,255,0.04)',
-                }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <span style={{
-                      fontSize: 8, color: 'var(--text-dim)',
-                      }}>
-                      Min
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={item.duration || ''}
-                      onChange={e => updateBreakField(idx, 'duration', parseInt(e.target.value) || 0)}
-                      placeholder="0"
-                      style={{
-                        width: 36, padding: '3px 4px', textAlign: 'center',
-                        background: 'var(--surface)',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                        borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                        fontFamily: 'var(--fm)', outline: 'none',
-                      }}
-                    />
-                  </div>
-                  <input
+
+                <div className="flex-1 p-4 flex items-center gap-4 min-w-0">
+                  {isBreak ? (
+                    <>
+                      <div className="w-10 h-10 rounded-geist bg-accents-2 flex items-center justify-center text-accents-4 text-xl">
+                        &middot;
+                      </div>
+                      <Input
+                        value={item.label}
+                        onChange={e => updateBreakField(idx, 'label', e.target.value)}
+                        placeholder="Label (e.g. Prayer)"
+                        className="h-9 text-sm font-bold bg-transparent border-none p-0 focus-visible:ring-0 italic"
+                      />
+                    </>
+                  ) : song ? (
+                    <>
+                      <div
+                        className="w-10 h-10 rounded-geist flex items-center justify-center font-mono text-xs font-bold shrink-0 border border-accents-2"
+                        style={{ background: `${s.b}15`, color: s.d }}
+                      >
+                        {transposeKey(song.key, item.transpose)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold truncate text-foreground">{song.title}</div>
+                        <div className="text-[10px] font-bold text-accents-4 uppercase tracking-widest truncate">{song.artist}</div>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center gap-2 p-3 bg-accents-1/20 border-l border-accents-2 shrink-0">
+                  {!isBreak && song && (
+                    <>
+                      <select
+                        value={transposeKey(song.key, item.transpose)}
+                        onChange={e => updateTranspose(idx, semitonesBetween(song.key, e.target.value))}
+                        className="h-8 px-2 bg-background border border-accents-2 rounded text-[10px] font-bold font-mono focus:border-geist-link outline-none"
+                      >
+                        {ALL_KEYS.map(k => (
+                          <option key={k} value={k}>{k}{k === song.key ? ' (ORIG)' : ''}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={item.capo || 0}
+                        onChange={e => updateCapo(idx, parseInt(e.target.value))}
+                        className="h-8 px-2 bg-background border border-accents-2 rounded text-[10px] font-bold font-mono focus:border-geist-link outline-none"
+                      >
+                        {[0,1,2,3,4,5,6,7,8,9].map(n => (
+                          <option key={n} value={n}>C\u00B7{n}</option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+                  {isBreak && (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={item.duration || ''}
+                        onChange={e => updateBreakField(idx, 'duration', parseInt(e.target.value) || 0)}
+                        placeholder="MIN"
+                        className="h-8 w-12 text-center text-[10px] font-bold font-mono p-1 bg-background"
+                      />
+                    </div>
+                  )}
+                  <Input
                     value={item.note}
-                    onChange={e => updateBreakField(idx, 'note', e.target.value)}
+                    onChange={e => isBreak ? updateBreakField(idx, 'note', e.target.value) : updateNote(idx, e.target.value)}
                     placeholder="Note..."
-                    style={{
-                      width: 100, padding: '5px 8px',
-                      background: 'var(--surface)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                      fontFamily: 'var(--fb)', outline: 'none',
-                    }}
+                    className="h-8 w-24 text-[10px] bg-background border-accents-2"
                   />
-                  <button
-                    onClick={() => removeItem(idx)}
-                    style={{
-                      background: 'none', border: 'none',
-                      color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-                      padding: 4, display: 'flex', minHeight: 'auto',
-                    }}
-                  >
+                  <button onClick={() => removeItem(idx)} className="p-2 text-accents-3 hover:text-geist-error border-none bg-transparent cursor-pointer">
                     &#10005;
                   </button>
                 </div>
               </div>
             );
-          }
+          })}
+        </div>
 
-          // Song item
-          const song = getSong(item.songId);
-          if (!song) return null;
-          const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-          return (
-            <div key={idx} style={{
-              display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
-              borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-              overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
-            }}>
-              {orderCol}
-              <div style={{
-                flex: 1, padding: '10px 14px',
-                display: 'flex', alignItems: 'center', gap: 12,
-              }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                  border: `1px solid ${s.b}44`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
-                }}>
-                  {transposeKey(song.key, item.transpose)}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {song.title}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
-                    {song.artist} · {song.tempo} bpm · {song.time}
-                  </div>
-                </div>
-              </div>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 10px',
-                borderLeft: '1px solid rgba(255,255,255,0.04)',
-              }}>
-                <div style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 2,
-                }}>
-                  <span style={{
-                    fontSize: 8, color: 'var(--text-dim)',
-                  }}>
-                    Key
-                  </span>
-                  <select
-                    value={transposeKey(song.key, item.transpose)}
-                    onChange={e => updateTranspose(idx, semitonesBetween(song.key, e.target.value))}
-                    style={{
-                      padding: '3px 4px', borderRadius: 5,
-                      background: 'var(--surface)',
-                      border: `1px solid ${item.transpose ? 'var(--chord)' : 'rgba(255,255,255,0.06)'}`,
-                      color: item.transpose ? 'var(--chord)' : 'var(--text)',
-                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
-                      outline: 'none', cursor: 'pointer',
-                    }}
-                  >
-                    {ALL_KEYS.map(k => (
-                      <option key={k} value={k}>{k}{k === song.key ? ' (orig)' : ''}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 2,
-                }}>
-                  <span style={{
-                    fontSize: 8, color: 'var(--text-dim)',
-                  }}>
-                    Capo
-                  </span>
-                  <select
-                    value={item.capo || 0}
-                    onChange={e => updateCapo(idx, parseInt(e.target.value))}
-                    style={{
-                      padding: '3px 4px', borderRadius: 5,
-                      background: 'var(--surface)',
-                      border: `1px solid ${item.capo ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
-                      color: item.capo ? 'var(--accent-text)' : 'var(--text)',
-                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
-                      outline: 'none', cursor: 'pointer',
-                    }}
-                  >
-                    {[0,1,2,3,4,5,6,7,8,9].map(n => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                </div>
-                <input
-                  value={item.note}
-                  onChange={e => updateNote(idx, e.target.value)}
-                  placeholder="Note..."
-                  style={{
-                    width: 100, padding: '5px 8px',
-                    background: 'var(--surface)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                    fontFamily: 'var(--fb)', outline: 'none',
-                  }}
+        {/* Add Controls */}
+        <div className="pt-4">
+          {adding ? (
+            <Card className="border-geist-link/30 shadow-xl animate-in zoom-in-95">
+              <CardHeader className="p-4 border-b border-accents-2 flex-row items-center gap-3 space-y-0 bg-accents-1/50">
+                <SearchIcon size={16} className="text-accents-4" />
+                <Input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  autoFocus
+                  placeholder="Search your library..."
+                  className="bg-transparent border-none p-0 h-auto focus-visible:ring-0 text-sm font-bold"
                 />
-                <button
-                  onClick={() => removeItem(idx)}
-                  style={{
-                    background: 'none', border: 'none',
-                    color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-                    padding: 4, display: 'flex', minHeight: 'auto',
-                  }}
-                >
-                  &#10005;
-                </button>
+              </CardHeader>
+              <div className="max-h-[300px] overflow-auto divide-y divide-accents-1">
+                {available.map(song => {
+                  const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
+                  return (
+                    <button
+                      key={song.id}
+                      onClick={() => addSong(song)}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-accents-1 transition-colors text-left border-none bg-transparent cursor-pointer"
+                    >
+                      <div className="w-8 h-8 rounded bg-accents-1 border border-accents-2 flex items-center justify-center font-mono text-[10px] font-bold" style={{ color: s.d }}>
+                        {song.key}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold truncate text-foreground">{song.title}</div>
+                        <div className="text-[10px] text-accents-4 uppercase font-bold tracking-tight">{song.artist}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+                {available.length === 0 && (
+                  <div className="p-10 text-center text-accents-4 text-xs font-bold uppercase tracking-widest font-mono">
+                    No songs found
+                  </div>
+                )}
               </div>
-            </div>
-          );
-        })}
-
-        {/* Add song */}
-        {adding ? (
-          <div style={{
-            border: '1px solid var(--accent-border)',
-            borderRadius: 10, overflow: 'hidden', marginTop: 8,
-          }}>
-            <div style={{
-              padding: 10,
-              borderBottom: '1px solid rgba(255,255,255,0.05)',
-            }}>
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                autoFocus
-                placeholder="Search songs..."
-                style={{ ...inputStyle, fontSize: 13 }}
-              />
-            </div>
-            <div style={{ maxHeight: 250, overflowY: 'auto' }}>
-              {available.map(song => {
-                const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-                return (
-                  <button key={song.id} onClick={() => addSong(song)} style={{
-                    width: '100%', display: 'flex', alignItems: 'center',
-                    gap: 10, padding: '10px 12px', background: 'none',
-                    border: 'none', borderBottom: '1px solid rgba(255,255,255,0.03)',
-                    cursor: 'pointer', textAlign: 'left',
-                  }}>
-                    <span style={{
-                      width: 32, height: 32, borderRadius: 7, flexShrink: 0,
-                      background: `linear-gradient(135deg,${s.b}33,${s.b}11)`,
-                      border: `1px solid ${s.b}44`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700, color: s.d,
-                    }}>
-                      {song.key}
-                    </span>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
-                        {song.title}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {song.artist}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-              {available.length === 0 && (
-                <div style={{
-                  padding: 20, textAlign: 'center',
-                  color: 'var(--text-dim)', fontSize: 13,
-                }}>
-                  No songs found
-                </div>
-              )}
-            </div>
-            <div style={{
-              padding: 8,
-              borderTop: '1px solid rgba(255,255,255,0.05)',
-            }}>
+              <div className="p-2 border-t border-accents-2 bg-accents-1/30">
+                <Button variant="ghost" size="sm" onClick={() => setAdding(false)} className="w-full text-accents-4 font-bold uppercase tracking-widest text-[10px]">
+                  CANCEL
+                </Button>
+              </div>
+            </Card>
+          ) : (
+            <div className="flex gap-4">
               <button
-                onClick={() => { setAdding(false); setSearch(''); }}
-                style={{
-                  width: '100%', justifyContent: 'center',
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 7, padding: '7px 12px',
-                  color: '#94a3b8', fontSize: 12, fontWeight: 600,
-                  cursor: 'pointer', fontFamily: 'var(--fb)',
-                }}
+                onClick={() => setAdding(true)}
+                className="flex-1 flex items-center justify-center gap-2 h-14 rounded-geist border-2 border-dashed border-accents-2 text-accents-4 hover:border-accents-3 hover:text-accents-5 transition-all font-bold uppercase tracking-widest text-[11px] bg-transparent cursor-pointer"
               >
-                Cancel
+                + ADD SONG
+              </button>
+              <button
+                onClick={addBreak}
+                className="flex-1 flex items-center justify-center gap-2 h-14 rounded-geist border-2 border-dashed border-accents-2 text-accents-4 hover:border-accents-3 hover:text-accents-5 transition-all font-bold uppercase tracking-widest text-[11px] bg-transparent cursor-pointer"
+              >
+                + ADD BREAK
               </button>
             </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button
-              onClick={() => setAdding(true)}
-              style={{
-                flex: 1, justifyContent: 'center',
-                padding: '14px 0',
-                background: 'var(--surface)',
-                border: '1px dashed var(--border)',
-                borderRadius: 7, color: '#94a3b8', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
-                display: 'flex', alignItems: 'center', gap: 5,
-              }}
-            >
-              + Add Song
-            </button>
-            <button
-              onClick={addBreak}
-              style={{
-                flex: 1, justifyContent: 'center',
-                padding: '14px 0',
-                background: 'var(--surface)',
-                border: '1px dashed rgba(107,114,128,0.4)',
-                borderRadius: 7, color: 'rgba(107,114,128,0.7)', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
-                display: 'flex', alignItems: 'center', gap: 5,
-              }}
-            >
-              + Add Break
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      <div style={{ height: 60 }} />
+      <div className="h-20" />
     </div>
   );
 }

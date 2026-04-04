@@ -1,4 +1,4 @@
-# ChordVault
+# Setlists MD
 
 A Progressive Web App for worship chord charts. Install on iPad/Android tablet, use full-screen, works offline.
 

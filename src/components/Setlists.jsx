@@ -1,6 +1,10 @@
 import { useState, useMemo, useRef } from 'react';
 import { transposeKey } from '../music';
 import PageHeader from './PageHeader';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import { Button } from './ui/Button';
+import { Badge } from './ui/Badge';
+import { cn } from '../lib/utils';
 
 export default function Setlists({
   songs, setlists,
@@ -31,198 +35,134 @@ export default function Setlists({
       <div
         key={sl.id}
         onClick={() => onViewSetlist(sl)}
-        role="button"
-        tabIndex={0}
-        style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 16px',
-          borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-          cursor: 'pointer', background: 'var(--card)',
-        }}
+        className={cn(
+          "flex items-center justify-between p-4 cursor-pointer hover:bg-accents-1 transition-colors group",
+          i < arr.length - 1 ? "border-b border-accents-2" : ""
+        )}
       >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold truncate group-hover:text-foreground">
             {sl.name || 'Untitled Setlist'}
           </div>
-          <div style={{
-            fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}>
-            <span>{formatDate(sl.date)}</span>
+          <div className="flex items-center gap-2 mt-1 text-xs text-accents-5">
+            <span className="font-medium text-foreground">{formatDate(sl.date)}</span>
             {sl.service && (
               <>
-                <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                <span>{sl.service}</span>
+                <span className="text-accents-3">&middot;</span>
+                <span className="bg-accents-1 px-1.5 py-0.5 rounded border border-accents-2 text-[10px] font-bold uppercase">{sl.service}</span>
               </>
             )}
-            <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-            <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>
+            <span className="text-accents-3">&middot;</span>
+            <span className="font-mono">
               {songCount} song{songCount !== 1 ? 's' : ''}
             </span>
           </div>
           {songCount > 0 && (
-            <div style={{
-              display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6,
-            }}>
-              {sl.items.slice(0, 6).map((it, idx) => {
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {sl.items.slice(0, 5).map((it, idx) => {
                 if (it.type === 'break') {
                   return (
-                    <span key={idx} style={{
-                      display: 'inline-flex', alignItems: 'center',
-                      padding: '2px 6px', borderRadius: 10,
-                      background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      fontSize: 10, color: 'var(--text-dim)',
-                      fontStyle: 'italic',
-                    }}>
+                    <Badge key={idx} variant="outline" className="text-[10px] h-5 bg-accents-1/50 border-accents-2 italic font-normal">
                       {it.label || 'Break'}
-                    </span>
+                    </Badge>
                   );
                 }
                 const song = songs.find(s => s.id === it.songId);
                 if (!song) return null;
                 return (
-                  <span key={idx} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 3,
-                    padding: '2px 6px', borderRadius: 10,
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    fontSize: 10, color: 'var(--text-muted)',
-                  }}>
-                    <span style={{
-                      fontFamily: 'var(--fm)', fontWeight: 700,
-                      color: 'var(--chord)', fontSize: 9,
-                    }}>
+                  <Badge key={idx} variant="outline" className="text-[10px] h-5 gap-1.5 bg-background border-accents-2 group-hover:border-accents-3 transition-colors">
+                    <span className="font-mono font-bold text-geist-link">
                       {transposeKey(song.key, it.transpose)}
                     </span>
-                    {song.title}
-                  </span>
+                    <span className="max-w-[80px] truncate">{song.title}</span>
+                  </Badge>
                 );
               })}
-              {sl.items.length > 6 && (
-                <span style={{
-                  fontSize: 10, color: 'var(--text-dim)', padding: '2px 4px',
-                }}>
-                  +{sl.items.length - 6} more
+              {sl.items.length > 5 && (
+                <span className="text-[10px] text-accents-3 font-bold flex items-center px-1">
+                  +{sl.items.length - 5} MORE
                 </span>
               )}
             </div>
           )}
         </div>
-        <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-          border: '1px solid var(--accent-border)',
-          borderRadius: 7, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 5,
-          fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
-          padding: '6px 14px', flexShrink: 0, marginLeft: 12,
-          background: 'var(--accent-soft)', color: 'var(--accent-text)',
-        }}>
-          Live
-        </button>
+        <Button
+          size="sm"
+          onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }}
+          className="shrink-0 ml-4 h-8 px-3 text-[11px] font-bold tracking-tight"
+        >
+          LIVE
+        </Button>
       </div>
     );
   };
 
   const renderSection = (label, items) => (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{
-        fontSize: 16, fontWeight: 700,
-        color: 'var(--text-dim)',
-        marginBottom: 6, padding: '0 2px',
-      }}>
+    <section className="mb-8">
+      <h2 className="text-sm font-semibold text-accents-5 uppercase tracking-wider mb-4 px-1 font-mono">
         {label}
-      </div>
-      <div style={{
-        border: '1px solid var(--border)',
-        borderRadius: 10, overflow: 'hidden',
-      }}>
+      </h2>
+      <div className="border border-accents-2 rounded-geist bg-background overflow-hidden shadow-sm">
         {items.map((sl, i) => renderSetlistRow(sl, i, items))}
       </div>
-    </div>
+    </section>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-background text-foreground font-sans">
       <PageHeader title="Setlists" />
 
-      <div style={{ padding: '0 24px', paddingBottom: 100 }}>
-        {setlists.length === 0 && (
-          <div style={{
-            textAlign: 'center', padding: '48px 20px',
-            color: 'var(--text-dim)', fontSize: 14,
-            border: '1px solid var(--border)', borderRadius: 10,
-          }}>
+      <div className="px-6 pb-24">
+        {setlists.length === 0 ? (
+          <div className="text-center py-24 text-accents-4 text-sm border-2 border-dashed border-accents-2 rounded-geist">
             No setlists yet. Tap + to create one.
           </div>
+        ) : (
+          <>
+            {upcoming.length > 0 && renderSection('Upcoming', upcoming)}
+            {all.length > 0 && renderSection('All', all)}
+          </>
         )}
-
-        {upcoming.length > 0 && renderSection('Upcoming', upcoming)}
-        {all.length > 0 && renderSection('All', all)}
       </div>
 
       {/* FAB */}
       {fabOpen && (
-        <div onClick={() => setFabOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 89 }} />
+        <div
+          onClick={() => setFabOpen(false)}
+          className="fixed inset-0 z-[90] bg-background/50 backdrop-blur-sm"
+        />
       )}
-      <div style={{
-        position: 'fixed', bottom: 80, right: 20,
-        display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-        gap: 8, zIndex: 90,
-      }}>
+      <div className="fixed bottom-24 right-6 flex flex-col items-end gap-3 z-[100]">
         {fabOpen && (
-          <>
-            <button onClick={() => { setFabOpen(false); onNewSetlist(); }} style={{
-              borderRadius: 24, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
-              padding: '10px 18px',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
+          <div className="flex flex-col items-end gap-3 animate-in slide-in-from-bottom-2 fade-in">
+            <Button onClick={() => { setFabOpen(false); onNewSetlist(); }} className="rounded-full shadow-lg border border-accents-2 px-6">
               New Setlist
-            </button>
-            <button onClick={() => { setFabOpen(false); fileRef.current?.click(); }} style={{
-              borderRadius: 24, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
-              padding: '10px 18px',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
+            </Button>
+            <Button onClick={() => { setFabOpen(false); fileRef.current?.click(); }} variant="secondary" className="rounded-full shadow-lg border border-accents-2 px-6 bg-background">
               Import .zip
-            </button>
-          </>
+            </Button>
+          </div>
         )}
-        <button
+        <Button
           onClick={() => setFabOpen(prev => !prev)}
-          style={{
-            width: 56, height: 56, borderRadius: 28,
-            background: 'linear-gradient(135deg, var(--accent), #6b9e91)',
-            border: 'none', color: '#fff',
-            fontSize: 28, fontWeight: 300, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
-            transition: 'transform 0.2s',
-            transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-          }}
+          className={cn(
+            "w-14 h-14 rounded-full shadow-xl transition-transform duration-200",
+            fabOpen ? "rotate-45" : "rotate-0"
+          )}
         >
-          +
-        </button>
+          <span className="text-2xl leading-none">+</span>
+        </Button>
       </div>
-      <input ref={fileRef} type="file" accept=".zip"
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".zip"
         onChange={e => {
           if (e.target.files[0]) onImportSetlist(e.target.files[0]);
           e.target.value = '';
         }}
-        style={{ display: 'none' }} />
+        className="hidden"
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { Button } from './ui/Button';
 
 export default function Welcome({ onGetStarted, onImport }) {
   const fileRef = useRef(null);
@@ -12,130 +13,68 @@ export default function Welcome({ onGetStarted, onImport }) {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 24px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      {/* Background glow */}
-      <div style={{
-        position: 'absolute',
-        top: '30%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 600,
-        height: 600,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, var(--accent-soft) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Background patterns */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-geist-link/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
-      {/* Logo */}
-      <div style={{
-        width: 80,
-        height: 80,
-        borderRadius: 20,
-        background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontSize: 32,
-        fontWeight: 700,
-        marginBottom: 24,
-        boxShadow: '0 8px 32px var(--accent-border)',
-      }}>
-        SM
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center max-w-sm w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Logo */}
+        <div className="w-20 h-20 rounded-2xl bg-foreground flex items-center justify-center text-background text-3xl font-black mb-8 shadow-2xl">
+          SM
+        </div>
+
+        {/* Title */}
+        <h1 className="text-4xl font-black text-foreground tracking-tighter mb-2 text-center italic">
+          Setlists MD
+        </h1>
+
+        {/* Tagline */}
+        <p className="text-lg font-bold text-accents-5 mb-4 text-center tracking-tight">
+          CHORD CHARTS FOR WORSHIP TEAMS
+        </p>
+
+        {/* Description */}
+        <p className="text-sm text-accents-4 text-center leading-relaxed mb-10 px-4">
+          Professional chord charts, instant transposition, and offline setlists.
+          The minimalist powerhouse for the modern worship leader.
+        </p>
+
+        {/* CTA */}
+        <div className="flex flex-col gap-4 w-full">
+          <Button
+            size="lg"
+            onClick={onGetStarted}
+            className="w-full h-14 rounded-full font-bold tracking-widest shadow-xl transition-transform active:scale-95"
+          >
+            GET STARTED &rarr;
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => fileRef.current?.click()}
+            className="text-accents-4 hover:text-foreground font-bold tracking-widest text-[11px] uppercase"
+          >
+            IMPORT EXISTING .MD FILES
+          </Button>
+        </div>
       </div>
 
-      {/* Title */}
-      <h1 style={{
-        margin: 0,
-        fontSize: 32,
-        fontWeight: 700,
-        color: 'var(--text-bright)',
-        letterSpacing: '-0.02em',
-        textAlign: 'center',
-      }}>
-        Setlists MD
-      </h1>
-
-      {/* Tagline */}
-      <p style={{
-        margin: '8px 0 0',
-        fontSize: 16,
-        color: 'var(--text-muted)',
-        textAlign: 'center',
-        fontFamily: 'var(--fb)',
-      }}>
-        Chord charts for worship teams
-      </p>
-
-      {/* Description */}
-      <p style={{
-        margin: '16px 0 0',
-        fontSize: 14,
-        color: 'var(--text-dim)',
-        textAlign: 'center',
-        maxWidth: 320,
-        lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
-      }}>
-        Build chord charts, create setlists, transpose on the fly.
-        Works offline on any device.
-      </p>
-
-      {/* CTA */}
-      <button
-        onClick={onGetStarted}
-        style={{
-          marginTop: 40,
-          padding: '14px 48px',
-          borderRadius: 12,
-          border: 'none',
-          background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          boxShadow: '0 4px 16px var(--accent-border)',
-        }}
-      >
-        Get Started
-      </button>
-
-      {/* Import link */}
-      <button
-        onClick={() => fileRef.current?.click()}
-        style={{
-          marginTop: 16,
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          fontSize: 13,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          textDecoration: 'underline',
-          textUnderlineOffset: 3,
-        }}
-      >
-        I already have .md files &mdash; Import
-      </button>
       <input
         ref={fileRef}
         type="file"
         accept=".md,.txt"
         multiple
         onChange={handleFiles}
-        style={{ display: 'none' }}
+        className="hidden"
       />
+
+      {/* Footer Branding */}
+      <div className="absolute bottom-8 text-[10px] font-bold text-accents-3 tracking-[0.3em] uppercase pointer-events-none">
+        BY WORSHIP LEADERS, FOR WORSHIP LEADERS
+      </div>
     </div>
   );
 }

@@ -1,11 +1,13 @@
+import { cn } from '../lib/utils';
+
 export default function SyncStatus({ syncState, onClick }) {
   const { state, lastSync, provider } = syncState;
 
   const dotColors = {
-    idle: 'var(--text-dim)',
-    syncing: 'var(--accent)',
-    synced: '#22c55e',
-    error: 'var(--danger)',
+    idle: 'bg-accents-3',
+    syncing: 'bg-geist-link animate-pulse',
+    synced: 'bg-geist-success',
+    error: 'bg-geist-error',
   };
 
   const labels = {
@@ -18,30 +20,12 @@ export default function SyncStatus({ syncState, onClick }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '5px 10px',
-        borderRadius: 20,
-        border: '1px solid var(--border)',
-        background: 'var(--surface)',
-        cursor: 'pointer',
-        fontFamily: 'var(--fb)',
-        fontSize: 11,
-        fontWeight: 600,
-        color: 'var(--text-muted)',
-      }}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-accents-2 bg-accents-1 hover:bg-accents-2 transition-colors cursor-pointer border-none"
     >
-      <span style={{
-        width: 7,
-        height: 7,
-        borderRadius: '50%',
-        background: dotColors[state] || dotColors.idle,
-        display: 'inline-block',
-        animation: state === 'syncing' ? 'pulse 1.5s infinite' : 'none',
-      }} />
-      {labels[state] || 'Offline'}
+      <span className={cn("w-2 h-2 rounded-full", dotColors[state] || dotColors.idle)} />
+      <span className="text-[10px] font-bold text-accents-5 uppercase tracking-wider font-mono">
+        {labels[state] || 'Offline'}
+      </span>
     </button>
   );
 }
