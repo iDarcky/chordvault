@@ -179,14 +179,14 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   );
 
   return (
-    <div>
+    <div style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Back button for the whole player */}
       <div style={{
         padding: '10px 18px 0',
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
         <button onClick={onBack} style={{
-          background: 'none', border: 'none', color: '#94a3b8',
+          background: 'none', border: 'none', color: 'var(--text-muted)',
           cursor: 'pointer', padding: 4, fontSize: 14,
         }}>
           &#8592; Back

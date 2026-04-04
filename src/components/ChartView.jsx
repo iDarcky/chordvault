@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { transposeKey, transposeChord, ALL_KEYS, semitonesBetween } from '../music';
 import SectionBlock from './SectionBlock';
 import { StructureRibbon, MetaPill } from './StructureRibbon';
@@ -13,11 +13,21 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
   const [showDiagrams, setShowDiagrams] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const headerRef = useRef(null);
 
   const transpose = forceTranspose != null ? forceTranspose : localTranspose;
   const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
   const currentKey = transposeKey(song.key, transpose);
 
+    // Track scroll to collapse header
+  useEffect(() => {
+    if (compact) return;
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [compact]);
+ 
   // Pre-compute cumulative modulate offsets per section
   const sectionModOffsets = useMemo(() => {
     const offsets = [];
@@ -98,13 +108,15 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   };
 
   return (
-    <div style={{ minHeight: compact ? 'auto' : '100vh', background: 'var(--bg)' }}>
+    <div style={{ minHeight: compact ? 'auto' : '100vh', background: 'var(--bg)', paddingTop: compact ? 0 : 'env(safe-area-inset-top, 0px)' }}>
       {/* Sticky header */}
-      <div style={{
+      <div ref={headerRef} style={{
         position: 'sticky', top: 0, zIndex: 10,
         background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border)',
         padding: compact ? '10px 18px 6px' : '12px 18px 8px',
+        paddingTop: compact ? 10 : `calc(12px + env(safe-area-inset-top, 0px))`,
+        transition: 'padding 0.15s ease',
       }}>
         {/* Title row */}
         <div style={{
@@ -123,59 +135,26 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
             )}
             <div style={{ minWidth: 0 }}>
               <h1 style={{
-                margin: 0, fontSize: compact ? 18 : 20, fontWeight: 700,
+                margin: 0, fontSize: compact ? 18 : (scrolled ? 16 : 20), fontWeight: 700,
                 color: 'var(--text-bright)', letterSpacing: '-0.02em',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                transition: 'font-size 0.15s ease',
               }}>
                 {song.title}
               </h1>
-              {!compact && (
+              {!compact && !scrolled && (
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
                   {song.artist}
+                  {song.tempo ? ` · ${song.tempo} bpm` : ''}
+                  {song.time ? ` · ${song.time}` : ''}
+                  {song.ccli ? ` · CCLI ${song.ccli}` : ''}
                 </div>
               )}
             </div>
           </div>
           {!compact && (
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-              <MetaPill label="BPM" value={song.tempo} />
-              <MetaPill label="Time" value={song.time} />
-              {song.ccli && <MetaPill label="CCLI" value={song.ccli} />}
-              {onEdit && (
-                <button onClick={onEdit} style={btnStyle}>
-                  Edit
-                </button>
-              )}
-              <button
-                onClick={() => setShowSettings(v => !v)}
-                style={{
-                  ...btnStyle,
-                  fontFamily: 'var(--fb)',
-                  fontWeight: 700,
-                  fontSize: 14,
-                  borderColor: showSettings ? 'var(--accent)' : 'var(--border)',
-                  color: showSettings ? 'var(--accent-text)' : 'var(--text)',
-                  background: showSettings ? 'var(--accent-soft)' : 'var(--surface)',
-                }}
-              >
-                Aa
-              </button>
-            </div>
-          )}
-          {compact && navOverride && <div>{navOverride}</div>}
-        </div>
-
-        <StructureRibbon structure={song.structure || []} compact />
-
-        {/* Controls row — hidden in compact mode */}
-        {!compact && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            flexWrap: 'wrap', paddingBottom: 4,
-          }}>
-            {/* Key selector (transpose) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Key</span>
+              {/* Key selector */}
               <select
                 value={currentKey}
                 onChange={e => handleKeyChange(e.target.value)}
@@ -194,24 +173,55 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
                   <option key={k} value={k}>{k}{k === song.key ? ' (original)' : ''}</option>
                 ))}
               </select>
+
+              <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
+                Diagrams
+              </button>
+ 
+              {!scrolled && onEdit && (
+                <button onClick={onEdit} style={btnStyle}>
+                  Edit
+                </button>
+              )}
+              {!scrolled && (
+                <button
+                  onClick={() => setShowSettings(v => !v)}
+                  style={{
+                    ...btnStyle,
+                    fontFamily: 'var(--fb)',
+                    fontWeight: 700,
+                    fontSize: 14,
+                    borderColor: showSettings ? 'var(--accent)' : 'var(--border)',
+                    color: showSettings ? 'var(--accent-text)' : 'var(--text)',
+                    background: showSettings ? 'var(--accent-soft)' : 'var(--surface)',
+                  }}
+                >
+                  Aa
+                </button>
+              )}
             </div>
+          )}
+          {compact && navOverride && <div>{navOverride}</div>}
+        </div>
+         
+        <StructureRibbon structure={song.structure || []} compact />
 
-            {capo > 0 && (
-              <MetaPill label="Capo" value={`${capo} → ${transposeKey(song.key, chordTranspose)} shapes`} highlight />
-            )}
+        {/* Capo indicator — visible when not scrolled */}
+        {!compact && !scrolled && capo > 0 && (
+          <div style={{ paddingBottom: 4 }}>
+            <MetaPill label="Capo" value={`${capo} → ${transposeKey(song.key, chordTranspose)} shapes`} highlight />
+          </div>
+        )}
 
-            <div style={{ flex: 1 }} />
-
-            <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
-              Diagrams
-            </button>
-
-            {navOverride && <div>{navOverride}</div>}
+        {/* Nav override for non-compact (not in title row) */}
+        {!compact && navOverride && !scrolled && (
+          <div style={{ paddingBottom: 4 }}>
+            {navOverride}
           </div>
         )}
 
         {/* Aa settings popover */}
-        {showSettings && !compact && (
+        {showSettings && !compact && !scrolled && (
           <div style={{
             padding: '10px 0 6px',
             borderTop: '1px solid var(--border)',
@@ -240,14 +250,14 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
         {/* Chord diagram strip */}
         {showDiagrams && uniqueChords.length > 0 && (
           <div style={{
-            display: 'flex', flexWrap: 'wrap', gap: 6,
+            display: 'flex', gap: 8, flexWrap: 'nowrap',
             paddingTop: 8, paddingBottom: 4,
             borderTop: '1px solid var(--border)',
             marginTop: 4,
             overflowX: 'auto',
           }}>
             {uniqueChords.map(chord => (
-              <ChordDiagram key={chord} chord={chord} size={100} />
+                <ChordDiagram key={chord} chord={chord} size={80} />
             ))}
           </div>
         )}
