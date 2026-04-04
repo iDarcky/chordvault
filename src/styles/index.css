@@ -44,11 +44,11 @@
     --text-bright: var(--foreground);
     --text-muted: var(--accents-4);
     --text-dim: var(--accents-3);
-    --chord: #b45309;
+    --chord: #0070f3;
     --accent: #0070f3;
-    --accent-soft: rgba(0, 112, 243, 0.1);
+    --accent-soft: rgba(0, 112, 243, 0.08);
     --accent-text: #0070f3;
-    --accent-border: rgba(0, 112, 243, 0.2);
+    --accent-border: rgba(0, 112, 243, 0.15);
     --fb: 'Geist', sans-serif;
     --fm: 'Geist Mono', monospace;
   }
@@ -68,8 +68,7 @@
     --geist-error: #ee0000;
     --geist-warning: #f5a623;
 
-    /* Legacy dark */
-    --chord: #e2a832;
+    --chord: #0070f3;
   }
 }
 
@@ -81,12 +80,20 @@
     @apply bg-background text-foreground font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Subtle Vercel grid background */
+    background-image: radial-gradient(var(--accents-2) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-background/70 backdrop-blur-md border border-accents-2;
   }
 }
 
 html { scroll-behavior: smooth; }
 
-/* Scrollbar styling */
 .hide-scrollbar { scrollbar-width: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 

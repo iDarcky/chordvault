@@ -5,28 +5,24 @@ import { cn } from '../lib/utils';
 
 const STEPS = [
   {
-    icon: '\u266B',
-    title: 'Your Song Library',
-    description: 'All your chord charts in one place. Import .md files or create from scratch with our visual editor.',
-    color: '#0070f3',
+    icon: 'M9 18V5l12-2v13M9 18a3 3 0 11-6 0 3 3 0 016 0zm12-2a3 3 0 11-6 0 3 3 0 016 0z',
+    title: 'Integrated Library',
+    description: 'A professional repository for your .md song files. Import your existing catalog or build one with our specialized editors.',
   },
   {
-    icon: '\u2630',
-    title: 'Live Setlists',
-    description: 'Build setlists for worship services. Reorder songs, set per-song transpose, and add band notes.',
-    color: '#0070f3',
+    icon: 'M4 6h16M4 12h16M4 18h16',
+    title: 'Performance Setlists',
+    description: 'Engineered for live environments. Sequence your items, define transitions, and synchronize your entire ensemble.',
   },
   {
-    icon: '\u25B6',
-    title: 'Play Mode',
-    description: 'Full-screen chord charts with transpose, multi-column layout, and foot pedal navigation.',
-    color: '#0070f3',
+    icon: 'M5 3l14 9-14 9V3z',
+    title: 'Real-time Execution',
+    description: 'Clean, high-contrast chart rendering with instant transposition, capo calculation, and automated navigation.',
   },
   {
-    icon: '\u2601',
-    title: 'Sync Everywhere',
-    description: 'Connect Google Drive, Dropbox, or OneDrive to sync your songs across all your devices.',
-    color: '#0070f3',
+    icon: 'M12 2v8 M12 14v8 M2 12h8 M14 12h8 M4.9 4.9l4.3 4.3 M14.8 14.8l4.3 4.3 M4.9 19.1l4.3-4.3 M14.8 9.2l4.3-4.3',
+    title: 'Global Sync',
+    description: 'Keep your configuration and library consistent across all platforms. Offline-first by default, connected by choice.',
   },
 ];
 
@@ -36,77 +32,80 @@ export default function Onboarding({ onComplete }) {
   const isLast = step === STEPS.length - 1;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative font-sans">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 relative font-sans overflow-hidden">
+       {/* Background Decoration */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-tr from-accents-1/20 to-transparent z-0" />
+
       {/* Skip button */}
       <Button
         variant="ghost"
         size="sm"
         onClick={onComplete}
-        className="absolute top-6 right-6 text-accents-4 hover:text-foreground text-[11px] font-bold tracking-widest uppercase"
+        className="absolute top-8 right-8 text-accents-3 hover:text-foreground text-[10px] font-black tracking-[0.2em] uppercase transition-all"
       >
-        Skip
+        TERMINATE ONBOARDING
       </Button>
 
       {/* Content wrapper */}
-      <div className="flex flex-col items-center max-w-sm w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* Illustration */}
-        <div
-          className="w-24 h-24 rounded-3xl flex items-center justify-center text-4xl mb-8 border border-accents-2 shadow-sm transition-transform hover:scale-105 duration-300"
-          style={{ background: `${current.color}10`, color: current.color }}
-        >
-          {current.icon}
+      <div className="relative z-10 flex flex-col items-center max-w-sm w-full animate-in fade-in slide-in-from-right-8 duration-500">
+        {/* Illustration Icon */}
+        <div className="w-32 h-32 rounded-[2.5rem] bg-foreground text-background flex items-center justify-center mb-12 shadow-2xl transition-all hover:scale-105 duration-300">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d={current.icon} />
+          </svg>
         </div>
 
-        {/* Title */}
-        <h2 className="text-2xl font-black text-foreground tracking-tighter mb-3 text-center uppercase italic">
-          {current.title}
-        </h2>
+        {/* Text Group */}
+        <div className="text-center space-y-4 mb-12">
+           <Badge variant="outline" className="font-mono text-[9px] font-black tracking-[0.3em] border-accents-2 text-accents-4 px-4 h-6 mb-2 rounded-full uppercase">
+             Component {step + 1}
+           </Badge>
+           <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase italic leading-none">
+             {current.title}
+           </h2>
+           <p className="text-sm text-accents-4 leading-relaxed px-2 font-medium min-h-[4.5rem]">
+             {current.description}
+           </p>
+        </div>
 
-        {/* Description */}
-        <p className="text-sm text-accents-5 text-center leading-relaxed mb-10 px-4 min-h-[60px]">
-          {current.description}
-        </p>
-
-        {/* Step dots */}
-        <div className="flex gap-2 mb-10">
+        {/* Progress System */}
+        <div className="flex gap-1.5 mb-16">
           {STEPS.map((_, i) => (
             <div
               key={i}
               className={cn(
-                "h-1 rounded-full transition-all duration-300",
-                i === step ? "w-8 bg-foreground" : "w-2 bg-accents-2"
+                "h-1 rounded-full transition-all duration-500",
+                i === step ? "w-12 bg-foreground" : (i < step ? "w-4 bg-accents-3" : "w-4 bg-accents-2")
               )}
             />
           ))}
         </div>
 
-        {/* Navigation */}
+        {/* Navigation Layer */}
         <div className="flex gap-4 w-full">
           {step > 0 && (
             <Button
               variant="secondary"
               size="lg"
               onClick={() => setStep(step - 1)}
-              className="flex-1 h-12 rounded-full font-bold tracking-widest text-[11px] uppercase border-accents-2"
+              className="flex-1 h-14 rounded-2xl font-black tracking-widest text-[10px] uppercase border-2 border-accents-2 bg-background hover:bg-accents-1"
             >
-              Back
+              PREVIOUS
             </Button>
           )}
           <Button
             size="lg"
             onClick={() => isLast ? onComplete() : setStep(step + 1)}
-            className="flex-1 h-12 rounded-full font-bold tracking-widest text-[11px] uppercase shadow-lg"
+            className="flex-1 h-14 rounded-2xl font-black tracking-widest text-[10px] uppercase shadow-geist hover:shadow-2xl transition-all border-none"
           >
-            {isLast ? "Let's Go" : 'Next Step'}
+            {isLast ? "COMMENCE" : "NEXT PHASE"}
           </Button>
         </div>
       </div>
 
-      {/* Step Indicator */}
-      <div className="absolute bottom-10">
-        <Badge variant="outline" className="font-mono text-[10px] tracking-[0.2em] border-accents-2 text-accents-3 px-3 py-1">
-          STEP {step + 1} OF {STEPS.length}
-        </Badge>
+      {/* Persistent Footer */}
+      <div className="absolute bottom-12 font-mono text-[8px] font-bold text-accents-2 uppercase tracking-[0.6em] select-none">
+        SETLISTS MD PERFORMANCE PLATFORM
       </div>
     </div>
   );

@@ -31,7 +31,12 @@ export default {
         mono: ['Geist Mono', 'JetBrains Mono', 'monospace'],
       },
       borderRadius: {
-        geist: '6px',
+        geist: '8px',
+        '2xl': '16px',
+      },
+      boxShadow: {
+        'geist': '0 0 0 1px var(--accents-2), 0 8px 30px rgba(0,0,0,0.12)',
+        'geist-sm': '0 0 0 1px var(--accents-2), 0 2px 4px rgba(0,0,0,0.02)',
       }
     },
   },
