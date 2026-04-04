@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { sectionStyle } from '../music';
+import PageHeader from './PageHeader';
+import SearchIcon from './SearchIcon';
 
 const btnStyle = {
   border: 'none', borderRadius: 7, cursor: 'pointer',
@@ -55,32 +57,26 @@ export default function Dashboard({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
       <div style={{
-        padding: '28px 20px 0',
-        background: 'linear-gradient(180deg, rgba(99,102,241,0.06) 0%, transparent 100%)',
+        padding: '20px 24px 12px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 20,
+        <h1 style={{
+          margin: 0, fontSize: 20, fontWeight: 700,
+          color: 'var(--text-bright)', letterSpacing: '-0.02em',
         }}>
-          <h1 style={{
-            margin: 0, fontSize: 22, fontWeight: 700,
-            color: 'var(--text-bright)', letterSpacing: '-0.02em',
-          }}>
-            ChordVault
-          </h1>
-          <button onClick={() => setShowSearch(true)} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: 'var(--text-muted)',
-            padding: '7px 12px', fontSize: 14, borderRadius: 10,
-          }}>
-            &#128269; Search
-          </button>
-        </div>
+          ChordVault
+        </h1>
+        <button onClick={() => setShowSearch(true)} style={{
+          ...btnStyle, background: 'var(--surface)',
+          border: '1px solid var(--border)', color: 'var(--text-muted)',
+          padding: '7px 12px', fontSize: 13, borderRadius: 8, gap: 6,
+        }}>
+          <SearchIcon size={14} /> Search
+        </button>
       </div>
 
-      <div style={{ padding: '0 20px 80px' }}>
+      <div style={{ padding: '0 24px 80px' }}>
         {/* Upcoming Setlists */}
         {upcomingSetlists.length > 0 && (
           <div style={{ marginBottom: 28 }}>

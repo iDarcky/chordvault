@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { transposeKey } from '../music';
+import PageHeader from './PageHeader';
 
 const btnStyle = {
   border: 'none', borderRadius: 7, cursor: 'pointer',
@@ -110,27 +111,17 @@ export default function Setlists({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
       <div style={{
-        padding: '28px 20px 0',
-        background: 'linear-gradient(180deg, rgba(99,102,241,0.06) 0%, transparent 100%)',
+        padding: '20px 24px 12px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 16,
+        <h1 style={{
+          margin: 0, fontSize: 20, fontWeight: 700,
+          color: 'var(--text-bright)', letterSpacing: '-0.02em',
         }}>
-          <div>
-            <h1 style={{
-              margin: 0, fontSize: 22, fontWeight: 700,
-              color: 'var(--text-bright)', letterSpacing: '-0.02em',
-            }}>
-              Setlists
-            </h1>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-              {setlists.length} setlist{setlists.length !== 1 ? 's' : ''}
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          Setlists
+        </h1>
+        <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={() => fileRef.current?.click()} style={{
               ...btnStyle, background: 'var(--surface)',
               border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
@@ -151,10 +142,9 @@ export default function Setlists({
               + New Setlist
             </button>
           </div>
-        </div>
       </div>
 
-      <div style={{ padding: '12px 20px', paddingBottom: 80 }}>
+      <div style={{ padding: '0 24px', paddingBottom: 80 }}>
         {setlists.length === 0 && (
           <div style={{
             textAlign: 'center', padding: '48px 20px',

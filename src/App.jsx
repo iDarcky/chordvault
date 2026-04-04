@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { parseSongMd, generateId } from './parser';
+import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
 import { createSyncEngine } from './sync/engine';
@@ -397,6 +397,18 @@ export default function App() {
           settings={settings}
           onUpdate={setSettings}
           onClearAll={handleClearAll}
+          onDownloadSongs={() => {
+            songs.forEach(s => {
+              const md = songToMd(s);
+              const blob = new Blob([md], { type: 'text/markdown' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = s.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.md';
+              a.click();
+              URL.revokeObjectURL(url);
+            });
+          }}
           songCount={songs.length}
           setlistCount={setlists.length}
           syncState={syncState}

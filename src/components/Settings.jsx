@@ -22,7 +22,7 @@ const activeBtn = (active) => ({
   background: active ? 'var(--accent-soft)' : 'var(--surface)',
 });
 
-export default function Settings({ settings, onUpdate, onClearAll, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
+export default function Settings({ settings, onUpdate, onClearAll, onDownloadSongs, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
   const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
@@ -42,15 +42,14 @@ export default function Settings({ settings, onUpdate, onClearAll, songCount, se
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Header */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '20px 24px 12px',
       }}>
-        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+        <h1 style={{
+          margin: 0, fontSize: 20, fontWeight: 700,
+          color: 'var(--text-bright)', letterSpacing: '-0.02em',
+        }}>
           Settings
-        </span>
+        </h1>
       </div>
 
       <div style={{ padding: '16px 18px 80px', maxWidth: 500 }}>
@@ -211,10 +210,18 @@ export default function Settings({ settings, onUpdate, onClearAll, songCount, se
             padding: '12px 14px', borderRadius: 8,
             background: 'var(--surface)', border: '1px solid var(--border)',
             marginBottom: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
               {songCount} song{songCount !== 1 ? 's' : ''} · {setlistCount} setlist{setlistCount !== 1 ? 's' : ''}
             </span>
+            {onDownloadSongs && songCount > 0 && (
+              <button onClick={onDownloadSongs} style={{
+                ...cB, padding: '4px 12px', fontSize: 11,
+              }}>
+                Download songs
+              </button>
+            )}
           </div>
           <button
             onClick={() => { if (confirm('Delete ALL songs and setlists? This cannot be undone.')) onClearAll(); }}
