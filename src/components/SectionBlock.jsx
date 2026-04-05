@@ -1,5 +1,6 @@
 import { transposeChord, sectionStyle, getNashvilleNumber } from '../music';
 import { cn } from '../lib/utils';
+import TabBlock from './TabBlock';
 
 export default function SectionBlock({
   section, transpose, nns, songKey,
@@ -7,54 +8,80 @@ export default function SectionBlock({
 }) {
   const s = sectionStyle(section.type);
 
-  const renderContent = () => {
-    // In our parser, section.lines is an array of strings or objects (tabs, modulations)
-    // Legacy chordvault might have used 'content' but our parser uses 'lines'
-    const lines = section.lines || [];
-
-    return lines.map((line, i) => {
-      if (typeof line !== 'string') {
-        // Skip tabs/modulations for now or handle them simply
-        if (line.type === 'tab') return <div key={i} className="text-xs font-mono opacity-50 my-2">[Tablature]</div>;
-        return null;
+  const renderLine = (line, idx) => {
+    if (typeof line !== 'string') {
+      if (line.type === 'tab') return <TabBlock key={idx} data={line} />;
+      if (line.type === 'modulate') {
+        return (
+          <div key={idx} className="my-6 flex items-center gap-4">
+            <div className="h-[1px] flex-1 bg-brand/20" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-brand text-white rounded-full shadow-sm">
+              Key Change: {line.semitones > 0 ? '+' : ''}{line.semitones}
+            </span>
+            <div className="h-[1px] flex-1 bg-brand/20" />
+          </div>
+        );
       }
+      return null;
+    }
 
-      // Process chords in the line [C] or [C/E]
-      const parts = line.split(/(\[.*?\])/);
+    const parts = line.split(/(\[.*?\])/);
+
+    if (!line.includes('[') || !showChords) {
       return (
-        <div key={i} className="min-h-[1.5em] whitespace-pre-wrap">
-          {parts.map((part, pi) => {
-            if (part.startsWith('[') && part.endsWith(']')) {
-              const chord = part.slice(1, -1);
-              if (!showChords) return null;
-
-              const displayChord = nns
-                ? getNashvilleNumber(chord, songKey)
-                : transposeChord(chord, transpose);
-
-              return (
-                <span key={pi} className="font-mono font-bold text-[var(--chord)] bg-[var(--accents-1)]/50 px-1 rounded-sm border border-[var(--geist-border)]/20 shadow-sm relative -top-1">
-                  {displayChord}
-                </span>
-              );
-            }
-            return <span key={pi} className="text-[var(--geist-foreground)]">{part}</span>;
-          })}
+        <div key={idx} className="min-h-[1.5em] whitespace-pre-wrap text-[var(--geist-foreground)] font-mono opacity-90">
+          {line.replace(/\{!.*?\}/g, '')}
         </div>
       );
+    }
+
+    let chordLine = '';
+    let lyricLine = '';
+
+    parts.forEach(part => {
+      if (part.startsWith('[') && part.endsWith(']')) {
+        const chord = part.slice(1, -1);
+        const displayChord = nns
+          ? getNashvilleNumber(chord, songKey)
+          : transposeChord(chord, transpose);
+
+        const padding = Math.max(0, lyricLine.length - chordLine.length);
+        chordLine += ' '.repeat(padding) + displayChord;
+      } else {
+        const cleanText = part.replace(/\{!.*?\}/g, '');
+        lyricLine += cleanText;
+      }
     });
+
+    return (
+      <div key={idx} className="mb-4 last:mb-0 group/line">
+        <div className="font-mono font-bold text-[var(--chord)] whitespace-pre text-[0.95em] leading-none mb-1 select-none">
+          {chordLine || ' '}
+        </div>
+        <div className="text-[var(--geist-foreground)] font-mono whitespace-pre-wrap leading-tight">
+          {lyricLine || ' '}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="mb-8 break-inside-avoid">
-      <div className="flex items-center gap-3 mb-3">
-        <span className="text-[10px] font-black uppercase tracking-[0.25em] py-1 px-2.5 rounded bg-[var(--accents-1)] border border-[var(--geist-border)] text-brand shadow-sm">
-          {section.type}
-        </span>
-        <div className="h-[1px] flex-1 bg-[var(--geist-border)] opacity-50" />
+    <div className="mb-12 break-inside-avoid">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col">
+          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-brand">
+            {section.type}
+          </span>
+          {section.note && (
+            <span className="text-[10px] font-bold italic text-[var(--accents-4)] mt-1 px-1 border-l-2 border-brand/20 ml-0.5">
+              {section.note}
+            </span>
+          )}
+        </div>
+        <div className="h-[1px] flex-1 bg-[var(--geist-border)] opacity-20" />
       </div>
-      <div className="space-y-1 pl-1">
-        {renderContent()}
+      <div className="space-y-1">
+        {(section.lines || []).map((line, i) => renderLine(line, i))}
       </div>
     </div>
   );

@@ -1,16 +1,16 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { cn } from '../../lib/utils';
+import Button from '../ui/Button';
 
 const STRING_NAMES = ['e', 'B', 'G', 'D', 'A', 'E'];
 const TECHNIQUES = ['h', 'p', 's', 'b', 'x'];
 
-// Slots per measure at 16th-note resolution
 function slotsPerMeasure(timeSig) {
   const [num, den] = (timeSig || '4/4').split('/').map(Number);
-  if (den === 8) return num * 2;   // 6/8 → 12, 3/8 → 6
-  return num * 4;                  // 4/4 → 16, 3/4 → 12
+  if (den === 8) return num * 2;
+  return num * 4;
 }
 
-// Duration in slots (at 16th-note resolution)
 const DURATIONS = [
   { id: 'w',  label: '𝅝',  slots: 16, title: 'Whole' },
   { id: 'h',  label: '𝅗𝅥',  slots: 8,  title: 'Half' },
@@ -20,7 +20,6 @@ const DURATIONS = [
   { id: 'dq', label: '♩.',  slots: 6,  title: 'Dotted Quarter' },
 ];
 
-// Beat header labels for 4/4 at 16th resolution
 function beatLabels(timeSig) {
   const [num] = (timeSig || '4/4').split('/').map(Number);
   const labels = [];
@@ -48,7 +47,6 @@ function gridToAscii(grid, measures, timeSig) {
           const fret = typeof cell === 'object' ? cell.fret : cell;
           const tech = typeof cell === 'object' ? (cell.technique || '') : '';
           line += String(fret) + tech;
-          // Pad with dashes: fret takes 1 or 2 chars + 1 for technique
           const used = String(fret).length + (tech ? 1 : 0);
           line += '-'.repeat(Math.max(0, 2 - used));
         } else {
@@ -68,24 +66,21 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
   const [grid, setGrid] = useState(() => makeGrid(2, timeSig));
   const [cursor, setCursor] = useState({ string: 0, pos: 0 });
   const [chordMode, setChordMode] = useState(false);
-  const [activeInput, setActiveInput] = useState(null); // { string, pos }
+  const [activeInput, setActiveInput] = useState(null);
   const [inputVal, setInputVal] = useState('');
-  const [lastPlaced, setLastPlaced] = useState(null); // { string, pos }
+  const [lastPlaced, setLastPlaced] = useState(null);
   const inputRef = useRef(null);
 
   const spm = slotsPerMeasure(timeSig);
   const totalSlots = spm * measures;
   const labels = beatLabels(timeSig);
 
-  // Focus input when it appears
   useEffect(() => {
     if (activeInput && inputRef.current) inputRef.current.focus();
   }, [activeInput]);
 
-  // Load existing tab into grid
   useEffect(() => {
     if (!initialTab || !initialTab.strings || initialTab.strings.length === 0) return;
-    // Simple load: parse fret numbers from existing tab content into a new grid
     const maxMeasures = Math.max(2, initialTab.strings[0]?.content?.split('|').length || 2);
     const newGrid = makeGrid(maxMeasures, timeSig);
     setMeasures(maxMeasures);
@@ -119,7 +114,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
       }
     });
     setGrid(newGrid);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const durSlots = DURATIONS.find(d => d.id === duration)?.slots || 4;
 
@@ -193,14 +188,6 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
     onSave(`${header}\n${ascii}\n{/tab}`);
   };
 
-  const handleKeyDown = (e, si, pos) => {
-    if (e.key === 'Escape') { setActiveInput(null); return; }
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      clearCell(si, pos);
-      setActiveInput(null);
-    }
-  };
-
   const handleGridKeyDown = useCallback((e) => {
     if (activeInput) return;
     const { string: si, pos } = cursor;
@@ -217,287 +204,154 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
   const labelW = 28;
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.7)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-hidden" onClick={onClose}>
       <div
+        className="bg-[var(--geist-background)] border border-[var(--geist-border)] rounded-geist-card w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl animate-in fade-in zoom-in-95"
         onClick={e => e.stopPropagation()}
         onKeyDown={handleGridKeyDown}
         tabIndex={-1}
-        style={{
-          background: 'var(--bg)', borderRadius: 14,
-          border: '1px solid var(--border)',
-          padding: 18, width: '95%', maxWidth: 860,
-          maxHeight: '90vh', overflow: 'auto',
-          outline: 'none',
-          boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
-        }}
       >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-bright)', flex: 1 }}>
-            Tab Editor
-          </span>
-          <span style={{ fontSize: 11, color: 'var(--text-dim)', fontFamily: 'var(--fm)' }}>
-            {timeSig}
-          </span>
-          <button onClick={onClose} style={closeBtnStyle}>✕</button>
+        <div className="p-6 border-b border-[var(--geist-border)] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--geist-foreground)]">Tab Editor</h2>
+            <span className="text-[10px] font-mono font-bold text-brand bg-brand/10 px-2 py-0.5 rounded border border-brand/20 uppercase">{timeSig}</span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}>&times;</Button>
         </div>
 
-        {/* Toolbar: Durations + chord mode + techniques */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12, alignItems: 'center' }}>
-          {/* Duration picker */}
-          <div style={{ display: 'flex', gap: 3 }}>
-            {DURATIONS.map(d => (
-              <button
-                key={d.id}
-                onClick={() => setDuration(d.id)}
-                title={d.title}
-                style={{
-                  ...toolBtnStyle,
-                  borderColor: duration === d.id ? 'var(--accent)' : 'var(--border)',
-                  color: duration === d.id ? 'var(--accent-text)' : 'var(--text-muted)',
-                  background: duration === d.id ? 'var(--accent-soft)' : 'var(--surface)',
-                  fontSize: 16, padding: '3px 8px',
-                }}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
-
-          {/* Chord mode */}
-          <button
-            onClick={() => setChordMode(v => !v)}
-            title="Chord mode — stack notes without advancing"
-            style={{
-              ...toolBtnStyle,
-              borderColor: chordMode ? 'var(--accent)' : 'var(--border)',
-              color: chordMode ? 'var(--accent-text)' : 'var(--text-muted)',
-              background: chordMode ? 'var(--accent-soft)' : 'var(--surface)',
-              fontSize: 11,
-            }}
-          >
-            Chord
-          </button>
-
-          <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
-
-          {/* Technique buttons */}
-          <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-            <span style={{ fontSize: 10, color: 'var(--text-dim)', marginRight: 2 }}>Technique:</span>
-            {TECHNIQUES.map(t => (
-              <button
-                key={t}
-                onClick={() => applyTechnique(t)}
-                disabled={!lastPlaced}
-                title={{ h: 'Hammer-on', p: 'Pull-off', s: 'Slide', b: 'Bend', x: 'Mute' }[t]}
-                style={{
-                  ...toolBtnStyle,
-                  opacity: lastPlaced ? 1 : 0.4,
-                  fontSize: 12, padding: '3px 8px',
-                }}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ flex: 1 }} />
-
-          {/* Measure controls */}
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{measures} bar{measures !== 1 ? 's' : ''}</span>
-            <button onClick={removeMeasure} disabled={measures <= 1} style={{ ...toolBtnStyle, padding: '3px 9px' }}>−</button>
-            <button onClick={addMeasure} style={{ ...toolBtnStyle, padding: '3px 9px' }}>+</button>
-          </div>
-        </div>
-
-        {/* Grid */}
-        <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
-          {/* Beat header */}
-          <div style={{ display: 'flex', marginBottom: 2, marginLeft: labelW }}>
-            {Array.from({ length: totalSlots }, (_, pos) => {
-              const isBarLine = pos > 0 && pos % spm === 0;
-              const beatLabel = labels[pos % labels.length];
-              const isBeat = pos % 4 === 0;
-              return (
-                <div
-                  key={pos}
-                  style={{
-                    width: cellW, textAlign: 'center', flexShrink: 0,
-                    fontSize: isBeat ? 10 : 8,
-                    color: isBeat ? 'var(--text-muted)' : 'var(--text-dim)',
-                    fontFamily: 'var(--fm)',
-                    borderLeft: isBarLine ? '2px solid var(--border)' : 'none',
-                    fontWeight: isBeat ? 700 : 400,
-                  }}
+        <div className="p-6 overflow-auto">
+          <div className="flex flex-wrap gap-4 mb-6 items-center">
+            <div className="flex bg-[var(--accents-1)] border border-[var(--geist-border)] rounded-geist-button p-0.5">
+              {DURATIONS.map(d => (
+                <button
+                  key={d.id}
+                  onClick={() => setDuration(d.id)}
+                  title={d.title}
+                  className={cn(
+                    "w-8 h-8 flex items-center justify-center rounded-sm transition-all",
+                    duration === d.id ? "bg-[var(--geist-background)] text-brand shadow-sm" : "text-[var(--accents-4)] hover:text-[var(--accents-8)]"
+                  )}
                 >
-                  {beatLabel}
-                </div>
-              );
-            })}
+                  {d.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="h-6 w-[1px] bg-[var(--geist-border)]" />
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setChordMode(!chordMode)}
+              className={cn(chordMode && "border-brand text-brand bg-brand/5")}
+            >
+              Chord Mode
+            </Button>
+
+            <div className="h-6 w-[1px] bg-[var(--geist-border)]" />
+
+            <div className="flex gap-1">
+              {TECHNIQUES.map(t => (
+                <button
+                  key={t}
+                  onClick={() => applyTechnique(t)}
+                  disabled={!lastPlaced}
+                  className="w-8 h-8 rounded-geist-button border border-[var(--geist-border)] bg-[var(--accents-1)] text-[10px] font-bold font-mono hover:border-brand disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex-1" />
+
+            <div className="flex items-center gap-2">
+               <span className="text-[10px] font-bold text-[var(--accents-4)] uppercase tracking-tight">{measures} BAR{measures !== 1 ? 'S' : ''}</span>
+               <div className="flex border border-[var(--geist-border)] rounded-geist-button p-0.5">
+                 <button onClick={removeMeasure} disabled={measures <= 1} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--accents-1)] rounded">-</button>
+                 <button onClick={addMeasure} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--accents-1)] rounded">+</button>
+               </div>
+            </div>
           </div>
 
-          {/* String rows */}
-          {STRING_NAMES.map((name, si) => (
-            <div key={si} style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
-              {/* String label */}
-              <div style={{
-                width: labelW, textAlign: 'right', paddingRight: 6,
-                fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
-                fontFamily: 'var(--fm)', flexShrink: 0,
-              }}>
-                {name}
+          <div className="overflow-x-auto pb-4 no-scrollbar">
+            <div className="inline-block min-w-full">
+              <div className="flex mb-1" style={{ marginLeft: labelW }}>
+                {Array.from({ length: totalSlots }, (_, pos) => (
+                  <div key={pos} style={{ width: cellW }} className={cn(
+                    "text-[8px] text-center font-mono font-bold",
+                    pos % 4 === 0 ? "text-[var(--accents-8)]" : "text-[var(--accents-3)]",
+                    pos > 0 && pos % spm === 0 && "border-l-2 border-[var(--geist-border)]"
+                  )}>
+                    {labels[pos % labels.length]}
+                  </div>
+                ))}
               </div>
 
-              {/* Cells */}
-              {Array.from({ length: totalSlots }, (_, pos) => {
-                const isBarLine = pos > 0 && pos % spm === 0;
-                const cell = grid[si][pos];
-                const isActive = activeInput?.string === si && activeInput?.pos === pos;
-                const isCursor = cursor.string === si && cursor.pos === pos && !activeInput;
-                const fret = cell === null ? null : (typeof cell === 'object' ? cell.fret : cell);
-                const tech = cell !== null && typeof cell === 'object' ? cell.technique : null;
+              {STRING_NAMES.map((name, si) => (
+                <div key={si} className="flex items-center mb-1">
+                  <div style={{ width: labelW }} className="text-[10px] font-mono font-black text-[var(--accents-5)] text-right pr-2">{name}</div>
+                  {Array.from({ length: totalSlots }, (_, pos) => {
+                    const cell = grid[si][pos];
+                    const isCursor = cursor.string === si && cursor.pos === pos && !activeInput;
+                    const isActive = activeInput?.string === si && activeInput?.pos === pos;
+                    const fret = cell === null ? null : (typeof cell === 'object' ? cell.fret : cell);
+                    const tech = cell !== null && typeof cell === 'object' ? cell.technique : null;
 
-                return (
-                  <div
-                    key={pos}
-                    style={{
-                      width: cellW, height: cellH, flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      position: 'relative',
-                      borderLeft: isBarLine ? '2px solid var(--text-dim)' : '1px solid var(--border)',
-                      background: isCursor
-                        ? 'var(--accent-soft)'
-                        : cell !== null ? 'rgba(226,168,50,0.06)' : 'transparent',
-                      cursor: 'pointer',
-                      outline: isCursor ? '1px solid var(--accent)' : 'none',
-                      borderRadius: isCursor ? 3 : 0,
-                    }}
-                    onClick={() => {
-                      if (isActive) return;
-                      setCursor({ string: si, pos });
-                      openInput(si, pos);
-                    }}
-                    onContextMenu={e => { e.preventDefault(); clearCell(si, pos); }}
-                  >
-                    {/* String line */}
-                    <div style={{
-                      position: 'absolute', left: 0, right: 0,
-                      top: '50%', height: 1,
-                      background: 'var(--border)',
-                      pointerEvents: 'none',
-                    }} />
+                    return (
+                      <div
+                        key={pos}
+                        style={{ width: cellW, height: cellH }}
+                        onClick={() => { if (!isActive) openInput(si, pos); }}
+                        className={cn(
+                          "relative flex items-center justify-center border-l border-[var(--geist-border)] transition-all cursor-pointer",
+                          pos > 0 && pos % spm === 0 && "border-l-2 border-[var(--accents-5)]",
+                          isCursor ? "bg-brand/10 ring-1 ring-inset ring-brand z-10" : "hover:bg-[var(--accents-1)]"
+                        )}
+                      >
+                        <div className="absolute inset-x-0 h-[1px] bg-[var(--geist-border)] pointer-events-none" />
 
-                    {isActive ? (
-                      <input
-                        ref={inputRef}
-                        value={inputVal}
-                        onChange={e => {
-                          const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 2);
-                          setInputVal(v);
-                          if (v.length === 2 || (v.length === 1 && parseInt(v) <= 9)) {
-                            // Auto-commit on 2 digits or single digit followed by delay
-                            if (v.length === 2) commitInput(si, pos, v);
-                          }
-                        }}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === 'Tab') {
-                            e.preventDefault();
-                            commitInput(si, pos, inputVal);
-                          }
-                          if (e.key === 'Escape') {
-                            setActiveInput(null);
-                            setInputVal('');
-                          }
-                        }}
-                        onBlur={() => {
-                          if (inputVal) commitInput(si, pos, inputVal);
-                          else setActiveInput(null);
-                        }}
-                        style={{
-                          width: cellW - 4, height: cellH - 4,
-                          background: 'var(--accent-soft)',
-                          border: '1px solid var(--accent)',
-                          borderRadius: 3, textAlign: 'center',
-                          color: 'var(--accent-text)', fontFamily: 'var(--fm)',
-                          fontSize: 13, fontWeight: 700, outline: 'none',
-                          zIndex: 1, position: 'relative',
-                        }}
-                      />
-                    ) : (
-                      fret !== null && (
-                        <div style={{
-                          position: 'relative', zIndex: 1,
-                          display: 'flex', alignItems: 'center', gap: 1,
-                        }}>
-                          <span style={{
-                            fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700,
-                            color: 'var(--chord)', lineHeight: 1,
-                          }}>
-                            {fret}
-                          </span>
-                          {tech && (
-                            <span style={{
-                              fontFamily: 'var(--fm)', fontSize: 9,
-                              color: 'var(--text-muted)', lineHeight: 1,
-                            }}>
-                              {tech}
-                            </span>
-                          )}
-                        </div>
-                      )
-                    )}
-                  </div>
-                );
-              })}
+                        {isActive ? (
+                          <input
+                            ref={inputRef}
+                            value={inputVal}
+                            onChange={e => {
+                              const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 2);
+                              setInputVal(v);
+                              if (v.length === 2) commitInput(si, pos, v);
+                            }}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') commitInput(si, pos, inputVal);
+                              if (e.key === 'Escape') setActiveInput(null);
+                            }}
+                            onBlur={() => inputVal ? commitInput(si, pos, inputVal) : setActiveInput(null)}
+                            className="absolute inset-1 w-[calc(100%-8px)] bg-brand text-white text-[10px] font-mono font-bold text-center border-none outline-none rounded-sm z-20"
+                          />
+                        ) : (
+                          fret !== null && (
+                            <div className="relative z-10 flex items-center gap-0.5">
+                              <span className="text-xs font-mono font-bold text-brand bg-[var(--geist-background)] px-0.5">{fret}</span>
+                              {tech && <span className="text-[8px] font-mono font-bold text-[var(--accents-4)]">{tech}</span>}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
 
-        {/* Hint */}
-        <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 8, marginBottom: 14, fontFamily: 'var(--fm)' }}>
-          Click a cell to enter fret (0–24) · Enter/Tab to confirm · Right-click to clear · Arrow keys to navigate
-        </div>
-
-        {/* Bottom bar */}
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={cancelBtnStyle}>Cancel</button>
-          <button onClick={handleInsert} style={insertBtnStyle}>{initialTab ? 'Save Tab' : 'Insert Tab'}</button>
+        <div className="p-6 border-t border-[var(--geist-border)] flex items-center justify-between">
+          <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--accents-4)]">Click cell for fret · Arrow keys to move · Del to clear</div>
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button variant="brand" onClick={handleInsert}>{initialTab ? 'Update Tab' : 'Insert Tab'}</Button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-const toolBtnStyle = {
-  background: 'var(--surface)', border: '1px solid var(--border)',
-  borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-  color: 'var(--text-muted)', fontSize: 12, fontWeight: 600,
-  fontFamily: 'var(--fm)',
-};
-
-const closeBtnStyle = {
-  background: 'none', border: 'none', cursor: 'pointer',
-  color: 'var(--text-dim)', fontSize: 16, padding: '2px 6px',
-};
-
-const cancelBtnStyle = {
-  background: 'var(--surface)', border: '1px solid var(--border)',
-  borderRadius: 8, padding: '8px 18px',
-  color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-};
-
-const insertBtnStyle = {
-  background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-  borderRadius: 8, padding: '8px 22px',
-  color: 'var(--accent-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-};
