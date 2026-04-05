@@ -29,6 +29,16 @@ export async function clearProvider() {
   return state;
 }
 
+export async function setSyncToken(tokens) {
+  const state = await getSyncState();
+  state.tokens = { ...state.tokens, ...tokens };
+  await saveSyncState(state);
+}
+
+export async function clearSyncState() {
+  await saveSyncState(SYNC_DEFAULTS);
+}
+
 export async function updateTokens(tokens) {
   const state = await getSyncState();
   state.tokens = { ...state.tokens, ...tokens };

@@ -1,6 +1,10 @@
 import { useState, useMemo, useRef } from 'react';
 import PageHeader from './PageHeader';
 import SearchIcon from './SearchIcon';
+import Button from './ui/Button';
+import Card from './ui/Card';
+import Input from './ui/Input';
+import { cn } from '../lib/utils';
 
 export default function Library({
   songs, onSelectSong, onNewSong, onImportSong,
@@ -12,7 +16,6 @@ export default function Library({
   const [fabOpen, setFabOpen] = useState(false);
   const fileRef = useRef(null);
 
-  // Collect all unique tags
   const allTags = useMemo(() => {
     const tags = new Set();
     songs.forEach(s => (s.tags || []).forEach(t => tags.add(t)));
@@ -76,125 +79,69 @@ export default function Library({
     );
   };
 
-  const sortBtnStyle = (active) => ({
-    border: 'none', borderRadius: 6, cursor: 'pointer',
-    display: 'flex', alignItems: 'center',
-    fontFamily: 'var(--fb)', fontWeight: 500, fontSize: 12,
-    padding: '5px 10px',
-    color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-    background: active ? 'var(--select)' : 'transparent',
-  });
-
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen">
       <PageHeader title="Library" />
 
-      {/* Search bar + Tags filter */}
-      <div style={{ padding: '0 24px 8px' }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <input
+      <div className="px-6 py-4 space-y-4 max-w-4xl mx-auto">
+        <div className="flex gap-2 items-center">
+          <div className="relative flex-1">
+            <Input
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search..."
-              style={{
-                width: '100%', padding: '9px 12px 9px 36px',
-                background: 'var(--bg)',
-                border: '1px solid var(--border)',
-                borderRadius: 8, color: 'var(--text)',
-                fontSize: 14, outline: 'none',
-                fontFamily: 'var(--fb)', boxSizing: 'border-box',
-              }}
+              className="pl-10 h-10"
             />
-            <span style={{
-              position: 'absolute', left: 11, top: '50%',
-              transform: 'translateY(-50%)',
-              display: 'flex', color: 'var(--text-dim)',
-            }}>
-              <SearchIcon size={16} />
-            </span>
+            <SearchIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--accents-4)]" />
           </div>
 
-          {/* Tags dropdown */}
           {allTags.length > 0 && (
-            <div style={{ position: 'relative' }}>
-              <button
+            <div className="relative">
+              <Button
+                variant="secondary"
+                size="md"
                 onClick={() => setShowTagDropdown(v => !v)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 12px', borderRadius: 8,
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg)', cursor: 'pointer',
-                  fontFamily: 'var(--fb)', fontSize: 13, fontWeight: 500,
-                  color: tagFilter.length > 0 ? 'var(--text-bright)' : 'var(--text-muted)',
-                  whiteSpace: 'nowrap',
-                }}
+                className={cn(
+                  "gap-2",
+                  tagFilter.length > 0 && "border-brand text-brand"
+                )}
               >
                 {tagFilter.length > 0 && (
-                  <span style={{
-                    display: 'flex', gap: 2,
-                  }}>
+                  <span className="flex -space-x-1.5 overflow-hidden">
                     {tagFilter.slice(0, 3).map(t => (
-                      <span key={t} style={{
-                        width: 8, height: 8, borderRadius: '50%',
-                        background: 'var(--accent)',
-                      }} />
+                      <span key={t} className="w-2 h-2 rounded-full bg-brand ring-2 ring-[var(--geist-background)]" />
                     ))}
                   </span>
                 )}
-                Tags{tagFilter.length > 0 ? ` ${tagFilter.length}/${allTags.length}` : ''}
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ marginLeft: 2 }}>
+                <span className="text-sm">Tags</span>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className={cn("transition-transform", showTagDropdown && "rotate-180")}>
                   <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </button>
+              </Button>
 
               {showTagDropdown && (
                 <>
-                  <div onClick={() => setShowTagDropdown(false)} style={{ position: 'fixed', inset: 0, zIndex: 49 }} />
-                  <div style={{
-                    position: 'absolute', right: 0, top: 'calc(100% + 4px)',
-                    background: 'var(--surface)', border: '1px solid var(--border)',
-                    borderRadius: 10, padding: '6px 0', zIndex: 50,
-                    minWidth: 180, boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
-                  }}>
+                  <div onClick={() => setShowTagDropdown(false)} className="fixed inset-0 z-49" />
+                  <div className="absolute right-0 mt-2 bg-[var(--geist-background)] border border-[var(--geist-border)] rounded-geist-card py-2 z-50 min-w-[200px] shadow-2xl animate-in slide-in-from-top-2 fade-in">
                     {allTags.map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 10,
-                          width: '100%', padding: '8px 14px',
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          fontFamily: 'var(--fb)', fontSize: 13,
-                          color: 'var(--text)', textAlign: 'left',
-                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 hover:bg-[var(--accents-1)] transition-colors text-left text-sm"
                       >
-                        <span style={{
-                          width: 18, height: 18, borderRadius: 4,
-                          border: tagFilter.includes(tag) ? 'none' : '1px solid var(--border)',
-                          background: tagFilter.includes(tag) ? 'var(--accent)' : 'transparent',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#fff', fontSize: 11, flexShrink: 0,
-                        }}>
-                          {tagFilter.includes(tag) && '\u2713'}
-                        </span>
-                        {tag}
+                        <div className={cn(
+                          "w-4 h-4 rounded border transition-colors flex items-center justify-center",
+                          tagFilter.includes(tag) ? "bg-brand border-brand" : "border-[var(--geist-border)]"
+                        )}>
+                          {tagFilter.includes(tag) && <span className="text-[10px] text-white font-bold">&#10003;</span>}
+                        </div>
+                        <span className={cn(tagFilter.includes(tag) ? "text-brand font-medium" : "text-[var(--geist-foreground)]")}>{tag}</span>
                       </button>
                     ))}
                     {tagFilter.length > 0 && (
-                      <button
-                        onClick={() => setTagFilter([])}
-                        style={{
-                          width: '100%', padding: '8px 14px',
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          borderTop: '1px solid var(--border)',
-                          fontFamily: 'var(--fb)', fontSize: 12,
-                          color: 'var(--text-muted)', textAlign: 'center',
-                          marginTop: 4,
-                        }}
-                      >
-                        Clear all
-                      </button>
+                      <div className="mt-2 pt-2 border-t border-[var(--geist-border)] px-2">
+                        <Button variant="ghost" size="sm" className="w-full text-[var(--accents-5)]" onClick={() => setTagFilter([])}>Clear all</Button>
+                      </div>
                     )}
                   </div>
                 </>
@@ -203,178 +150,116 @@ export default function Library({
           )}
         </div>
 
-        {/* Sort row */}
-        <div style={{ display: 'flex', gap: 2, marginTop: 8 }}>
+        <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
           {[
             { id: 'title', label: 'Title' },
             { id: 'artist', label: 'Artist' },
             { id: 'key', label: 'Key' },
           ].map(s => (
-            <button key={s.id} onClick={() => setSort(s.id)} style={sortBtnStyle(sort === s.id)}>
+            <button
+              key={s.id}
+              onClick={() => setSort(s.id)}
+              className={cn(
+                "px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full transition-all border",
+                sort === s.id
+                  ? "bg-[var(--geist-foreground)] text-[var(--geist-background)] border-[var(--geist-foreground)]"
+                  : "bg-transparent text-[var(--accents-5)] border-transparent hover:border-[var(--geist-border)]"
+              )}
+            >
               {s.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Song list — grouped */}
-      <div style={{ padding: '0 24px', paddingBottom: 100 }}>
-        <div style={{
-          fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-          fontFamily: 'var(--fm)', marginBottom: 8,
-        }}>
-          All Songs
-        </div>
-
+      <div className="px-6 pb-32 max-w-4xl mx-auto">
         {filtered.length === 0 && (
-          <div style={{
-            textAlign: 'center', padding: '48px 20px',
-            color: 'var(--text-dim)', fontSize: 14,
-            border: '1px solid var(--border)', borderRadius: 10,
-          }}>
-            {songs.length === 0
-              ? 'No songs yet. Tap + to create or import.'
-              : 'No songs match your search.'}
+          <div className="text-center py-32 bg-[var(--accents-1)] border border-dashed border-[var(--geist-border)] rounded-geist-card">
+            <p className="text-[var(--accents-5)] text-sm italic">
+              {songs.length === 0
+                ? 'No songs yet. Tap + to create or import.'
+                : 'No songs match your search.'}
+            </p>
           </div>
         )}
 
         {grouped.map(group => (
-          <div key={group.label} style={{ marginBottom: 16 }}>
-            <div style={{
-              fontSize: sort === 'title' ? 18 : 14,
-              fontWeight: 700,
-              color: 'var(--text-dim)',
-              fontFamily: sort === 'key' ? 'var(--fm)' : 'var(--fb)',
-              marginBottom: 6,
-              padding: '0 2px',
-            }}>
+          <div key={group.label} className="mb-10">
+            <h3 className={cn(
+              "sticky top-[72px] z-20 py-2 bg-[var(--geist-background)]/80 backdrop-blur-sm text-xs font-bold uppercase tracking-[0.2em] text-[var(--accents-4)] mb-4",
+              sort === 'key' && "font-mono"
+            )}>
               {group.label}
-            </div>
-            <div style={{
-              border: '1px solid var(--border)',
-              borderRadius: 10,
-              overflow: 'hidden',
-            }}>
-              {group.songs.map((song, i) => (
-                <div
-                  key={song.id || i}
-                  onClick={() => onSelectSong(song)}
-                  role="button"
-                  tabIndex={0}
-                  style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 16px',
-                    borderBottom: i < group.songs.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer', boxSizing: 'border-box', background: 'var(--card)',
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {song.title}
+            </h3>
+            <div className="space-y-3">
+              {group.songs.map((song) => (
+                <Card key={song.id} onClick={() => onSelectSong(song)} className="p-4 group">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold group-hover:text-brand transition-colors truncate">
+                        {song.title}
+                      </div>
+                      <div className="text-xs text-[var(--accents-5)] mt-1 flex items-center gap-2 flex-wrap">
+                        <span>{song.artist}</span>
+                        <span className="opacity-30">&middot;</span>
+                        <span className="font-mono text-[10px] font-bold text-brand">{song.key}</span>
+                        {song.tempo && (
+                          <>
+                            <span className="opacity-30">&middot;</span>
+                            <span className="font-mono text-[10px]">{song.tempo} BPM</span>
+                          </>
+                        )}
+                        {(song.tags || []).length > 0 && (
+                          <>
+                            <span className="opacity-30">&middot;</span>
+                            <div className="flex gap-1.5">
+                              {song.tags.map(t => (
+                                <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--accents-1)] border border-[var(--geist-border)] font-medium text-[var(--accents-5)]">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div style={{
-                      fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-                      display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-                    }}>
-                      <span>{song.artist}</span>
-                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      <span style={{ fontFamily: 'var(--fm)', fontSize: 11, fontWeight: 600, color: 'var(--chord)' }}>
-                        {song.key}
-                      </span>
-                      {song.tempo && (
-                        <>
-                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.tempo} bpm</span>
-                        </>
-                      )}
-                      {song.time && (
-                        <>
-                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.time}</span>
-                        </>
-                      )}
-                      {(song.tags || []).length > 0 && (
-                        <>
-                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                          {song.tags.map(t => (
-                            <span key={t} style={{
-                              fontSize: 10, padding: '1px 6px', borderRadius: 4,
-                              background: 'var(--accent-soft)', color: 'var(--accent-text)',
-                              fontWeight: 500,
-                            }}>
-                              {t}
-                            </span>
-                          ))}
-                        </>
-                      )}
+                    <div className="text-[10px] font-mono text-[var(--accents-4)] opacity-0 group-hover:opacity-100 transition-opacity">
+                      VIEW &rarr;
                     </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           </div>
         ))}
       </div>
 
-      {/* FAB */}
-      {fabOpen && (
-        <div onClick={() => setFabOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 89 }} />
-      )}
-      <div style={{
-        position: 'fixed', bottom: 80, right: 20,
-        display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-        gap: 8, zIndex: 90,
-      }}>
+      {/* FAB - Vercel Style */}
+      <div className="fixed bottom-24 right-6 z-90 flex flex-col items-end gap-3">
         {fabOpen && (
-          <>
-            <button onClick={() => { setFabOpen(false); onNewSong(); }} style={{
-              borderRadius: 24, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
-              padding: '10px 18px',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
+          <div className="flex flex-col items-end gap-2 mb-2 animate-in slide-in-from-bottom-4 fade-in">
+            <Button variant="secondary" size="md" className="shadow-xl border-[var(--accents-2)]" onClick={() => { setFabOpen(false); onNewSong(); }}>
               New Song
-            </button>
-            <button onClick={() => { setFabOpen(false); fileRef.current?.click(); }} style={{
-              borderRadius: 24, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
-              padding: '10px 18px',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
+            </Button>
+            <Button variant="secondary" size="md" className="shadow-xl border-[var(--accents-2)]" onClick={() => { setFabOpen(false); fileRef.current?.click(); }}>
               Import .md
-            </button>
-          </>
+            </Button>
+          </div>
         )}
         <button
           onClick={() => setFabOpen(prev => !prev)}
-          style={{
-            width: 56, height: 56, borderRadius: 28,
-            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-            border: 'none', color: '#fff',
-            fontSize: 28, fontWeight: 300, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
-            transition: 'transform 0.2s',
-            transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-          }}
+          className={cn(
+            "w-14 h-14 rounded-full bg-brand text-white shadow-2xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-100",
+            fabOpen ? "rotate-45" : "rotate-0"
+          )}
         >
-          +
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
         </button>
       </div>
-      <input ref={fileRef} type="file" accept=".md,.txt" multiple
-        onChange={handleFiles} style={{ display: 'none' }} />
+      <input ref={fileRef} type="file" accept=".md,.txt" multiple onChange={handleFiles} className="hidden" />
     </div>
   );
 }

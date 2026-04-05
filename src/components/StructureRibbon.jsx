@@ -1,49 +1,48 @@
-import { sectionStyle, compactLabel } from '../music';
+import { cn } from '../lib/utils';
+import { sectionStyle } from '../music';
 
-export function StructureRibbon({ structure, compact }) {
+export default function StructureRibbon({ structure, currentSection, onSelect, className }) {
+  if (!structure || structure.length === 0) return null;
+
   return (
-    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: '8px 0' }}>
-      {structure.map((name, i) => {
-        const s = sectionStyle(name.replace(/\s*\d+$/, ''));
+    <div className={cn(
+      "flex items-center gap-1.5 overflow-x-auto no-scrollbar py-2",
+      className
+    )}>
+      {structure.map((item, i) => {
+        const s = sectionStyle(item);
+        const isActive = currentSection === i;
+
         return (
-          <span key={i} style={{
-            display: 'inline-flex', alignItems: 'center', gap: compact ? 3 : 4,
-            padding: compact ? '2px 6px' : '3px 9px', borderRadius: 16,
-            border: `1.5px solid ${s.b}33`, background: `${s.b}0a`,
-            color: s.d, fontSize: compact ? 10 : 10.5, fontWeight: 600,
-            fontFamily: 'var(--fm)', whiteSpace: 'nowrap',
-          }}>
-            <span style={{
-              width: compact ? 5 : 7, height: compact ? 5 : 7,
-              borderRadius: '50%', background: s.d,
-            }} />
-            {compact ? compactLabel(name) : name}
-          </span>
+          <button
+            key={i}
+            onClick={() => onSelect && onSelect(i)}
+            className={cn(
+              "flex-shrink-0 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all",
+              isActive
+                ? "bg-brand border-brand text-white shadow-lg shadow-brand/20 scale-105"
+                : "bg-[var(--accents-1)] border-[var(--geist-border)] text-[var(--accents-5)] hover:border-[var(--accents-8)]"
+            )}
+          >
+            {item}
+          </button>
         );
       })}
     </div>
   );
 }
 
-export function MetaPill({ label, value, highlight }) {
+export function MetaPill({ label, value, icon, className }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 5,
-      padding: '5px 11px', borderRadius: 7,
-      background: 'var(--surface)', border: '1px solid var(--border)',
-    }}>
-      <span style={{
-        fontSize: 9.5, fontWeight: 600, color: 'var(--text-muted)',
-      }}>
-        {label}
-      </span>
-      <span style={{
-        fontSize: 13.5, fontWeight: 700,
-        color: highlight ? 'var(--chord)' : 'var(--text-bright)',
-        fontFamily: 'var(--fm)',
-      }}>
-        {value}
-      </span>
+    <div className={cn(
+      "flex items-center gap-2 px-3 py-1.5 rounded-geist-button bg-[var(--accents-1)] border border-[var(--geist-border)]",
+      className
+    )}>
+      {icon && <span className="text-[var(--accents-4)]">{icon}</span>}
+      <div className="flex flex-col">
+        <span className="text-[8px] font-bold uppercase tracking-widest text-[var(--accents-4)] leading-none mb-0.5">{label}</span>
+        <span className="text-xs font-mono font-bold text-[var(--geist-foreground)] leading-none">{value}</span>
+      </div>
     </div>
   );
 }

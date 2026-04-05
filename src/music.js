@@ -11,8 +11,9 @@ function parseRoot(chord) {
     root += rest[0];
     rest = rest.slice(1);
   }
-  if (FLAT_MAP[root]) root = FLAT_MAP[root];
-  return { root, suffix: rest };
+  const rootKey = root.charAt(0).toUpperCase() + root.slice(1);
+  const normalizedRoot = FLAT_MAP[rootKey] || rootKey;
+  return { root: normalizedRoot, suffix: rest };
 }
 
 // Transpose a single chord by N semitones
@@ -29,6 +30,31 @@ export function transposeChord(chord, semitones) {
   let newRoot = CHROMATIC[(idx + semitones + 120) % 12];
   if (SHARP_TO_FLAT[newRoot]) newRoot = SHARP_TO_FLAT[newRoot];
   return newRoot + suffix;
+}
+
+// Nashville Number System support
+const SCALE_DEGREE_MAP = {
+  'A': 0, 'A#': 1, 'Bb': 1, 'B': 2, 'C': 3, 'C#': 4, 'Db': 4, 'D': 5, 'D#': 6, 'Eb': 6, 'E': 7, 'F': 8, 'F#': 9, 'Gb': 9, 'G': 10, 'G#': 11, 'Ab': 11
+};
+
+export function getNashvilleNumber(chord, key) {
+  if (!chord || !key) return chord;
+  if (chord.includes('/')) {
+    const [main, bass] = chord.split('/');
+    return getNashvilleNumber(main, key) + '/' + getNashvilleNumber(bass, key);
+  }
+
+  const { root, suffix } = parseRoot(chord);
+  const { root: keyRoot } = parseRoot(key);
+
+  const chordIdx = CHROMATIC.indexOf(root);
+  const keyIdx = CHROMATIC.indexOf(keyRoot);
+
+  if (chordIdx === -1 || keyIdx === -1) return chord;
+
+  const diff = (chordIdx - keyIdx + 12) % 12;
+  const degrees = [1, 'b2', 2, 'b3', 3, 4, '#4', 5, 'b6', 6, 'b7', 7];
+  return degrees[diff] + suffix;
 }
 
 // Transpose a key signature

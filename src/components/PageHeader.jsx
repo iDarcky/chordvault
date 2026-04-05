@@ -1,20 +1,19 @@
-export default function PageHeader({ title, children }) {
+import { cn } from '../lib/utils';
+
+export default function PageHeader({ title, children, className }) {
   return (
-    <div style={{
-      padding: '20px 24px 12px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    }}>
-      <h1 style={{
-        margin: 0, fontSize: 20, fontWeight: 700,
-        color: 'var(--text-bright)', letterSpacing: '-0.02em',
-      }}>
+    <header className={cn(
+      "px-6 pt-6 pb-3 flex items-center justify-between sticky top-0 z-50 bg-[var(--geist-background)]/80 backdrop-blur-md border-b border-transparent",
+      className
+    )}>
+      <h1 className="text-xl font-bold text-[var(--geist-foreground)] tracking-tight">
         {title}
       </h1>
       {children && (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div className="flex items-center gap-1.5">
           {children}
         </div>
       )}
-    </div>
+    </header>
   );
 }

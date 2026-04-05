@@ -1,169 +1,77 @@
 import { useState } from 'react';
-
-const STEPS = [
-  {
-    icon: '\u266B',
-    title: 'Your Song Library',
-    description: 'All your chord charts in one place. Import .md files or create from scratch with our visual editor.',
-    color: '#53796F',
-  },
-  {
-    icon: '\u2630',
-    title: 'Live Setlists',
-    description: 'Build setlists for worship services. Reorder songs, set per-song transpose, and add band notes.',
-    color: '#6b9e91',
-  },
-  {
-    icon: '\u25B6',
-    title: 'Play Mode',
-    description: 'Full-screen chord charts with transpose, multi-column layout, and foot pedal navigation.',
-    color: '#457a6e',
-  },
-  {
-    icon: '\u2601',
-    title: 'Sync Everywhere',
-    description: 'Connect Google Drive, Dropbox, or OneDrive to sync your songs across all your devices.',
-    color: '#3a6b5f',
-  },
-];
+import Button from './ui/Button';
+import Card from './ui/Card';
+import { cn } from '../lib/utils';
 
 export default function Onboarding({ onComplete }) {
-  const [step, setStep] = useState(0);
-  const current = STEPS[step];
-  const isLast = step === STEPS.length - 1;
+  const [step, setStep] = useState(1);
+  const steps = [
+    {
+      title: 'Dynamic Charts',
+      description: 'Transpose songs instantly and toggle Nashville Number System (NNS) with one tap.',
+      icon: (
+        <div className="w-16 h-16 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center text-brand mb-6 shadow-2xl">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2V15H6L11 19V5Z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        </div>
+      )
+    },
+    {
+      title: 'Markdown-first',
+      description: 'Write your charts in clean markdown and let us handle the rendering and formatting.',
+      icon: (
+        <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 mb-6 shadow-2xl">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"></path><path d="M9 15l3 3 3-3"></path><path d="M12 18V9"></path></svg>
+        </div>
+      )
+    },
+    {
+      title: 'Cloud Sync',
+      description: 'Your songs are stored locally and can be synced with Google Drive or Dropbox.',
+      icon: (
+        <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 mb-6 shadow-2xl">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19c.6 0 1.1-.4 1.3-.9l1.9-6.6c.2-.7-.3-1.5-1-1.5h-15c-.7 0-1.2.8-1 1.5l1.9 6.6c.2.5.7.9 1.3.9h11z"></path><path d="M18 10V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v6"></path></svg>
+        </div>
+      )
+    },
+  ];
+
+  const current = steps[step - 1];
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 24px',
-      position: 'relative',
-    }}>
-      {/* Skip button */}
-      <button
-        onClick={onComplete}
-        style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          fontSize: 13,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          padding: '8px 12px',
-        }}
-      >
-        Skip
-      </button>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--geist-background)] overflow-hidden">
+      <div className="absolute inset-0 geist-grid opacity-30 pointer-events-none" />
 
-      {/* Illustration */}
-      <div style={{
-        width: 120,
-        height: 120,
-        borderRadius: 30,
-        background: `linear-gradient(135deg, ${current.color}22, ${current.color}11)`,
-        border: `1px solid ${current.color}33`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: 48,
-        marginBottom: 32,
-      }}>
-        {current.icon}
-      </div>
+      <Card className="max-w-md w-full p-10 space-y-8 border-[var(--geist-border)] shadow-[0_30px_100px_rgba(0,0,0,0.1)] relative z-10 animate-in fade-in zoom-in-95 duration-500">
+        <div className="text-center flex flex-col items-center">
+          {current.icon}
+          <h2 className="text-2xl font-black tracking-tight text-[var(--geist-foreground)]">{current.title}</h2>
+          <p className="text-[var(--accents-5)] text-sm font-medium mt-4 px-4 leading-relaxed">{current.description}</p>
+        </div>
 
-      {/* Title */}
-      <h2 style={{
-        margin: 0,
-        fontSize: 24,
-        fontWeight: 700,
-        color: 'var(--text-bright)',
-        textAlign: 'center',
-      }}>
-        {current.title}
-      </h2>
+        <div className="flex gap-2 justify-center py-4">
+          {steps.map((_, i) => (
+            <div key={i} className={cn(
+              "h-1.5 rounded-full transition-all duration-300",
+              step === i + 1 ? "w-8 bg-brand" : "w-1.5 bg-[var(--accents-2)]"
+            )} />
+          ))}
+        </div>
 
-      {/* Description */}
-      <p style={{
-        margin: '12px 0 0',
-        fontSize: 15,
-        color: 'var(--text-muted)',
-        textAlign: 'center',
-        maxWidth: 320,
-        lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
-      }}>
-        {current.description}
-      </p>
-
-      {/* Step dots */}
-      <div style={{
-        display: 'flex',
-        gap: 8,
-        marginTop: 40,
-      }}>
-        {STEPS.map((_, i) => (
-          <div
-            key={i}
-            style={{
-              width: i === step ? 24 : 8,
-              height: 8,
-              borderRadius: 4,
-              background: i === step ? 'var(--accent)' : 'var(--border)',
-              transition: 'all 0.2s ease',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Navigation */}
-      <div style={{
-        display: 'flex',
-        gap: 12,
-        marginTop: 32,
-      }}>
-        {step > 0 && (
-          <button
-            onClick={() => setStep(step - 1)}
-            style={{
-              padding: '12px 28px',
-              borderRadius: 10,
-              border: '1px solid var(--border)',
-              background: 'var(--surface)',
-              color: 'var(--text-muted)',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'var(--fb)',
-            }}
+        <div className="space-y-4">
+          <Button
+            variant="brand"
+            className="w-full h-12 text-base font-bold shadow-xl shadow-brand/20"
+            onClick={() => step < steps.length ? setStep(v => v + 1) : onComplete()}
           >
-            Back
-          </button>
-        )}
-        <button
-          onClick={() => isLast ? onComplete() : setStep(step + 1)}
-          style={{
-            padding: '12px 36px',
-            borderRadius: 10,
-            border: 'none',
-            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-            color: '#fff',
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'var(--fb)',
-            boxShadow: '0 4px 16px var(--accent-border)',
-          }}
-        >
-          {isLast ? "Let's Go" : 'Next'}
-        </button>
-      </div>
+            {step === steps.length ? 'Get Started' : 'Next Step'}
+          </Button>
+          {step < steps.length && (
+            <Button variant="ghost" className="w-full text-xs font-semibold uppercase tracking-widest text-[var(--accents-4)]" onClick={onComplete}>
+              Skip Tour
+            </Button>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }
