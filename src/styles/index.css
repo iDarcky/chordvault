@@ -1,81 +1,143 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
 
-:root {
-  --bg: #0b0b0f;
-  --surface: rgba(255,255,255,0.03);
-  --card: rgba(255,255,255,0.05);
-  --border: rgba(255,255,255,0.06);
-  --select: rgba(255,255,255,0.08);
+@font-face {
+  font-family: 'Geist Sans';
+  src: url('/node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-brand: #53796F;
+  --color-brand-soft: rgba(83, 121, 111, 0.15);
+  --color-brand-text: #7fb3a6;
+  --color-brand-border: rgba(83, 121, 111, 0.3);
+
+  --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
+
+  /* Geist Backgrounds */
+  --ds-background-100: #0a0a0a;
+  --ds-background-200: #000000;
+
+  /* Legacy Mapping */
+  --bg: var(--ds-background-200);
+  --surface: rgba(255, 255, 255, 0.03);
+  --card: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.06);
+  --select: rgba(255, 255, 255, 0.08);
   --text: #ededed;
   --text-bright: #fafafa;
   --text-muted: #888888;
   --text-dim: #666666;
   --chord: #e2a832;
-  --accent: #53796F;
-  --accent-soft: rgba(83,121,111,0.15);
-  --accent-text: #7fb3a6;
-  --accent-border: rgba(83,121,111,0.3);
+  --accent: var(--color-brand);
+  --accent-soft: var(--color-brand-soft);
+  --accent-text: var(--color-brand-text);
+  --accent-border: var(--color-brand-border);
   --danger: #f87171;
-  --danger-soft: rgba(239,68,68,0.1);
-  --header-bg: rgba(11,11,15,0.92);
-  --fb: 'Inter', sans-serif;
-  --fm: 'JetBrains Mono', monospace;
+  --danger-soft: rgba(239, 68, 68, 0.1);
+  --header-bg: rgba(11, 11, 15, 0.92);
+  --fb: var(--font-sans);
+  --fm: var(--font-mono);
 }
 
-[data-theme="light"] {
-  --bg: #FAFAFA;
-  --surface: #FFFFFF;
-  --card: #FFFFFF;
-  --border: rgba(0,0,0,0.06);
-  --select: #EBEBEB;
-  --text: #171717;
-  --text-bright: #000000;
-  --text-muted: #666666;
-  --text-dim: #999999;
-  --chord: #b45309;
-  --accent: #53796F;
-  --accent-soft: rgba(83,121,111,0.10);
-  --accent-text: #3d5b53;
-  --accent-border: rgba(83,121,111,0.25);
-  --danger: #dc2626;
-  --danger-soft: rgba(239,68,68,0.08);
-  --header-bg: #FAFAFA;
+@layer base {
+  [data-theme="light"] {
+    --ds-background-100: #ffffff;
+    --ds-background-200: #fafafa;
+
+    --bg: var(--ds-background-200);
+    --surface: #ffffff;
+    --card: #ffffff;
+    --border: rgba(0, 0, 0, 0.06);
+    --select: #ebebeb;
+    --text: #171717;
+    --text-bright: #000000;
+    --text-muted: #666666;
+    --text-dim: #999999;
+    --chord: #b45309;
+    --accent: var(--color-brand);
+    --accent-soft: rgba(83, 121, 111, 0.10);
+    --accent-text: #3d5b53;
+    --accent-border: rgba(83, 121, 111, 0.25);
+    --danger: #dc2626;
+    --danger-soft: rgba(239, 68, 68, 0.08);
+    --header-bg: #fafafa;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--fb);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  button {
+    min-height: 36px;
+    font-family: var(--fb);
+  }
+
+  input {
+    font-family: var(--fb);
+  }
+
+  textarea {
+    font-family: var(--fm);
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    body {
+      min-height: -webkit-fill-available;
+    }
+  }
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* Custom Utilities */
+@layer utilities {
+  .hide-scrollbar {
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--fb);
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none;
+  .chart-auto-cols {
+    @media (orientation: landscape) and (min-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+      display: grid;
+    }
+    @media (orientation: portrait), (max-width: 767px) {
+      grid-template-columns: 1fr;
+      display: block;
+    }
+  }
 }
 
-html { scroll-behavior: smooth; }
-
-button { min-height: 36px; font-family: var(--fb); }
-input { font-family: var(--fb); }
-textarea { font-family: var(--fm); }
-
-/* Scrollbar styling for the song strip in live mode */
-.hide-scrollbar { scrollbar-width: none; }
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-
-@supports (-webkit-touch-callout: none) {
-  body { min-height: -webkit-fill-available; }
-}
-
-/* Responsive: phone — larger touch targets, horizontal scroll ribbon */
+/* Responsive: phone — larger touch targets */
 @media (max-width: 639px) {
-  button { min-height: 44px; }
-}
-
-/* Auto column layout for chart body */
-@media (orientation: landscape) and (min-width: 768px) {
-  .chart-auto-cols { grid-template-columns: 1fr 1fr; display: grid; }
-}
-@media (orientation: portrait), (max-width: 767px) {
-  .chart-auto-cols { grid-template-columns: 1fr; display: block; }
+  button {
+    min-height: 44px;
+  }
 }
