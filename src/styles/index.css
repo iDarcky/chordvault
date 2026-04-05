@@ -4,8 +4,8 @@
   --color-brand: #53796F;
   --color-brand-soft: rgba(83, 121, 111, 0.15);
 
-  --font-sans: "Geist Sans", "Inter", sans-serif;
-  --font-mono: "Geist Mono", "JetBrains Mono", monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
   --radius-geist-card: 16px;
   --radius-geist-button: 8px;
@@ -39,6 +39,12 @@
 
   --brand: #53796F;
   --brand-soft: rgba(83, 121, 111, 0.15);
+
+  /* Legacy/Compatibility */
+  --bg: #fff;
+  --text: #000;
+  --border: #eaeaea;
+  --chord: #b45309;
 }
 
 [data-theme="dark"] {
@@ -65,6 +71,11 @@
 
   --color-geist-foreground: #fff;
   --color-geist-background: #000;
+
+  --bg: #000;
+  --text: #fff;
+  --border: #333;
+  --chord: #e2a832;
 }
 
 @layer base {
@@ -80,19 +91,7 @@
   }
 }
 
-/* Geist-style radial grid background */
 .geist-grid {
   background-image: radial-gradient(var(--geist-border) 1px, transparent 0);
   background-size: 24px 24px;
-}
-
-/* Legacy support for music engine colors if needed */
-:root {
-  --chord: #e2a832;
-  --bg: var(--geist-background);
-  --text: var(--geist-foreground);
-  --border: var(--geist-border);
-}
-[data-theme="light"] {
-  --chord: #b45309;
 }
