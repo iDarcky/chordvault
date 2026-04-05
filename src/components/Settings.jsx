@@ -1,23 +1,30 @@
 import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
 import PageHeader from './PageHeader';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
-import { Separator } from './ui/Separator';
 
-export default function Settings({
-  settings,
-  onUpdate,
-  onClearAll,
-  onDownloadSongs,
-  songCount,
-  setlistCount,
-  syncState,
-  onSyncStateChange,
-  onSyncNow,
-  onDesign
-}) {
-  const [detectingKey, setDetectingKey] = useState(null);
+const labelStyle = {
+  className: "text-label-12-mono", color: 'var(--text-muted)',
+  fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
+};
+
+const cB = {
+  borderRadius: 6,
+  border: '1px solid var(--border)',
+  background: 'var(--surface)', color: 'var(--text)',
+  className: "text-label-12", cursor: 'pointer', fontWeight: 600,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  fontFamily: 'var(--fb)', padding: '6px 14px',
+};
+
+const activeBtn = (active) => ({
+  ...cB,
+  borderColor: active ? 'var(--accent)' : 'var(--border)',
+  color: active ? 'var(--accent-text)' : 'var(--text-muted)',
+  background: active ? 'var(--accent-soft)' : 'var(--surface)',
+});
+
+export default function Settings({ settings, onUpdate, onClearAll, onDownloadSongs, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow, onDesign }) {
+  const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
 
@@ -32,142 +39,212 @@ export default function Settings({
     window.addEventListener('keydown', handler);
   };
 
-  const Section = ({ title, children }) => (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold px-2">
-        {title}
-      </h2>
-      <Card className="flex flex-col p-0 overflow-hidden divide-y divide-[var(--ds-gray-400)] border-[var(--ds-gray-400)]">
-        {children}
-      </Card>
-    </section>
-  );
-
-  const Row = ({ label, children, description }) => (
-    <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)] hover:bg-[var(--ds-gray-100)] transition-colors">
-      <div className="flex flex-col">
-        <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">{label}</span>
-        {description && <span className="text-copy-13 text-[var(--ds-gray-700)]">{description}</span>}
-      </div>
-      <div className="flex items-center gap-2 mt-2 sm:mt-0">
-        {children}
-      </div>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <PageHeader title="Settings" />
 
-      <div className="max-w-2xl mx-auto px-6 py-10 flex flex-col gap-12">
+      <div style={{ padding: '16px 18px 80px', maxWidth: 500 }}>
+        {/* Theme */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Theme</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['dark', 'light'].map(t => (
+              <button key={t} onClick={() => update('theme', t)} style={activeBtn(settings.theme === t)}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {/* Appearance */}
-        <Section title="Appearance">
-          <Row label="Theme" description="Switch between light and dark mode.">
-            <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
-              {['dark', 'light'].map(t => (
-                <Button
-                  key={t}
-                  size="sm"
-                  variant={settings.theme === t ? 'secondary' : 'ghost'}
-                  onClick={() => update('theme', t)}
-                  className={settings.theme === t ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
-                >
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </Button>
-              ))}
-            </div>
-          </Row>
-          <Row label="Library Layout" description="Number of columns for the library view.">
-            <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
-              {['auto', 1, 2].map(v => (
-                <Button
-                  key={v}
-                  size="sm"
-                  variant={settings.defaultColumns === v ? 'secondary' : 'ghost'}
-                  onClick={() => update('defaultColumns', v)}
-                  className={settings.defaultColumns === v ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
-                >
-                  {v === 'auto' ? 'Auto' : `${v}col`}
-                </Button>
-              ))}
-            </div>
-          </Row>
-        </Section>
+        {/* Default Layout */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Default Layout</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['auto', 1, 2].map(v => (
+              <button key={v} onClick={() => update('defaultColumns', v)} style={activeBtn(settings.defaultColumns === v)}>
+                {v === 'auto' ? 'Auto' : `${v}col`}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {/* Global Chart Preferences */}
-        <Section title="Chart Preferences">
-          <Row label="Default Font Size">
-            <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
-              {['S', 'M', 'L'].map(s => (
-                <Button
-                  key={s}
-                  size="sm"
-                  variant={settings.defaultFontSize === s ? 'secondary' : 'ghost'}
-                  onClick={() => update('defaultFontSize', s)}
-                  className={settings.defaultFontSize === s ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
-                >
-                  {s}
-                </Button>
-              ))}
-            </div>
-          </Row>
-          <Row label="Display Mode" description="Control which elements are visible by default.">
-             <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg flex-wrap">
-              {[
-                { key: 'leader', label: 'Full' },
-                { key: 'vocalist', label: 'Vocals' },
-                { key: 'drummer', label: 'Drums' },
-              ].map(({ key, label }) => (
-                <Button
-                  key={key}
-                  size="sm"
-                  variant={settings.displayRole === key ? 'secondary' : 'ghost'}
-                  onClick={() => update('displayRole', key)}
-                  className={settings.displayRole === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </Row>
-        </Section>
+        {/* Default Font Size */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Default Font Size</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['S', 'M', 'L'].map(s => (
+              <button key={s} onClick={() => update('defaultFontSize', s)} style={activeBtn(settings.defaultFontSize === s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {/* Sync */}
+        {/* Display Role / View */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>View</label>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { key: 'leader', label: 'Full', desc: 'Chords, lyrics, tabs' },
+              { key: 'vocalist', label: 'Vocalist', desc: 'Lyrics only' },
+              { key: 'drummer', label: 'Drummer', desc: 'Structure & cues' },
+            ].map(({ key, label, desc }) => (
+              <button
+                key={key}
+                onClick={() => update('displayRole', key)}
+                style={{
+                  ...activeBtn(settings.displayRole === key),
+                  flexDirection: 'column', alignItems: 'center', padding: '8px 14px', gap: 2,
+                }}
+              >
+                <span style={{ fontSize: 12 }}>{label}</span>
+                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 400 }}>{desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Duplicate Sections */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Repeat Sections</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[
+              { key: 'full', label: 'Full', desc: 'Show every section' },
+              { key: 'first', label: '1st Only', desc: 'Collapse repeats' },
+            ].map(({ key, label, desc }) => (
+              <button
+                key={key}
+                onClick={() => update('duplicateSections', key)}
+                style={{
+                  ...activeBtn(settings.duplicateSections === key),
+                  flexDirection: 'column', alignItems: 'center', padding: '8px 14px', gap: 2,
+                }}
+              >
+                <span style={{ fontSize: 12 }}>{label}</span>
+                <span style={{ fontSize: 9, opacity: 0.6, fontWeight: 400 }}>{desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Inline Notes */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Inline Notes</label>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {[true, false].map(v => (
+              <button key={String(v)} onClick={() => update('showInlineNotes', v)} style={activeBtn(settings.showInlineNotes === v)}>
+                {v ? 'Show' : 'Hide'}
+              </button>
+            ))}
+          </div>
+          {settings.showInlineNotes !== false && (
+            <>
+              <label style={{ ...labelStyle, marginTop: 8 }}>Leader Style</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[
+                  { key: 'none', label: 'None' },
+                  { key: 'dashes', label: '- - -' },
+                  { key: 'dots', label: '\u00B7 \u00B7 \u00B7' },
+                  { key: 'arrow', label: '\u2500\u2500\u25B8' },
+                ].map(({ key, label }) => (
+                  <button key={key} onClick={() => update('inlineNoteStyle', key)} style={activeBtn(settings.inlineNoteStyle === key)}>
+                    <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Pedal Mapping */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Pedal / Keyboard Mapping</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[
+              { field: 'pedalNext', label: 'Next Song' },
+              { field: 'pedalPrev', label: 'Previous Song' },
+            ].map(({ field, label }) => (
+              <div key={field} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '8px 12px', borderRadius: 8,
+                background: 'var(--surface)', border: '1px solid var(--border)',
+              }}>
+                <span style={{ className: "text-copy-13", color: 'var(--text)' }}>{label}</span>
+                <button
+                  onClick={() => handleDetectKey(field)}
+                  style={{
+                    ...cB,
+                    background: detectingKey === field ? 'rgba(245,158,11,0.15)' : 'var(--surface)',
+                    borderColor: detectingKey === field ? 'rgba(245,158,11,0.4)' : 'var(--border)',
+                    color: detectingKey === field ? '#fbbf24' : 'var(--chord)',
+                    fontFamily: 'var(--fm)', fontSize: 11,
+                  }}
+                >
+                  {detectingKey === field ? 'Press a key...' : settings[field]}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Cloud Sync */}
         <SyncSettings
           syncState={syncState || { state: 'idle', lastSync: null, provider: null }}
           onSyncStateChange={onSyncStateChange}
           onSyncNow={onSyncNow}
         />
 
-        {/* Tools */}
-        <Section title="Tools">
-          <Row label="Design System" description="Preview application UI components.">
-            <Button size="sm" onClick={onDesign}>Open Showcase</Button>
-          </Row>
-          <Row label="Data Management" description={`${songCount} songs, ${setlistCount} setlists saved.`}>
-            <div className="flex gap-2">
-              <Button size="sm" variant="secondary" onClick={onDownloadSongs}>Download All</Button>
-              <Button size="sm" variant="error" onClick={() => { if (confirm('Delete ALL data?')) onClearAll(); }}>
-                Clear All
-              </Button>
-            </div>
-          </Row>
-        </Section>
+        {/* Data */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>Data</label>
+          <div style={{
+            padding: '12px 14px', borderRadius: 8,
+            background: 'var(--surface)', border: '1px solid var(--border)',
+            marginBottom: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span style={{ className: "text-copy-13", color: 'var(--text-muted)' }}>
+              {songCount} song{songCount !== 1 ? 's' : ''} · {setlistCount} setlist{setlistCount !== 1 ? 's' : ''}
+            </span>
+            {onDownloadSongs && songCount > 0 && (
+              <button onClick={onDownloadSongs} style={{
+                ...cB, padding: '4px 12px', fontSize: 11,
+              }}>
+                Download songs
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => { if (confirm('Delete ALL songs and setlists? This cannot be undone.')) onClearAll(); }}
+            style={{
+              ...cB, width: '100%', justifyContent: 'center',
+              background: 'var(--danger-soft)',
+              border: '1px solid rgba(239,68,68,0.2)',
+              color: 'var(--danger)',
+            }}
+          >
+            Clear All Data
+          </button>
+        </div>
+
+        {/* Design System */}
+        <div style={{ marginBottom: 24 }}>
+          <button onClick={onDesign} style={{ ...cB, width: '100%', justifyContent: 'center' }}>
+            Open Design System
+          </button>
+        </div>
 
         {/* About */}
-        <div className="px-2 py-4 flex flex-col gap-2">
-          <h1 className="text-heading-20 text-[var(--ds-gray-1000)] m-0">Setlists MD</h1>
-          <p className="text-copy-14 text-[var(--ds-gray-700)] leading-relaxed max-w-sm">
-            A minimalist, offline-first chord chart app built for speed.
-            Your songs belong to you as simple markdown files.
-          </p>
-          <div className="mt-4 flex gap-4 text-label-12 text-[var(--ds-gray-900)] font-medium">
-            <span>v1.2.0</span>
-            <span className="text-[var(--ds-gray-400)]">•</span>
-            <a href="#" className="hover:text-[var(--ds-gray-1000)] transition-colors underline-offset-4 underline decoration-[var(--ds-gray-400)]">
-              GitHub
-            </a>
+        <div style={{
+          padding: '12px 14px', borderRadius: 8,
+          background: 'var(--surface)', border: '1px solid var(--border)',
+        }}>
+          <div style={{ className: "text-copy-13", fontWeight: 600, color: 'var(--text-bright)', marginBottom: 4 }}>
+            Setlists MD
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            Free, offline-first chord chart app for worship teams.
+            Songs are portable .md files.
           </div>
         </div>
       </div>

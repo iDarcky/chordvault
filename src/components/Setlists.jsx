@@ -1,37 +1,33 @@
 import React from 'react';
 import PageHeader from './PageHeader';
 import SetlistCard from './SetlistCard';
-import { Button } from './ui/Button';
 
 export default function Setlists({ songs, setlists, onViewSetlist, onPlaySetlist, onNewSetlist, onImportSetlist }) {
   const sorted = [...setlists].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+    <div style={{ minHeight: '100vh', background: 'var(--ds-background-200)', paddingBottom: 100 }}>
       <PageHeader title="Setlists">
-        <div className="flex gap-4">
-          <Button variant="brand" size="sm" onClick={onNewSetlist}>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onNewSetlist} className="text-button-14" style={{
+            background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontWeight: 600
+          }}>
             Create Setlist
-          </Button>
-          <div className="relative">
-            <input
-              type="file"
-              accept=".zip"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) onImportSetlist(file);
-              }}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Button variant="secondary" size="sm">
-              Import .zip
-            </Button>
-          </div>
+          </button>
+          <label style={{
+            background: 'var(--ds-background-100)', color: 'var(--text-bright)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontWeight: 600, fontSize: 13
+          }}>
+            Import .zip
+            <input type="file" accept=".zip" onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) onImportSetlist(file);
+            }} style={{ display: 'none' }} />
+          </label>
         </div>
       </PageHeader>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div style={{ padding: '24px', maxWidth: 1000, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
           {sorted.map(sl => (
             <SetlistCard
               key={sl.id}
@@ -41,13 +37,15 @@ export default function Setlists({ songs, setlists, onViewSetlist, onPlaySetlist
             />
           ))}
           {sorted.length === 0 && (
-            <div className="col-span-full py-24 text-center border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center gap-4">
-              <p className="text-copy-14 text-[var(--ds-gray-700)]">
+            <div style={{ padding: '80px 40px', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: 16 }}>
+              <p className="text-copy-14" style={{ color: 'var(--text-muted)' }}>
                 Organize your songs into setlists for rehearsals or live performances.
               </p>
-              <Button variant="brand" onClick={onNewSetlist}>
+              <button onClick={onNewSetlist} className="text-button-14" style={{
+                marginTop: 16, background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', cursor: 'pointer', fontWeight: 600
+              }}>
                 Create Your First Setlist
-              </Button>
+              </button>
             </div>
           )}
         </div>

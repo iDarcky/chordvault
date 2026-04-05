@@ -2,7 +2,6 @@ import React from 'react';
 import PageHeader from './PageHeader';
 import SongCard from './SongCard';
 import SetlistCard from './SetlistCard';
-import { Button } from './ui/Button';
 
 export default function Dashboard({
   songs,
@@ -23,27 +22,27 @@ export default function Dashboard({
   }).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+    <div style={{ minHeight: '100vh', background: 'var(--ds-background-200)', paddingBottom: 100 }}>
       <PageHeader title="Welcome, Guest">
-        <div className="text-copy-14 text-[var(--ds-gray-900)] font-medium">
+        <div className="text-copy-14" style={{ color: 'var(--text-muted)' }}>
           {dateStr}
         </div>
       </PageHeader>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-12">
+      <div style={{ padding: '24px 24px 80px', maxWidth: 1000, margin: '0 auto' }}>
 
         {/* Recent Setlists */}
-        <section className="flex flex-col gap-6">
-          <div className="flex justify-between items-center px-2">
-            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold">
+        <section style={{ marginBottom: 48 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <h2 className="text-label-12-mono" style={{ color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               Recent Setlists
             </h2>
-            <Button variant="ghost" size="sm" onClick={onGoSetlists}>
+            <button onClick={onGoSetlists} className="text-label-12" style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}>
               View All
-            </Button>
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
             {latestSetlists.map(sl => (
               <SetlistCard
                 key={sl.id}
@@ -53,30 +52,25 @@ export default function Dashboard({
               />
             ))}
             {latestSetlists.length === 0 && (
-              <div className="col-span-full py-16 text-center border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center gap-4">
-                <p className="text-copy-14 text-[var(--ds-gray-700)] font-medium">
-                  No setlists created yet.
-                </p>
-                <Button variant="brand" onClick={onNewSetlist}>
-                  Create First Setlist
-                </Button>
+              <div style={{ padding: '40px', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: 16 }}>
+                <p className="text-copy-14" style={{ color: 'var(--text-muted)' }}>No setlists created yet.</p>
               </div>
             )}
           </div>
         </section>
 
         {/* Latest Songs */}
-        <section className="flex flex-col gap-6">
-          <div className="flex justify-between items-center px-2">
-            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold">
+        <section>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <h2 className="text-label-12-mono" style={{ color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               Latest Library Additions
             </h2>
-            <Button variant="ghost" size="sm" onClick={onGoLibrary}>
+            <button onClick={onGoLibrary} className="text-label-12" style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}>
               Full Library
-            </Button>
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
             {latestSongs.map(song => (
               <SongCard
                 key={song.id}
@@ -85,13 +79,8 @@ export default function Dashboard({
               />
             ))}
             {latestSongs.length === 0 && (
-              <div className="col-span-full py-16 text-center border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center gap-4">
-                <p className="text-copy-14 text-[var(--ds-gray-700)] font-medium">
-                  Your library is empty.
-                </p>
-                <Button variant="brand" onClick={onNewSong}>
-                  Add Your First Song
-                </Button>
+              <div style={{ padding: '40px', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: 16 }}>
+                <p className="text-copy-14" style={{ color: 'var(--text-muted)' }}>Your library is empty.</p>
               </div>
             )}
           </div>

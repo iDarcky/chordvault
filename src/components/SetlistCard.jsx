@@ -1,6 +1,4 @@
 import React from 'react';
-import { Card } from './ui/Card';
-import { Button } from './ui/Button';
 
 export default function SetlistCard({ setlist, onPlay, onView }) {
   const dateStr = new Date(setlist.date + 'T12:00:00').toLocaleDateString('en-US', {
@@ -10,43 +8,83 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
   const songCount = setlist.items?.length || 0;
 
   return (
-    <Card className="flex flex-col gap-6">
-      <div className="flex justify-between items-start">
-        <div className="text-label-12-mono text-[var(--ds-gray-700)] tracking-widest uppercase">
+    <div
+      style={{
+        padding: '24px',
+        borderRadius: 16,
+        background: 'var(--ds-background-100)',
+        border: '1px solid var(--border)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16,
+        transition: 'background 0.2s',
+      }}
+      className="hover:bg-[var(--ds-gray-200)] group"
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className="text-label-12-mono" style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
           {dateStr}
         </div>
         {setlist.service && (
-          <div className="text-label-12 text-[var(--ds-gray-700)] px-2 py-0.5 rounded-md bg-[var(--ds-gray-200)] border border-[var(--ds-gray-400)] uppercase tracking-tight">
+          <div className="text-label-12" style={{
+            padding: '2px 8px',
+            borderRadius: 6,
+            background: 'var(--ds-gray-100)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.02em'
+          }}>
             {setlist.service}
           </div>
         )}
       </div>
 
-      <div onClick={onView} className="cursor-pointer group/title">
-        <h3 className="text-heading-24 text-[var(--ds-gray-1000)] m-0 leading-tight group-hover/title:text-[var(--ds-gray-900)] transition-colors">
+      <div onClick={onView} style={{ cursor: 'pointer' }}>
+        <h3 className="text-heading-24" style={{ color: 'var(--text-bright)', margin: 0 }}>
           {setlist.name || 'Untitled Setlist'}
         </h3>
-        <p className="text-copy-14 text-[var(--ds-gray-700)] mt-2">
+        <p className="text-copy-14" style={{ color: 'var(--text-muted)', marginTop: 4 }}>
           {songCount} song{songCount !== 1 ? 's' : ''}
         </p>
       </div>
 
-      <div className="flex gap-4">
-        <Button
-          variant="brand"
-          className="flex-1"
+      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+        <button
           onClick={(e) => { e.stopPropagation(); onPlay(); }}
+          className="text-button-14 hover:opacity-90 active:scale-[0.98]"
+          style={{
+            flex: 1,
+            padding: '12px',
+            borderRadius: 8,
+            border: 'none',
+            background: 'var(--color-brand)',
+            color: '#fff',
+            cursor: 'pointer',
+            fontWeight: 600,
+            transition: 'opacity 0.2s',
+          }}
         >
           Play Live
-        </Button>
-        <Button
-          variant="secondary"
-          className="flex-1"
+        </button>
+        <button
           onClick={(e) => { e.stopPropagation(); onView(); }}
+          className="text-button-14 hover:bg-[var(--ds-gray-100)] active:scale-[0.98]"
+          style={{
+            flex: 1,
+            padding: '12px',
+            borderRadius: 8,
+            border: '1px solid var(--border)',
+            background: 'var(--ds-background-100)',
+            color: 'var(--text-bright)',
+            cursor: 'pointer',
+            fontWeight: 600,
+            transition: 'background 0.2s',
+          }}
         >
           View Details
-        </Button>
+        </button>
       </div>
-    </Card>
+    </div>
   );
 }
