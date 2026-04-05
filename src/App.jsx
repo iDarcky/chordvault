@@ -1,3 +1,4 @@
+import { Toaster } from "./components/ui/Toaster";
 import DesignShowcase from './components/DesignShowcase';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
@@ -283,6 +284,7 @@ export default function App() {
 
   return (
     <>
+      <Toaster />
       {view === 'welcome' && (
         <Welcome
           onGetStarted={() => {
@@ -423,6 +425,7 @@ export default function App() {
       {['home', 'library', 'setlists', 'settings'].includes(view) && (
         <BottomNav activeView={view} onNavigate={goToMainView} />
       )}
+      <Toaster />
     </>
   );
 }

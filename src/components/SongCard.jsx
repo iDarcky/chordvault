@@ -1,40 +1,29 @@
 import React from 'react';
+import { Card } from './ui/Card';
 
 export default function SongCard({ song, onClick }) {
   return (
-    <div
-      onClick={() => onClick(song)}
-      style={{
-        padding: '20px 24px',
-        borderRadius: 16,
-        background: 'var(--ds-background-100)',
-        border: '1px solid var(--border)',
-        cursor: 'pointer',
-        transition: 'background 0.2s, border-color 0.2s',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-      }}
-      className="hover:bg-[var(--ds-gray-200)] group"
+    <Card
+      onClick={onClick}
+      className="cursor-pointer flex flex-col gap-2"
     >
-      <h3 className="text-heading-20" style={{ color: 'var(--text-bright)', margin: 0 }}>
+      <h3 className="text-heading-18 text-[var(--ds-gray-1000)] m-0 leading-tight">
         {song.title}
       </h3>
-      <div className="text-copy-14" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {song.artist}
+      <div className="flex items-center gap-2">
+        <span className="text-label-12 text-[var(--ds-gray-900)] uppercase font-semibold">
+          {song.key || 'C'}
         </span>
-        <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-        <span style={{ color: 'var(--color-brand-text)', fontWeight: 600, fontFamily: 'var(--fm)' }}>
-          {song.key}
+        <span className="text-[var(--ds-gray-400)] text-[10px]">•</span>
+        <span className="text-label-12 text-[var(--ds-gray-700)]">
+          {song.bpm ? `${song.bpm} BPM` : 'No Tempo'}
         </span>
-        {song.tempo && (
-          <>
-            <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-            <span style={{ whiteSpace: 'nowrap' }}>{song.tempo} BPM</span>
-          </>
-        )}
       </div>
-    </div>
+      {song.artist && (
+        <p className="text-copy-14 text-[var(--ds-gray-900)] mt-1 line-clamp-1">
+          {song.artist}
+        </p>
+      )}
+    </Card>
   );
 }

@@ -1,93 +1,57 @@
-import { useState, useMemo, useRef } from 'react';
+import React from 'react';
 import PageHeader from './PageHeader';
 import SetlistCard from './SetlistCard';
+import { Button } from './ui/Button';
 
 export default function Setlists({ songs, setlists, onViewSetlist, onPlaySetlist, onNewSetlist, onImportSetlist }) {
-  const [fabOpen, setFabOpen] = useState(false);
-  const fileRef = useRef(null);
-
-  const sorted = useMemo(() => {
-    return [...setlists].sort((a, b) => b.date.localeCompare(a.date));
-  }, [setlists]);
+  const sorted = [...setlists].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 100 }}>
-      <PageHeader title="Setlists" />
-
-      <div style={{ padding: '24px' }}>
-        {sorted.length > 0 ? (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: 20,
-          }}>
-            {sorted.map(sl => (
-              <SetlistCard
-                key={sl.id}
-                setlist={sl}
-                onPlay={() => onPlaySetlist(sl)}
-                onView={() => onViewSetlist(sl)}
-              />
-            ))}
+    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+      <PageHeader title="Setlists">
+        <div className="flex gap-4">
+          <Button variant="brand" size="sm" onClick={onNewSetlist}>
+            Create Setlist
+          </Button>
+          <div className="relative">
+            <input
+              type="file"
+              accept=".zip"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) onImportSetlist(file);
+              }}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <Button variant="secondary" size="sm">
+              Import .zip
+            </Button>
           </div>
-        ) : (
-          <div style={{
-            textAlign: 'center', padding: '80px 20px',
-            color: 'var(--text-dim)', border: '1px dashed var(--border)', borderRadius: 16,
-          }}>
-            <p className="text-copy-16">No setlists yet.</p>
-          </div>
-        )}
-      </div>
+        </div>
+      </PageHeader>
 
-      {/* FAB */}
-      <div style={{ position: 'fixed', bottom: 84, right: 24, zIndex: 90 }}>
-        {fabOpen && (
-          <>
-            <div onClick={() => setFabOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 89 }} />
-            <div style={{
-              position: 'absolute', bottom: 'calc(100% + 12px)', right: 0,
-              display: 'flex', flexDirection: 'column', gap: 8, minWidth: 160,
-              padding: '8px', borderRadius: 12, background: 'var(--ds-background-100)',
-              border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-              zIndex: 90,
-            }}>
-              <button onClick={() => { setFabOpen(false); onNewSetlist(); }} style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 8,
-                border: 'none', background: 'none', color: 'var(--text-bright)', fontSize: 13,
-                cursor: 'pointer', fontFamily: 'var(--fb)', fontWeight: 600,
-              }} className="hover:bg-[var(--ds-gray-100)]">
-                + New Setlist
-              </button>
-              <button onClick={() => { setFabOpen(false); fileRef.current?.click(); }} style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 8,
-                border: 'none', background: 'none', color: 'var(--text-bright)', fontSize: 13,
-                cursor: 'pointer', fontFamily: 'var(--fb)', fontWeight: 600,
-              }} className="hover:bg-[var(--ds-gray-100)]">
-                + Import .zip
-              </button>
+      <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {sorted.map(sl => (
+            <SetlistCard
+              key={sl.id}
+              setlist={sl}
+              onPlay={() => onPlaySetlist(sl)}
+              onView={() => onViewSetlist(sl)}
+            />
+          ))}
+          {sorted.length === 0 && (
+            <div className="col-span-full py-24 text-center border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center gap-4">
+              <p className="text-copy-14 text-[var(--ds-gray-700)]">
+                Organize your songs into setlists for rehearsals or live performances.
+              </p>
+              <Button variant="brand" onClick={onNewSetlist}>
+                Create Your First Setlist
+              </Button>
             </div>
-          </>
-        )}
-        <button
-          onClick={() => setFabOpen(prev => !prev)}
-          style={{
-            width: 56, height: 56, borderRadius: 28,
-            background: 'var(--color-brand)', color: '#fff',
-            fontSize: 28, fontWeight: 300, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px var(--accent-border)',
-            transition: 'transform 0.2s',
-            transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-          }}
-        >
-          +
-        </button>
+          )}
+        </div>
       </div>
-      <input ref={fileRef} type="file" accept=".zip" onChange={e => {
-        if (e.target.files[0]) onImportSetlist(e.target.files[0]);
-        e.target.value = '';
-      }} style={{ display: 'none' }} />
     </div>
   );
 }

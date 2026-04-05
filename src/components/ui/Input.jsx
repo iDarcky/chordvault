@@ -1,19 +1,45 @@
-import * as React from "react"
-import { cn } from "../../lib/utils"
+import React from 'react';
+import { cn } from '../../lib/utils';
 
-const Input = React.forwardRef(({ className, type, ...props }, ref) => {
+const Input = React.forwardRef(({
+  className,
+  type = 'text',
+  prefix,
+  suffix,
+  disabled,
+  ...props
+}, ref) => {
   return (
-    <input
-      type={type}
-      className={cn(
-        "flex h-10 w-full rounded-md border border-[var(--ds-gray-200)] bg-[var(--ds-background-100)] px-3 py-2 text-sm ring-offset-[var(--ds-background-100)] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[var(--ds-gray-400)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ds-gray-900)] disabled:cursor-not-allowed disabled:opacity-50 transition-all",
-        className
+    <div className={cn(
+      "flex items-center w-full rounded-lg bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] transition-all duration-200 focus-within:ring-2 focus-within:ring-[var(--ds-gray-400)] focus-within:border-[var(--ds-gray-600)]",
+      disabled && "opacity-50 pointer-events-none",
+      className
+    )}>
+      {prefix && (
+        <div className="pl-3 flex items-center justify-center text-[var(--ds-gray-900)]">
+          {prefix}
+        </div>
       )}
-      ref={ref}
-      {...props}
-    />
-  )
-})
-Input.displayName = "Input"
+      <input
+        type={type}
+        className={cn(
+          "w-full px-3 py-2 text-copy-14 bg-transparent border-none outline-none placeholder:text-[var(--ds-gray-700)] text-[var(--ds-gray-1000)]",
+          prefix && "pl-2",
+          suffix && "pr-2"
+        )}
+        ref={ref}
+        disabled={disabled}
+        {...props}
+      />
+      {suffix && (
+        <div className="pr-3 flex items-center justify-center text-[var(--ds-gray-900)]">
+          {suffix}
+        </div>
+      )}
+    </div>
+  );
+});
 
-export { Input }
+Input.displayName = "Input";
+
+export { Input };
