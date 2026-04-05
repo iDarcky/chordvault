@@ -8,8 +8,17 @@ export default function SectionBlock({
   const s = sectionStyle(section.type);
 
   const renderContent = () => {
-    const lines = section.content.split('\n');
+    // In our parser, section.lines is an array of strings or objects (tabs, modulations)
+    // Legacy chordvault might have used 'content' but our parser uses 'lines'
+    const lines = section.lines || [];
+
     return lines.map((line, i) => {
+      if (typeof line !== 'string') {
+        // Skip tabs/modulations for now or handle them simply
+        if (line.type === 'tab') return <div key={i} className="text-xs font-mono opacity-50 my-2">[Tablature]</div>;
+        return null;
+      }
+
       // Process chords in the line [C] or [C/E]
       const parts = line.split(/(\[.*?\])/);
       return (

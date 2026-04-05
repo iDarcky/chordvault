@@ -7,7 +7,7 @@ export default function VisualTab({ song, onChange }) {
     const newSection = {
       type,
       id: Math.random().toString(36).substr(2, 9),
-      content: ''
+      lines: []
     };
     onChange({ ...song, sections: [...song.sections, newSection] });
   };
@@ -29,7 +29,7 @@ export default function VisualTab({ song, onChange }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {['verse', 'chorus', 'bridge', 'outro'].map(type => (
+        {['Verse', 'Chorus', 'Bridge', 'Outro'].map(type => (
           <Button key={type} variant="secondary" size="sm" onClick={() => addSection(type)} className="capitalize">
             + {type}
           </Button>
@@ -46,8 +46,8 @@ export default function VisualTab({ song, onChange }) {
               </button>
             </div>
             <textarea
-              value={section.content}
-              onChange={e => updateSection(section.id, { content: e.target.value })}
+              value={Array.isArray(section.lines) ? section.lines.join('\n') : (section.content || '')}
+              onChange={e => updateSection(section.id, { lines: e.target.value.split('\n'), content: e.target.value })}
               placeholder="Enter chords and lyrics..."
               className="w-full bg-transparent border-none outline-none font-mono text-sm min-h-[100px] resize-none text-[var(--geist-foreground)]"
             />
