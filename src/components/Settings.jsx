@@ -3,7 +3,7 @@ import SyncSettings from './settings/SyncSettings';
 import PageHeader from './PageHeader';
 
 const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
+  className: "text-label-12-mono", color: 'var(--text-muted)',
   fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
 };
 
@@ -11,7 +11,7 @@ const cB = {
   borderRadius: 6,
   border: '1px solid var(--border)',
   background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 600,
+  className: "text-label-12", cursor: 'pointer', fontWeight: 600,
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   fontFamily: 'var(--fb)', padding: '6px 14px',
 };
@@ -169,7 +169,7 @@ export default function Settings({ settings, onUpdate, onClearAll, onDownloadSon
                 padding: '8px 12px', borderRadius: 8,
                 background: 'var(--surface)', border: '1px solid var(--border)',
               }}>
-                <span style={{ fontSize: 13, color: 'var(--text)' }}>{label}</span>
+                <span style={{ className: "text-copy-13", color: 'var(--text)' }}>{label}</span>
                 <button
                   onClick={() => handleDetectKey(field)}
                   style={{
@@ -203,7 +203,7 @@ export default function Settings({ settings, onUpdate, onClearAll, onDownloadSon
             marginBottom: 8,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+            <span style={{ className: "text-copy-13", color: 'var(--text-muted)' }}>
               {songCount} song{songCount !== 1 ? 's' : ''} · {setlistCount} setlist{setlistCount !== 1 ? 's' : ''}
             </span>
             {onDownloadSongs && songCount > 0 && (
@@ -232,7 +232,7 @@ export default function Settings({ settings, onUpdate, onClearAll, onDownloadSon
           padding: '12px 14px', borderRadius: 8,
           background: 'var(--surface)', border: '1px solid var(--border)',
         }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)', marginBottom: 4 }}>
+          <div style={{ className: "text-copy-13", fontWeight: 600, color: 'var(--text-bright)', marginBottom: 4 }}>
             Setlists MD
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>

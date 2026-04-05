@@ -95,7 +95,7 @@ export default function Dashboard({
                   }}>
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{
-                        fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
+                        className: "text-button-14", fontWeight: 500, color: 'var(--text-bright)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {sl.name || 'Untitled'}
@@ -161,7 +161,7 @@ export default function Dashboard({
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
+                      className: "text-button-14", fontWeight: 500, color: 'var(--text-bright)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {song.title}
@@ -172,7 +172,7 @@ export default function Dashboard({
                     }}>
                       <span>{song.artist}</span>
                       <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      <span style={{ fontFamily: 'var(--fm)', fontSize: 11, fontWeight: 600, color: 'var(--chord)' }}>
+                      <span style={{ fontFamily: 'var(--fm)', className: "text-label-12-mono", color: 'var(--chord)' }}>
                         {song.key}
                       </span>
                       {song.tempo && (
@@ -202,7 +202,7 @@ export default function Dashboard({
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             color: 'var(--text)',
-            fontSize: 14,
+            className: "text-button-14",
             justifyContent: 'center',
           }}>
             Full Library
@@ -214,7 +214,7 @@ export default function Dashboard({
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             color: 'var(--text)',
-            fontSize: 14,
+            className: "text-button-14",
             justifyContent: 'center',
           }}>
             All Setlists
@@ -319,7 +319,7 @@ export default function Dashboard({
             {!searchQuery.trim() && (
               <div style={{
                 textAlign: 'center', padding: '48px 20px',
-                color: 'var(--text-dim)', fontSize: 14,
+                color: 'var(--text-dim)', className: "text-button-14",
               }}>
                 Search across all songs and setlists
               </div>
@@ -328,7 +328,7 @@ export default function Dashboard({
             {searchQuery.trim() && searchResults.songs.length === 0 && searchResults.setlists.length === 0 && (
               <div style={{
                 textAlign: 'center', padding: '48px 20px',
-                color: 'var(--text-dim)', fontSize: 14,
+                color: 'var(--text-dim)', className: "text-button-14",
               }}>
                 No results found
               </div>
@@ -337,7 +337,7 @@ export default function Dashboard({
             {searchResults.songs.length > 0 && (
               <div style={{ marginBottom: 20 }}>
                 <div style={{
-                  fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+                  className: "text-label-12-mono", color: 'var(--text-muted)',
                       fontFamily: 'var(--fm)', marginBottom: 8,
                 }}>
                   Songs
@@ -371,12 +371,12 @@ export default function Dashboard({
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
-                          fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
+                          className: "text-button-14", fontWeight: 600, color: 'var(--text-bright)',
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {song.title}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+                        <div style={{ className: "text-label-12", color: 'var(--text-muted)', marginTop: 1 }}>
                           {song.artist}
                         </div>
                       </div>
@@ -389,7 +389,7 @@ export default function Dashboard({
             {searchResults.setlists.length > 0 && (
               <div>
                 <div style={{
-                  fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+                  className: "text-label-12-mono", color: 'var(--text-muted)',
                       fontFamily: 'var(--fm)', marginBottom: 8,
                 }}>
                   Setlists
@@ -415,12 +415,12 @@ export default function Dashboard({
                     >
                       <div style={{ minWidth: 0 }}>
                         <div style={{
-                          fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
+                          className: "text-button-14", fontWeight: 600, color: 'var(--text-bright)',
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {sl.name || 'Untitled'}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
+                        <div style={{ className: "text-label-12", color: 'var(--text-muted)', marginTop: 1 }}>
                           {dateStr}{sl.service ? ` \u00B7 ${sl.service}` : ''} · {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
                         </div>
                       </div>
