@@ -1,3 +1,4 @@
+import DesignShowcase from './components/DesignShowcase';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
@@ -392,7 +393,10 @@ export default function App() {
           duplicateSections={settings?.duplicateSections || 'full'}
         />
       )}
-      {view === 'settings' && settings && (
+      {view === "design" && (
+        <DesignShowcase onBack={() => setView("settings")} />
+      )}
+      {view === "settings" && settings && (
         <Settings
           settings={settings}
           onUpdate={setSettings}
@@ -413,7 +417,7 @@ export default function App() {
           setlistCount={setlists.length}
           syncState={syncState}
           onSyncStateChange={setSyncState}
-          onSyncNow={triggerSync}
+          onSyncNow={triggerSync} onDesign={() => setView("design")}
         />
       )}
       {['home', 'library', 'setlists', 'settings'].includes(view) && (

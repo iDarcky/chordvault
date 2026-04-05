@@ -52,7 +52,7 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
       <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
         <button
           onClick={(e) => { e.stopPropagation(); onPlay(); }}
-          className="text-button-14"
+          className="text-button-14 hover:opacity-90 active:scale-[0.98]"
           style={{
             flex: 1,
             padding: '12px',
@@ -64,13 +64,12 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
             fontWeight: 600,
             transition: 'opacity 0.2s',
           }}
-          className="hover:opacity-90 active:scale-[0.98]"
         >
           Play Live
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onView(); }}
-          className="text-button-14"
+          className="text-button-14 hover:bg-[var(--ds-gray-100)] active:scale-[0.98]"
           style={{
             flex: 1,
             padding: '12px',
@@ -82,7 +81,6 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
             fontWeight: 600,
             transition: 'background 0.2s',
           }}
-          className="hover:bg-[var(--ds-gray-100)] active:scale-[0.98]"
         >
           View Details
         </button>

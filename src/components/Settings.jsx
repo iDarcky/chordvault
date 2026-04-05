@@ -23,7 +23,7 @@ const activeBtn = (active) => ({
   background: active ? 'var(--accent-soft)' : 'var(--surface)',
 });
 
-export default function Settings({ settings, onUpdate, onClearAll, onDownloadSongs, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow }) {
+export default function Settings({ settings, onUpdate, onClearAll, onDownloadSongs, songCount, setlistCount, syncState, onSyncStateChange, onSyncNow, onDesign }) {
   const [detectingKey, setDetectingKey] = useState(null); // 'next' | 'prev' | null
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
@@ -224,6 +224,13 @@ export default function Settings({ settings, onUpdate, onClearAll, onDownloadSon
             }}
           >
             Clear All Data
+          </button>
+        </div>
+
+        {/* Design System */}
+        <div style={{ marginBottom: 24 }}>
+          <button onClick={onDesign} style={{ ...cB, width: '100%', justifyContent: 'center' }}>
+            Open Design System
           </button>
         </div>
 
