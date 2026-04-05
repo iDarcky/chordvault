@@ -7,7 +7,7 @@ export default function Setlists({ songs, setlists, onViewSetlist, onPlaySetlist
   const sorted = [...setlists].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+    <div className="min-h-screen material-page pb-32">
       <PageHeader title="Setlists">
         <div className="flex gap-4">
           <Button variant="brand" size="sm" onClick={onNewSetlist}>
@@ -30,7 +30,7 @@ export default function Setlists({ songs, setlists, onViewSetlist, onPlaySetlist
         </div>
       </PageHeader>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-10">
+      <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col gap-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {sorted.map(sl => (
             <SetlistCard

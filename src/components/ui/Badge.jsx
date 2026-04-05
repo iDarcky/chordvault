@@ -3,8 +3,8 @@ import { cn } from "../../lib/utils"
 
 function Badge({ className, variant = "default", ...props }) {
   const variants = {
-    default: "border-transparent bg-[var(--ds-gray-900)] text-[var(--ds-background-100)]",
-    secondary: "border-transparent bg-[var(--ds-gray-100)] text-[var(--ds-gray-900)]",
+    default: "border border-[var(--ds-gray-300)] bg-[var(--ds-background-100)] text-[var(--ds-gray-1000)]",
+    secondary: "border-transparent bg-[var(--ds-gray-200)] text-[var(--ds-gray-1000)]",
     outline: "text-[var(--ds-gray-900)] border-[var(--ds-gray-200)]",
     success: "bg-[#0070f3] text-white border-transparent",
     error: "bg-[#e00] text-white border-transparent",

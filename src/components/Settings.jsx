@@ -44,7 +44,7 @@ export default function Settings({
   );
 
   const Row = ({ label, children, description }) => (
-    <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)] hover:bg-[var(--ds-gray-100)] transition-colors">
+    <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)]">
       <div className="flex flex-col">
         <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">{label}</span>
         {description && <span className="text-copy-13 text-[var(--ds-gray-700)]">{description}</span>}
@@ -56,7 +56,7 @@ export default function Settings({
   );
 
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+    <div className="min-h-screen material-page pb-32">
       <PageHeader title="Settings" />
 
       <div className="max-w-2xl mx-auto px-6 py-10 flex flex-col gap-12">

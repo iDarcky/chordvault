@@ -13,7 +13,7 @@ export default function Library({ songs, onSelectSong, onNewSong, onImportSong }
   ).sort((a, b) => a.title.localeCompare(b.title));
 
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+    <div className="min-h-screen material-page pb-32">
       <PageHeader title="Song Library">
         <div className="flex gap-4">
           <Button variant="brand" size="sm" onClick={onNewSong}>
@@ -40,7 +40,7 @@ export default function Library({ songs, onSelectSong, onNewSong, onImportSong }
         </div>
       </PageHeader>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-8">
+      <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col gap-8">
         <Input
           placeholder="Search library..."
           value={query}

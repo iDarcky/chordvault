@@ -11,7 +11,7 @@ const Input = React.forwardRef(({
 }, ref) => {
   return (
     <div className={cn(
-      "flex items-center w-full rounded-lg bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] transition-all duration-200 focus-within:ring-2 focus-within:ring-[var(--ds-gray-400)] focus-within:border-[var(--ds-gray-600)]",
+      "flex items-center w-full rounded-md bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] transition-all duration-100 focus-within:ring-2 focus-within:ring-[var(--ds-gray-400)] focus-within:border-[var(--ds-gray-600)]",
       disabled && "opacity-50 pointer-events-none",
       className
     )}>

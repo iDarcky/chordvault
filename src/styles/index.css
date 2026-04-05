@@ -58,7 +58,7 @@
   --accent-border: var(--color-brand-border);
   --danger: #f87171;
   --danger-soft: rgba(239, 68, 68, 0.1);
-  --header-bg: rgba(11, 11, 15, 0.92);
+  --header-bg: rgba(0, 0, 0, 0.65);
   --fb: var(--font-sans);
   --fm: var(--font-mono);
 }
@@ -96,7 +96,7 @@
     --accent-border: rgba(83, 121, 111, 0.25);
     --danger: #dc2626;
     --danger-soft: rgba(239, 68, 68, 0.08);
-    --header-bg: #fafafa;
+    --header-bg: rgba(255, 255, 255, 0.65);
   }
 
   * {
@@ -140,6 +140,28 @@
 
 /* Custom Utilities */
 @layer utilities {
+  /* Vercel Materials */
+  .material-page {
+    background-color: var(--ds-background-200);
+  }
+  .material-panel {
+    background-color: var(--ds-background-100);
+    border: 1px solid var(--ds-gray-400);
+    border-radius: 6px;
+  }
+  .material-card {
+    background-color: var(--ds-background-100);
+    border: 1px solid var(--ds-gray-400);
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .material-card-interactive {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .material-card-interactive:hover {
+    border-color: var(--ds-gray-600);
+  }
+
   .hide-scrollbar {
     scrollbar-width: none;
   }

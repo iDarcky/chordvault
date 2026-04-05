@@ -23,14 +23,14 @@ export default function Dashboard({
   }).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+    <div className="min-h-screen material-page pb-32">
       <PageHeader title="Welcome, Guest">
-        <div className="text-copy-14 text-[var(--ds-gray-900)] font-medium">
+        <div className="text-label-13 text-[var(--ds-gray-900)] font-medium">
           {dateStr}
         </div>
       </PageHeader>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-12">
+      <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col gap-10">
 
         {/* Recent Setlists */}
         <section className="flex flex-col gap-6">

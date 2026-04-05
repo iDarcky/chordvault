@@ -1,151 +1,143 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Badge } from './ui/Badge';
-import { Avatar, AvatarImage, AvatarFallback } from './ui/Avatar';
 import { Switch } from './ui/Switch';
 import { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem } from './ui/Select';
 import { Card } from './ui/Card';
 import { Separator } from './ui/Separator';
-import { Checkbox } from './ui/Checkbox';
-import { Tooltip, TooltipProvider } from './ui/Tooltip';
-import { toast } from './ui/use-toast';
 import PageHeader from './PageHeader';
 
 export default function DesignShowcase({ onBack }) {
-  const [name, setName] = useState('');
-  const [toggle, setToggle] = useState(false);
-  const [role, setRole] = useState('developer');
-  const [loading, setLoading] = useState(false);
-
-  const triggerToast = () => {
-    toast({
-      title: "Success",
-      description: "Design System is working correctly.",
-    });
-  };
-
-  const triggerError = () => {
-    toast({
-      title: "Error",
-      description: "Something went wrong with the system.",
-      variant: 'error',
-    });
-  };
-
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
-        <PageHeader title="Geist UI Showcase">
-          <Button variant="secondary" size="sm" onClick={onBack}>Back to App</Button>
-        </PageHeader>
+    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+      <PageHeader title="Geist UI Design System">
+        <Button variant="secondary" size="sm" onClick={onBack}>Back to Settings</Button>
+      </PageHeader>
 
-        <div className="max-w-4xl mx-auto px-6 py-12 flex flex-col gap-16">
-
-          {/* Section: Typography */}
-          <section className="flex flex-col gap-6">
-            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold px-1">Typography</h2>
-            <Card className="grid gap-6">
-              <h1 className="text-heading-24 text-[var(--ds-gray-1000)] m-0">Heading 24 - Page Titles</h1>
-              <h2 className="text-heading-20 text-[var(--ds-gray-1000)] m-0">Heading 20 - Section Titles</h2>
-              <p className="text-copy-14 text-[var(--ds-gray-900)] m-0 leading-relaxed">
-                Copy 14 - Default body text. Geist is designed for precision and clarity.
-                Vercel products use this for descriptions and regular content.
-              </p>
-              <div className="text-label-12-mono text-[var(--ds-gray-700)] uppercase tracking-wider">
-                Label 12 Mono - Metadata and Technical details
+      <div className="max-w-4xl mx-auto px-6 py-10 flex flex-col gap-16">
+        
+        {/* Layer A: Tokens (Colors) */}
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold">Colors & Tokens</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-900)]">The official gray-scale tokens used for building consistent web experiences.</p>
+          </div>
+          
+          <div className="flex bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] rounded-md overflow-hidden h-24">
+            {[100, 200, 300, 400, 500, 600, 700, 800, 900, 1000].map(scale => (
+              <div 
+                key={scale}
+                className="flex-1 flex flex-col items-center justify-end pb-2"
+                style={{ backgroundColor: `var(--ds-gray-${scale})` }}
+              >
+                <span className={`text-[10px] uppercase font-mono ${scale > 500 ? 'text-[var(--ds-background-200)]' : 'text-[var(--ds-gray-1000)]'}`}>
+                  {scale}
+                </span>
               </div>
-            </Card>
-          </section>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 rounded-md bg-[var(--color-brand)] text-white flex items-end h-24">
+              <span className="text-label-14-mono">--color-brand</span>
+            </div>
+            <div className="p-4 border border-[var(--ds-gray-400)] rounded-md bg-[var(--ds-background-100)] text-[var(--ds-gray-1000)] flex items-end h-24">
+              <span className="text-label-14-mono">Background 100</span>
+            </div>
+            <div className="p-4 border border-[var(--ds-gray-400)] rounded-md bg-[var(--ds-background-200)] text-[var(--ds-gray-1000)] flex flex-col justify-between h-24">
+              <span className="text-[10px] text-[var(--ds-gray-700)]">Global Page BG</span>
+              <span className="text-label-14-mono">Background 200</span>
+            </div>
+          </div>
+        </section>
 
-          {/* Section: Buttons */}
-          <section className="flex flex-col gap-6">
-            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold px-1">Buttons & Interactions</h2>
-            <Card className="flex flex-col gap-8">
+        <Separator />
+
+        {/* Layer A: Typography */}
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold">Typography</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-900)]">Geist Sans and Geist Mono typography hierarchy.</p>
+          </div>
+          <Card className="grid gap-6">
+            <div>
+              <h1 className="text-heading-32 text-[var(--ds-gray-1000)] m-0">Heading 32 - Page Titles</h1>
+              <p className="text-label-12-mono text-[var(--ds-gray-700)]">.text-heading-32</p>
+            </div>
+            <div>
+              <h2 className="text-heading-24 text-[var(--ds-gray-1000)] m-0">Heading 24 - Section Titles</h2>
+              <p className="text-label-12-mono text-[var(--ds-gray-700)]">.text-heading-24</p>
+            </div>
+            <div>
+              <p className="text-copy-14 text-[var(--ds-gray-900)] m-0 leading-relaxed">
+                Copy 14 - Default body text. Geist is designed for precision and clarity. Vercel products use this for descriptions and regular content.
+              </p>
+              <p className="text-label-12-mono text-[var(--ds-gray-700)] mt-1">.text-copy-14</p>
+            </div>
+          </Card>
+        </section>
+
+        <Separator />
+
+        {/* Layer B: Materials */}
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold">Materials (Layouts)</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-900)]">Presets for radii, fills, strokes, and shadows based on standard vercel utility classes.</p>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="material-panel p-6 flex flex-col gap-2">
+              <h3 className="text-heading-16 text-[var(--ds-gray-1000)] m-0">Material Panel</h3>
+              <p className="text-copy-14 text-[var(--ds-gray-900)] m-0">A lower elevation surface used for minor items. Sharp 6px radius.</p>
+              <span className="text-label-12-mono text-[var(--ds-gray-700)] mt-2">.material-panel</span>
+            </div>
+            <div className="material-card p-6 flex flex-col gap-2">
+              <h3 className="text-heading-16 text-[var(--ds-gray-1000)] m-0">Material Card</h3>
+              <p className="text-copy-14 text-[var(--ds-gray-900)] m-0">A standard elevated container with a drop-shadow. Soft 12px radius.</p>
+              <span className="text-label-12-mono text-[var(--ds-gray-700)] mt-2">.material-card</span>
+            </div>
+          </div>
+        </section>
+
+        <Separator />
+
+        {/* Layer B: Atomic Components */}
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold">Base UI Components</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-900)]">Atomic building blocks like buttons and inputs.</p>
+          </div>
+          <Card className="flex flex-col gap-8">
+            <div className="flex flex-col gap-3">
+              <h4 className="text-label-12-mono text-[var(--ds-gray-700)]">Buttons</h4>
               <div className="flex flex-wrap gap-4 items-center">
                 <Button variant="primary">Primary</Button>
                 <Button variant="secondary">Secondary</Button>
                 <Button variant="ghost">Ghost</Button>
-                <Button variant="error">Error</Button>
                 <Button variant="brand">Brand</Button>
               </div>
-              <Separator />
-              <div className="flex flex-wrap gap-4 items-center">
-                <Button variant="primary" loading={loading} onClick={() => {
-                  setLoading(true);
-                  setTimeout(() => setLoading(false), 2000);
-                }}>
-                  Interactive Loading
-                </Button>
-                <Button variant="secondary" size="sm">Small</Button>
-                <Button variant="secondary" size="lg">Large</Button>
-                <Tooltip content="Settings">
-                  <Button variant="secondary" size="icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                  </Button>
-                </Tooltip>
-              </div>
-            </Card>
-          </section>
-
-          {/* Section: Forms */}
-          <section className="flex flex-col gap-6">
-            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold px-1">Form Elements</h2>
-            <Card className="grid gap-8 max-w-md">
-              <div className="grid gap-2">
-                <label className="text-label-12 text-[var(--ds-gray-700)] px-1">Input with Prefix</label>
-                <Input
-                  placeholder="Search..."
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  prefix={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>}
-                />
-              </div>
-
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-3">
-                  <Switch checked={toggle} onCheckedChange={setToggle} />
-                  <span className="text-copy-14">Switch</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Checkbox id="check" />
-                  <label htmlFor="check" className="text-copy-14 cursor-pointer">Checkbox</label>
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <label className="text-label-12 text-[var(--ds-gray-700)] px-1">Select Menu</label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
+            </div>
+            <Separator />
+            <div className="flex flex-col gap-3">
+              <h4 className="text-label-12-mono text-[var(--ds-gray-700)]">Forms</h4>
+              <div className="grid gap-6 max-w-sm">
+                <Input placeholder="Type something..." />
+                <Select value="option">
+                  <SelectTrigger><SelectValue placeholder="Dropdown" /></SelectTrigger>
                   <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="developer">Developer</SelectItem>
-                      <SelectItem value="designer">Designer</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                    </SelectGroup>
+                    <SelectGroup><SelectItem value="option">Selected Option</SelectItem></SelectGroup>
                   </SelectContent>
                 </Select>
+                <div className="flex items-center gap-3">
+                  <Switch checked={true} />
+                  <span className="text-copy-14">Switch Label</span>
+                </div>
               </div>
-            </Card>
-          </section>
+            </div>
+          </Card>
+        </section>
 
-          {/* Section: Feedback */}
-          <section className="flex flex-col gap-6">
-            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold px-1">Feedback</h2>
-            <Card className="flex flex-wrap gap-4 items-center">
-              <Button onClick={triggerToast} variant="secondary">Trigger Toast</Button>
-              <Button onClick={triggerError} variant="secondary">Trigger Error Toast</Button>
-              <Separator orientation="vertical" className="h-10 mx-2" />
-              <Badge variant="success">Active</Badge>
-              <Badge variant="error">Critical</Badge>
-              <Badge variant="outline">Preview</Badge>
-            </Card>
-          </section>
-
-        </div>
       </div>
-    </TooltipProvider>
+    </div>
   );
 }
