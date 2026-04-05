@@ -33,6 +33,14 @@ export default function Dashboard({
       .slice(0, 3);
   }, [setlists]);
 
+  const todayStr = useMemo(() => {
+    return new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+  }, []);
+
   // Search results
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return { songs: [], setlists: [] };
@@ -57,23 +65,33 @@ export default function Dashboard({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <PageHeader title="Setlists MD">
-        <button onClick={() => setShowSearch(true)} style={{
-          ...btnStyle, background: 'var(--surface)',
-          border: '1px solid var(--border)', color: 'var(--text-muted)',
-          padding: '7px 12px', fontSize: 13, borderRadius: 8, gap: 6,
-        }}>
-          <SearchIcon size={14} /> Search
-        </button>
-      </PageHeader>
+      <div style={{ padding: '32px 24px 12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 className="text-heading-24" style={{ color: 'var(--text-bright)', margin: 0 }}>
+              Welcome, Guest
+            </h1>
+            <p className="text-copy-14" style={{ color: 'var(--text-muted)', marginTop: 4 }}>
+              {todayStr}
+            </p>
+          </div>
+          <button onClick={() => setShowSearch(true)} style={{
+            ...btnStyle, background: 'var(--surface)',
+            border: '1px solid var(--border)', color: 'var(--text-muted)',
+            padding: '7px 12px', fontSize: 13, borderRadius: 8, gap: 6,
+          }}>
+            <SearchIcon size={14} /> Search
+          </button>
+        </div>
+      </div>
 
       <div style={{ padding: '0 24px 80px' }}>
         {/* Upcoming Setlists */}
         {upcomingSetlists.length > 0 && (
           <div style={{ marginBottom: 28 }}>
-            <div style={{
-              fontSize: 16, fontWeight: 700, color: 'var(--text-dim)',
-              marginBottom: 6, padding: '0 2px',
+            <div className="text-label-14" style={{
+              color: 'var(--text-muted)',
+              marginBottom: 12, padding: '0 2px',
             }}>
               Upcoming
             </div>
@@ -94,8 +112,8 @@ export default function Dashboard({
                     cursor: 'pointer', background: 'var(--card)',
                   }}>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{
-                        className: "text-button-14", fontWeight: 500, color: 'var(--text-bright)',
+                      <div className="text-button-14" style={{
+                        fontWeight: 600, color: 'var(--text-bright)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {sl.name || 'Untitled'}
@@ -135,9 +153,9 @@ export default function Dashboard({
         {/* Recent Songs */}
         {recentSongs.length > 0 && (
           <div style={{ marginBottom: 28 }}>
-            <div style={{
-              fontSize: 16, fontWeight: 700, color: 'var(--text-dim)',
-              marginBottom: 6, padding: '0 2px',
+            <div className="text-label-14" style={{
+              color: 'var(--text-muted)',
+              marginBottom: 12, padding: '0 2px',
             }}>
               Recent
             </div>
@@ -149,30 +167,43 @@ export default function Dashboard({
                 <div
                   key={song.id}
                   onClick={() => onSelectSong(song)}
-                  role="button"
-                  tabIndex={0}
                   style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 16px',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 16px', cursor: 'pointer',
+                    background: 'var(--card)',
                     borderBottom: i < recentSongs.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer', background: 'var(--card)',
                   }}
                 >
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 6, flexShrink: 0,
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700, color: 'var(--text-bright)',
+                  }}>
+                    {song.key}
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      className: "text-button-14", fontWeight: 500, color: 'var(--text-bright)',
+                    <div className="text-button-14" style={{
+                      fontWeight: 600, color: 'var(--text-bright)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {song.title}
                     </div>
                     <div style={{
-                      fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
+                      fontSize: 12, color: 'var(--text-muted)', marginTop: 2,
                       display: 'flex', alignItems: 'center', gap: 6,
                     }}>
-                      <span>{song.artist}</span>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {song.artist}
+                      </div>
                       <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      <span style={{ fontFamily: 'var(--fm)', className: "text-label-12-mono", color: 'var(--chord)' }}>
+                      <span style={{
+                        display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+                        background: song.sections?.length ? sectionStyle(song.sections[0].type).b : '#6b7280',
+                      }} />
+                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
+                      <span style={{ color: 'var(--text-bright)', fontWeight: 600 }}>
                         {song.key}
                       </span>
                       {song.tempo && (
@@ -201,7 +232,7 @@ export default function Dashboard({
             borderRadius: 12,
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            color: 'var(--text)',
+            color: 'var(--text-bright)',
             className: "text-button-14",
             justifyContent: 'center',
           }}>
@@ -213,7 +244,7 @@ export default function Dashboard({
             borderRadius: 12,
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            color: 'var(--text)',
+            color: 'var(--text-bright)',
             className: "text-button-14",
             justifyContent: 'center',
           }}>
@@ -336,9 +367,8 @@ export default function Dashboard({
 
             {searchResults.songs.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <div style={{
-                  className: "text-label-12-mono", color: 'var(--text-muted)',
-                      fontFamily: 'var(--fm)', marginBottom: 8,
+                <div className="text-label-12-mono" style={{
+                  color: 'var(--text-muted)', marginBottom: 8,
                 }}>
                   Songs
                 </div>
@@ -370,13 +400,13 @@ export default function Dashboard({
                         {song.key}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{
-                          className: "text-button-14", fontWeight: 600, color: 'var(--text-bright)',
+                        <div className="text-button-14" style={{
+                          fontWeight: 600, color: 'var(--text-bright)',
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {song.title}
                         </div>
-                        <div style={{ className: "text-label-12", color: 'var(--text-muted)', marginTop: 1 }}>
+                        <div className="text-label-12" style={{ color: 'var(--text-muted)', marginTop: 1 }}>
                           {song.artist}
                         </div>
                       </div>
@@ -388,9 +418,8 @@ export default function Dashboard({
 
             {searchResults.setlists.length > 0 && (
               <div>
-                <div style={{
-                  className: "text-label-12-mono", color: 'var(--text-muted)',
-                      fontFamily: 'var(--fm)', marginBottom: 8,
+                <div className="text-label-12-mono" style={{
+                  color: 'var(--text-muted)', marginBottom: 8,
                 }}>
                   Setlists
                 </div>
@@ -414,13 +443,13 @@ export default function Dashboard({
                       }}
                     >
                       <div style={{ minWidth: 0 }}>
-                        <div style={{
-                          className: "text-button-14", fontWeight: 600, color: 'var(--text-bright)',
+                        <div className="text-button-14" style={{
+                          fontWeight: 600, color: 'var(--text-bright)',
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {sl.name || 'Untitled'}
                         </div>
-                        <div style={{ className: "text-label-12", color: 'var(--text-muted)', marginTop: 1 }}>
+                        <div className="text-label-12" style={{ color: 'var(--text-muted)', marginTop: 1 }}>
                           {dateStr}{sl.service ? ` \u00B7 ${sl.service}` : ''} · {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
                         </div>
                       </div>

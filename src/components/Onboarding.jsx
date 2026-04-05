@@ -46,6 +46,7 @@ export default function Onboarding({ onComplete }) {
       {/* Skip button */}
       <button
         onClick={onComplete}
+        className="text-label-13"
         style={{
           position: 'absolute',
           top: 20,
@@ -53,9 +54,7 @@ export default function Onboarding({ onComplete }) {
           background: 'none',
           border: 'none',
           color: 'var(--text-muted)',
-          fontSize: 13,
           cursor: 'pointer',
-          fontFamily: 'var(--fb)',
           padding: '8px 12px',
         }}
       >
@@ -79,10 +78,8 @@ export default function Onboarding({ onComplete }) {
       </div>
 
       {/* Title */}
-      <h2 style={{
+      <h2 className="text-heading-24" style={{
         margin: 0,
-        fontSize: 24,
-        fontWeight: 700,
         color: 'var(--text-bright)',
         textAlign: 'center',
       }}>
@@ -90,14 +87,12 @@ export default function Onboarding({ onComplete }) {
       </h2>
 
       {/* Description */}
-      <p style={{
+      <p className="text-copy-14" style={{
         margin: '12px 0 0',
-        fontSize: 15,
         color: 'var(--text-muted)',
         textAlign: 'center',
         maxWidth: 320,
         lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
       }}>
         {current.description}
       </p>
@@ -131,16 +126,14 @@ export default function Onboarding({ onComplete }) {
         {step > 0 && (
           <button
             onClick={() => setStep(step - 1)}
+            className="text-button-14"
             style={{
               padding: '12px 28px',
               borderRadius: 10,
               border: '1px solid var(--border)',
               background: 'var(--surface)',
               color: 'var(--text-muted)',
-              fontSize: 14,
-              fontWeight: 600,
               cursor: 'pointer',
-              fontFamily: 'var(--fb)',
             }}
           >
             Back
@@ -148,16 +141,14 @@ export default function Onboarding({ onComplete }) {
         )}
         <button
           onClick={() => isLast ? onComplete() : setStep(step + 1)}
+          className="text-button-14"
           style={{
             padding: '12px 36px',
             borderRadius: 10,
             border: 'none',
-            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
+            background: 'var(--accent)',
             color: '#fff',
-            fontSize: 14,
-            fontWeight: 700,
             cursor: 'pointer',
-            fontFamily: 'var(--fb)',
             boxShadow: '0 4px 16px var(--accent-border)',
           }}
         >

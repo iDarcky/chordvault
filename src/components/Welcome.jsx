@@ -36,7 +36,7 @@ export default function Welcome({ onGetStarted, onImport }) {
         pointerEvents: 'none',
       }} />
 
-      {/* Logo */}
+      {/* Logo placeholder for now */}
       <div style={{
         width: 80,
         height: 80,
@@ -55,37 +55,30 @@ export default function Welcome({ onGetStarted, onImport }) {
       </div>
 
       {/* Title */}
-      <h1 style={{
+      <h1 className="text-heading-32" style={{
         margin: 0,
-        fontSize: 32,
-        fontWeight: 700,
         color: 'var(--text-bright)',
-        letterSpacing: '-0.02em',
         textAlign: 'center',
       }}>
         Setlists MD
       </h1>
 
       {/* Tagline */}
-      <p style={{
+      <p className="text-copy-16" style={{
         margin: '8px 0 0',
-        fontSize: 16,
         color: 'var(--text-muted)',
         textAlign: 'center',
-        fontFamily: 'var(--fb)',
       }}>
         Chord charts for worship teams
       </p>
 
       {/* Description */}
-      <p style={{
+      <p className="text-copy-14" style={{
         margin: '16px 0 0',
-        fontSize: 14,
         color: 'var(--text-dim)',
         textAlign: 'center',
         maxWidth: 320,
         lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
       }}>
         Build chord charts, create setlists, transpose on the fly.
         Works offline on any device.
@@ -94,17 +87,15 @@ export default function Welcome({ onGetStarted, onImport }) {
       {/* CTA */}
       <button
         onClick={onGetStarted}
+        className="text-button-16"
         style={{
           marginTop: 40,
           padding: '14px 48px',
           borderRadius: 12,
           border: 'none',
-          background: 'linear-gradient(135deg, #53796F, #6b9e91)',
+          background: 'var(--accent)',
           color: '#fff',
-          fontSize: 16,
-          fontWeight: 700,
           cursor: 'pointer',
-          fontFamily: 'var(--fb)',
           boxShadow: '0 4px 16px var(--accent-border)',
         }}
       >
@@ -114,14 +105,13 @@ export default function Welcome({ onGetStarted, onImport }) {
       {/* Import link */}
       <button
         onClick={() => fileRef.current?.click()}
+        className="text-label-13"
         style={{
           marginTop: 16,
           background: 'none',
           border: 'none',
           color: 'var(--text-muted)',
-          fontSize: 13,
           cursor: 'pointer',
-          fontFamily: 'var(--fb)',
           textDecoration: 'underline',
           textUnderlineOffset: 3,
         }}
