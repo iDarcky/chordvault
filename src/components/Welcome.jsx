@@ -1,141 +1,48 @@
-import { useRef } from 'react';
+import Button from './ui/Button';
+import Card from './ui/Card';
+import { cn } from '../lib/utils';
 
 export default function Welcome({ onGetStarted, onImport }) {
-  const fileRef = useRef(null);
-
-  const handleFiles = async (e) => {
-    for (const file of Array.from(e.target.files)) {
-      const text = await file.text();
-      onImport(text);
-    }
-    e.target.value = '';
-  };
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 24px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      {/* Background glow */}
-      <div style={{
-        position: 'absolute',
-        top: '30%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 600,
-        height: 600,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, var(--accent-soft) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--geist-background)] overflow-hidden">
+      <div className="absolute inset-0 geist-grid opacity-30 pointer-events-none" />
 
-      {/* Logo */}
-      <div style={{
-        width: 80,
-        height: 80,
-        borderRadius: 20,
-        background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontSize: 32,
-        fontWeight: 700,
-        marginBottom: 24,
-        boxShadow: '0 8px 32px var(--accent-border)',
-      }}>
-        SM
-      </div>
+      <Card className="max-w-md w-full p-10 space-y-10 border-[var(--geist-border)] shadow-[0_30px_100px_rgba(0,0,0,0.1)] relative z-10 animate-in fade-in zoom-in-95 duration-500">
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 bg-brand rounded-geist-card mx-auto flex items-center justify-center text-white text-3xl font-black shadow-2xl mb-4 transform rotate-6 hover:rotate-0 transition-transform cursor-default">
+            S
+          </div>
+          <h1 className="text-3xl font-black tracking-tight text-[var(--geist-foreground)]">Setlists MD</h1>
+          <p className="text-[var(--accents-5)] text-sm font-medium">Professional chord charts, built for teams.</p>
+        </div>
 
-      {/* Title */}
-      <h1 style={{
-        margin: 0,
-        fontSize: 32,
-        fontWeight: 700,
-        color: 'var(--text-bright)',
-        letterSpacing: '-0.02em',
-        textAlign: 'center',
-      }}>
-        Setlists MD
-      </h1>
+        <div className="space-y-4">
+          <Button variant="brand" className="w-full h-12 text-base font-bold shadow-xl shadow-brand/20" onClick={onGetStarted}>
+            Get Started
+          </Button>
+          <div className="flex items-center gap-4 text-[var(--accents-3)]">
+            <div className="h-[1px] flex-1 bg-[var(--geist-border)]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">or</span>
+            <div className="h-[1px] flex-1 bg-[var(--geist-border)]" />
+          </div>
+          <Button variant="secondary" className="w-full h-12 text-sm font-semibold" onClick={() => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.md,.txt';
+            input.onchange = async (e) => {
+              const text = await e.target.files[0].text();
+              onImport(text);
+            };
+            input.click();
+          }}>
+            Import existing .md
+          </Button>
+        </div>
 
-      {/* Tagline */}
-      <p style={{
-        margin: '8px 0 0',
-        fontSize: 16,
-        color: 'var(--text-muted)',
-        textAlign: 'center',
-        fontFamily: 'var(--fb)',
-      }}>
-        Chord charts for worship teams
-      </p>
-
-      {/* Description */}
-      <p style={{
-        margin: '16px 0 0',
-        fontSize: 14,
-        color: 'var(--text-dim)',
-        textAlign: 'center',
-        maxWidth: 320,
-        lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
-      }}>
-        Build chord charts, create setlists, transpose on the fly.
-        Works offline on any device.
-      </p>
-
-      {/* CTA */}
-      <button
-        onClick={onGetStarted}
-        style={{
-          marginTop: 40,
-          padding: '14px 48px',
-          borderRadius: 12,
-          border: 'none',
-          background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          boxShadow: '0 4px 16px var(--accent-border)',
-        }}
-      >
-        Get Started
-      </button>
-
-      {/* Import link */}
-      <button
-        onClick={() => fileRef.current?.click()}
-        style={{
-          marginTop: 16,
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          fontSize: 13,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          textDecoration: 'underline',
-          textUnderlineOffset: 3,
-        }}
-      >
-        I already have .md files &mdash; Import
-      </button>
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".md,.txt"
-        multiple
-        onChange={handleFiles}
-        style={{ display: 'none' }}
-      />
+        <div className="pt-6 border-t border-[var(--geist-border)]">
+          <div className="text-[10px] text-center font-bold uppercase tracking-[0.2em] text-[var(--accents-4)]">Powered by Vercel Design</div>
+        </div>
+      </Card>
     </div>
   );
 }

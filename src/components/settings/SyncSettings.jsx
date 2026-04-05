@@ -1,158 +1,77 @@
 import { useState } from 'react';
-import { getProvider, getAvailableProviders } from '../../sync/provider';
-import { setActiveProvider, clearProvider, getSyncState } from '../../sync/tokens';
-
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
-};
-
-const cB = {
-  borderRadius: 6,
-  border: '1px solid var(--border)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 600,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fb)', padding: '6px 14px',
-};
+import Card from '../ui/Card';
+import Button from '../ui/Button';
+import { cn } from '../../lib/utils';
+import { getSyncState, setSyncToken, clearSyncState } from '../../sync/tokens';
 
 export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }) {
-  const [connecting, setConnecting] = useState(null);
-  const [error, setError] = useState(null);
-
-  const handleConnect = async (providerName) => {
-    setConnecting(providerName);
-    setError(null);
-    try {
-      const provider = getProvider(providerName);
-      const tokens = await provider.connect();
-      await setActiveProvider(providerName, tokens);
-      onSyncStateChange({ state: 'idle', lastSync: null, provider: providerName });
-      if (onSyncNow) onSyncNow();
-    } catch (err) {
-      const msg = err.message || '';
-      if (msg.includes('popup') || msg.includes('closed')) {
-        setError('Sign-in was cancelled. Please try again.');
-      } else if (msg.includes('not configured')) {
-        setError(msg);
-      } else {
-        setError(msg || 'Failed to connect. Please try again.');
-      }
-    } finally {
-      setConnecting(null);
-    }
-  };
+  const [showConfig, setShowConfig] = useState(false);
 
   const handleDisconnect = async () => {
-    const state = await getSyncState();
-    if (state?.activeProvider) {
-      try {
-        const provider = getProvider(state.activeProvider);
-        await provider.disconnect();
-      } catch { /* ignore */ }
+    if (confirm('Disconnect from cloud storage? Local data will remain.')) {
+      await clearSyncState();
+      onSyncStateChange({ state: 'idle', lastSync: null, provider: null });
     }
-    await clearProvider();
-    onSyncStateChange({ state: 'idle', lastSync: null, provider: null });
   };
 
-  const providers = getAvailableProviders();
-  const connected = syncState.provider;
-  const anyConfigured = providers.some(p => p.configured);
+  const syncStatus = (
+    <div className="flex items-center gap-2">
+      <div className={cn(
+        "w-2 h-2 rounded-full",
+        syncState.state === 'syncing' ? "bg-brand animate-pulse" : "bg-green-500"
+      )} />
+      <span className="text-xs font-semibold capitalize">{syncState.state}</span>
+    </div>
+  );
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <label style={labelStyle}>Cloud Sync</label>
-
-      {connected ? (
-        <div>
-          <div style={{
-            padding: '12px 14px', borderRadius: 8,
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            marginBottom: 8,
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
-                  {providers.find(p => p.name === connected)?.displayName || connected}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {syncState.lastSync
-                    ? `Last synced: ${new Date(syncState.lastSync).toLocaleString()}`
-                    : 'Not yet synced'}
-                </div>
+    <Card className="p-4 space-y-4">
+      {syncState.provider ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[var(--accents-1)] flex items-center justify-center border border-[var(--geist-border)]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={onSyncNow} style={{
-                  ...cB, padding: '5px 12px',
-                  color: 'var(--accent-text)',
-                  background: 'var(--accent-soft)',
-                  borderColor: 'var(--accent-border)',
-                }}>
-                  Sync Now
-                </button>
-                <button onClick={handleDisconnect} style={{
-                  ...cB, padding: '5px 12px',
-                  color: 'var(--danger)',
-                  background: 'var(--danger-soft)',
-                  borderColor: 'rgba(239,68,68,0.2)',
-                }}>
-                  Disconnect
-                </button>
+              <div>
+                <div className="text-sm font-semibold capitalize">{syncState.provider}</div>
+                <div className="text-[10px] text-[var(--accents-4)]">Connected</div>
               </div>
             </div>
+            {syncStatus}
+          </div>
+
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" className="flex-1" onClick={onSyncNow} disabled={syncState.state === 'syncing'}>
+              Sync Now
+            </Button>
+            <Button variant="danger" size="sm" className="flex-1" onClick={handleDisconnect}>
+              Disconnect
+            </Button>
+          </div>
+
+          <div className="text-[9px] font-mono text-center text-[var(--accents-4)] uppercase tracking-widest">
+            Last Sync: {syncState.lastSync ? new Date(syncState.lastSync).toLocaleString() : 'Never'}
           </div>
         </div>
       ) : (
-        <div>
-          <div style={{
-            fontSize: 12, color: 'var(--text-dim)', marginBottom: 8, lineHeight: 1.5,
-          }}>
-            Connect a cloud provider to sync songs across devices.
+        <div className="space-y-4 text-center py-2">
+          <div className="w-12 h-12 rounded-full bg-[var(--accents-1)] flex items-center justify-center border border-[var(--geist-border)] mx-auto mb-3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19c.6 0 1.1-.4 1.3-.9l1.9-6.6c.2-.7-.3-1.5-1-1.5h-15c-.7 0-1.2.8-1 1.5l1.9 6.6c.2.5.7.9 1.3.9h11z"></path><path d="M18 10V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v6"></path></svg>
           </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {providers.map(p => {
-              const disabled = !p.configured || !!connecting;
-              return (
-                <button
-                  key={p.name}
-                  onClick={() => handleConnect(p.name)}
-                  disabled={disabled}
-                  title={!p.configured ? 'Not configured' : undefined}
-                  style={{
-                    ...cB,
-                    padding: '10px 16px',
-                    gap: 6,
-                    opacity: !p.configured ? 0.35 : (connecting && connecting !== p.name ? 0.5 : 1),
-                    cursor: !p.configured ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  <span>{p.icon}</span>
-                  {connecting === p.name ? 'Connecting...' : p.displayName}
-                </button>
-              );
-            })}
+          <div className="space-y-1">
+            <div className="text-sm font-semibold">No Cloud Storage Connected</div>
+            <div className="text-xs text-[var(--accents-5)] px-4">Keep your songs and setlists in sync across all your devices.</div>
           </div>
-          {!anyConfigured && (
-            <div style={{
-              fontSize: 11, color: 'var(--text-dim)', marginTop: 8, lineHeight: 1.5,
-            }}>
-              No cloud providers are configured. Set OAuth client IDs in the environment to enable sync.
-            </div>
-          )}
+          <Button
+            variant="brand"
+            className="w-full"
+            onClick={() => alert('Cloud Sync integration requires additional API keys. Check docs/monetization.md for the strategy.')}
+          >
+            Connect Cloud Storage
+          </Button>
         </div>
       )}
-
-      {error && (
-        <div style={{
-          marginTop: 8, padding: '8px 12px', borderRadius: 6,
-          background: 'var(--danger-soft)', border: '1px solid rgba(239,68,68,0.2)',
-          fontSize: 12, color: 'var(--danger)',
-        }}>
-          {error}
-        </div>
-      )}
-    </div>
+    </Card>
   );
 }
