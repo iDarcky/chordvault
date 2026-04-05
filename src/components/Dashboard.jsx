@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { sectionStyle } from '../music';
-import PageHeader from './PageHeader';
 import SearchIcon from './SearchIcon';
+import SongCard from './SongCard';
+import SetlistCard from './SetlistCard';
 
 const btnStyle = {
   border: 'none', borderRadius: 7, cursor: 'pointer',
@@ -38,10 +39,9 @@ export default function Dashboard({
       weekday: 'long',
       month: 'long',
       day: 'numeric',
-    });
+    }).toUpperCase();
   }, []);
 
-  // Search results
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return { songs: [], setlists: [] };
     const q = searchQuery.toLowerCase();
@@ -64,246 +64,154 @@ export default function Dashboard({
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ padding: '32px 24px 12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 100 }}>
+      {/* Header Section */}
+      <div style={{ padding: '48px 24px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <h1 className="text-heading-24" style={{ color: 'var(--text-bright)', margin: 0 }}>
-              Welcome, Guest
-            </h1>
-            <p className="text-copy-14" style={{ color: 'var(--text-muted)', marginTop: 4 }}>
+            <p className="text-label-12-mono" style={{ color: 'var(--text-dim)', letterSpacing: '0.1em', marginBottom: 6 }}>
               {todayStr}
             </p>
+            <h1 className="text-heading-32" style={{ color: 'var(--text-bright)', margin: 0 }}>
+              Welcome, Guest
+            </h1>
           </div>
           <button onClick={() => setShowSearch(true)} style={{
-            ...btnStyle, background: 'var(--surface)',
+            ...btnStyle, background: 'var(--ds-gray-100)',
             border: '1px solid var(--border)', color: 'var(--text-muted)',
-            padding: '7px 12px', fontSize: 13, borderRadius: 8, gap: 6,
+            padding: '8px 16px', fontSize: 13, borderRadius: 8, gap: 8,
           }}>
-            <SearchIcon size={14} /> Search
+            <SearchIcon size={14} /> Search...
           </button>
         </div>
       </div>
 
-      <div style={{ padding: '0 24px 80px' }}>
+      <div style={{ padding: '0 24px' }}>
         {/* Upcoming Setlists */}
         {upcomingSetlists.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 40 }}>
             <div className="text-label-14" style={{
               color: 'var(--text-muted)',
-              marginBottom: 12, padding: '0 2px',
+              marginBottom: 16, padding: '0 2px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
             }}>
-              Upcoming
+              Upcoming Setlists
             </div>
             <div style={{
-              border: '1px solid var(--border)',
-              borderRadius: 10, overflow: 'hidden',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: 16,
             }}>
-              {upcomingSetlists.map((sl, i) => {
-                const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-                  weekday: 'short', month: 'short', day: 'numeric',
-                });
-                return (
-                  <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 16px',
-                    borderBottom: i < upcomingSetlists.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer', background: 'var(--card)',
-                  }}>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div className="text-button-14" style={{
-                        fontWeight: 600, color: 'var(--text-bright)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {sl.name || 'Untitled'}
-                      </div>
-                      <div style={{
-                        fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-                        display: 'flex', alignItems: 'center', gap: 6,
-                      }}>
-                        <span>{dateStr}</span>
-                        {sl.service && (
-                          <>
-                            <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                            <span>{sl.service}</span>
-                          </>
-                        )}
-                        <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                        <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>
-                          {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    </div>
-                    <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-                      ...btnStyle, background: 'var(--accent-soft)',
-                      border: '1px solid var(--accent-border)',
-                      color: 'var(--accent-text)', padding: '6px 14px',
-                      flexShrink: 0, marginLeft: 12,
-                    }}>
-                      Live
-                    </button>
-                  </div>
-                );
-              })}
+              {upcomingSetlists.map(sl => (
+                <SetlistCard
+                  key={sl.id}
+                  setlist={sl}
+                  onPlay={() => onPlaySetlist(sl)}
+                  onView={() => onViewSetlist(sl)}
+                />
+              ))}
             </div>
           </div>
         )}
 
         {/* Recent Songs */}
         {recentSongs.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 40 }}>
             <div className="text-label-14" style={{
               color: 'var(--text-muted)',
-              marginBottom: 12, padding: '0 2px',
+              marginBottom: 16, padding: '0 2px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
             }}>
-              Recent
+              Recent Songs
             </div>
             <div style={{
-              border: '1px solid var(--border)',
-              borderRadius: 10, overflow: 'hidden',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 12,
             }}>
-              {recentSongs.map((song, i) => (
-                <div
-                  key={song.id}
-                  onClick={() => onSelectSong(song)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '12px 16px', cursor: 'pointer',
-                    background: 'var(--card)',
-                    borderBottom: i < recentSongs.length - 1 ? '1px solid var(--border)' : 'none',
-                  }}
-                >
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 6, flexShrink: 0,
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700, color: 'var(--text-bright)',
-                  }}>
-                    {song.key}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="text-button-14" style={{
-                      fontWeight: 600, color: 'var(--text-bright)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {song.title}
-                    </div>
-                    <div style={{
-                      fontSize: 12, color: 'var(--text-muted)', marginTop: 2,
-                      display: 'flex', alignItems: 'center', gap: 6,
-                    }}>
-                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {song.artist}
-                      </div>
-                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      <span style={{
-                        display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
-                        background: song.sections?.length ? sectionStyle(song.sections[0].type).b : '#6b7280',
-                      }} />
-                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      <span style={{ color: 'var(--text-bright)', fontWeight: 600 }}>
-                        {song.key}
-                      </span>
-                      {song.tempo && (
-                        <>
-                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.tempo} bpm</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
+              {recentSongs.map(song => (
+                <SongCard key={song.id} song={song} onClick={() => onSelectSong(song)} />
               ))}
             </div>
           </div>
         )}
 
-        {/* Navigation */}
+        {/* Navigation Shortcuts */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: 8,
+          gap: 12,
         }}>
           <button onClick={onGoLibrary} style={{
             ...btnStyle,
-            padding: '16px',
-            borderRadius: 12,
-            background: 'var(--surface)',
+            padding: '20px',
+            borderRadius: 16,
+            background: 'var(--ds-background-100)',
             border: '1px solid var(--border)',
             color: 'var(--text-bright)',
             className: "text-button-14",
             justifyContent: 'center',
-          }}>
+            fontSize: 14,
+          }} className="hover:bg-[var(--ds-gray-100)] active:scale-[0.98]">
             Full Library
           </button>
           <button onClick={onGoSetlists} style={{
             ...btnStyle,
-            padding: '16px',
-            borderRadius: 12,
-            background: 'var(--surface)',
+            padding: '20px',
+            borderRadius: 16,
+            background: 'var(--ds-background-100)',
             border: '1px solid var(--border)',
             color: 'var(--text-bright)',
             className: "text-button-14",
             justifyContent: 'center',
-          }}>
+            fontSize: 14,
+          }} className="hover:bg-[var(--ds-gray-100)] active:scale-[0.98]">
             All Setlists
           </button>
         </div>
       </div>
 
-      {/* FAB */}
-      {fabOpen && (
-        <div
-          onClick={() => setFabOpen(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 89,
-          }}
-        />
-      )}
+      {/* FAB (Geist design) */}
       <div style={{
-        position: 'fixed', bottom: 80, right: 20,
-        display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-        gap: 8, zIndex: 90,
+        position: 'fixed', bottom: 84, right: 24,
+        zIndex: 90,
       }}>
         {fabOpen && (
           <>
-            <button onClick={() => { setFabOpen(false); onNewSong(); }} style={{
-              ...btnStyle,
-              padding: '10px 18px',
-              borderRadius: 24,
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              fontSize: 13,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            <div onClick={() => setFabOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 89 }} />
+            <div style={{
+              position: 'absolute', bottom: 'calc(100% + 12px)', right: 0,
+              display: 'flex', flexDirection: 'column', gap: 8, minWidth: 160,
+              padding: '8px', borderRadius: 12, background: 'var(--ds-background-100)',
+              border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+              zIndex: 90,
             }}>
-              New Song
-            </button>
-            <button onClick={() => { setFabOpen(false); onNewSetlist(); }} style={{
-              ...btnStyle,
-              padding: '10px 18px',
-              borderRadius: 24,
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              fontSize: 13,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
-              New Setlist
-            </button>
+              <button onClick={() => { setFabOpen(false); onNewSong(); }} style={{
+                ...btnStyle, padding: '10px 16px', borderRadius: 8, background: 'none',
+                color: 'var(--text-bright)', fontSize: 13, justifyContent: 'flex-start',
+              }} className="hover:bg-[var(--ds-gray-100)]">
+                + New Song
+              </button>
+              <button onClick={() => { setFabOpen(false); onNewSetlist(); }} style={{
+                ...btnStyle, padding: '10px 16px', borderRadius: 8, background: 'none',
+                color: 'var(--text-bright)', fontSize: 13, justifyContent: 'flex-start',
+              }} className="hover:bg-[var(--ds-gray-100)]">
+                + New Setlist
+              </button>
+            </div>
           </>
         )}
         <button
           onClick={() => setFabOpen(prev => !prev)}
           style={{
             width: 56, height: 56, borderRadius: 28,
-            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
+            background: 'var(--color-brand)',
             border: 'none', color: '#fff',
             fontSize: 28, fontWeight: 300, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
+            boxShadow: '0 4px 20px var(--accent-border)',
             transition: 'transform 0.2s',
             transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
           }}
@@ -320,12 +228,12 @@ export default function Dashboard({
           display: 'flex', flexDirection: 'column',
         }}>
           <div style={{
-            padding: '16px 20px', display: 'flex', gap: 10, alignItems: 'center',
-            borderBottom: '1px solid var(--border)',
+            padding: '16px 20px', display: 'flex', gap: 12, alignItems: 'center',
+            borderBottom: '1px solid var(--border)', background: 'var(--ds-background-200)',
           }}>
             <button onClick={closeSearch} style={{
               background: 'none', border: 'none', color: 'var(--text-muted)',
-              cursor: 'pointer', padding: 4, fontSize: 18,
+              cursor: 'pointer', padding: 8, fontSize: 18,
               display: 'flex', alignItems: 'center',
             }}>
               &#8592;
@@ -336,10 +244,10 @@ export default function Dashboard({
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search songs, setlists..."
               style={{
-                flex: 1, padding: '10px 14px',
-                background: 'var(--surface)',
+                flex: 1, padding: '12px 16px',
+                background: 'var(--ds-background-100)',
                 border: '1px solid var(--border)',
-                borderRadius: 10, color: 'var(--text)',
+                borderRadius: 10, color: 'var(--text-bright)',
                 fontSize: 15, outline: 'none',
                 fontFamily: 'var(--fb)', boxSizing: 'border-box',
               }}
@@ -347,115 +255,28 @@ export default function Dashboard({
           </div>
 
           <div style={{ flex: 1, overflow: 'auto', padding: '12px 20px' }}>
-            {!searchQuery.trim() && (
-              <div style={{
-                textAlign: 'center', padding: '48px 20px',
-                color: 'var(--text-dim)', className: "text-button-14",
-              }}>
-                Search across all songs and setlists
-              </div>
-            )}
-
-            {searchQuery.trim() && searchResults.songs.length === 0 && searchResults.setlists.length === 0 && (
-              <div style={{
-                textAlign: 'center', padding: '48px 20px',
-                color: 'var(--text-dim)', className: "text-button-14",
-              }}>
-                No results found
-              </div>
-            )}
-
             {searchResults.songs.length > 0 && (
-              <div style={{ marginBottom: 20 }}>
-                <div className="text-label-12-mono" style={{
-                  color: 'var(--text-muted)', marginBottom: 8,
-                }}>
-                  Songs
+              <div style={{ marginBottom: 24 }}>
+                <div className="text-label-12-mono" style={{ color: 'var(--text-muted)', marginBottom: 12 }}>
+                  SONGS
                 </div>
-                {searchResults.songs.map(song => {
-                  const s = song.sections?.length
-                    ? sectionStyle(song.sections[0].type)
-                    : { b: '#6b7280', d: '#9ca3af' };
-                  return (
-                    <div
-                      key={song.id}
-                      onClick={() => { closeSearch(); onSelectSong(song); }}
-                      role="button"
-                      tabIndex={0}
-                      style={{
-                        display: 'flex', alignItems: 'center',
-                        gap: 12, padding: '10px 12px', marginBottom: 4,
-                        borderRadius: 10, background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{
-                        width: 34, height: 34, borderRadius: 7, flexShrink: 0,
-                        background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                        border: `1px solid ${s.b}44`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700, color: s.d,
-                      }}>
-                        {song.key}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="text-button-14" style={{
-                          fontWeight: 600, color: 'var(--text-bright)',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        }}>
-                          {song.title}
-                        </div>
-                        <div className="text-label-12" style={{ color: 'var(--text-muted)', marginTop: 1 }}>
-                          {song.artist}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {searchResults.songs.map(song => (
+                    <SongCard key={song.id} song={song} onClick={() => { closeSearch(); onSelectSong(song); }} />
+                  ))}
+                </div>
               </div>
             )}
-
             {searchResults.setlists.length > 0 && (
-              <div>
-                <div className="text-label-12-mono" style={{
-                  color: 'var(--text-muted)', marginBottom: 8,
-                }}>
-                  Setlists
+              <div style={{ marginBottom: 24 }}>
+                <div className="text-label-12-mono" style={{ color: 'var(--text-muted)', marginBottom: 12 }}>
+                  SETLISTS
                 </div>
-                {searchResults.setlists.map(sl => {
-                  const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-                    weekday: 'short', month: 'short', day: 'numeric',
-                  });
-                  return (
-                    <div
-                      key={sl.id}
-                      onClick={() => { closeSearch(); onViewSetlist(sl); }}
-                      role="button"
-                      tabIndex={0}
-                      style={{
-                        display: 'flex', alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 12px', marginBottom: 4,
-                        borderRadius: 10, background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <div className="text-button-14" style={{
-                          fontWeight: 600, color: 'var(--text-bright)',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        }}>
-                          {sl.name || 'Untitled'}
-                        </div>
-                        <div className="text-label-12" style={{ color: 'var(--text-muted)', marginTop: 1 }}>
-                          {dateStr}{sl.service ? ` \u00B7 ${sl.service}` : ''} · {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {searchResults.setlists.map(sl => (
+                    <SetlistCard key={sl.id} setlist={sl} onPlay={() => { closeSearch(); onPlaySetlist(sl); }} onView={() => { closeSearch(); onViewSetlist(sl); }} />
+                  ))}
+                </div>
               </div>
             )}
           </div>
