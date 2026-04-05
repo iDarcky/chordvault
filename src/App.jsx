@@ -1,3 +1,4 @@
+import DesignShowcase from './components/DesignShowcase';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
@@ -16,96 +17,57 @@ import Settings from './components/Settings';
 import SetlistOverview from './components/SetlistOverview';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
-import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
 export default function App() {
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
-  const [view, setView] = useState('loading');
-  const [currentSong, setCurrentSong] = useState(null);
-  const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
   const [loaded, setLoaded] = useState(false);
-  const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
-  const syncEngineRef = useRef(null);
+  const [view, setView] = useState('welcome');
+  const [currentSong, setCurrentSong] = useState(null);
+  const [currentSetlist, setCurrentSetlist] = useState(null);
+  const [syncState, setSyncState] = useState(getSyncState());
   const historyRef = useRef([]);
+  const syncEngineRef = useRef(null);
 
-  // Initialize sync engine
-  if (syncEngineRef.current == null) {
-    syncEngineRef.current = createSyncEngine((status) => {
-      setSyncState(prev => ({ ...prev, ...status }));
-    });
-  }
+  // Load initial data
+  useEffect(() => {
+    const init = async () => {
+      const s = await loadSongs();
+      const sl = await loadSetlists();
+      const st = await loadSettings();
+      setSongs(s);
+      setSetlists(sl);
+      setSettings(st);
+      if (st?.onboardingComplete) setView('home');
+      setLoaded(true);
+    };
+    init();
+  }, []);
+
+  // Set up Sync Engine
+  useEffect(() => {
+    if (loaded) {
+      syncEngineRef.current = createSyncEngine({
+        onSyncComplete: (s, sl) => {
+          if (s) setSongs(s);
+          if (sl) setSetlists(sl);
+          setSyncState(getSyncState());
+        },
+        onStateChange: (state) => setSyncState(prev => ({ ...prev, state })),
+      });
+    }
+    return () => syncEngineRef.current?.destroy();
+  }, [loaded]);
 
   const triggerSync = useCallback(async () => {
-    const state = await getSyncState();
-    if (!state?.activeProvider) return;
-    const result = await syncEngineRef.current.fullSync(songs, setlists);
-    if (result.changed) {
-      setSongs(result.songs);
-      setSetlists(result.setlists);
+    if (syncEngineRef.current) {
+      await syncEngineRef.current.pull();
+      await syncEngineRef.current.push(songs, setlists);
     }
   }, [songs, setlists]);
 
-  // Load data on mount
-  useEffect(() => {
-    (async () => {
-      const savedSongs = await loadSongs();
-      if (savedSongs.length > 0) {
-        setSongs(savedSongs);
-      } else {
-        // First time — load demo songs
-        const demos = DEMO_SONGS_MD.map(md => ({
-          ...parseSongMd(md),
-          id: generateId(),
-        }));
-        setSongs(demos);
-        await saveSongs(demos);
-      }
-
-      const savedSetlists = await loadSetlists();
-      if (savedSetlists) setSetlists(savedSetlists);
-
-      const savedSettings = await loadSettings();
-      setSettings(savedSettings);
-
-      // Determine initial view based on onboarding state
-      if (savedSongs.length === 0 && !savedSettings.onboardingComplete) {
-        setView('welcome');
-      } else if (!savedSettings.onboardingComplete) {
-        // Existing user who predates onboarding — skip it, go to home
-        savedSettings.onboardingComplete = true;
-        setSettings(savedSettings);
-        await saveSettings(savedSettings);
-        setView('home');
-      } else {
-        setView('home');
-      }
-
-      setLoaded(true);
-
-      // Initialize sync state from storage and trigger initial pull
-      const storedSync = await getSyncState();
-      if (storedSync?.activeProvider) {
-        setSyncState({ state: 'idle', lastSync: storedSync.lastSyncTime, provider: storedSync.activeProvider });
-        // Pull from cloud on startup — but we need to pass the just-loaded data directly
-        // since React state (songs/setlists) hasn't settled yet
-        const engine = syncEngineRef.current;
-        if (engine) {
-          const currentSongs = savedSongs.length > 0 ? savedSongs : [];
-          const currentSetlists = savedSetlists || [];
-          engine.fullSync(currentSongs, currentSetlists).then(result => {
-            if (result.changed) {
-              setSongs(result.songs);
-              setSetlists(result.setlists);
-            }
-          }).catch(err => console.error('Startup sync failed:', err));
-        }
-      }
-    })();
-  }, []);
-
-  // Auto-save when data changes + debounced sync push
+  // Persist data and sync on change
   useEffect(() => {
     if (loaded) {
       saveSongs(songs);
@@ -196,14 +158,12 @@ export default function App() {
       if (idx >= 0) { const n = [...prev]; n[idx] = song; return n; }
       return [...prev, song];
     });
-    // After save, go to chart but replace the editor entry in history
     navigate('chart', { song, replace: true });
   };
 
   const handleDeleteSong = (id) => {
     setSongs(prev => prev.filter(s => s.id !== id));
-    // After delete, go back two steps (skip the chart for the deleted song)
-    historyRef.current.pop(); // discard the chart entry
+    historyRef.current.pop();
     goBack();
   };
 
@@ -392,6 +352,9 @@ export default function App() {
           duplicateSections={settings?.duplicateSections || 'full'}
         />
       )}
+      {view === "design" && (
+        <DesignShowcase onBack={() => setView("settings")} />
+      )}
       {view === 'settings' && settings && (
         <Settings
           settings={settings}
@@ -414,6 +377,7 @@ export default function App() {
           syncState={syncState}
           onSyncStateChange={setSyncState}
           onSyncNow={triggerSync}
+          onDesign={() => setView("design")}
         />
       )}
       {['home', 'library', 'setlists', 'settings'].includes(view) && (
