@@ -1,5 +1,13 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { transposeKey, sectionStyle } from '../music';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import {
+  Button,
+  ButtonGroup,
+  ScrollShadow,
+  Card,
+  CardContent,
+  Chip
+} from "@heroui/react";
+import { transposeKey } from '../music';
 import ChartView from './ChartView';
 
 export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, defaultFontSize, showInlineNotes, inlineNoteStyle, displayRole, duplicateSections }) {
@@ -20,7 +28,6 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   const goNext = useCallback(() => setIdx(p => Math.min(resolved.length - 1, p + 1)), [resolved.length]);
   const goPrev = useCallback(() => setIdx(p => Math.max(0, p - 1)), []);
 
-  // Auto-scroll song strip to keep active item visible
   useEffect(() => {
     const container = songBarRef.current;
     if (!container) return;
@@ -30,7 +37,6 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
     }
   }, [idx]);
 
-  // Keyboard / Bluetooth pedal navigation
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); goNext(); }
@@ -42,10 +48,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   if (!resolved.length) {
     return (
-      <div style={{
-        padding: 40, textAlign: 'center',
-        color: 'var(--text-muted)',
-      }}>
+      <div className="p-10 text-center text-default-400">
         No items in setlist
       </div>
     );
@@ -53,202 +56,121 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   const cur = resolved[idx];
 
-  const cB = {
-    width: 28, height: 28, borderRadius: 6,
-    border: '1px solid rgba(255,255,255,0.1)',
-    background: 'var(--surface)', color: 'var(--text)',
-    fontSize: 15, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: 'var(--fm)',
-  };
-
   const nav = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{
-        fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--fm)',
-      }}>
+    <div className="flex items-center gap-3">
+      <span className="font-mono text-xs font-bold text-default-400">
         {idx + 1}/{resolved.length}
       </span>
-      <button
-        onClick={goPrev}
-        disabled={idx === 0}
-        style={{ ...cB, opacity: idx === 0 ? 0.3 : 1 }}
-      >
-        &#9664;
-      </button>
-      <button
-        onClick={goNext}
-        disabled={idx === resolved.length - 1}
-        style={{ ...cB, opacity: idx === resolved.length - 1 ? 0.3 : 1 }}
-      >
-        &#9654;
-      </button>
-    </div>
-  );
-
-  const progress = (
-    <div style={{ display: 'flex', gap: 3, padding: '8px 18px 0', overflow: 'hidden' }}>
-      {resolved.map((r, i) => {
-        const color = r.isBreak
-          ? '#6b7280'
-          : sectionStyle(r.song.sections?.[0]?.type || 'Verse').b;
-        return (
-          <button
-            key={i}
-            onClick={() => setIdx(i)}
-            style={{
-              flex: 1, height: i === idx ? 6 : 4, borderRadius: 3,
-              background: i === idx ? color : i < idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
-              border: 'none', cursor: 'pointer',
-              transition: 'all 0.2s ease', minWidth: 0, minHeight: 'auto',
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-
-  const songBar = (
-    <div ref={songBarRef} className="hide-scrollbar" style={{
-      display: 'flex', gap: 6, padding: '6px 18px',
-      overflow: 'auto', scrollbarWidth: 'none',
-    }}>
-      {resolved.map((r, i) => {
-        const active = i === idx;
-        if (r.isBreak) {
-          return (
-            <button key={i} onClick={() => setIdx(i)} style={{
-              flexShrink: 0, display: 'flex', alignItems: 'center',
-              gap: 6, padding: '5px 10px', borderRadius: 8,
-              border: `1px solid ${active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)'}`,
-              background: active ? 'rgba(255,255,255,0.05)' : 'transparent',
-              cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
-            }}>
-              <span style={{
-                fontSize: 11, fontWeight: 700,
-                color: active ? 'rgba(255,255,255,0.5)' : 'var(--text-dim)',
-                fontFamily: 'var(--fm)',
-              }}>
-                {i + 1}
-              </span>
-              <span style={{
-                fontSize: 11.5, fontWeight: active ? 600 : 400,
-                color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-                whiteSpace: 'nowrap', fontFamily: 'var(--fb)',
-                fontStyle: 'italic',
-              }}>
-                {r.label || 'Break'}
-              </span>
-            </button>
-          );
-        }
-        const s = sectionStyle(r.song.sections?.[0]?.type || 'Verse');
-        return (
-          <button key={i} onClick={() => setIdx(i)} style={{
-            flexShrink: 0, display: 'flex', alignItems: 'center',
-            gap: 6, padding: '5px 10px', borderRadius: 8,
-            border: `1px solid ${active ? s.b + '66' : 'rgba(255,255,255,0.04)'}`,
-            background: active ? `${s.b}15` : 'transparent',
-            cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
-          }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700,
-              color: active ? s.d : 'var(--text-dim)',
-              fontFamily: 'var(--fm)',
-            }}>
-              {i + 1}
-            </span>
-            <span style={{
-              fontSize: 11.5, fontWeight: active ? 600 : 400,
-              color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-              whiteSpace: 'nowrap', fontFamily: 'var(--fb)',
-            }}>
-              {r.song.title}
-            </span>
-            <span style={{
-              fontSize: 10,
-              color: active ? 'var(--chord)' : 'rgba(255,255,255,0.2)',
-              fontFamily: 'var(--fm)',
-            }}>
-              {transposeKey(r.song.key, r.transpose)}
-            </span>
-          </button>
-        );
-      })}
+      <ButtonGroup size="sm" variant="flat">
+        <Button isIconOnly isDisabled={idx === 0} onPress={goPrev}>
+          <span className="text-lg">◀</span>
+        </Button>
+        <Button isIconOnly isDisabled={idx === resolved.length - 1} onPress={goNext}>
+          <span className="text-lg">▶</span>
+        </Button>
+      </ButtonGroup>
     </div>
   );
 
   return (
-    <div style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      {/* Back button for the whole player */}
-      <div style={{
-        padding: '10px 18px 0',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', color: 'var(--text-muted)',
-          cursor: 'pointer', padding: 4, fontSize: 14,
-        }}>
-          &#8592; Back
-        </button>
-        <span style={{
-          fontSize: 13, fontWeight: 600, color: 'var(--text-muted)',
-        }}>
-          {setlist.name}
-        </span>
-      </div>
-      {progress}
-      {songBar}
-      {cur.note && (
-        <div style={{ padding: '4px 18px 0' }}>
-          <div style={{
-            padding: '6px 12px', borderRadius: 6,
-            background: 'rgba(245,158,11,0.08)',
-            border: '1px solid rgba(245,158,11,0.15)',
-            fontSize: 12, color: '#fbbf24', fontFamily: 'var(--fb)',
-          }}>
-            {cur.note}
-          </div>
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-divider">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <Button isIconOnly variant="light" size="sm" onPress={onBack} className="text-default-500">
+            <span className="text-xl">←</span>
+          </Button>
+          <h1 className="text-sm font-bold truncate text-default-600">
+            {setlist.name}
+          </h1>
         </div>
-      )}
-      {cur.isBreak ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          padding: '80px 20px', minHeight: '50vh',
-        }}>
-          <div style={{
-            fontSize: 32, fontWeight: 700,
-            color: 'var(--text-bright)', marginBottom: 8,
-          }}>
-            {cur.label || 'Break'}
+
+        <div className="px-4 flex gap-1 h-1.5 mb-1">
+          {resolved.map((r, i) => (
+            <div
+              key={i}
+              onClick={() => setIdx(i)}
+              className={`flex-1 rounded-full cursor-pointer transition-all ${
+                i === idx ? 'bg-primary h-1.5' : i < idx ? 'bg-primary/30 h-1' : 'bg-default-200 h-1'
+              }`}
+            />
+          ))}
+        </div>
+
+        <ScrollShadow ref={songBarRef} orientation="horizontal" className="flex gap-2 p-3 hide-scrollbar">
+          {resolved.map((r, i) => {
+            const active = i === idx;
+            const isBreak = r.isBreak;
+
+            return (
+              <Button
+                key={i}
+                onPress={() => setIdx(i)}
+                size="sm"
+                variant={active ? "flat" : "light"}
+                color={active ? "primary" : "default"}
+                className={`flex-shrink-0 min-w-unit-20 h-9 ${active ? 'font-bold' : 'font-medium text-default-500'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] opacity-40">{i + 1}</span>
+                  <span className={`truncate max-w-[120px] ${isBreak ? 'italic' : ''}`}>
+                    {isBreak ? (r.label || 'Break') : r.song.title}
+                  </span>
+                  {!isBreak && (
+                    <span className="font-mono text-[10px] text-warning font-bold">
+                      {transposeKey(r.song.key, r.transpose)}
+                    </span>
+                  )}
+                </div>
+              </Button>
+            );
+          })}
+        </ScrollShadow>
+      </header>
+
+      <main className="pb-24">
+        {cur.note && (
+          <div className="px-6 pt-4">
+            <Chip
+              color="warning"
+              variant="flat"
+              className="w-full h-auto py-2 px-4 text-sm font-medium italic rounded-xl border border-warning/20"
+            >
+              {cur.note}
+            </Chip>
           </div>
-          {cur.duration > 0 && (
-            <div style={{
-              fontSize: 16, color: 'var(--text-muted)',
-              fontFamily: 'var(--fm)', marginBottom: 8,
-            }}>
-              {cur.duration} min
+        )}
+
+        {cur.isBreak ? (
+          <div className="flex flex-col items-center justify-center py-32 px-6 min-h-[60vh]">
+            <h2 className="text-4xl font-black tracking-tight text-foreground mb-4 italic opacity-80">
+              {cur.label || 'Break'}
+            </h2>
+            {cur.duration > 0 && (
+              <Chip size="lg" variant="flat" color="default" className="font-mono font-bold mb-8">
+                {cur.duration} MIN
+              </Chip>
+            )}
+            <div className="mt-8 scale-150 transform">
+              {nav}
             </div>
-          )}
-          <div style={{ marginTop: 16 }}>{nav}</div>
-        </div>
-      ) : (
-        <ChartView
-          song={{ ...cur.song, key: transposeKey(cur.song.key, cur.transpose) }}
-          onBack={onBack}
-          navOverride={nav}
-          compact
-          forceTranspose={cur.transpose}
-          capo={cur.capo || 0}
-          defaultColumns={defaultColumns}
-          defaultFontSize={defaultFontSize}
-          showInlineNotes={showInlineNotes}
-          inlineNoteStyle={inlineNoteStyle}
-          displayRole={displayRole}
-          duplicateSections={duplicateSections}
-        />
-      )}
+          </div>
+        ) : (
+          <ChartView
+            song={{ ...cur.song, key: transposeKey(cur.song.key, cur.transpose) }}
+            onBack={onBack}
+            navOverride={nav}
+            compact
+            forceTranspose={cur.transpose}
+            capo={cur.capo || 0}
+            defaultColumns={defaultColumns}
+            defaultFontSize={defaultFontSize}
+            showInlineNotes={showInlineNotes}
+            inlineNoteStyle={inlineNoteStyle}
+            displayRole={displayRole}
+            duplicateSections={duplicateSections}
+          />
+        )}
+      </main>
     </div>
   );
 }

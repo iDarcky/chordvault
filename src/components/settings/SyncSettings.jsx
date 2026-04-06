@@ -1,20 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Button, Card, CardContent, Chip } from "@heroui/react";
 import { getProvider, getAvailableProviders } from '../../sync/provider';
 import { setActiveProvider, clearProvider, getSyncState } from '../../sync/tokens';
-
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
-};
-
-const cB = {
-  borderRadius: 6,
-  border: '1px solid var(--border)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 600,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fb)', padding: '6px 14px',
-};
 
 export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }) {
   const [connecting, setConnecting] = useState(null);
@@ -60,98 +47,70 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
   const anyConfigured = providers.some(p => p.configured);
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <label style={labelStyle}>Cloud Sync</label>
+    <div className="mb-6">
+      <h3 className="text-xs font-bold text-default-400 uppercase tracking-widest mb-3 px-1">Cloud Sync</h3>
 
       {connected ? (
-        <div>
-          <div style={{
-            padding: '12px 14px', borderRadius: 8,
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            marginBottom: 8,
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
-                  {providers.find(p => p.name === connected)?.displayName || connected}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {syncState.lastSync
-                    ? `Last synced: ${new Date(syncState.lastSync).toLocaleString()}`
-                    : 'Not yet synced'}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={onSyncNow} style={{
-                  ...cB, padding: '5px 12px',
-                  color: 'var(--accent-text)',
-                  background: 'var(--accent-soft)',
-                  borderColor: 'var(--accent-border)',
-                }}>
-                  Sync Now
-                </button>
-                <button onClick={handleDisconnect} style={{
-                  ...cB, padding: '5px 12px',
-                  color: 'var(--danger)',
-                  background: 'var(--danger-soft)',
-                  borderColor: 'rgba(239,68,68,0.2)',
-                }}>
-                  Disconnect
-                </button>
-              </div>
+        <Card className="bg-content1 border-none shadow-sm">
+          <CardContent className="p-4 flex flex-row items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-semibold">
+                {providers.find(p => p.name === connected)?.displayName || connected}
+              </span>
+              <span className="text-xs text-default-400">
+                {syncState.lastSync
+                  ? `Synced ${new Date(syncState.lastSync).toLocaleString()}`
+                  : 'Not yet synced'}
+              </span>
             </div>
-          </div>
-        </div>
+            <div className="flex gap-2">
+              <Button size="sm" color="primary" variant="flat" onPress={onSyncNow} className="font-bold">
+                Sync Now
+              </Button>
+              <Button size="sm" color="danger" variant="flat" onPress={handleDisconnect} className="font-bold">
+                Disconnect
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
-        <div>
-          <div style={{
-            fontSize: 12, color: 'var(--text-dim)', marginBottom: 8, lineHeight: 1.5,
-          }}>
+        <div className="space-y-4">
+          <p className="text-sm text-default-400 px-1">
             Connect a cloud provider to sync songs across devices.
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          </p>
+          <div className="flex gap-2 flex-wrap text-foreground">
             {providers.map(p => {
               const disabled = !p.configured || !!connecting;
               return (
-                <button
+                <Button
                   key={p.name}
-                  onClick={() => handleConnect(p.name)}
-                  disabled={disabled}
-                  title={!p.configured ? 'Not configured' : undefined}
-                  style={{
-                    ...cB,
-                    padding: '10px 16px',
-                    gap: 6,
-                    opacity: !p.configured ? 0.35 : (connecting && connecting !== p.name ? 0.5 : 1),
-                    cursor: !p.configured ? 'not-allowed' : 'pointer',
-                  }}
+                  onPress={() => handleConnect(p.name)}
+                  isDisabled={disabled}
+                  variant="flat"
+                  startContent={<span>{p.icon}</span>}
+                  className="bg-content1 font-semibold"
                 >
-                  <span>{p.icon}</span>
                   {connecting === p.name ? 'Connecting...' : p.displayName}
-                </button>
+                </Button>
               );
             })}
           </div>
           {!anyConfigured && (
-            <div style={{
-              fontSize: 11, color: 'var(--text-dim)', marginTop: 8, lineHeight: 1.5,
-            }}>
-              No cloud providers are configured. Set OAuth client IDs in the environment to enable sync.
-            </div>
+            <p className="text-xs text-default-300 italic px-1">
+              No cloud providers configured. Set OAuth client IDs in the environment to enable sync.
+            </p>
           )}
         </div>
       )}
 
       {error && (
-        <div style={{
-          marginTop: 8, padding: '8px 12px', borderRadius: 6,
-          background: 'var(--danger-soft)', border: '1px solid rgba(239,68,68,0.2)',
-          fontSize: 12, color: 'var(--danger)',
-        }}>
+        <Chip
+          color="danger"
+          variant="flat"
+          className="mt-3 w-full h-auto py-2 px-3 text-xs leading-relaxed rounded-lg"
+        >
           {error}
-        </div>
+        </Chip>
       )}
     </div>
   );

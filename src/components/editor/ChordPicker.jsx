@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Button, ButtonGroup, Card, CardContent } from "@heroui/react";
 
 const ROOTS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 const SUFFIXES = [
@@ -18,7 +19,6 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
   const [accidental, setAccidental] = useState('');
   const ref = useRef(null);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) onClose();
@@ -27,7 +27,6 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
     return () => document.removeEventListener('mousedown', handler);
   }, [onClose]);
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
@@ -41,106 +40,100 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
     setAccidental('');
   };
 
-  // Position popup
   const style = {
     position: 'fixed',
     top: anchorRect ? anchorRect.bottom + 4 : '50%',
     left: anchorRect ? Math.min(anchorRect.left, window.innerWidth - 310) : '50%',
     ...(anchorRect ? {} : { transform: 'translate(-50%, -50%)' }),
     zIndex: 100,
-    background: 'var(--bg)',
-    border: '1px solid var(--border)',
-    borderRadius: 10,
-    padding: 10,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-    width: 290,
+    width: 300,
   };
 
   return (
-    <div ref={ref} style={style}>
-      {/* Root row */}
-      <div style={{ display: 'flex', gap: 3, marginBottom: 6 }}>
-        {ROOTS.map(r => (
-          <button key={r} onClick={() => setRoot(r)} style={{
-            ...pillBtn,
-            flex: 1,
-            background: root === r ? 'var(--accent)' : 'var(--surface)',
-            color: root === r ? '#fff' : 'var(--text)',
-            border: root === r ? '1px solid var(--accent)' : '1px solid var(--border)',
-          }}>
-            {r}
-          </button>
-        ))}
-        {/* Accidental toggle */}
-        <button onClick={() => setAccidental(a => a === '#' ? '' : '#')} style={{
-          ...pillBtn, width: 32,
-          background: accidental === '#' ? 'var(--accent-soft)' : 'var(--surface)',
-          color: accidental === '#' ? 'var(--accent-text)' : 'var(--text-muted)',
-          border: '1px solid var(--border)',
-        }}>
-          #
-        </button>
-        <button onClick={() => setAccidental(a => a === 'b' ? '' : 'b')} style={{
-          ...pillBtn, width: 32,
-          background: accidental === 'b' ? 'var(--accent-soft)' : 'var(--surface)',
-          color: accidental === 'b' ? 'var(--accent-text)' : 'var(--text-muted)',
-          border: '1px solid var(--border)',
-        }}>
-          b
-        </button>
-      </div>
-
-      {/* Selected root preview */}
-      {root && (
-        <div style={{
-          textAlign: 'center', fontSize: 11, color: 'var(--text-muted)',
-          marginBottom: 4, fontFamily: 'var(--fm)',
-        }}>
-          {root}{accidental} + suffix:
-        </div>
-      )}
-
-      {/* Suffix row */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-        {SUFFIXES.map(s => (
-          <button key={s.label} onClick={() => handleSuffix(s.value)} style={{
-            ...pillBtn,
-            padding: '5px 8px', fontSize: 11,
-            background: 'var(--surface)',
-            color: root ? 'var(--text)' : 'var(--text-dim)',
-            border: '1px solid var(--border)',
-            opacity: root ? 1 : 0.4,
-            cursor: root ? 'pointer' : 'not-allowed',
-          }}>
-            {s.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Slash chord option */}
-      {root && (
-        <div style={{ marginTop: 6, display: 'flex', gap: 3 }}>
-          <span style={{ fontSize: 10, color: 'var(--text-dim)', alignSelf: 'center' }}>Slash:</span>
+    <Card ref={ref} style={style} shadow="lg" className="bg-content1 border border-divider">
+      <CardContent className="p-3 space-y-3">
+        {/* Root row */}
+        <div className="flex gap-1.5 flex-wrap">
           {ROOTS.map(r => (
-            <button key={r} onClick={() => {
-              onSelect(root + accidental + '/' + r);
-              setRoot(null); setAccidental('');
-            }} style={{
-              ...pillBtn, padding: '3px 6px', fontSize: 10,
-              background: 'var(--surface)', color: 'var(--text-muted)',
-              border: '1px solid var(--border)',
-            }}>
-              /{r}
-            </button>
+            <Button
+              key={r}
+              onPress={() => setRoot(r)}
+              size="sm"
+              variant={root === r ? "solid" : "flat"}
+              color={root === r ? "primary" : "default"}
+              className="min-w-0 flex-1 font-bold font-mono"
+            >
+              {r}
+            </Button>
           ))}
         </div>
-      )}
-    </div>
+
+        <div className="flex gap-2">
+          <ButtonGroup size="sm" variant="flat" className="flex-1">
+            <Button
+              onPress={() => setAccidental(a => a === '#' ? '' : '#')}
+              color={accidental === '#' ? "warning" : "default"}
+              className="font-bold font-mono"
+            >#</Button>
+            <Button
+              onPress={() => setAccidental(a => a === 'b' ? '' : 'b')}
+              color={accidental === 'b' ? "warning" : "default"}
+              className="font-bold font-mono"
+            >b</Button>
+          </ButtonGroup>
+          {root && (
+            <div className="flex-1 flex items-center justify-center bg-content2 rounded-lg font-mono font-black text-warning">
+              {root}{accidental}
+            </div>
+          )}
+        </div>
+
+        <Separator className="my-1" />
+
+        {/* Suffixes */}
+        <div className="flex flex-wrap gap-1.5">
+          {SUFFIXES.map(s => (
+            <Button
+              key={s.label}
+              onPress={() => handleSuffix(s.value)}
+              size="sm"
+              variant="flat"
+              isDisabled={!root}
+              className="min-w-0 px-2 h-7 text-[11px] font-bold"
+            >
+              {s.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Slash chords */}
+        {root && (
+          <>
+            <Separator className="my-1" />
+            <div className="flex flex-wrap gap-1">
+              <span className="text-[10px] font-bold text-default-400 uppercase self-center mr-1">Slash:</span>
+              {ROOTS.map(r => (
+                <Button
+                  key={r}
+                  onPress={() => {
+                    onSelect(root + accidental + '/' + r);
+                    setRoot(null); setAccidental('');
+                  }}
+                  size="sm"
+                  variant="light"
+                  className="min-w-0 px-1 h-6 text-xs font-mono font-bold text-default-500"
+                >
+                  /{r}
+                </Button>
+              ))}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
-const pillBtn = {
-  borderRadius: 6, padding: '6px 0', fontSize: 13,
-  fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fm)',
-  textAlign: 'center',
-};
+function Separator({ className }) {
+  return <div className={`h-px bg-divider ${className}`} />;
+}
