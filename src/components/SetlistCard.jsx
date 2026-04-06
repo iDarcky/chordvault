@@ -10,7 +10,7 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
   const songCount = setlist.items?.length || 0;
 
   return (
-    <Card className="flex flex-col gap-6">
+    <Card onClick={onView} className="flex flex-col gap-6 cursor-pointer">
       <div className="flex justify-between items-start">
         <div className="text-label-12-mono text-[var(--ds-gray-700)] tracking-widest uppercase">
           {dateStr}
@@ -22,8 +22,8 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
         )}
       </div>
 
-      <div onClick={onView} className="cursor-pointer group/title">
-        <h3 className="text-heading-24 text-[var(--ds-gray-1000)] m-0 leading-tight group-hover/title:text-[var(--ds-gray-900)] transition-colors">
+      <div>
+        <h3 className="text-heading-20 text-[var(--ds-gray-1000)] m-0 leading-tight">
           {setlist.name || 'Untitled Setlist'}
         </h3>
         <p className="text-copy-14 text-[var(--ds-gray-700)] mt-2">
@@ -33,18 +33,18 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
 
       <div className="flex gap-4">
         <Button
-          variant="brand"
-          className="flex-1"
-          onClick={(e) => { e.stopPropagation(); onPlay(); }}
-        >
-          Play Live
-        </Button>
-        <Button
           variant="secondary"
           className="flex-1"
           onClick={(e) => { e.stopPropagation(); onView(); }}
         >
           View Details
+        </Button>
+        <Button
+          variant="brand"
+          className="flex-1"
+          onClick={(e) => { e.stopPropagation(); onPlay(); }}
+        >
+          Play Live
         </Button>
       </div>
     </Card>

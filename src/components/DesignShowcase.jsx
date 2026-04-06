@@ -137,6 +137,106 @@ export default function DesignShowcase({ onBack }) {
           </Card>
         </section>
 
+        <Separator />
+
+        {/* FAB Cluster & Popover */}
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold">FAB Cluster & Popover</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-900)]">Floating action buttons used on the Dashboard for quick creation and search.</p>
+          </div>
+          <Card className="flex flex-col gap-8">
+            <div className="flex flex-col gap-3">
+              <h4 className="text-label-12-mono text-[var(--ds-gray-700)]">FAB Buttons</h4>
+              <div className="flex flex-wrap gap-6 items-end">
+                {/* Search FAB */}
+                <div className="flex flex-col items-center gap-2">
+                  <button className="w-11 h-11 rounded-full bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg flex items-center justify-center cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-1000)]">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
+                  </button>
+                  <span className="text-label-11 text-[var(--ds-gray-700)]">Search</span>
+                </div>
+                {/* Create FAB */}
+                <div className="flex flex-col items-center gap-2">
+                  <button className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 border-none">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </button>
+                  <span className="text-label-11 text-[var(--ds-gray-700)]">Create</span>
+                </div>
+              </div>
+            </div>
+            <Separator />
+            <div className="flex flex-col gap-3">
+              <h4 className="text-label-12-mono text-[var(--ds-gray-700)]">Popover Menu</h4>
+              <div className="flex flex-col gap-2 max-w-xs">
+                <button className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150">
+                  <span className="w-8 h-8 rounded-full bg-[var(--ds-gray-200)] flex items-center justify-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-1000)]">
+                      <path d="M9 18V5l12-2v13" />
+                      <circle cx="6" cy="18" r="3" />
+                      <circle cx="18" cy="16" r="3" />
+                    </svg>
+                  </span>
+                  <span className="text-label-14 text-[var(--ds-gray-1000)]">New Song</span>
+                </button>
+                <button className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150">
+                  <span className="w-8 h-8 rounded-full bg-[var(--ds-gray-200)] flex items-center justify-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-1000)]">
+                      <line x1="8" y1="6" x2="21" y2="6" />
+                      <line x1="8" y1="12" x2="21" y2="12" />
+                      <line x1="8" y1="18" x2="21" y2="18" />
+                      <line x1="3" y1="6" x2="3.01" y2="6" />
+                      <line x1="3" y1="12" x2="3.01" y2="12" />
+                      <line x1="3" y1="18" x2="3.01" y2="18" />
+                    </svg>
+                  </span>
+                  <span className="text-label-14 text-[var(--ds-gray-1000)]">New Setlist</span>
+                </button>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        <Separator />
+
+        {/* Song Card Row Variant */}
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-label-14 text-[var(--ds-gray-700)] uppercase tracking-widest font-bold">Song Card Row</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-900)]">Compact row variant of the SongCard, used in the Dashboard's Recently Edited section.</p>
+          </div>
+          <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)]">
+            <div className="flex items-center justify-between px-4 py-3 cursor-pointer rounded-lg transition-colors duration-150 hover:bg-[var(--ds-gray-100)]">
+              <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                <span className="text-label-14 text-[var(--ds-gray-1000)] truncate">Amazing Grace</span>
+                <span className="text-copy-13 text-[var(--ds-gray-700)] truncate">John Newton</span>
+              </div>
+              <div className="flex items-center gap-1.5 ml-4 shrink-0">
+                <span className="text-label-12 text-[var(--chord)] font-semibold">G</span>
+                <span className="text-[var(--ds-gray-400)] text-[10px]">•</span>
+                <span className="text-label-12 text-[var(--ds-gray-700)]">120 BPM</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 cursor-pointer rounded-lg transition-colors duration-150 hover:bg-[var(--ds-gray-100)]">
+              <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                <span className="text-label-14 text-[var(--ds-gray-1000)] truncate">How Great Is Our God</span>
+                <span className="text-copy-13 text-[var(--ds-gray-700)] truncate">Chris Tomlin</span>
+              </div>
+              <div className="flex items-center gap-1.5 ml-4 shrink-0">
+                <span className="text-label-12 text-[var(--chord)] font-semibold">A</span>
+                <span className="text-[var(--ds-gray-400)] text-[10px]">•</span>
+                <span className="text-label-12 text-[var(--ds-gray-700)]">78 BPM</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
     </div>
   );

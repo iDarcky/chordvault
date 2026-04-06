@@ -31,6 +31,7 @@ export async function saveSetlists(setlists) {
 
 export const DEFAULT_SETTINGS = {
   theme: 'dark',
+  userName: '',
   defaultColumns: 'auto',
   defaultFontSize: 'M',
   pedalNext: 'ArrowRight',

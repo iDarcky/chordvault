@@ -25,7 +25,7 @@
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
 
-  /* Geist Backgrounds */
+  /* Geist Backgrounds (Dark Mode) */
   --ds-background-100: #0a0a0a;
   --ds-background-200: #000000;
 
@@ -41,38 +41,139 @@
   --ds-gray-900: hsla(0, 0%, 63%, 1);
   --ds-gray-1000: hsla(0, 0%, 93%, 1);
 
-  /* Geist Error Scale (Dark Mode) */
-  --ds-error-100: hsla(0, 60%, 12%, 1);
-  --ds-error-200: hsla(0, 70%, 16%, 1);
-  --ds-error-400: hsla(0, 65%, 30%, 1);
-  --ds-error-600: hsla(0, 72%, 51%, 1);
-  --ds-error-700: hsla(0, 72%, 45%, 1);
-  --ds-error-900: hsla(0, 90%, 70%, 1);
-  --ds-error-1000: hsla(0, 90%, 82%, 1);
-  --ds-error-soft: hsla(0, 72%, 51%, 0.1);
-  --ds-error-border: hsla(0, 72%, 51%, 0.2);
+  /* Geist Gray Alpha (Dark Mode) */
+  --ds-gray-alpha-100: #ffffff0f;
+  --ds-gray-alpha-200: #ffffff17;
+  --ds-gray-alpha-300: #ffffff21;
+  --ds-gray-alpha-400: #ffffff24;
+  --ds-gray-alpha-500: #ffffff3d;
+  --ds-gray-alpha-600: #ffffff82;
+  --ds-gray-alpha-700: #ffffff8a;
+  --ds-gray-alpha-800: #ffffff78;
+  --ds-gray-alpha-900: #ffffff9c;
+  --ds-gray-alpha-1000: #ffffffeb;
 
-  /* Geist Warning Scale (Dark Mode — used for chord/transpose highlights) */
-  --ds-warning-100: hsla(38, 60%, 10%, 1);
-  --ds-warning-200: hsla(38, 65%, 14%, 1);
-  --ds-warning-400: hsla(38, 60%, 28%, 1);
-  --ds-warning-600: hsla(38, 92%, 50%, 1);
-  --ds-warning-900: hsla(38, 92%, 70%, 1);
-  --ds-warning-1000: hsla(38, 92%, 82%, 1);
-  --ds-warning-soft: hsla(38, 92%, 50%, 0.1);
-  --ds-warning-border: hsla(38, 92%, 50%, 0.2);
+  /* Geist Blue Scale (Dark Mode) */
+  --ds-blue-100: hsla(216, 50%, 12%, 1);
+  --ds-blue-200: hsla(214, 59%, 15%, 1);
+  --ds-blue-300: hsla(213, 71%, 20%, 1);
+  --ds-blue-400: hsla(212, 78%, 23%, 1);
+  --ds-blue-500: hsla(211, 86%, 27%, 1);
+  --ds-blue-600: hsla(206, 100%, 50%, 1);
+  --ds-blue-700: hsla(212, 100%, 48%, 1);
+  --ds-blue-800: hsla(212, 100%, 41%, 1);
+  --ds-blue-900: hsla(210, 100%, 66%, 1);
+  --ds-blue-1000: hsla(206, 100%, 96%, 1);
 
-  /* Geist Success Scale (Dark Mode — used for sync connected states) */
-  --ds-success-100: hsla(152, 50%, 10%, 1);
-  --ds-success-200: hsla(152, 55%, 14%, 1);
-  --ds-success-400: hsla(152, 50%, 28%, 1);
-  --ds-success-600: hsla(152, 69%, 31%, 1);
-  --ds-success-900: hsla(152, 69%, 55%, 1);
-  --ds-success-1000: hsla(152, 69%, 72%, 1);
-  --ds-success-soft: hsla(152, 69%, 31%, 0.1);
-  --ds-success-border: hsla(152, 69%, 31%, 0.2);
+  /* Geist Red Scale (Dark Mode) */
+  --ds-red-100: hsla(357, 37%, 12%, 1);
+  --ds-red-200: hsla(357, 46%, 16%, 1);
+  --ds-red-300: hsla(356, 54%, 22%, 1);
+  --ds-red-400: hsla(357, 55%, 26%, 1);
+  --ds-red-500: hsla(357, 60%, 32%, 1);
+  --ds-red-600: hsla(358, 75%, 59%, 1);
+  --ds-red-700: hsla(358, 75%, 59%, 1);
+  --ds-red-800: hsla(358, 69%, 52%, 1);
+  --ds-red-900: hsla(358, 100%, 69%, 1);
+  --ds-red-1000: hsla(353, 90%, 96%, 1);
 
-  /* Functional tokens (still consumed by base styles & SVG) */
+  /* Geist Amber Scale (Dark Mode) */
+  --ds-amber-100: hsla(35, 100%, 8%, 1);
+  --ds-amber-200: hsla(32, 100%, 10%, 1);
+  --ds-amber-300: hsla(33, 100%, 15%, 1);
+  --ds-amber-400: hsla(35, 100%, 17%, 1);
+  --ds-amber-500: hsla(35, 91%, 22%, 1);
+  --ds-amber-600: hsla(39, 85%, 49%, 1);
+  --ds-amber-700: hsla(39, 100%, 57%, 1);
+  --ds-amber-800: hsla(35, 100%, 52%, 1);
+  --ds-amber-900: hsla(39, 90%, 50%, 1);
+  --ds-amber-1000: hsla(40, 94%, 93%, 1);
+
+  /* Geist Green Scale (Dark Mode) */
+  --ds-green-100: hsla(136, 50%, 9%, 1);
+  --ds-green-200: hsla(137, 50%, 12%, 1);
+  --ds-green-300: hsla(136, 50%, 14%, 1);
+  --ds-green-400: hsla(135, 70%, 16%, 1);
+  --ds-green-500: hsla(135, 70%, 23%, 1);
+  --ds-green-600: hsla(135, 70%, 34%, 1);
+  --ds-green-700: hsla(131, 41%, 46%, 1);
+  --ds-green-800: hsla(132, 43%, 39%, 1);
+  --ds-green-900: hsla(131, 43%, 57%, 1);
+  --ds-green-1000: hsla(136, 73%, 94%, 1);
+
+  /* Geist Teal Scale (Dark Mode) */
+  --ds-teal-100: hsla(169, 78%, 7%, 1);
+  --ds-teal-200: hsla(170, 74%, 9%, 1);
+  --ds-teal-300: hsla(171, 75%, 13%, 1);
+  --ds-teal-400: hsla(171, 85%, 13%, 1);
+  --ds-teal-500: hsla(172, 85%, 20%, 1);
+  --ds-teal-600: hsla(172, 85%, 32%, 1);
+  --ds-teal-700: hsla(173, 80%, 36%, 1);
+  --ds-teal-800: hsla(173, 83%, 30%, 1);
+  --ds-teal-900: hsla(174, 90%, 41%, 1);
+  --ds-teal-1000: hsla(166, 71%, 93%, 1);
+
+  /* Geist Purple Scale (Dark Mode) */
+  --ds-purple-100: hsla(283, 30%, 12%, 1);
+  --ds-purple-200: hsla(281, 38%, 16%, 1);
+  --ds-purple-300: hsla(279, 44%, 23%, 1);
+  --ds-purple-400: hsla(277, 46%, 28%, 1);
+  --ds-purple-500: hsla(274, 49%, 35%, 1);
+  --ds-purple-600: hsla(272, 51%, 54%, 1);
+  --ds-purple-700: hsla(272, 51%, 54%, 1);
+  --ds-purple-800: hsla(272, 47%, 45%, 1);
+  --ds-purple-900: hsla(275, 80%, 71%, 1);
+  --ds-purple-1000: hsla(281, 73%, 96%, 1);
+
+  /* Geist Pink Scale (Dark Mode) */
+  --ds-pink-100: hsla(335, 32%, 12%, 1);
+  --ds-pink-200: hsla(335, 43%, 16%, 1);
+  --ds-pink-300: hsla(335, 47%, 21%, 1);
+  --ds-pink-400: hsla(335, 51%, 22%, 1);
+  --ds-pink-500: hsla(335, 57%, 27%, 1);
+  --ds-pink-600: hsla(336, 75%, 40%, 1);
+  --ds-pink-700: hsla(336, 80%, 58%, 1);
+  --ds-pink-800: hsla(336, 74%, 51%, 1);
+  --ds-pink-900: hsla(341, 90%, 67%, 1);
+  --ds-pink-1000: hsla(333, 90%, 96%, 1);
+
+  /* Semantic Aliases (map to Geist scales) */
+  --ds-error-100: hsla(357, 37%, 12%, 1);
+  --ds-error-200: hsla(357, 46%, 16%, 1);
+  --ds-error-400: hsla(357, 55%, 26%, 1);
+  --ds-error-600: hsla(358, 75%, 59%, 1);
+  --ds-error-700: hsla(358, 75%, 59%, 1);
+  --ds-error-900: hsla(358, 100%, 69%, 1);
+  --ds-error-1000: hsla(353, 90%, 96%, 1);
+  --ds-error-soft: hsla(358, 75%, 59%, 0.1);
+  --ds-error-border: hsla(358, 75%, 59%, 0.2);
+
+  --ds-warning-100: hsla(35, 100%, 8%, 1);
+  --ds-warning-200: hsla(32, 100%, 10%, 1);
+  --ds-warning-400: hsla(35, 100%, 17%, 1);
+  --ds-warning-600: hsla(39, 85%, 49%, 1);
+  --ds-warning-900: hsla(39, 90%, 50%, 1);
+  --ds-warning-1000: hsla(40, 94%, 93%, 1);
+  --ds-warning-soft: hsla(39, 85%, 49%, 0.1);
+  --ds-warning-border: hsla(39, 85%, 49%, 0.2);
+
+  --ds-success-100: hsla(136, 50%, 9%, 1);
+  --ds-success-200: hsla(137, 50%, 12%, 1);
+  --ds-success-400: hsla(135, 70%, 16%, 1);
+  --ds-success-600: hsla(135, 70%, 34%, 1);
+  --ds-success-900: hsla(131, 43%, 57%, 1);
+  --ds-success-1000: hsla(136, 73%, 94%, 1);
+  --ds-success-soft: hsla(135, 70%, 34%, 0.1);
+  --ds-success-border: hsla(135, 70%, 34%, 0.2);
+
+  /* Shadows (Dark Mode) */
+  --shadow-smallest: 0px 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-extra-small: 0px 4px 8px rgba(0, 0, 0, 0.35);
+  --shadow-small: 0 5px 10px rgba(0, 0, 0, 0.35);
+  --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow-large: 0 30px 60px rgba(0, 0, 0, 0.35);
+
+  /* Functional tokens */
   --chord: #e2a832;
   --header-bg: rgba(0, 0, 0, 0.65);
   --fm: var(--font-mono);
@@ -95,7 +196,19 @@
     --ds-gray-900: hsla(0, 0%, 30%, 1);
     --ds-gray-1000: hsla(0, 0%, 9%, 1);
 
-    /* Geist Error Scale (Light Mode) */
+    /* Gray Alpha (Light Mode) */
+    --ds-gray-alpha-100: #0000000a;
+    --ds-gray-alpha-200: #00000012;
+    --ds-gray-alpha-300: #0000001a;
+    --ds-gray-alpha-400: #00000014;
+    --ds-gray-alpha-500: #00000036;
+    --ds-gray-alpha-600: #00000057;
+    --ds-gray-alpha-700: #00000070;
+    --ds-gray-alpha-800: #00000082;
+    --ds-gray-alpha-900: #000000b3;
+    --ds-gray-alpha-1000: #000000e8;
+
+    /* Semantic Aliases (Light Mode) */
     --ds-error-100: hsla(0, 100%, 97%, 1);
     --ds-error-200: hsla(0, 90%, 93%, 1);
     --ds-error-400: hsla(0, 75%, 75%, 1);
@@ -106,7 +219,6 @@
     --ds-error-soft: hsla(0, 72%, 51%, 0.08);
     --ds-error-border: hsla(0, 72%, 51%, 0.15);
 
-    /* Geist Warning Scale (Light Mode) */
     --ds-warning-100: hsla(38, 100%, 97%, 1);
     --ds-warning-200: hsla(38, 90%, 92%, 1);
     --ds-warning-400: hsla(38, 75%, 60%, 1);
@@ -116,7 +228,6 @@
     --ds-warning-soft: hsla(38, 92%, 50%, 0.08);
     --ds-warning-border: hsla(38, 92%, 50%, 0.15);
 
-    /* Geist Success Scale (Light Mode) */
     --ds-success-100: hsla(152, 70%, 96%, 1);
     --ds-success-200: hsla(152, 60%, 90%, 1);
     --ds-success-400: hsla(152, 50%, 55%, 1);
@@ -125,6 +236,13 @@
     --ds-success-1000: hsla(152, 60%, 14%, 1);
     --ds-success-soft: hsla(152, 69%, 31%, 0.08);
     --ds-success-border: hsla(152, 69%, 31%, 0.15);
+
+    /* Shadows (Light Mode) */
+    --shadow-smallest: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-extra-small: 0px 4px 8px rgba(0, 0, 0, 0.12);
+    --shadow-small: 0 5px 10px rgba(0, 0, 0, 0.12);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --shadow-large: 0 30px 60px rgba(0, 0, 0, 0.12);
 
     --chord: #b45309;
     --header-bg: rgba(255, 255, 255, 0.65);

@@ -11,7 +11,7 @@ const Button = React.forwardRef(({
   children,
   ...props
 }, ref) => {
-  const baseStyles = "inline-flex items-center justify-center rounded-md font-medium transition-all duration-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
+  const baseStyles = "inline-flex items-center justify-center rounded-md font-medium cursor-pointer transition-all duration-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
 
   const variants = {
     primary: "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)] hover:bg-[var(--ds-gray-900)] focus:ring-[var(--ds-gray-900)]",
@@ -19,7 +19,7 @@ const Button = React.forwardRef(({
     ghost: "bg-transparent text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-200)] focus:ring-[var(--ds-gray-200)]",
     error: "bg-[var(--ds-error-soft)] text-[var(--ds-error-900)] border border-[var(--ds-error-border)] hover:bg-[var(--ds-error-100)] focus:ring-[var(--ds-error-400)]",
     warning: "bg-[var(--ds-warning-soft)] text-[var(--ds-warning-900)] border border-[var(--ds-warning-border)] hover:bg-[var(--ds-warning-100)] focus:ring-[var(--ds-warning-400)]",
-    brand: "bg-[var(--color-brand)] text-white hover:opacity-90 focus:ring-[var(--color-brand)]",
+    brand: "bg-[var(--color-brand)] hover:opacity-90 focus:ring-[var(--color-brand)]",
   };
 
   const sizes = {
@@ -30,11 +30,15 @@ const Button = React.forwardRef(({
     icon: "h-10 w-10 p-0",
   };
 
+  // Brand variant needs inline style to guarantee white text
+  const brandStyle = variant === 'brand' ? { color: '#ffffff' } : undefined;
+
   return (
     <button
       ref={ref}
       disabled={disabled || loading}
       className={cn(baseStyles, variants[variant], sizes[size], className)}
+      style={brandStyle}
       {...props}
     >
       {loading ? (

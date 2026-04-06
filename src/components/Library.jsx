@@ -1,85 +1,420 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import PageHeader from './PageHeader';
 import SongCard from './SongCard';
 import { Button } from './ui/Button';
-import { Input } from './ui/Input';
 
-export default function Library({ songs, onSelectSong, onNewSong, onImportSong }) {
+const SORT_MODES = [
+  { key: 'title', label: 'Title' },
+  { key: 'artist', label: 'Artist' },
+  { key: 'key', label: 'Key' },
+];
+
+function formatRelativeTime(ts) {
+  if (!ts) return null;
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function getGroupKey(song, sortMode) {
+  if (sortMode === 'title') {
+    const first = (song.title || '').trim()[0]?.toUpperCase();
+    return first && /[A-Z]/.test(first) ? first : '#';
+  }
+  if (sortMode === 'artist') {
+    return (song.artist || 'Unknown').trim();
+  }
+  if (sortMode === 'key') {
+    return (song.key || 'C').replace(/[#bmb]/g, '').toUpperCase();
+  }
+  return '#';
+}
+
+function groupAndSort(songs, sortMode, sortAsc) {
+  const groups = {};
+  songs.forEach(song => {
+    const key = getGroupKey(song, sortMode);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(song);
+  });
+
+  const dir = sortAsc ? 1 : -1;
+
+  const sortedKeys = Object.keys(groups).sort((a, b) => {
+    if (a === '#') return 1;
+    if (b === '#') return -1;
+    if (sortMode === 'key') {
+      const order = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+      return (order.indexOf(a) - order.indexOf(b)) * dir;
+    }
+    return a.localeCompare(b) * dir;
+  });
+
+  sortedKeys.forEach(key => {
+    groups[key].sort((a, b) => a.title.localeCompare(b.title) * dir);
+  });
+
+  return { groups, sortedKeys };
+}
+
+// Skeleton rows for loading state
+function SkeletonRows() {
+  return (
+    <div className="flex flex-col gap-8">
+      {[1, 2, 3].map(g => (
+        <div key={g} className="flex flex-col gap-3">
+          <div className="h-5 w-8 bg-[var(--ds-gray-200)] rounded animate-pulse mx-1" />
+          <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)]">
+            {[1, 2, 3].map(r => (
+              <div key={r} className="flex items-center justify-between px-5 py-4">
+                <div className="flex flex-col gap-2 flex-1">
+                  <div className="h-4 w-40 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-3 w-24 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <div className="h-3 w-6 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-3 w-14 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Library({ songs, loaded = true, onSelectSong, onNewSong, onImportSong }) {
   const [query, setQuery] = useState('');
+  const [sortMode, setSortMode] = useState('title');
+  const [sortAsc, setSortAsc] = useState(true);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [tagsOpen, setTagsOpen] = useState(false);
+  const [tagQuery, setTagQuery] = useState('');
+  const [fabOpen, setFabOpen] = useState(false);
 
-  const filtered = songs.filter(s =>
-    s.title.toLowerCase().includes(query.toLowerCase()) ||
-    s.artist?.toLowerCase().includes(query.toLowerCase())
-  ).sort((a, b) => a.title.localeCompare(b.title));
+  const tagsRef = useRef(null);
+  const fabRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const allTags = useMemo(() => {
+    const tagSet = new Set();
+    songs.forEach(s => s.tags?.forEach(t => tagSet.add(t)));
+    return [...tagSet].sort();
+  }, [songs]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (tagsRef.current && !tagsRef.current.contains(e.target)) setTagsOpen(false);
+      if (fabRef.current && !fabRef.current.contains(e.target)) setFabOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'Escape') { setTagsOpen(false); setFabOpen(false); }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
+  const filtered = useMemo(() => {
+    let result = songs;
+    if (query) {
+      const q = query.toLowerCase();
+      result = result.filter(s =>
+        s.title.toLowerCase().includes(q) ||
+        s.artist?.toLowerCase().includes(q) ||
+        (s.key || '').toLowerCase().includes(q) ||
+        s.tags?.some(t => t.toLowerCase().includes(q))
+      );
+    }
+    if (selectedTags.length > 0) {
+      result = result.filter(s =>
+        selectedTags.every(tag => s.tags?.includes(tag))
+      );
+    }
+    return result;
+  }, [songs, query, selectedTags]);
+
+  const { groups, sortedKeys } = useMemo(
+    () => groupAndSort(filtered, sortMode, sortAsc),
+    [filtered, sortMode, sortAsc]
+  );
+
+  const toggleTag = (tag) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleSortClick = (modeKey) => {
+    if (sortMode === modeKey) {
+      setSortAsc(prev => !prev);
+    } else {
+      setSortMode(modeKey);
+      setSortAsc(true);
+    }
+  };
 
   return (
     <div className="min-h-screen material-page pb-32">
-      <PageHeader title="Song Library">
-        <div className="flex gap-4">
-          <Button variant="brand" size="sm" onClick={onNewSong}>
-            Add Song
-          </Button>
-          <div className="relative">
-            <input
-              type="file"
-              accept=".md"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (ev) => onImportSong(ev.target.result);
-                  reader.readAsText(file);
-                }
-              }}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Button variant="secondary" size="sm">
-              Import
-            </Button>
+      <PageHeader title="Song Library" />
+
+      <div className="max-w-3xl mx-auto px-6 flex flex-col gap-0">
+
+        {/* Sticky Search + Tags + Filters */}
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4 flex flex-col gap-4">
+          {/* Search Bar + Tags */}
+          <div className="flex gap-3 items-stretch">
+            <div className="flex-1 relative">
+              <svg
+                width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ds-gray-600)] pointer-events-none"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
+              />
+            </div>
+
+            {/* Tags Dropdown */}
+            {allTags.length > 0 && (
+              <div ref={tagsRef} className="relative">
+                <button
+                  onClick={() => setTagsOpen(!tagsOpen)}
+                  className={`
+                    h-11 px-4 rounded-xl border cursor-pointer
+                    flex items-center gap-2
+                    text-label-14 transition-all duration-150
+                    ${selectedTags.length > 0
+                      ? 'border-[var(--color-brand)] text-[var(--color-brand)] bg-[var(--ds-background-100)]'
+                      : 'border-[var(--ds-gray-400)] text-[var(--ds-gray-1000)] bg-[var(--ds-background-100)] hover:border-[var(--ds-gray-600)]'
+                    }
+                  `}
+                >
+                  {selectedTags.length > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
+                  )}
+                  Tags{selectedTags.length > 0 ? ` (${selectedTags.length})` : ''}
+                  <svg
+                    width="14" height="14" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    className={`transition-transform duration-150 ${tagsOpen ? 'rotate-180' : ''}`}
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+
+                {tagsOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] shadow-lg z-50 overflow-hidden">
+                    {allTags.length > 5 && (
+                      <div className="px-3 pt-3 pb-2">
+                        <input
+                          type="text"
+                          placeholder="Search tags..."
+                          value={tagQuery}
+                          onChange={e => setTagQuery(e.target.value)}
+                          onClick={e => e.stopPropagation()}
+                          className="w-full h-8 px-3 rounded-lg border border-[var(--ds-gray-400)] bg-[var(--ds-background-200)] text-copy-13 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-col py-1 max-h-[320px] overflow-y-auto">
+                      {(() => {
+                        const tq = tagQuery.toLowerCase();
+                        const filteredTags = allTags.filter(t => t.toLowerCase().includes(tq));
+                        const selected = filteredTags.filter(t => selectedTags.includes(t));
+                        const unselected = filteredTags.filter(t => !selectedTags.includes(t)).slice(0, 10 - selected.length);
+                        const visible = [...selected, ...unselected];
+                        const hasMore = filteredTags.length > visible.length;
+                        return (
+                          <>
+                            {visible.map(tag => (
+                              <label
+                                key={tag}
+                                className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-[var(--ds-gray-alpha-100)] transition-colors"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedTags.includes(tag)}
+                                  onChange={() => toggleTag(tag)}
+                                  className="w-4 h-4 rounded accent-[var(--color-brand)] cursor-pointer"
+                                />
+                                <span className="text-copy-14 text-[var(--ds-gray-1000)]">{tag}</span>
+                              </label>
+                            ))}
+                            {visible.length === 0 && (
+                              <div className="px-4 py-3 text-copy-13 text-[var(--ds-gray-700)]">No tags found</div>
+                            )}
+                            {hasMore && (
+                              <div className="px-4 py-2 text-copy-12 text-[var(--ds-gray-600)]">
+                                {filteredTags.length - visible.length} more — refine search
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                    {selectedTags.length > 0 && (
+                      <>
+                        <div className="border-t border-[var(--ds-gray-300)]" />
+                        <button
+                          onClick={() => { setSelectedTags([]); setTagQuery(''); }}
+                          className="w-full px-4 py-2.5 text-copy-14 text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-alpha-100)] transition-colors cursor-pointer bg-transparent border-none text-center"
+                        >
+                          Clear all
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Sort Pills with direction toggle */}
+          <div className="flex items-center gap-2">
+            {SORT_MODES.map(mode => (
+              <button
+                key={mode.key}
+                onClick={() => handleSortClick(mode.key)}
+                className={`
+                  px-4 py-2 rounded-full text-label-14 font-semibold cursor-pointer
+                  transition-all duration-150 border-none flex items-center gap-1.5
+                  ${sortMode === mode.key
+                    ? 'bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]'
+                    : 'bg-transparent text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-alpha-100)]'
+                  }
+                `}
+              >
+                {mode.label.toUpperCase()}
+                {sortMode === mode.key && (
+                  <svg
+                    width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    className={`transition-transform duration-200 ${sortAsc ? '' : 'rotate-180'}`}
+                  >
+                    <path d="m18 15-6-6-6 6" />
+                  </svg>
+                )}
+              </button>
+            ))}
           </div>
         </div>
-      </PageHeader>
 
-      <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col gap-8">
-        <Input
-          placeholder="Search library..."
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          className="max-w-md mx-auto"
-          prefix={
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="opacity-50"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-          }
-        />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filtered.map(song => (
-            <SongCard
-              key={song.id}
-              song={song}
-              onClick={() => onSelectSong(song)}
-            />
-          ))}
-          {filtered.length === 0 && (
-            <div className="col-span-full py-16 text-center text-[var(--ds-gray-700)] text-copy-14">
-              {query ? 'No songs matching your search.' : 'Your library is empty.'}
+        {/* Content */}
+        <div className="py-4">
+          {!loaded ? (
+            <SkeletonRows />
+          ) : sortedKeys.length > 0 ? (
+            <div className="flex flex-col gap-10">
+              {sortedKeys.map(groupKey => (
+                <div key={groupKey} className="flex flex-col gap-3">
+                  <div className="flex items-baseline gap-2 px-1">
+                    <h3 className="text-heading-16 text-[var(--ds-gray-1000)]">
+                      {groupKey}
+                    </h3>
+                    <span className="text-label-12 text-[var(--ds-gray-600)]">
+                      {groups[groupKey].length}
+                    </span>
+                  </div>
+                  <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)]">
+                    {groups[groupKey].map(song => (
+                      <SongCard
+                        key={song.id}
+                        song={song}
+                        variant="row"
+                        showTags={true}
+                        onClick={() => onSelectSong(song)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-16 text-center text-[var(--ds-gray-700)] text-copy-14">
+              {query || selectedTags.length > 0
+                ? 'No songs matching your filters.'
+                : 'Your library is empty.'}
             </div>
           )}
         </div>
       </div>
+
+      {/* FAB */}
+      <div
+        ref={fabRef}
+        className="fixed right-6 z-[150]"
+        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+      >
+        {fabOpen && (
+          <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
+            <button
+              onClick={() => { setFabOpen(false); onNewSong(); }}
+              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+            >
+              New Song
+            </button>
+            <button
+              onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
+              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+            >
+              Import
+            </button>
+          </div>
+        )}
+
+        <button
+          onClick={() => setFabOpen(!fabOpen)}
+          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
+        >
+          <svg
+            width="24" height="24" viewBox="0 0 24 24"
+            fill="none" stroke="white" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round"
+            className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".md"
+        onChange={(e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => onImportSong(ev.target.result);
+            reader.readAsText(file);
+          }
+          e.target.value = '';
+        }}
+        className="hidden"
+      />
     </div>
   );
 }

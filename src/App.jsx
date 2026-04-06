@@ -195,10 +195,11 @@ export default function App() {
 
   // Song CRUD
   const handleSaveSong = (song) => {
+    const stamped = { ...song, updatedAt: Date.now() };
     setSongs(prev => {
       const idx = prev.findIndex(s => s.id === song.id);
-      if (idx >= 0) { const n = [...prev]; n[idx] = song; return n; }
-      return [...prev, song];
+      if (idx >= 0) { const n = [...prev]; n[idx] = stamped; return n; }
+      return [...prev, stamped];
     });
     // After save, go to chart but replace the editor entry in history
     navigate('chart', { song, replace: true });
@@ -213,7 +214,7 @@ export default function App() {
 
   const handleImportSong = (mdText) => {
     try {
-      const song = { ...parseSongMd(mdText), id: generateId() };
+      const song = { ...parseSongMd(mdText), id: generateId(), updatedAt: Date.now() };
       setSongs(prev => [...prev, song]);
     } catch {
       alert('Failed to parse .md file');
@@ -320,6 +321,7 @@ export default function App() {
         <Dashboard
           songs={songs}
           setlists={setlists}
+          settings={settings}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
           onNewSetlist={() => goSetlistBuild()}
@@ -332,6 +334,7 @@ export default function App() {
       {view === 'library' && (
         <Library
           songs={songs}
+          loaded={loaded}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
           onImportSong={handleImportSong}
@@ -341,6 +344,7 @@ export default function App() {
         <Setlists
           songs={songs}
           setlists={setlists}
+          loaded={loaded}
           onViewSetlist={goSetlistView}
           onPlaySetlist={goSetlistPlay}
           onNewSetlist={() => goSetlistBuild()}

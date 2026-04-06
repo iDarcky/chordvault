@@ -5,6 +5,29 @@ import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { Separator } from './ui/Separator';
 
+const Section = ({ title, children }) => (
+  <section className="flex flex-col gap-4">
+    <h2 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold px-2">
+      {title}
+    </h2>
+    <Card className="flex flex-col p-0 overflow-hidden divide-y divide-[var(--ds-gray-400)] border-[var(--ds-gray-400)]">
+      {children}
+    </Card>
+  </section>
+);
+
+const Row = ({ label, children, description }) => (
+  <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)]">
+    <div className="flex flex-col">
+      <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">{label}</span>
+      {description && <span className="text-copy-13 text-[var(--ds-gray-700)]">{description}</span>}
+    </div>
+    <div className="flex items-center gap-2 mt-2 sm:mt-0">
+      {children}
+    </div>
+  </div>
+);
+
 export default function Settings({
   settings,
   onUpdate,
@@ -32,34 +55,24 @@ export default function Settings({
     window.addEventListener('keydown', handler);
   };
 
-  const Section = ({ title, children }) => (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold px-2">
-        {title}
-      </h2>
-      <Card className="flex flex-col p-0 overflow-hidden divide-y divide-[var(--ds-gray-400)] border-[var(--ds-gray-400)]">
-        {children}
-      </Card>
-    </section>
-  );
-
-  const Row = ({ label, children, description }) => (
-    <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)]">
-      <div className="flex flex-col">
-        <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">{label}</span>
-        {description && <span className="text-copy-13 text-[var(--ds-gray-700)]">{description}</span>}
-      </div>
-      <div className="flex items-center gap-2 mt-2 sm:mt-0">
-        {children}
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen material-page pb-32">
       <PageHeader title="Settings" />
 
       <div className="max-w-2xl mx-auto px-6 py-10 flex flex-col gap-12">
+
+        {/* Profile */}
+        <Section title="Profile">
+          <Row label="Your Name" description="Used in the dashboard greeting.">
+            <input
+              type="text"
+              value={settings.userName || ''}
+              onChange={e => update('userName', e.target.value)}
+              placeholder="Guest"
+              className="h-8 px-3 rounded-lg border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors w-40"
+            />
+          </Row>
+        </Section>
 
         {/* Appearance */}
         <Section title="Appearance">
