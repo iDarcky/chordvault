@@ -16,7 +16,7 @@ export default function SongCard({ song, onClick }) {
         </span>
         <span className="text-[var(--ds-gray-400)] text-[10px]">•</span>
         <span className="text-label-12 text-[var(--ds-gray-700)]">
-          {song.bpm ? `${song.bpm} BPM` : 'No Tempo'}
+          {song.tempo ? `${song.tempo} BPM` : 'No Tempo'}
         </span>
       </div>
       {song.artist && (

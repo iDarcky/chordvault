@@ -1,16 +1,16 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
 
 const STRING_NAMES = ['e', 'B', 'G', 'D', 'A', 'E'];
 const TECHNIQUES = ['h', 'p', 's', 'b', 'x'];
 
-// Slots per measure at 16th-note resolution
 function slotsPerMeasure(timeSig) {
   const [num, den] = (timeSig || '4/4').split('/').map(Number);
-  if (den === 8) return num * 2;   // 6/8 → 12, 3/8 → 6
-  return num * 4;                  // 4/4 → 16, 3/4 → 12
+  if (den === 8) return num * 2;
+  return num * 4;
 }
 
-// Duration in slots (at 16th-note resolution)
 const DURATIONS = [
   { id: 'w',  label: '𝅝',  slots: 16, title: 'Whole' },
   { id: 'h',  label: '𝅗𝅥',  slots: 8,  title: 'Half' },
@@ -20,7 +20,6 @@ const DURATIONS = [
   { id: 'dq', label: '♩.',  slots: 6,  title: 'Dotted Quarter' },
 ];
 
-// Beat header labels for 4/4 at 16th resolution
 function beatLabels(timeSig) {
   const [num] = (timeSig || '4/4').split('/').map(Number);
   const labels = [];
@@ -48,7 +47,6 @@ function gridToAscii(grid, measures, timeSig) {
           const fret = typeof cell === 'object' ? cell.fret : cell;
           const tech = typeof cell === 'object' ? (cell.technique || '') : '';
           line += String(fret) + tech;
-          // Pad with dashes: fret takes 1 or 2 chars + 1 for technique
           const used = String(fret).length + (tech ? 1 : 0);
           line += '-'.repeat(Math.max(0, 2 - used));
         } else {
@@ -68,24 +66,21 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
   const [grid, setGrid] = useState(() => makeGrid(2, timeSig));
   const [cursor, setCursor] = useState({ string: 0, pos: 0 });
   const [chordMode, setChordMode] = useState(false);
-  const [activeInput, setActiveInput] = useState(null); // { string, pos }
+  const [activeInput, setActiveInput] = useState(null);
   const [inputVal, setInputVal] = useState('');
-  const [lastPlaced, setLastPlaced] = useState(null); // { string, pos }
+  const [lastPlaced, setLastPlaced] = useState(null);
   const inputRef = useRef(null);
 
   const spm = slotsPerMeasure(timeSig);
   const totalSlots = spm * measures;
   const labels = beatLabels(timeSig);
 
-  // Focus input when it appears
   useEffect(() => {
     if (activeInput && inputRef.current) inputRef.current.focus();
   }, [activeInput]);
 
-  // Load existing tab into grid
   useEffect(() => {
     if (!initialTab || !initialTab.strings || initialTab.strings.length === 0) return;
-    // Simple load: parse fret numbers from existing tab content into a new grid
     const maxMeasures = Math.max(2, initialTab.strings[0]?.content?.split('|').length || 2);
     const newGrid = makeGrid(maxMeasures, timeSig);
     setMeasures(maxMeasures);
@@ -218,112 +213,92 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
 
   return (
     <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.7)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
+      className="fixed inset-0 z-[200] bg-black/70 flex items-center justify-center"
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
         onKeyDown={handleGridKeyDown}
         tabIndex={-1}
-        style={{
-          background: 'var(--bg)', borderRadius: 14,
-          border: '1px solid var(--border)',
-          padding: 18, width: '95%', maxWidth: 860,
-          maxHeight: '90vh', overflow: 'auto',
-          outline: 'none',
-          boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
-        }}
+        className="bg-[var(--ds-background-200)] rounded-2xl border border-[var(--ds-gray-400)] p-[18px] w-[95%] max-w-[860px] max-h-[90vh] overflow-auto outline-none"
+        style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.6)' }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-bright)', flex: 1 }}>
+        <div className="flex items-center gap-2 mb-3.5">
+          <span className="text-heading-14 text-[var(--ds-gray-1000)] flex-1">
             Tab Editor
           </span>
-          <span style={{ fontSize: 11, color: 'var(--text-dim)', fontFamily: 'var(--fm)' }}>
+          <span className="text-label-11-mono text-[var(--ds-gray-500)]">
             {timeSig}
           </span>
-          <button onClick={onClose} style={closeBtnStyle}>✕</button>
+          <IconButton variant="ghost" size="xs" onClick={onClose} aria-label="Close">✕</IconButton>
         </div>
 
         {/* Toolbar: Durations + chord mode + techniques */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12, alignItems: 'center' }}>
+        <div className="flex flex-wrap gap-1.5 mb-3 items-center">
           {/* Duration picker */}
-          <div style={{ display: 'flex', gap: 3 }}>
+          <div className="flex gap-1">
             {DURATIONS.map(d => (
               <button
                 key={d.id}
                 onClick={() => setDuration(d.id)}
                 title={d.title}
-                style={{
-                  ...toolBtnStyle,
-                  borderColor: duration === d.id ? 'var(--accent)' : 'var(--border)',
-                  color: duration === d.id ? 'var(--accent-text)' : 'var(--text-muted)',
-                  background: duration === d.id ? 'var(--accent-soft)' : 'var(--surface)',
-                  fontSize: 16, padding: '3px 8px',
-                }}
+                className={`rounded-md px-2 py-1 text-[16px] font-semibold font-mono cursor-pointer border transition-colors ${
+                  duration === d.id
+                    ? 'border-[var(--color-brand)] text-[var(--color-brand-text)] bg-[var(--color-brand-soft)]'
+                    : 'border-[var(--ds-gray-400)] text-[var(--ds-gray-600)] bg-[var(--ds-gray-100)] hover:bg-[var(--ds-gray-200)]'
+                }`}
               >
                 {d.label}
               </button>
             ))}
           </div>
 
-          <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
+          <div className="w-px h-5 bg-[var(--ds-gray-400)]" />
 
           {/* Chord mode */}
-          <button
+          <Button
+            variant={chordMode ? 'brand' : 'secondary'}
+            size="xs"
             onClick={() => setChordMode(v => !v)}
-            title="Chord mode — stack notes without advancing"
-            style={{
-              ...toolBtnStyle,
-              borderColor: chordMode ? 'var(--accent)' : 'var(--border)',
-              color: chordMode ? 'var(--accent-text)' : 'var(--text-muted)',
-              background: chordMode ? 'var(--accent-soft)' : 'var(--surface)',
-              fontSize: 11,
-            }}
           >
             Chord
-          </button>
+          </Button>
 
-          <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
+          <div className="w-px h-5 bg-[var(--ds-gray-400)]" />
 
           {/* Technique buttons */}
-          <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-            <span style={{ fontSize: 10, color: 'var(--text-dim)', marginRight: 2 }}>Technique:</span>
+          <div className="flex gap-1 items-center">
+            <span className="text-label-10 text-[var(--ds-gray-500)] mr-0.5">Technique:</span>
             {TECHNIQUES.map(t => (
               <button
                 key={t}
                 onClick={() => applyTechnique(t)}
                 disabled={!lastPlaced}
                 title={{ h: 'Hammer-on', p: 'Pull-off', s: 'Slide', b: 'Bend', x: 'Mute' }[t]}
-                style={{
-                  ...toolBtnStyle,
-                  opacity: lastPlaced ? 1 : 0.4,
-                  fontSize: 12, padding: '3px 8px',
-                }}
+                className={`rounded-md px-2 py-1 text-label-12 font-semibold font-mono cursor-pointer border border-[var(--ds-gray-400)] bg-[var(--ds-gray-100)] text-[var(--ds-gray-600)] hover:bg-[var(--ds-gray-200)] transition-colors ${
+                  !lastPlaced ? 'opacity-40 cursor-not-allowed' : ''
+                }`}
               >
                 {t}
               </button>
             ))}
           </div>
 
-          <div style={{ flex: 1 }} />
+          <div className="flex-1" />
 
           {/* Measure controls */}
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{measures} bar{measures !== 1 ? 's' : ''}</span>
-            <button onClick={removeMeasure} disabled={measures <= 1} style={{ ...toolBtnStyle, padding: '3px 9px' }}>−</button>
-            <button onClick={addMeasure} style={{ ...toolBtnStyle, padding: '3px 9px' }}>+</button>
+          <div className="flex gap-1 items-center">
+            <span className="text-label-10 text-[var(--ds-gray-500)]">{measures} bar{measures !== 1 ? 's' : ''}</span>
+            <IconButton variant="default" size="xs" onClick={removeMeasure} disabled={measures <= 1} aria-label="Remove bar">−</IconButton>
+            <IconButton variant="default" size="xs" onClick={addMeasure} aria-label="Add bar">+</IconButton>
           </div>
         </div>
 
         {/* Grid */}
-        <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
+        <div className="overflow-x-auto pb-2">
           {/* Beat header */}
-          <div style={{ display: 'flex', marginBottom: 2, marginLeft: labelW }}>
+          <div className="flex mb-0.5" style={{ marginLeft: labelW }}>
             {Array.from({ length: totalSlots }, (_, pos) => {
               const isBarLine = pos > 0 && pos % spm === 0;
               const beatLabel = labels[pos % labels.length];
@@ -331,12 +306,12 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
               return (
                 <div
                   key={pos}
+                  className="shrink-0 text-center font-mono"
                   style={{
-                    width: cellW, textAlign: 'center', flexShrink: 0,
+                    width: cellW,
                     fontSize: isBeat ? 10 : 8,
-                    color: isBeat ? 'var(--text-muted)' : 'var(--text-dim)',
-                    fontFamily: 'var(--fm)',
-                    borderLeft: isBarLine ? '2px solid var(--border)' : 'none',
+                    color: isBeat ? 'var(--ds-gray-600)' : 'var(--ds-gray-500)',
+                    borderLeft: isBarLine ? '2px solid var(--ds-gray-400)' : 'none',
                     fontWeight: isBeat ? 700 : 400,
                   }}
                 >
@@ -348,17 +323,14 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
 
           {/* String rows */}
           {STRING_NAMES.map((name, si) => (
-            <div key={si} style={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
-              {/* String label */}
-              <div style={{
-                width: labelW, textAlign: 'right', paddingRight: 6,
-                fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
-                fontFamily: 'var(--fm)', flexShrink: 0,
-              }}>
+            <div key={si} className="flex items-center mb-0.5">
+              <div
+                className="shrink-0 text-right pr-1.5 text-label-12-mono font-bold text-[var(--ds-gray-600)]"
+                style={{ width: labelW }}
+              >
                 {name}
               </div>
 
-              {/* Cells */}
               {Array.from({ length: totalSlots }, (_, pos) => {
                 const isBarLine = pos > 0 && pos % spm === 0;
                 const cell = grid[si][pos];
@@ -370,16 +342,14 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                 return (
                   <div
                     key={pos}
+                    className="shrink-0 flex items-center justify-center relative cursor-pointer"
                     style={{
-                      width: cellW, height: cellH, flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      position: 'relative',
-                      borderLeft: isBarLine ? '2px solid var(--text-dim)' : '1px solid var(--border)',
+                      width: cellW, height: cellH,
+                      borderLeft: isBarLine ? '2px solid var(--ds-gray-500)' : '1px solid var(--ds-gray-300)',
                       background: isCursor
-                        ? 'var(--accent-soft)'
+                        ? 'var(--color-brand-soft)'
                         : cell !== null ? 'rgba(226,168,50,0.06)' : 'transparent',
-                      cursor: 'pointer',
-                      outline: isCursor ? '1px solid var(--accent)' : 'none',
+                      outline: isCursor ? '1px solid var(--color-brand)' : 'none',
                       borderRadius: isCursor ? 3 : 0,
                     }}
                     onClick={() => {
@@ -390,12 +360,10 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                     onContextMenu={e => { e.preventDefault(); clearCell(si, pos); }}
                   >
                     {/* String line */}
-                    <div style={{
-                      position: 'absolute', left: 0, right: 0,
-                      top: '50%', height: 1,
-                      background: 'var(--border)',
-                      pointerEvents: 'none',
-                    }} />
+                    <div
+                      className="absolute left-0 right-0 pointer-events-none"
+                      style={{ top: '50%', height: 1, background: 'var(--ds-gray-300)' }}
+                    />
 
                     {isActive ? (
                       <input
@@ -404,10 +372,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                         onChange={e => {
                           const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 2);
                           setInputVal(v);
-                          if (v.length === 2 || (v.length === 1 && parseInt(v) <= 9)) {
-                            // Auto-commit on 2 digits or single digit followed by delay
-                            if (v.length === 2) commitInput(si, pos, v);
-                          }
+                          if (v.length === 2) commitInput(si, pos, v);
                         }}
                         onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === 'Tab') {
@@ -423,33 +388,19 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                           if (inputVal) commitInput(si, pos, inputVal);
                           else setActiveInput(null);
                         }}
+                        className="text-center font-mono text-label-13 font-bold outline-none z-[1] relative bg-[var(--color-brand-soft)] border border-[var(--color-brand)] rounded-sm text-[var(--color-brand-text)]"
                         style={{
                           width: cellW - 4, height: cellH - 4,
-                          background: 'var(--accent-soft)',
-                          border: '1px solid var(--accent)',
-                          borderRadius: 3, textAlign: 'center',
-                          color: 'var(--accent-text)', fontFamily: 'var(--fm)',
-                          fontSize: 13, fontWeight: 700, outline: 'none',
-                          zIndex: 1, position: 'relative',
                         }}
                       />
                     ) : (
                       fret !== null && (
-                        <div style={{
-                          position: 'relative', zIndex: 1,
-                          display: 'flex', alignItems: 'center', gap: 1,
-                        }}>
-                          <span style={{
-                            fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700,
-                            color: 'var(--chord)', lineHeight: 1,
-                          }}>
+                        <div className="relative z-[1] flex items-center gap-px">
+                          <span className="font-mono text-label-12 font-bold text-[var(--chord)] leading-none">
                             {fret}
                           </span>
                           {tech && (
-                            <span style={{
-                              fontFamily: 'var(--fm)', fontSize: 9,
-                              color: 'var(--text-muted)', lineHeight: 1,
-                            }}>
+                            <span className="font-mono text-[9px] text-[var(--ds-gray-600)] leading-none">
                               {tech}
                             </span>
                           )}
@@ -464,40 +415,16 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
         </div>
 
         {/* Hint */}
-        <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 8, marginBottom: 14, fontFamily: 'var(--fm)' }}>
+        <div className="text-label-10-mono text-[var(--ds-gray-500)] mt-2 mb-3.5">
           Click a cell to enter fret (0–24) · Enter/Tab to confirm · Right-click to clear · Arrow keys to navigate
         </div>
 
         {/* Bottom bar */}
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={cancelBtnStyle}>Cancel</button>
-          <button onClick={handleInsert} style={insertBtnStyle}>{initialTab ? 'Save Tab' : 'Insert Tab'}</button>
+        <div className="flex gap-2 justify-end">
+          <Button variant="secondary" size="sm" onClick={onClose}>Cancel</Button>
+          <Button variant="brand" size="sm" onClick={handleInsert}>{initialTab ? 'Save Tab' : 'Insert Tab'}</Button>
         </div>
       </div>
     </div>
   );
 }
-
-const toolBtnStyle = {
-  background: 'var(--surface)', border: '1px solid var(--border)',
-  borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-  color: 'var(--text-muted)', fontSize: 12, fontWeight: 600,
-  fontFamily: 'var(--fm)',
-};
-
-const closeBtnStyle = {
-  background: 'none', border: 'none', cursor: 'pointer',
-  color: 'var(--text-dim)', fontSize: 16, padding: '2px 6px',
-};
-
-const cancelBtnStyle = {
-  background: 'var(--surface)', border: '1px solid var(--border)',
-  borderRadius: 8, padding: '8px 18px',
-  color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-};
-
-const insertBtnStyle = {
-  background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-  borderRadius: 8, padding: '8px 22px',
-  color: 'var(--accent-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-};

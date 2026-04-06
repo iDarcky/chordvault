@@ -17,11 +17,13 @@ const Button = React.forwardRef(({
     primary: "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)] hover:bg-[var(--ds-gray-900)] focus:ring-[var(--ds-gray-900)]",
     secondary: "bg-[var(--ds-background-100)] text-[var(--ds-gray-1000)] border border-[var(--ds-gray-400)] hover:bg-[var(--ds-gray-200)] hover:border-[var(--ds-gray-600)] focus:ring-[var(--ds-gray-400)]",
     ghost: "bg-transparent text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-200)] focus:ring-[var(--ds-gray-200)]",
-    error: "bg-[var(--ds-error-600)] text-white hover:bg-[var(--ds-error-700)] focus:ring-[var(--ds-error-700)]",
+    error: "bg-[var(--ds-error-soft)] text-[var(--ds-error-900)] border border-[var(--ds-error-border)] hover:bg-[var(--ds-error-100)] focus:ring-[var(--ds-error-400)]",
+    warning: "bg-[var(--ds-warning-soft)] text-[var(--ds-warning-900)] border border-[var(--ds-warning-border)] hover:bg-[var(--ds-warning-100)] focus:ring-[var(--ds-warning-400)]",
     brand: "bg-[var(--color-brand)] text-white hover:opacity-90 focus:ring-[var(--color-brand)]",
   };
 
   const sizes = {
+    xs: "h-7 px-2 text-label-11",
     sm: "h-8 px-3 text-label-12",
     md: "h-10 px-4 text-button-14",
     lg: "h-12 px-6 text-heading-16",

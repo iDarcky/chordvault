@@ -1,19 +1,11 @@
 export default function PageHeader({ title, children }) {
   return (
-    <div style={{
-      padding: '24px 24px 16px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: 'var(--ds-background-200)',
-      borderBottom: '1px solid var(--ds-gray-200)',
-    }}>
-      <h1 className="text-heading-24" style={{
-        margin: 0,
-        color: 'var(--text-bright)',
-      }}>
+    <div className="flex items-center justify-between px-6 pt-6 pb-4 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
+      <h1 className="text-heading-24 text-[var(--ds-gray-1000)] m-0">
         {title}
       </h1>
       {children && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className="flex gap-2 items-center">
           {children}
         </div>
       )}

@@ -4,6 +4,9 @@ import SectionBlock from './SectionBlock';
 import { StructureRibbon, MetaPill } from './StructureRibbon';
 import ChordDiagram from './ChordDiagram';
 import { parseLine } from '../parser';
+import { Button } from './ui/Button';
+import { IconButton } from './ui/IconButton';
+import { SegmentedControl } from './ui/SegmentedControl';
 
 const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
 
@@ -20,14 +23,14 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
   const currentKey = transposeKey(song.key, transpose);
 
-    // Track scroll to collapse header
+  // Track scroll to collapse header
   useEffect(() => {
     if (compact) return;
     const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [compact]);
- 
+
   // Pre-compute cumulative modulate offsets per section
   const sectionModOffsets = useMemo(() => {
     const offsets = [];
@@ -85,65 +88,48 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     ? Math.ceil(song.sections.length / 2)
     : song.sections.length;
 
-  const btnStyle = {
-    height: 32, borderRadius: 8,
-    border: '1px solid var(--border)',
-    background: 'var(--surface)', color: 'var(--text)',
-    fontSize: 13, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: 'var(--fb)', fontWeight: 500,
-    padding: '0 10px',
-  };
-
-  const toggleStyle = (active) => ({
-    ...btnStyle,
-    borderColor: active ? 'var(--accent)' : 'var(--border)',
-    color: active ? 'var(--accent-text)' : 'var(--text-muted)',
-    background: active ? 'var(--accent-soft)' : 'var(--surface)',
-  });
-
   const handleKeyChange = (newKey) => {
     const semitones = semitonesBetween(song.key, newKey);
     setLocalTranspose(semitones);
   };
 
   return (
-    <div style={{ minHeight: compact ? 'auto' : '100vh', background: 'var(--bg)', paddingTop: compact ? 0 : 'env(safe-area-inset-top, 0px)' }}>
+    <div
+      className={compact ? '' : 'min-h-screen bg-[var(--ds-background-200)]'}
+      style={{ paddingTop: compact ? 0 : 'env(safe-area-inset-top, 0px)' }}
+    >
       {/* Sticky header */}
-      <div ref={headerRef} style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: compact ? '10px 18px 6px' : '12px 18px 8px',
-        paddingTop: compact ? 10 : `calc(12px + env(safe-area-inset-top, 0px))`,
-        transition: 'padding 0.15s ease',
-      }}>
+      <div
+        ref={headerRef}
+        className="material-header"
+        style={{
+          padding: compact ? '10px 18px 6px' : '12px 18px 8px',
+          paddingTop: compact ? 10 : `calc(12px + env(safe-area-inset-top, 0px))`,
+          transition: 'padding 0.15s ease',
+        }}
+      >
         {/* Title row */}
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             {!compact && (
-              <button onClick={onBack} style={{
-                background: 'none', border: 'none', color: 'var(--text-muted)',
-                cursor: 'pointer', padding: '4px 0', fontSize: 18, flexShrink: 0,
-                display: 'flex', alignItems: 'center',
-              }}>
+              <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Go back">
                 &#8592;
-              </button>
+              </IconButton>
             )}
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{
-                margin: 0, fontSize: compact ? 18 : (scrolled ? 16 : 20), fontWeight: 700,
-                color: 'var(--text-bright)', letterSpacing: '-0.02em',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                transition: 'font-size 0.15s ease',
-              }}>
+            <div className="min-w-0">
+              <h1
+                className="text-[var(--ds-gray-1000)] m-0 truncate"
+                style={{
+                  fontSize: compact ? 18 : (scrolled ? 16 : 20),
+                  fontWeight: 700,
+                  letterSpacing: '-0.02em',
+                  transition: 'font-size 0.15s ease',
+                }}
+              >
                 {song.title}
               </h1>
               {!compact && !scrolled && (
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
+                <div className="text-label-12 text-[var(--ds-gray-600)] mt-0.5">
                   {song.artist}
                   {song.tempo ? ` · ${song.tempo} bpm` : ''}
                   {song.time ? ` · ${song.time}` : ''}
@@ -153,17 +139,18 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
             </div>
           </div>
           {!compact && (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+            <div className="flex gap-1.5 items-center shrink-0">
               {/* Key selector */}
               <select
                 value={currentKey}
                 onChange={e => handleKeyChange(e.target.value)}
+                className={`h-8 rounded-md font-mono text-label-13 font-bold cursor-pointer outline-none border bg-[var(--ds-gray-100)] pr-6 pl-2.5 ${
+                  transpose !== 0
+                    ? 'border-[var(--chord)] text-[var(--chord)]'
+                    : 'border-[var(--ds-gray-400)] text-[var(--ds-gray-1000)]'
+                }`}
                 style={{
-                  ...btnStyle,
-                  fontFamily: 'var(--fm)', fontWeight: 700, fontSize: 13,
-                  color: transpose !== 0 ? 'var(--chord)' : 'var(--text)',
                   appearance: 'none', WebkitAppearance: 'none',
-                  padding: '0 24px 0 10px',
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 8px center',
@@ -174,90 +161,85 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
                 ))}
               </select>
 
-              <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
+              <Button
+                variant={showDiagrams ? 'brand' : 'secondary'}
+                size="xs"
+                onClick={() => setShowDiagrams(v => !v)}
+              >
                 Diagrams
-              </button>
- 
+              </Button>
+
               {!scrolled && onEdit && (
-                <button onClick={onEdit} style={btnStyle}>
+                <Button variant="secondary" size="xs" onClick={onEdit}>
                   Edit
-                </button>
+                </Button>
               )}
               {!scrolled && (
-                <button
+                <IconButton
+                  variant={showSettings ? 'active' : 'default'}
+                  size="sm"
                   onClick={() => setShowSettings(v => !v)}
-                  style={{
-                    ...btnStyle,
-                    fontFamily: 'var(--fb)',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    borderColor: showSettings ? 'var(--accent)' : 'var(--border)',
-                    color: showSettings ? 'var(--accent-text)' : 'var(--text)',
-                    background: showSettings ? 'var(--accent-soft)' : 'var(--surface)',
-                  }}
+                  aria-label="Display settings"
                 >
                   Aa
-                </button>
+                </IconButton>
               )}
             </div>
           )}
           {compact && navOverride && <div>{navOverride}</div>}
         </div>
-         
+
         <StructureRibbon structure={song.structure || []} compact />
 
-        {/* Capo indicator — visible when not scrolled */}
+        {/* Capo indicator */}
         {!compact && !scrolled && capo > 0 && (
-          <div style={{ paddingBottom: 4 }}>
+          <div className="pb-1">
             <MetaPill label="Capo" value={`${capo} → ${transposeKey(song.key, chordTranspose)} shapes`} highlight />
           </div>
         )}
 
-        {/* Nav override for non-compact (not in title row) */}
+        {/* Nav override for non-compact */}
         {!compact && navOverride && !scrolled && (
-          <div style={{ paddingBottom: 4 }}>
-            {navOverride}
-          </div>
+          <div className="pb-1">{navOverride}</div>
         )}
 
         {/* Aa settings popover */}
         {showSettings && !compact && !scrolled && (
-          <div style={{
-            padding: '10px 0 6px',
-            borderTop: '1px solid var(--border)',
-            display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Layout</span>
-              <button onClick={() => setCols('auto')} style={toggleStyle(cols === 'auto')}>Auto</button>
-              {[1, 2].map(n => (
-                <button key={n} onClick={() => setCols(n)} style={toggleStyle(cols === n)}>
-                  {n}col
-                </button>
-              ))}
+          <div className="flex gap-4 flex-wrap items-center pt-2.5 pb-1.5 border-t border-[var(--ds-gray-300)]">
+            <div className="flex items-center gap-1.5">
+              <span className="text-label-12 text-[var(--ds-gray-600)] font-medium">Layout</span>
+              <SegmentedControl
+                value={cols}
+                onChange={setCols}
+                size="xs"
+                options={[
+                  { value: 'auto', label: 'Auto' },
+                  { value: 1, label: '1col' },
+                  { value: 2, label: '2col' },
+                ]}
+              />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Size</span>
-              {[{ l: 'S', v: 0.88 }, { l: 'M', v: 1 }, { l: 'L', v: 1.14 }].map(({ l, v }) => (
-                <button key={l} onClick={() => setSize(v)} style={toggleStyle(size === v)}>
-                  {l}
-                </button>
-              ))}
+            <div className="flex items-center gap-1.5">
+              <span className="text-label-12 text-[var(--ds-gray-600)] font-medium">Size</span>
+              <SegmentedControl
+                value={size}
+                onChange={setSize}
+                size="xs"
+                options={[
+                  { value: 0.88, label: 'S' },
+                  { value: 1, label: 'M' },
+                  { value: 1.14, label: 'L' },
+                ]}
+              />
             </div>
           </div>
         )}
 
         {/* Chord diagram strip */}
         {showDiagrams && uniqueChords.length > 0 && (
-          <div style={{
-            display: 'flex', gap: 8, flexWrap: 'nowrap',
-            paddingTop: 8, paddingBottom: 4,
-            borderTop: '1px solid var(--border)',
-            marginTop: 4,
-            overflowX: 'auto',
-          }}>
+          <div className="flex gap-2 flex-nowrap pt-2 pb-1 border-t border-[var(--ds-gray-300)] mt-1 overflow-x-auto hide-scrollbar">
             {uniqueChords.map(chord => (
-                <ChordDiagram key={chord} chord={chord} size={80} />
+              <ChordDiagram key={chord} chord={chord} size={80} />
             ))}
           </div>
         )}

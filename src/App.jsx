@@ -1,6 +1,5 @@
 import { Toaster } from "./components/ui/Toaster";
-import DesignShowcase from './components/DesignShowcase';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
@@ -10,15 +9,18 @@ import Welcome from './components/Welcome';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
-import ChartView from './components/ChartView';
-import Editor from './components/Editor';
-import SetlistBuilder from './components/SetlistBuilder';
-import SetlistPlayer from './components/SetlistPlayer';
 import Settings from './components/Settings';
-import SetlistOverview from './components/SetlistOverview';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
+
+// Lazy-loaded: heavy secondary views not needed on initial render
+const ChartView = lazy(() => import('./components/ChartView'));
+const Editor = lazy(() => import('./components/Editor'));
+const SetlistBuilder = lazy(() => import('./components/SetlistBuilder'));
+const SetlistPlayer = lazy(() => import('./components/SetlistPlayer'));
+const SetlistOverview = lazy(() => import('./components/SetlistOverview'));
+const DesignShowcase = lazy(() => import('./components/DesignShowcase'));
 
 export default function App() {
   const [songs, setSongs] = useState([]);
@@ -271,19 +273,22 @@ export default function App() {
 
   if (!loaded) {
     return (
-      <div style={{
-        minHeight: '100vh', background: 'var(--bg)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-          Loading Setlists MD...
+      <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
+        <div className="text-copy-14 text-[var(--ds-gray-600)]">
+          Loading ChordVault...
         </div>
       </div>
     );
   }
 
+  const lazyFallback = (
+    <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
+      <div className="text-copy-14 text-[var(--ds-gray-600)]">Loading…</div>
+    </div>
+  );
+
   return (
-    <>
+    <Suspense fallback={lazyFallback}>
       <Toaster />
       {view === 'welcome' && (
         <Welcome
@@ -426,6 +431,6 @@ export default function App() {
         <BottomNav activeView={view} onNavigate={goToMainView} />
       )}
       <Toaster />
-    </>
+    </Suspense>
   );
 }

@@ -41,25 +41,40 @@
   --ds-gray-900: hsla(0, 0%, 63%, 1);
   --ds-gray-1000: hsla(0, 0%, 93%, 1);
 
-  /* Legacy Mapping (Dark Mode default) */
-  --bg: var(--ds-background-200);
-  --surface: var(--ds-gray-100);
-  --card: var(--ds-gray-100);
-  --border: var(--ds-gray-400);
-  --select: var(--ds-gray-200);
-  --text: var(--ds-gray-900);
-  --text-bright: var(--ds-gray-1000);
-  --text-muted: var(--ds-gray-600);
-  --text-dim: var(--ds-gray-500);
+  /* Geist Error Scale (Dark Mode) */
+  --ds-error-100: hsla(0, 60%, 12%, 1);
+  --ds-error-200: hsla(0, 70%, 16%, 1);
+  --ds-error-400: hsla(0, 65%, 30%, 1);
+  --ds-error-600: hsla(0, 72%, 51%, 1);
+  --ds-error-700: hsla(0, 72%, 45%, 1);
+  --ds-error-900: hsla(0, 90%, 70%, 1);
+  --ds-error-1000: hsla(0, 90%, 82%, 1);
+  --ds-error-soft: hsla(0, 72%, 51%, 0.1);
+  --ds-error-border: hsla(0, 72%, 51%, 0.2);
+
+  /* Geist Warning Scale (Dark Mode — used for chord/transpose highlights) */
+  --ds-warning-100: hsla(38, 60%, 10%, 1);
+  --ds-warning-200: hsla(38, 65%, 14%, 1);
+  --ds-warning-400: hsla(38, 60%, 28%, 1);
+  --ds-warning-600: hsla(38, 92%, 50%, 1);
+  --ds-warning-900: hsla(38, 92%, 70%, 1);
+  --ds-warning-1000: hsla(38, 92%, 82%, 1);
+  --ds-warning-soft: hsla(38, 92%, 50%, 0.1);
+  --ds-warning-border: hsla(38, 92%, 50%, 0.2);
+
+  /* Geist Success Scale (Dark Mode — used for sync connected states) */
+  --ds-success-100: hsla(152, 50%, 10%, 1);
+  --ds-success-200: hsla(152, 55%, 14%, 1);
+  --ds-success-400: hsla(152, 50%, 28%, 1);
+  --ds-success-600: hsla(152, 69%, 31%, 1);
+  --ds-success-900: hsla(152, 69%, 55%, 1);
+  --ds-success-1000: hsla(152, 69%, 72%, 1);
+  --ds-success-soft: hsla(152, 69%, 31%, 0.1);
+  --ds-success-border: hsla(152, 69%, 31%, 0.2);
+
+  /* Functional tokens (still consumed by base styles & SVG) */
   --chord: #e2a832;
-  --accent: var(--color-brand);
-  --accent-soft: var(--color-brand-soft);
-  --accent-text: var(--color-brand-text);
-  --accent-border: var(--color-brand-border);
-  --danger: #f87171;
-  --danger-soft: rgba(239, 68, 68, 0.1);
   --header-bg: rgba(0, 0, 0, 0.65);
-  --fb: var(--font-sans);
   --fm: var(--font-mono);
 }
 
@@ -80,22 +95,38 @@
     --ds-gray-900: hsla(0, 0%, 30%, 1);
     --ds-gray-1000: hsla(0, 0%, 9%, 1);
 
-    --bg: var(--ds-background-200);
-    --surface: var(--ds-gray-100);
-    --card: var(--ds-gray-100);
-    --border: var(--ds-gray-400);
-    --select: var(--ds-gray-200);
-    --text: var(--ds-gray-900);
-    --text-bright: var(--ds-gray-1000);
-    --text-muted: var(--ds-gray-600);
-    --text-dim: var(--ds-gray-500);
+    /* Geist Error Scale (Light Mode) */
+    --ds-error-100: hsla(0, 100%, 97%, 1);
+    --ds-error-200: hsla(0, 90%, 93%, 1);
+    --ds-error-400: hsla(0, 75%, 75%, 1);
+    --ds-error-600: hsla(0, 72%, 51%, 1);
+    --ds-error-700: hsla(0, 72%, 45%, 1);
+    --ds-error-900: hsla(0, 80%, 35%, 1);
+    --ds-error-1000: hsla(0, 80%, 20%, 1);
+    --ds-error-soft: hsla(0, 72%, 51%, 0.08);
+    --ds-error-border: hsla(0, 72%, 51%, 0.15);
+
+    /* Geist Warning Scale (Light Mode) */
+    --ds-warning-100: hsla(38, 100%, 97%, 1);
+    --ds-warning-200: hsla(38, 90%, 92%, 1);
+    --ds-warning-400: hsla(38, 75%, 60%, 1);
+    --ds-warning-600: hsla(38, 92%, 40%, 1);
+    --ds-warning-900: hsla(38, 80%, 30%, 1);
+    --ds-warning-1000: hsla(38, 80%, 18%, 1);
+    --ds-warning-soft: hsla(38, 92%, 50%, 0.08);
+    --ds-warning-border: hsla(38, 92%, 50%, 0.15);
+
+    /* Geist Success Scale (Light Mode) */
+    --ds-success-100: hsla(152, 70%, 96%, 1);
+    --ds-success-200: hsla(152, 60%, 90%, 1);
+    --ds-success-400: hsla(152, 50%, 55%, 1);
+    --ds-success-600: hsla(152, 69%, 31%, 1);
+    --ds-success-900: hsla(152, 60%, 22%, 1);
+    --ds-success-1000: hsla(152, 60%, 14%, 1);
+    --ds-success-soft: hsla(152, 69%, 31%, 0.08);
+    --ds-success-border: hsla(152, 69%, 31%, 0.15);
+
     --chord: #b45309;
-    --accent: var(--color-brand);
-    --accent-soft: rgba(83, 121, 111, 0.10);
-    --accent-text: #3d5b53;
-    --accent-border: rgba(83, 121, 111, 0.25);
-    --danger: #dc2626;
-    --danger-soft: rgba(239, 68, 68, 0.08);
     --header-bg: rgba(255, 255, 255, 0.65);
   }
 
@@ -106,9 +137,9 @@
   }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--fb);
+    background: var(--ds-background-200);
+    color: var(--ds-gray-900);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
@@ -120,15 +151,15 @@
 
   button {
     min-height: 36px;
-    font-family: var(--fb);
+    font-family: var(--font-sans);
   }
 
   input {
-    font-family: var(--fb);
+    font-family: var(--font-sans);
   }
 
   textarea {
-    font-family: var(--fm);
+    font-family: var(--font-mono);
   }
 
   @supports (-webkit-touch-callout: none) {
@@ -160,6 +191,27 @@
   }
   .material-card-interactive:hover {
     border-color: var(--ds-gray-600);
+  }
+
+  /* Frosted glass sticky header */
+  .material-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--header-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--ds-gray-200);
+  }
+
+  /* Section title label pattern (used in Settings, Dashboard) */
+  .section-title {
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ds-gray-700);
   }
 
   .hide-scrollbar {
@@ -197,6 +249,7 @@
 @utility text-heading-32 { font-size: 32px; line-height: 40px; letter-spacing: -0.03em; font-weight: 600; }
 @utility text-heading-24 { font-size: 24px; line-height: 32px; letter-spacing: -0.02em; font-weight: 600; }
 @utility text-heading-20 { font-size: 20px; line-height: 28px; letter-spacing: -0.02em; font-weight: 600; }
+@utility text-heading-18 { font-size: 18px; line-height: 26px; letter-spacing: -0.015em; font-weight: 600; }
 @utility text-heading-16 { font-size: 16px; line-height: 24px; letter-spacing: -0.01em; font-weight: 600; }
 @utility text-heading-14 { font-size: 14px; line-height: 20px; font-weight: 600; }
 
@@ -209,6 +262,10 @@
 @utility text-label-13-mono { font-family: var(--fm); font-size: 13px; line-height: 16px; font-weight: 500; }
 @utility text-label-12 { font-size: 12px; line-height: 14px; font-weight: 500; }
 @utility text-label-12-mono { font-family: var(--fm); font-size: 12px; line-height: 14px; font-weight: 500; }
+@utility text-label-11 { font-size: 11px; line-height: 13px; font-weight: 500; }
+@utility text-label-11-mono { font-family: var(--fm); font-size: 11px; line-height: 13px; font-weight: 500; }
+@utility text-label-10 { font-size: 10px; line-height: 12px; font-weight: 500; }
+@utility text-label-10-mono { font-family: var(--fm); font-size: 10px; line-height: 12px; font-weight: 500; }
 
 @utility text-copy-24 { font-size: 24px; line-height: 36px; font-weight: 400; }
 @utility text-copy-20 { font-size: 20px; line-height: 32px; font-weight: 400; }
@@ -217,6 +274,8 @@
 @utility text-copy-14 { font-size: 14px; line-height: 22px; font-weight: 400; }
 @utility text-copy-13 { font-size: 13px; line-height: 20px; font-weight: 400; }
 @utility text-copy-13-mono { font-family: var(--fm); font-size: 13px; line-height: 20px; font-weight: 400; }
+@utility text-copy-12 { font-size: 12px; line-height: 18px; font-weight: 400; }
+@utility text-copy-11 { font-size: 11px; line-height: 16px; font-weight: 400; }
 
 @utility text-button-16 { font-size: 16px; line-height: 16px; font-weight: 500; }
 @utility text-button-14 { font-size: 14px; line-height: 14px; font-weight: 500; }

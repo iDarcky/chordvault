@@ -42,37 +42,26 @@ const tabs = [
 
 export default function BottomNav({ activeView, onNavigate }) {
   return (
-    <nav style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0,
-      paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-      background: 'var(--ds-background-200)',
-      borderTop: '1px solid var(--ds-gray-200)',
-      display: 'flex',
-      zIndex: 100,
-      height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
-    }}>
+    <nav
+      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)] border-t border-[var(--ds-gray-200)]"
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+      }}
+    >
       {tabs.map(({ id, label, Icon }) => {
         const active = activeView === id;
         return (
           <button
             key={id}
             onClick={() => onNavigate(id)}
-            style={{
-              flex: 1,
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              gap: 4,
-              height: 64,
-              background: 'none', border: 'none',
-              color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-              cursor: 'pointer',
-              padding: 0,
-              WebkitTapHighlightColor: 'transparent',
-              transition: 'color 0.2s',
-            }}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
+              active ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
+            }`}
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <Icon />
-            <span className="text-label-12" style={{ fontWeight: active ? 600 : 500 }}>
+            <span className={`text-label-12 ${active ? 'font-semibold' : 'font-medium'}`}>
               {label}
             </span>
           </button>

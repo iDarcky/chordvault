@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import ChordPicker from './ChordPicker';
 import TabGridEditor from './TabGridEditor';
 import { parseTabBlock } from '../../parser';
+import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
 
 const SECTION_TYPES = [
   'Intro', 'Verse', 'Pre Chorus', 'Chorus', 'Bridge',
@@ -16,7 +18,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
   const [showModMenu, setShowModMenu] = useState(false);
   const [showMetaForm, setShowMetaForm] = useState(false);
   const [showTabEditor, setShowTabEditor] = useState(false);
-  const [tabEditState, setTabEditState] = useState(null); // { initialTab, time, range: { start, end } } | null
+  const [tabEditState, setTabEditState] = useState(null);
   const [chordAnchor, setChordAnchor] = useState(null);
   const [popupAnchor, setPopupAnchor] = useState(null);
   const [cueText, setCueText] = useState('');
@@ -36,14 +38,12 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     let newCursor = start + insert.length;
 
     if (opts.wrapSelection && start !== end) {
-      // Wrap selected text
       const selected = val.substring(start, end);
       insert = opts.wrapSelection.replace('$1', selected);
       newCursor = start + insert.length;
     }
 
     if (opts.newLine) {
-      // Ensure we're on a new line
       const before = val.substring(0, start);
       const needsNewLine = before.length > 0 && !before.endsWith('\n');
       const needsBlankLine = before.length > 0 && !before.endsWith('\n\n');
@@ -55,7 +55,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     const newVal = val.substring(0, start) + insert + val.substring(end);
     onChange(newVal);
 
-    // Set cursor position after React re-render
     requestAnimationFrame(() => {
       ta.selectionStart = ta.selectionEnd = newCursor;
       ta.focus();
@@ -71,7 +70,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     const val = ta.value;
 
     if (start !== end) {
-      // Wrap selection
       const selected = val.substring(start, end);
       const insert = `[${chord}]${selected}`;
       const newVal = val.substring(0, start) + insert + val.substring(end);
@@ -81,7 +79,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
         ta.focus();
       });
     } else {
-      // Insert at cursor
       const insert = `[${chord}]`;
       const newVal = val.substring(0, start) + insert + val.substring(end);
       onChange(newVal);
@@ -95,12 +92,10 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
   // ─── Section insertion with auto-numbering ───
   const handleSectionInsert = useCallback((type) => {
-    // Count existing sections of this type for auto-numbering
-    const regex = new RegExp(`^## ${type}(\\s+\\d+)?$`, 'gm');
+    const regex = new RegExp(`^## ${type}(\\\\s+\\\\d+)?$`, 'gm');
     const matches = md.match(regex);
     const count = matches ? matches.length : 0;
 
-    // Always number if there are existing sections or if it's a type that's commonly numbered
     const needsNumber = ['Verse', 'Pre Chorus', 'Chorus', 'Bridge'].includes(type);
     const label = needsNumber ? `${type} ${count + 1}` : (count > 0 ? `${type} ${count + 1}` : type);
 
@@ -108,7 +103,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     setShowSectionMenu(false);
   }, [md, insertAtCursor]);
 
-  // ─── Band cue insertion ───
   const handleCueInsert = useCallback(() => {
     if (!cueText.trim()) return;
     insertAtCursor(`> ${cueText.trim()}\n`, { newLine: true });
@@ -116,7 +110,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     setShowCueInput(false);
   }, [cueText, insertAtCursor]);
 
-  // ─── Inline note insertion ───
   const handleNoteInsert = useCallback(() => {
     if (!noteText.trim()) return;
     insertAtCursor(`{!${noteText.trim()}}`);
@@ -124,20 +117,17 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     setShowNoteInput(false);
   }, [noteText, insertAtCursor]);
 
-  // ─── Modulation insertion ───
   const handleModInsert = useCallback((n) => {
     insertAtCursor(`{modulate: +${n}}\n`, { newLine: true });
     setShowModMenu(false);
   }, [insertAtCursor]);
 
-  // ─── Tab block insertion/editing via grid editor ───
   const handleTabInsert = useCallback(() => {
     const ta = textareaRef.current;
     if (!ta) { setTabEditState(null); setShowTabEditor(true); return; }
     const cursorPos = ta.selectionStart;
     const val = ta.value;
 
-    // Check if cursor is inside an existing {tab}...{/tab} block
     const openRegex = /\{tab(?:,\s*[^}]*)?\}/g;
     let editState = null;
     let match;
@@ -147,11 +137,9 @@ export default function VisualTab({ md, onChange, textareaRef }) {
       if (closeIdx === -1) continue;
       const blockEnd = closeIdx + '{/tab}'.length;
       if (cursorPos >= blockStart && cursorPos <= blockEnd) {
-        // Cursor is inside this tab block — parse it for editing
         const blockText = val.substring(match.index + match[0].length, closeIdx).trim();
         const rawLines = blockText.split('\n').filter(l => l.trim());
         const parsed = parseTabBlock(rawLines);
-        // Extract time from header
         const timePart = match[0].match(/time:\s*(\S+)/);
         const time = timePart ? timePart[1] : null;
         parsed.time = time;
@@ -166,7 +154,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
   const handleTabEditorSave = useCallback((asciiBlock) => {
     if (tabEditState?.range) {
-      // Replace existing tab block
       const { start, end } = tabEditState.range;
       const newVal = md.substring(0, start) + asciiBlock + md.substring(end);
       onChange(newVal);
@@ -179,7 +166,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
   // ─── Metadata form ───
   const handleMetaSave = useCallback((meta) => {
-    // Parse existing frontmatter
     const fmMatch = md.match(/^---\n([\s\S]*?)\n---/);
     const body = fmMatch ? md.substring(fmMatch[0].length) : '\n' + md;
 
@@ -202,7 +188,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     setShowMetaForm(false);
   }, [md, onChange]);
 
-  // Parse current metadata for the form
   const parseMeta = () => {
     const meta = { title: '', artist: '', key: 'C', tempo: '120', time: '4/4', structure: '', ccli: '', tags: '', capo: '', spotify: '', youtube: '', notes: '' };
     const fmMatch = md.match(/^---\n([\s\S]*?)\n---/);
@@ -232,12 +217,9 @@ export default function VisualTab({ md, onChange, textareaRef }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="flex flex-col h-full">
       {/* ─── Toolbar ─── */}
-      <div ref={toolbarRef} style={{
-        display: 'flex', flexWrap: 'wrap', gap: 4, padding: '6px 0',
-        borderBottom: '1px solid var(--border)', marginBottom: 8,
-      }}>
+      <div ref={toolbarRef} className="flex flex-wrap gap-1 py-1.5 border-b border-[var(--ds-gray-300)] mb-2">
         <ToolBtn label="♪" title="Insert Chord" onClick={openChordPicker} />
         <ToolBtn label="§" title="Add Section" onClick={(e) => openPopup(setShowSectionMenu, e)} />
         <ToolBtn label="📢" title="Band Cue" onClick={(e) => openPopup(setShowCueInput, e)} />
@@ -253,17 +235,8 @@ export default function VisualTab({ md, onChange, textareaRef }) {
         value={md}
         onChange={e => onChange(e.target.value)}
         spellCheck={false}
-        style={{
-          flex: 1, width: '100%', minHeight: '50vh',
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 8, padding: 16,
-          fontSize: 13.5, lineHeight: 1.6,
-          color: 'var(--text)', resize: 'vertical',
-          outline: 'none', caretColor: 'var(--chord)',
-          boxSizing: 'border-box',
-          fontFamily: 'var(--fm)',
-        }}
+        className="flex-1 w-full min-h-[50vh] bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-lg p-4 text-copy-13 leading-relaxed text-[var(--ds-gray-1000)] resize-y outline-none font-mono"
+        style={{ caretColor: 'var(--chord)' }}
       />
 
       {/* ─── Popups ─── */}
@@ -277,9 +250,13 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
       {showSectionMenu && (
         <Popup anchor={popupAnchor} onClose={() => setShowSectionMenu(false)}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="flex flex-col gap-0.5">
             {SECTION_TYPES.map(t => (
-              <button key={t} onClick={() => handleSectionInsert(t)} style={menuItemStyle}>
+              <button
+                key={t}
+                onClick={() => handleSectionInsert(t)}
+                className="bg-transparent border-none rounded-md px-3 py-1.5 text-left cursor-pointer text-copy-13 font-medium text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-200)] transition-colors"
+              >
                 {t}
               </button>
             ))}
@@ -289,45 +266,43 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
       {showCueInput && (
         <Popup anchor={popupAnchor} onClose={() => setShowCueInput(false)}>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div className="flex gap-1.5">
             <input
               autoFocus
               value={cueText}
               onChange={e => setCueText(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleCueInsert(); }}
               placeholder="Band cue text..."
-              style={inputStyle}
+              className="flex-1 px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
             />
-            <button onClick={handleCueInsert} style={popupBtnStyle}>Insert</button>
+            <Button variant="brand" size="xs" onClick={handleCueInsert}>Insert</Button>
           </div>
         </Popup>
       )}
 
       {showNoteInput && (
         <Popup anchor={popupAnchor} onClose={() => setShowNoteInput(false)}>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div className="flex gap-1.5">
             <input
               autoFocus
               value={noteText}
               onChange={e => setNoteText(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleNoteInsert(); }}
               placeholder="Inline note..."
-              style={inputStyle}
+              className="flex-1 px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
             />
-            <button onClick={handleNoteInsert} style={popupBtnStyle}>Insert</button>
+            <Button variant="brand" size="xs" onClick={handleNoteInsert}>Insert</Button>
           </div>
         </Popup>
       )}
 
       {showModMenu && (
         <Popup anchor={popupAnchor} onClose={() => setShowModMenu(false)}>
-          <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+          <div className="flex gap-1 flex-wrap">
             {[1, 2, 3, 4, 5, 6, 7].map(n => (
-              <button key={n} onClick={() => handleModInsert(n)} style={{
-                ...popupBtnStyle, width: 36, textAlign: 'center',
-              }}>
+              <Button key={n} variant="brand" size="xs" onClick={() => handleModInsert(n)} className="w-9 text-center justify-center">
                 +{n}
-              </button>
+              </Button>
             ))}
           </div>
         </Popup>
@@ -353,15 +328,13 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 /* ─── Toolbar button ─── */
 function ToolBtn({ label, title, onClick }) {
   return (
-    <button onClick={onClick} title={title} style={{
-      background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: 7, padding: '5px 10px', cursor: 'pointer',
-      color: 'var(--text)', fontSize: 14, fontWeight: 600,
-      display: 'flex', alignItems: 'center', gap: 4,
-      whiteSpace: 'nowrap',
-    }}>
-      <span style={{ fontSize: 15 }}>{label}</span>
-      <span style={{ fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>{title}</span>
+    <button
+      onClick={onClick}
+      title={title}
+      className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-lg px-2.5 py-1.5 cursor-pointer text-[var(--ds-gray-1000)] text-[14px] font-semibold flex items-center gap-1 whitespace-nowrap hover:bg-[var(--ds-gray-200)] hover:border-[var(--ds-gray-600)] transition-colors"
+    >
+      <span className="text-[15px]">{label}</span>
+      <span className="text-label-10 text-[var(--ds-gray-600)] font-mono">{title}</span>
     </button>
   );
 }
@@ -385,18 +358,16 @@ function Popup({ anchor, onClose, children }) {
   }, [onClose]);
 
   return (
-    <div ref={ref} style={{
-      position: 'fixed',
-      top: anchor ? anchor.bottom + 4 : '50%',
-      left: anchor ? Math.min(anchor.left, window.innerWidth - 260) : '50%',
-      ...(anchor ? {} : { transform: 'translate(-50%, -50%)' }),
-      zIndex: 100,
-      background: 'var(--bg)',
-      border: '1px solid var(--border)',
-      borderRadius: 10, padding: 10,
-      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-      minWidth: 180,
-    }}>
+    <div
+      ref={ref}
+      className="fixed z-[100] bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] rounded-xl p-2.5 min-w-[180px]"
+      style={{
+        top: anchor ? anchor.bottom + 4 : '50%',
+        left: anchor ? Math.min(anchor.left, window.innerWidth - 260) : '50%',
+        ...(anchor ? {} : { transform: 'translate(-50%, -50%)' }),
+        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+      }}
+    >
       {children}
     </div>
   );
@@ -423,74 +394,35 @@ function MetadataOverlay({ meta, onSave, onClose }) {
   ];
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: 'rgba(0,0,0,0.6)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--bg)', borderRadius: 12,
-        border: '1px solid var(--border)',
-        padding: 20, width: '90%', maxWidth: 420, maxHeight: '80vh',
-        overflow: 'auto',
-      }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-bright)', marginBottom: 14 }}>
+    <div
+      className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center"
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        className="bg-[var(--ds-background-200)] rounded-xl border border-[var(--ds-gray-400)] p-5 w-[90%] max-w-[420px] max-h-[80vh] overflow-auto"
+      >
+        <div className="text-heading-16 text-[var(--ds-gray-1000)] mb-3.5">
           Song Metadata
         </div>
         {fields.map(f => (
-          <label key={f.key} style={{ display: 'block', marginBottom: 10 }}>
-            <span style={{
-              fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-              display: 'block', marginBottom: 3,
-            }}>
+          <label key={f.key} className="block mb-2.5">
+            <span className="section-title text-[10px] block mb-0.5">
               {f.label}
             </span>
             <input
               value={form[f.key]}
               onChange={e => set(f.key, e.target.value)}
               placeholder={f.placeholder}
-              style={{
-                ...inputStyle, width: '100%',
-              }}
+              className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
             />
           </label>
         ))}
-        <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{
-            ...popupBtnStyle, background: 'var(--surface)', color: 'var(--text-muted)',
-          }}>
-            Cancel
-          </button>
-          <button onClick={() => onSave(form)} style={popupBtnStyle}>
-            Apply
-          </button>
+        <div className="flex gap-2 mt-3.5 justify-end">
+          <Button variant="secondary" size="sm" onClick={onClose}>Cancel</Button>
+          <Button variant="brand" size="sm" onClick={() => onSave(form)}>Apply</Button>
         </div>
       </div>
     </div>
   );
 }
-
-/* ─── Shared styles ─── */
-const menuItemStyle = {
-  background: 'none', border: 'none', borderRadius: 6,
-  padding: '6px 12px', textAlign: 'left', cursor: 'pointer',
-  color: 'var(--text)', fontSize: 13, fontWeight: 500,
-};
-
-const inputStyle = {
-  flex: 1, background: 'var(--surface)',
-  border: '1px solid var(--border)',
-  borderRadius: 6, padding: '6px 10px',
-  color: 'var(--text)', fontSize: 13,
-  outline: 'none', fontFamily: 'var(--fm)',
-  boxSizing: 'border-box',
-};
-
-const popupBtnStyle = {
-  background: 'var(--accent-soft)',
-  border: '1px solid var(--accent-border)',
-  borderRadius: 6, padding: '6px 14px',
-  color: 'var(--accent-text)', fontSize: 12,
-  fontWeight: 600, cursor: 'pointer',
-  whiteSpace: 'nowrap',
-};

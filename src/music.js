@@ -55,23 +55,25 @@ export function semitonesBetween(fromKey, toKey) {
   return (ti - fi + 12) % 12;
 }
 
-// Section type → colors, label
+// Section type → colors, label, pre-computed bg/border
+// b = base color, d = display/text color, l = compact label
+// bg = low-opacity background, br = semi-transparent border
 const SECTION_COLORS = {
-  Intro:        { b: '#6366f1', d: '#818cf8', l: 'I' },
-  Refrain:      { b: '#8b5cf6', d: '#a78bfa', l: 'Rf' },
-  Verse:        { b: '#22c55e', d: '#4ade80', l: 'V' },
-  'Pre Chorus': { b: '#f59e0b', d: '#fbbf24', l: 'Pc' },
-  Chorus:       { b: '#ec4899', d: '#f472b6', l: 'C' },
-  Bridge:       { b: '#06b6d4', d: '#22d3ee', l: 'B' },
-  Instrumental: { b: '#eab308', d: '#facc15', l: 'It' },
-  Ending:       { b: '#f43f5e', d: '#fb7185', l: 'E' },
-  Tag:          { b: '#3b82f6', d: '#60a5fa', l: 'T' },
-  Interlude:    { b: '#a855f7', d: '#c084fc', l: 'Il' },
-  Vamp:         { b: '#d97706', d: '#fbbf24', l: 'Vm' },
-  Outro:        { b: '#ef4444', d: '#f87171', l: 'O' },
+  Intro:        { b: '#6366f1', d: '#818cf8', l: 'I',  bg: '#6366f10a', br: '#6366f188' },
+  Refrain:      { b: '#8b5cf6', d: '#a78bfa', l: 'Rf', bg: '#8b5cf60a', br: '#8b5cf688' },
+  Verse:        { b: '#22c55e', d: '#4ade80', l: 'V',  bg: '#22c55e0a', br: '#22c55e88' },
+  'Pre Chorus': { b: '#f59e0b', d: '#fbbf24', l: 'Pc', bg: '#f59e0b0a', br: '#f59e0b88' },
+  Chorus:       { b: '#ec4899', d: '#f472b6', l: 'C',  bg: '#ec48990a', br: '#ec489988' },
+  Bridge:       { b: '#06b6d4', d: '#22d3ee', l: 'B',  bg: '#06b6d40a', br: '#06b6d488' },
+  Instrumental: { b: '#eab308', d: '#facc15', l: 'It', bg: '#eab3080a', br: '#eab30888' },
+  Ending:       { b: '#f43f5e', d: '#fb7185', l: 'E',  bg: '#f43f5e0a', br: '#f43f5e88' },
+  Tag:          { b: '#3b82f6', d: '#60a5fa', l: 'T',  bg: '#3b82f60a', br: '#3b82f688' },
+  Interlude:    { b: '#a855f7', d: '#c084fc', l: 'Il', bg: '#a855f70a', br: '#a855f788' },
+  Vamp:         { b: '#d97706', d: '#fbbf24', l: 'Vm', bg: '#d977060a', br: '#d9770688' },
+  Outro:        { b: '#ef4444', d: '#f87171', l: 'O',  bg: '#ef44440a', br: '#ef444488' },
 };
 
-const DEFAULT_STYLE = { b: '#6b7280', d: '#9ca3af', l: '?' };
+const DEFAULT_STYLE = { b: '#6b7280', d: '#9ca3af', l: '?', bg: '#6b72800a', br: '#6b728088' };
 
 // Get colors for a section type (e.g. "Verse 1" → Verse colors)
 export function sectionStyle(type) {

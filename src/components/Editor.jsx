@@ -4,11 +4,15 @@ import RawTab from './editor/RawTab';
 import VisualTab from './editor/VisualTab';
 import FormTab from './editor/FormTab';
 import PreviewPanel from './editor/PreviewPanel';
+import { Button } from './ui/Button';
+import { IconButton } from './ui/IconButton';
+import { Tabs } from './ui/Tabs';
+import { Badge } from './ui/Badge';
 
-const TABS = [
-  { id: 'form', label: 'Form', disabled: false },
-  { id: 'visual', label: 'Visual', disabled: false },
-  { id: 'raw', label: 'Raw', disabled: false },
+const TAB_LIST = [
+  { id: 'form', label: 'Form' },
+  { id: 'visual', label: 'Visual' },
+  { id: 'raw', label: 'Raw' },
 ];
 
 const DEFAULT_MD = `---
@@ -34,7 +38,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
   const [preview, setPreview] = useState(null);
   const textareaRef = useRef(null);
 
-  // Media query for split-screen (using useSyncExternalStore to avoid lint issues)
+  // Media query for split-screen
   const wideMq = useRef(window.matchMedia('(min-width: 768px)'));
   const isWide = useSyncExternalStore(
     (cb) => { wideMq.current.addEventListener('change', cb); return () => wideMq.current.removeEventListener('change', cb); },
@@ -94,107 +98,69 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div className="min-h-screen bg-[var(--ds-background-200)] flex flex-col">
       {/* ─── Sticky Header ─── */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: '10px 18px 0',
-      }}>
+      <div className="material-header" style={{ padding: '10px 18px 0' }}>
         {/* Row 1: back, title, delete, save */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={onBack} style={{
-              background: 'none', border: 'none', color: 'var(--text-muted)',
-              cursor: 'pointer', fontSize: 14, fontWeight: 600,
-            }}>
-              ← Back
-            </button>
-            <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2.5">
+            <Button variant="ghost" size="xs" onClick={onBack}>← Back</Button>
+            <span className="text-heading-16 text-[var(--ds-gray-1000)]">
               {song ? 'Edit Song' : 'New Song'}
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div className="flex items-center gap-1.5">
             {song && onDelete && (
-              <button
+              <Button
+                variant="error"
+                size="xs"
                 onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }}
-                style={{
-                  background: 'var(--danger-soft)',
-                  border: '1px solid rgba(239,68,68,0.2)',
-                  borderRadius: 7, padding: '6px 12px',
-                  color: 'var(--danger)', fontSize: 12,
-                  fontWeight: 600, cursor: 'pointer',
-                }}
               >
                 Delete
-              </button>
+              </Button>
             )}
-            <button onClick={handleSave} style={{
-              background: 'var(--accent-soft)',
-              border: '1px solid var(--accent-border)',
-              borderRadius: 7, padding: '6px 16px',
-              color: 'var(--accent-text)', fontSize: 12,
-              fontWeight: 600, cursor: 'pointer',
-              opacity: preview ? 1 : 0.4,
-            }}>
+            <Button
+              variant="brand"
+              size="xs"
+              onClick={handleSave}
+              disabled={!preview}
+            >
               Save
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Row 2: tabs (left) + tools & stats (right) */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Tabs */}
-          <div style={{ display: 'flex' }}>
-            {TABS.map(t => (
-              <button
-                key={t.id}
-                onClick={() => !t.disabled && setActiveTab(t.id)}
-                disabled={t.disabled}
-                style={{
-                  background: 'none', border: 'none',
-                  borderBottom: activeTab === t.id
-                    ? '2px solid var(--accent)'
-                    : '2px solid transparent',
-                  color: t.disabled
-                    ? 'var(--text-dim)'
-                    : activeTab === t.id
-                      ? 'var(--text)'
-                      : 'var(--text-muted)',
-                  padding: '8px 14px', fontSize: 12, fontWeight: 600,
-                  cursor: t.disabled ? 'not-allowed' : 'pointer',
-                  opacity: t.disabled ? 0.4 : 1,
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center justify-between">
+          <Tabs tabs={TAB_LIST} activeTab={activeTab} onTabChange={setActiveTab} />
 
-          {/* Tools & stats */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, paddingBottom: 4 }}>
-            {isWide && <span style={statPillStyle}>{charCount} chars</span>}
-            {isWide && <span style={statPillStyle}>{sectionCount} {sectionCount === 1 ? 'section' : 'sections'}</span>}
+          <div className="flex items-center gap-1 pb-1">
+            {isWide && (
+              <Badge variant="secondary" className="text-label-10-mono">
+                {charCount} chars
+              </Badge>
+            )}
+            {isWide && (
+              <Badge variant="secondary" className="text-label-10-mono">
+                {sectionCount} {sectionCount === 1 ? 'section' : 'sections'}
+              </Badge>
+            )}
 
-            <button onClick={handleUndo} title="Undo" style={iconBtnStyle}>↶</button>
-            <button onClick={handleRedo} title="Redo" style={iconBtnStyle}>↷</button>
-            <button onClick={handleImport} title="Import from clipboard" style={iconBtnStyle}>📋</button>
+            <IconButton variant="ghost" size="xs" onClick={handleUndo} aria-label="Undo">↶</IconButton>
+            <IconButton variant="ghost" size="xs" onClick={handleRedo} aria-label="Redo">↷</IconButton>
+            <IconButton variant="ghost" size="xs" onClick={handleImport} aria-label="Import from clipboard">📋</IconButton>
 
             {/* Preview toggle (narrow only) */}
             {!isWide && (
-              <button
+              <IconButton
+                variant={showPreview ? 'active' : 'ghost'}
+                size="xs"
                 onClick={() => setShowPreview(v => !v)}
-                title={showPreview ? 'Show editor' : 'Show preview'}
-                style={{
-                  ...iconBtnStyle,
-                  background: showPreview ? 'var(--accent-soft)' : 'transparent',
-                  color: showPreview ? 'var(--accent-text)' : 'var(--text-muted)',
-                }}
+                aria-label={showPreview ? 'Show editor' : 'Show preview'}
               >
                 {showPreview ? '✎' : '👁'}
-              </button>
+              </IconButton>
             )}
           </div>
         </div>
@@ -203,21 +169,17 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
       {/* ─── Content Area ─── */}
       {isWide ? (
         /* Split-screen on wide viewports */
-        <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-          <div style={{ flex: 1, overflow: 'auto', padding: 18 }}>
+        <div className="flex flex-1 min-h-0">
+          <div className="flex-1 overflow-auto p-[18px]">
             {renderTab()}
           </div>
-          <div style={{
-            flex: 1, overflow: 'auto',
-            borderLeft: '1px solid var(--border)',
-            background: 'var(--bg)',
-          }}>
+          <div className="flex-1 overflow-auto border-l border-[var(--ds-gray-300)] bg-[var(--ds-background-200)]">
             <PreviewPanel preview={preview} />
           </div>
         </div>
       ) : (
         /* Toggle on narrow viewports */
-        <div style={{ flex: 1, padding: 18 }}>
+        <div className="flex-1 p-[18px]">
           {showPreview
             ? <PreviewPanel preview={preview} />
             : renderTab()
@@ -227,23 +189,3 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
     </div>
   );
 }
-
-/* ─── Shared button styles ─── */
-
-const iconBtnStyle = {
-  background: 'none', border: 'none',
-  color: 'var(--text-muted)', cursor: 'pointer',
-  fontSize: 16, padding: '4px 6px', borderRadius: 6,
-  lineHeight: 1,
-};
-
-const statPillStyle = {
-  fontSize: 10.5, fontWeight: 600,
-  color: 'var(--text-dim)',
-  fontFamily: 'var(--fm)',
-  padding: '3px 8px',
-  borderRadius: 10,
-  background: 'var(--surface)',
-  border: '1px solid var(--border)',
-  whiteSpace: 'nowrap',
-};
