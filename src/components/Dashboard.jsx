@@ -1,13 +1,24 @@
-import { useState, useMemo } from 'react';
-import { sectionStyle } from '../music';
+import React, { useState, useMemo } from 'react';
+import {
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Modal,
+  ModalBackdrop,
+  ModalContainer,
+  ModalDialog,
+  ModalHeader,
+  ModalBody,
+  Dropdown,
+  DropdownTrigger,
+  DropdownPopover,
+  DropdownMenu,
+  DropdownItem,
+  Chip
+} from "@heroui/react";
 import PageHeader from './PageHeader';
 import SearchIcon from './SearchIcon';
-
-const btnStyle = {
-  border: 'none', borderRadius: 7, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: 5,
-  fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
-};
 
 export default function Dashboard({
   songs, setlists,
@@ -15,9 +26,8 @@ export default function Dashboard({
   onNewSetlist, onViewSetlist, onPlaySetlist,
   onGoLibrary, onGoSetlists,
 }) {
-  const [showSearch, setShowSearch] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [fabOpen, setFabOpen] = useState(false);
 
   const recentSongs = useMemo(() => {
     return [...songs]
@@ -33,7 +43,6 @@ export default function Dashboard({
       .slice(0, 3);
   }, [setlists]);
 
-  // Search results
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return { songs: [], setlists: [] };
     const q = searchQuery.toLowerCase();
@@ -50,388 +59,204 @@ export default function Dashboard({
     };
   }, [songs, setlists, searchQuery]);
 
-  const closeSearch = () => {
-    setShowSearch(false);
-    setSearchQuery('');
-  };
-
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-background pb-24 text-foreground">
       <PageHeader title="Setlists MD">
-        <button onClick={() => setShowSearch(true)} style={{
-          ...btnStyle, background: 'var(--surface)',
-          border: '1px solid var(--border)', color: 'var(--text-muted)',
-          padding: '7px 12px', fontSize: 13, borderRadius: 8, gap: 6,
-        }}>
-          <SearchIcon size={14} /> Search
-        </button>
+        <Button
+          onPress={() => setIsSearchOpen(true)}
+          variant="flat"
+          className="bg-default-100 text-default-500 font-medium rounded-full h-8 px-3"
+          aria-label="Open Search"
+        >
+          <div className="flex items-center gap-2 pointer-events-none">
+            <SearchIcon size={18} />
+            <span>Search</span>
+          </div>
+        </Button>
       </PageHeader>
 
-      <div style={{ padding: '0 24px 80px' }}>
-        {/* Upcoming Setlists */}
+      <div className="px-6 space-y-8 mt-4">
         {upcomingSetlists.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
-            <div style={{
-              fontSize: 16, fontWeight: 700, color: 'var(--text-dim)',
-              marginBottom: 6, padding: '0 2px',
-            }}>
+          <section>
+            <h2 className="text-sm font-semibold text-default-400 uppercase tracking-wider mb-3 px-1">
               Upcoming
-            </div>
-            <div style={{
-              border: '1px solid var(--border)',
-              borderRadius: 10, overflow: 'hidden',
-            }}>
-              {upcomingSetlists.map((sl, i) => {
-                const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-                  weekday: 'short', month: 'short', day: 'numeric',
-                });
-                return (
-                  <div key={sl.id} onClick={() => onViewSetlist(sl)} style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 16px',
-                    borderBottom: i < upcomingSetlists.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer', background: 'var(--card)',
-                  }}>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{
-                        fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {sl.name || 'Untitled'}
-                      </div>
-                      <div style={{
-                        fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-                        display: 'flex', alignItems: 'center', gap: 6,
-                      }}>
-                        <span>{dateStr}</span>
-                        {sl.service && (
-                          <>
-                            <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                            <span>{sl.service}</span>
-                          </>
-                        )}
-                        <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                        <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>
-                          {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
-                        </span>
+            </h2>
+            <Card className="bg-content1 border-none shadow-sm">
+              <CardContent className="p-2 space-y-1">
+                {upcomingSetlists.map((sl) => (
+                  <div
+                    key={sl.id}
+                    onClick={() => onViewSetlist(sl)}
+                    className="px-4 py-3 border-b border-divider last:border-none cursor-pointer hover:bg-default-50 rounded-lg flex items-center justify-between gap-4"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-base font-semibold truncate">{sl.name || 'Untitled'}</div>
+                      <div className="flex items-center gap-1 mt-1 text-xs text-default-400">
+                        <span>{new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                        {sl.service && <span>&middot; {sl.service}</span>}
+                        <span>&middot; {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}</span>
                       </div>
                     </div>
-                    <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-                      ...btnStyle, background: 'var(--accent-soft)',
-                      border: '1px solid var(--accent-border)',
-                      color: 'var(--accent-text)', padding: '6px 14px',
-                      flexShrink: 0, marginLeft: 12,
-                    }}>
+                    <div className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-xs font-bold">
                       Live
-                    </button>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
         )}
 
-        {/* Recent Songs */}
         {recentSongs.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
-            <div style={{
-              fontSize: 16, fontWeight: 700, color: 'var(--text-dim)',
-              marginBottom: 6, padding: '0 2px',
-            }}>
+          <section>
+            <h2 className="text-sm font-semibold text-default-400 uppercase tracking-wider mb-3 px-1">
               Recent
-            </div>
-            <div style={{
-              border: '1px solid var(--border)',
-              borderRadius: 10, overflow: 'hidden',
-            }}>
-              {recentSongs.map((song, i) => (
-                <div
-                  key={song.id}
-                  onClick={() => onSelectSong(song)}
-                  role="button"
-                  tabIndex={0}
-                  style={{
-                    display: 'flex', alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 16px',
-                    borderBottom: i < recentSongs.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer', background: 'var(--card)',
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {song.title}
-                    </div>
-                    <div style={{
-                      fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-                      display: 'flex', alignItems: 'center', gap: 6,
-                    }}>
+            </h2>
+            <Card className="bg-content1 border-none shadow-sm">
+              <CardContent className="p-2 space-y-1">
+                {recentSongs.map((song) => (
+                  <div
+                    key={song.id}
+                    onClick={() => onSelectSong(song)}
+                    className="px-4 py-3 border-b border-divider last:border-none cursor-pointer hover:bg-default-50 rounded-lg flex flex-col"
+                  >
+                    <div className="text-base font-semibold truncate">{song.title}</div>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-default-400">
                       <span>{song.artist}</span>
-                      <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                      <span style={{ fontFamily: 'var(--fm)', fontSize: 11, fontWeight: 600, color: 'var(--chord)' }}>
+                      <Chip size="sm" variant="dot" color="warning" classNames={{ content: "font-mono font-bold text-warning" }}>
                         {song.key}
-                      </span>
-                      {song.tempo && (
-                        <>
-                          <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                          <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>{song.tempo} bpm</span>
-                        </>
-                      )}
+                      </Chip>
+                      {song.tempo && <span className="text-xs opacity-70 font-mono">{song.tempo} bpm</span>}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
         )}
 
-        {/* Navigation */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 8,
-        }}>
-          <button onClick={onGoLibrary} style={{
-            ...btnStyle,
-            padding: '16px',
-            borderRadius: 12,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            color: 'var(--text)',
-            fontSize: 14,
-            justifyContent: 'center',
-          }}>
-            Full Library
-          </button>
-          <button onClick={onGoSetlists} style={{
-            ...btnStyle,
-            padding: '16px',
-            borderRadius: 12,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            color: 'var(--text)',
-            fontSize: 14,
-            justifyContent: 'center',
-          }}>
-            All Setlists
-          </button>
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            onPress={onGoLibrary}
+            className="h-16 text-md font-semibold bg-content2"
+            radius="xl"
+          >
+            Library
+          </Button>
+          <Button
+            onPress={onGoSetlists}
+            className="h-16 text-md font-semibold bg-content2"
+            radius="xl"
+          >
+            Setlists
+          </Button>
         </div>
       </div>
 
-      {/* FAB */}
-      {fabOpen && (
-        <div
-          onClick={() => setFabOpen(false)}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 89,
-          }}
-        />
-      )}
-      <div style={{
-        position: 'fixed', bottom: 80, right: 20,
-        display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-        gap: 8, zIndex: 90,
-      }}>
-        {fabOpen && (
-          <>
-            <button onClick={() => { setFabOpen(false); onNewSong(); }} style={{
-              ...btnStyle,
-              padding: '10px 18px',
-              borderRadius: 24,
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              fontSize: 13,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+      <div className="fixed bottom-24 right-6 z-50">
+        <Dropdown>
+          <DropdownTrigger
+            radius="full"
+            className="w-14 h-14 bg-primary text-primary-foreground shadow-lg shadow-primary/40 min-w-0 p-0 flex items-center justify-center"
+            aria-label="Add New"
+          >
+            <span className="text-3xl font-light pointer-events-none">+</span>
+          </DropdownTrigger>
+          <DropdownPopover>
+            <DropdownMenu aria-label="Action Menu" onAction={(key) => {
+              if (key === 'new-song') onNewSong();
+              if (key === 'new-setlist') onNewSetlist();
             }}>
-              New Song
-            </button>
-            <button onClick={() => { setFabOpen(false); onNewSetlist(); }} style={{
-              ...btnStyle,
-              padding: '10px 18px',
-              borderRadius: 24,
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              fontSize: 13,
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
-              New Setlist
-            </button>
-          </>
-        )}
-        <button
-          onClick={() => setFabOpen(prev => !prev)}
-          style={{
-            width: 56, height: 56, borderRadius: 28,
-            background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-            border: 'none', color: '#fff',
-            fontSize: 28, fontWeight: 300, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
-            transition: 'transform 0.2s',
-            transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-          }}
-        >
-          +
-        </button>
+              <DropdownItem key="new-song">New Song</DropdownItem>
+              <DropdownItem key="new-setlist">New Setlist</DropdownItem>
+            </DropdownMenu>
+          </DropdownPopover>
+        </Dropdown>
       </div>
 
-      {/* Search Overlay */}
-      {showSearch && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 200,
-          background: 'var(--bg)',
-          display: 'flex', flexDirection: 'column',
-        }}>
-          <div style={{
-            padding: '16px 20px', display: 'flex', gap: 10, alignItems: 'center',
-            borderBottom: '1px solid var(--border)',
-          }}>
-            <button onClick={closeSearch} style={{
-              background: 'none', border: 'none', color: 'var(--text-muted)',
-              cursor: 'pointer', padding: 4, fontSize: 18,
-              display: 'flex', alignItems: 'center',
-            }}>
-              &#8592;
-            </button>
-            <input
-              autoFocus
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search songs, setlists..."
-              style={{
-                flex: 1, padding: '10px 14px',
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 10, color: 'var(--text)',
-                fontSize: 15, outline: 'none',
-                fontFamily: 'var(--fb)', boxSizing: 'border-box',
-              }}
-            />
-          </div>
+      <Modal isOpen={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <ModalBackdrop />
+        <ModalContainer size="full" className="m-0 p-0">
+          <ModalDialog className="rounded-none h-screen max-h-screen bg-background border-none shadow-none">
+            {({ onClose }) => (
+              <>
+                <ModalHeader className="flex gap-3 px-4 py-4 border-b border-divider items-center">
+                  <Button isIconOnly variant="light" onPress={onClose} aria-label="Close search">
+                    <span className="text-xl text-foreground">←</span>
+                  </Button>
+                  <Input
+                    autoFocus
+                    placeholder="Search songs, setlists..."
+                    variant="flat"
+                    isClearable
+                    value={searchQuery}
+                    onValueChange={setSearchQuery}
+                    className="flex-1"
+                    size="lg"
+                    aria-label="Search query"
+                  />
+                </ModalHeader>
+                <ModalBody className="px-4 py-2 overflow-auto">
+                  {!searchQuery.trim() && (
+                    <div className="text-center py-12 text-default-400 text-sm">
+                      Search across all songs and setlists
+                    </div>
+                  )}
 
-          <div style={{ flex: 1, overflow: 'auto', padding: '12px 20px' }}>
-            {!searchQuery.trim() && (
-              <div style={{
-                textAlign: 'center', padding: '48px 20px',
-                color: 'var(--text-dim)', fontSize: 14,
-              }}>
-                Search across all songs and setlists
-              </div>
-            )}
+                  {searchQuery.trim() && searchResults.songs.length === 0 && searchResults.setlists.length === 0 && (
+                    <div className="text-center py-12 text-default-400 text-sm">
+                      No results found
+                    </div>
+                  )}
 
-            {searchQuery.trim() && searchResults.songs.length === 0 && searchResults.setlists.length === 0 && (
-              <div style={{
-                textAlign: 'center', padding: '48px 20px',
-                color: 'var(--text-dim)', fontSize: 14,
-              }}>
-                No results found
-              </div>
-            )}
-
-            {searchResults.songs.length > 0 && (
-              <div style={{ marginBottom: 20 }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-                      fontFamily: 'var(--fm)', marginBottom: 8,
-                }}>
-                  Songs
-                </div>
-                {searchResults.songs.map(song => {
-                  const s = song.sections?.length
-                    ? sectionStyle(song.sections[0].type)
-                    : { b: '#6b7280', d: '#9ca3af' };
-                  return (
-                    <div
-                      key={song.id}
-                      onClick={() => { closeSearch(); onSelectSong(song); }}
-                      role="button"
-                      tabIndex={0}
-                      style={{
-                        display: 'flex', alignItems: 'center',
-                        gap: 12, padding: '10px 12px', marginBottom: 4,
-                        borderRadius: 10, background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{
-                        width: 34, height: 34, borderRadius: 7, flexShrink: 0,
-                        background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                        border: `1px solid ${s.b}44`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700, color: s.d,
-                      }}>
-                        {song.key}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{
-                          fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        }}>
-                          {song.title}
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                          {song.artist}
-                        </div>
+                  {searchResults.songs.length > 0 && (
+                    <div className="mb-6">
+                      <p className="text-xs font-bold text-default-400 uppercase tracking-widest mb-3 px-2">Songs</p>
+                      <div className="space-y-1">
+                        {searchResults.songs.map((song) => (
+                          <div
+                            key={song.id}
+                            onClick={() => { onClose(); onSelectSong(song); }}
+                            className="py-3 px-2 hover:bg-default-50 rounded-lg cursor-pointer flex items-center gap-3"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-default-100 flex items-center justify-center font-bold text-warning font-mono">
+                              {song.key}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold truncate">{song.title}</div>
+                              <div className="text-xs text-default-400 truncate">{song.artist}</div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  )}
 
-            {searchResults.setlists.length > 0 && (
-              <div>
-                <div style={{
-                  fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-                      fontFamily: 'var(--fm)', marginBottom: 8,
-                }}>
-                  Setlists
-                </div>
-                {searchResults.setlists.map(sl => {
-                  const dateStr = new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {
-                    weekday: 'short', month: 'short', day: 'numeric',
-                  });
-                  return (
-                    <div
-                      key={sl.id}
-                      onClick={() => { closeSearch(); onViewSetlist(sl); }}
-                      role="button"
-                      tabIndex={0}
-                      style={{
-                        display: 'flex', alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 12px', marginBottom: 4,
-                        borderRadius: 10, background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{
-                          fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        }}>
-                          {sl.name || 'Untitled'}
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                          {dateStr}{sl.service ? ` \u00B7 ${sl.service}` : ''} · {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}
-                        </div>
+                  {searchResults.setlists.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-default-400 uppercase tracking-widest mb-3 px-2">Setlists</p>
+                      <div className="space-y-1">
+                        {searchResults.setlists.map((sl) => (
+                          <div
+                            key={sl.id}
+                            onClick={() => { onClose(); onViewSetlist(sl); }}
+                            className="py-3 px-2 hover:bg-default-50 rounded-lg cursor-pointer"
+                          >
+                            <div className="font-bold truncate">{sl.name || 'Untitled'}</div>
+                            <div className="text-xs text-default-400 truncate">
+                              {`${new Date(sl.date + 'T12:00:00').toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'})} ${sl.service ? ' \u00B7 ' + sl.service : ''} \u00B7 ${sl.items?.length || 0} song${(sl.items?.length || 0) !== 1 ? 's' : ''}`}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  )}
+                </ModalBody>
+              </>
             )}
-          </div>
-        </div>
-      )}
+          </ModalDialog>
+        </ModalContainer>
+      </Modal>
     </div>
   );
 }

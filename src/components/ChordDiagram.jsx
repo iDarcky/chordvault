@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Card } from "@heroui/react";
 import { SVGuitarChord } from 'svguitar';
 import { CHORD_SHAPES } from '../data/chordShapes';
 
@@ -10,7 +11,6 @@ export default function ChordDiagram({ chord, size = 80 }) {
     const shape = CHORD_SHAPES[chord];
     if (!shape) return;
 
-    // Clear previous render
     containerRef.current.innerHTML = '';
 
     try {
@@ -24,14 +24,14 @@ export default function ChordDiagram({ chord, size = 80 }) {
           title: chord,
           titleFontSize: 28,
           titleBottomMargin: 8,
-          color: '#666',
+          color: '#888',
           emptyStringIndicatorSize: 0.5,
-          strokeWidth: 1,
-          nutWidth: 4,
+          strokeWidth: 1.5,
+          nutWidth: 6,
           fretLabelFontSize: 20,
-          fingerSize: 0.6,
+          fingerSize: 0.7,
           backgroundColor: 'transparent',
-          fontFamily: 'var(--fm, monospace)',
+          fontFamily: 'var(--font-mono)',
         })
         .chord({
           fingers: shape.fingers,
@@ -39,7 +39,6 @@ export default function ChordDiagram({ chord, size = 80 }) {
         })
         .draw();
 
-      // Post-process SVG to inject CSS variable colors
       const svg = containerRef.current.querySelector('svg');
       if (svg) {
         svg.querySelectorAll('circle[fill]').forEach(el => {
@@ -52,21 +51,20 @@ export default function ChordDiagram({ chord, size = 80 }) {
         });
         svg.querySelectorAll('line, path, rect').forEach(el => {
           if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
-            el.setAttribute('stroke', 'var(--border)');
+            el.setAttribute('stroke', 'var(--divider)');
           }
           if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none' && el.tagName !== 'circle') {
             el.setAttribute('fill', 'var(--text-dim)');
           }
         });
-        // Title text brighter
         const titleEl = svg.querySelector('text');
-        if (titleEl) titleEl.setAttribute('fill', 'var(--text-bright)');
-        // Set SVG dimensions
+        if (titleEl) titleEl.setAttribute('fill', 'var(--foreground)');
+
         svg.setAttribute('width', size);
         svg.setAttribute('height', size + 16);
       }
     } catch {
-      // Silently fail for unsupported chords
+      // Silently fail
     }
 
     const container = containerRef.current;
@@ -79,18 +77,12 @@ export default function ChordDiagram({ chord, size = 80 }) {
   if (!shape) return null;
 
   return (
-    <div
+    <Card
       ref={containerRef}
       title={chord}
-      style={{
-        width: size, height: size + 16,
-        display: 'inline-flex', flexShrink: 0,
-        alignItems: 'center', justifyContent: 'center',
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 8,
-        padding: 2,
-      }}
+      shadow="none"
+      className="bg-content2/40 border border-divider rounded-xl p-1 inline-flex flex-shrink-0 items-center justify-center overflow-hidden"
+      style={{ width: size, height: size + 16 }}
     />
   );
 }

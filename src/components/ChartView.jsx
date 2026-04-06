@@ -1,4 +1,17 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import {
+  Button,
+  Select,
+  ListBoxItem,
+  ButtonGroup,
+  ScrollShadow,
+  Card,
+  CardContent,
+  Separator,
+  Popover,
+  PopoverTrigger,
+  PopoverContent
+} from "@heroui/react";
 import { transposeKey, transposeChord, ALL_KEYS, semitonesBetween } from '../music';
 import SectionBlock from './SectionBlock';
 import { StructureRibbon, MetaPill } from './StructureRibbon';
@@ -12,7 +25,6 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   const [cols, setCols] = useState(defaultColumns || 'auto');
   const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
   const [showDiagrams, setShowDiagrams] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef(null);
 
@@ -20,7 +32,6 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
   const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
   const currentKey = transposeKey(song.key, transpose);
 
-    // Track scroll to collapse header
   useEffect(() => {
     if (compact) return;
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -28,7 +39,6 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     return () => window.removeEventListener('scroll', onScroll);
   }, [compact]);
  
-  // Pre-compute cumulative modulate offsets per section
   const sectionModOffsets = useMemo(() => {
     const offsets = [];
     const acc = { total: 0 };
@@ -43,7 +53,6 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     return offsets;
   }, [song.sections]);
 
-  // Compute which sections are collapsed (duplicate type, 1st-only mode)
   const collapsedSections = useMemo(() => {
     if (duplicateSections !== 'first') return [];
     const seen = new Set();
@@ -55,7 +64,6 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     });
   }, [song.sections, duplicateSections]);
 
-  // Collect unique chord names from all sections (transposed)
   const uniqueChords = useMemo(() => {
     if (!showDiagrams) return [];
     const seen = new Set();
@@ -85,210 +93,173 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
     ? Math.ceil(song.sections.length / 2)
     : song.sections.length;
 
-  const btnStyle = {
-    height: 32, borderRadius: 8,
-    border: '1px solid var(--border)',
-    background: 'var(--surface)', color: 'var(--text)',
-    fontSize: 13, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: 'var(--fb)', fontWeight: 500,
-    padding: '0 10px',
-  };
-
-  const toggleStyle = (active) => ({
-    ...btnStyle,
-    borderColor: active ? 'var(--accent)' : 'var(--border)',
-    color: active ? 'var(--accent-text)' : 'var(--text-muted)',
-    background: active ? 'var(--accent-soft)' : 'var(--surface)',
-  });
-
   const handleKeyChange = (newKey) => {
     const semitones = semitonesBetween(song.key, newKey);
     setLocalTranspose(semitones);
   };
 
   return (
-    <div style={{ minHeight: compact ? 'auto' : '100vh', background: 'var(--bg)', paddingTop: compact ? 0 : 'env(safe-area-inset-top, 0px)' }}>
-      {/* Sticky header */}
-      <div ref={headerRef} style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: compact ? '10px 18px 6px' : '12px 18px 8px',
-        paddingTop: compact ? 10 : `calc(12px + env(safe-area-inset-top, 0px))`,
-        transition: 'padding 0.15s ease',
-      }}>
-        {/* Title row */}
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+    <div className="min-h-screen bg-background">
+      <header
+        ref={headerRef}
+        className={`sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-divider transition-all ${compact ? 'px-4 py-2' : scrolled ? 'px-4 py-2' : 'px-6 pt-6 pb-3'}`}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             {!compact && (
-              <button onClick={onBack} style={{
-                background: 'none', border: 'none', color: 'var(--text-muted)',
-                cursor: 'pointer', padding: '4px 0', fontSize: 18, flexShrink: 0,
-                display: 'flex', alignItems: 'center',
-              }}>
-                &#8592;
-              </button>
+              <Button isIconOnly variant="light" size="sm" onPress={onBack} className="text-default-500">
+                <span className="text-xl">←</span>
+              </Button>
             )}
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{
-                margin: 0, fontSize: compact ? 18 : (scrolled ? 16 : 20), fontWeight: 700,
-                color: 'var(--text-bright)', letterSpacing: '-0.02em',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                transition: 'font-size 0.15s ease',
-              }}>
+            <div className="min-w-0">
+              <h1 className={`font-bold tracking-tight text-foreground truncate transition-all ${compact ? 'text-lg' : scrolled ? 'text-md' : 'text-xl'}`}>
                 {song.title}
               </h1>
               {!compact && !scrolled && (
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
-                  {song.artist}
-                  {song.tempo ? ` · ${song.tempo} bpm` : ''}
-                  {song.time ? ` · ${song.time}` : ''}
-                  {song.ccli ? ` · CCLI ${song.ccli}` : ''}
+                <div className="text-[11px] text-default-400 mt-0.5 truncate uppercase font-semibold tracking-wider">
+                  {song.artist}{song.tempo ? ` · ${song.tempo} bpm` : ''}{song.time ? ` · ${song.time}` : ''}
                 </div>
               )}
             </div>
           </div>
+
           {!compact && (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-              {/* Key selector */}
-              <select
-                value={currentKey}
-                onChange={e => handleKeyChange(e.target.value)}
-                style={{
-                  ...btnStyle,
-                  fontFamily: 'var(--fm)', fontWeight: 700, fontSize: 13,
-                  color: transpose !== 0 ? 'var(--chord)' : 'var(--text)',
-                  appearance: 'none', WebkitAppearance: 'none',
-                  padding: '0 24px 0 10px',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 8px center',
+            <div className="flex gap-1 items-center flex-shrink-0">
+              <Select
+                size="sm"
+                selectedKeys={[currentKey]}
+                onSelectionChange={(keys) => handleKeyChange(Array.from(keys)[0])}
+                className="w-24"
+                disallowEmptySelection
+                variant="flat"
+                classNames={{
+                  trigger: "h-8 bg-default-100 min-h-unit-8",
+                  value: `font-mono font-bold text-xs ${transpose !== 0 ? 'text-warning' : ''}`
                 }}
+                renderValue={(items) => items.map(item => (
+                  <span key={item.key}>{item.key}</span>
+                ))}
               >
                 {ALL_KEYS.map(k => (
-                  <option key={k} value={k}>{k}{k === song.key ? ' (original)' : ''}</option>
+                  <ListBoxItem key={k} value={k} textValue={k} className="font-mono">
+                    {k}{k === song.key ? ' (orig)' : ''}
+                  </ListBoxItem>
                 ))}
-              </select>
+              </Select>
 
-              <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
-                Diagrams
-              </button>
- 
-              {!scrolled && onEdit && (
-                <button onClick={onEdit} style={btnStyle}>
-                  Edit
-                </button>
-              )}
-              {!scrolled && (
-                <button
-                  onClick={() => setShowSettings(v => !v)}
-                  style={{
-                    ...btnStyle,
-                    fontFamily: 'var(--fb)',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    borderColor: showSettings ? 'var(--accent)' : 'var(--border)',
-                    color: showSettings ? 'var(--accent-text)' : 'var(--text)',
-                    background: showSettings ? 'var(--accent-soft)' : 'var(--surface)',
-                  }}
-                >
-                  Aa
-                </button>
-              )}
+              <Button
+                size="sm"
+                variant={showDiagrams ? "flat" : "light"}
+                color={showDiagrams ? "primary" : "default"}
+                onPress={() => setShowDiagrams(!showDiagrams)}
+                className="h-8 min-w-unit-8 px-2 font-bold text-xs"
+              >
+                Chords
+              </Button>
+
+              <Popover placement="bottom-end" backdrop="blur">
+                <PopoverTrigger>
+                  <Button isIconOnly size="sm" variant="light" className="h-8 w-8 text-lg font-serif">Aa</Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <div className="px-1 py-2 w-64 space-y-4">
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-default-400 uppercase tracking-widest px-1">Layout</span>
+                      <ButtonGroup size="sm" variant="flat" fullWidth>
+                        <Button
+                          className={cols === 'auto' ? "bg-primary text-primary-foreground font-bold" : ""}
+                          onPress={() => setCols('auto')}
+                        >Auto</Button>
+                        <Button
+                          className={cols === 1 ? "bg-primary text-primary-foreground font-bold" : ""}
+                          onPress={() => setCols(1)}
+                        >1 col</Button>
+                        <Button
+                          className={cols === 2 ? "bg-primary text-primary-foreground font-bold" : ""}
+                          onPress={() => setCols(2)}
+                        >2 col</Button>
+                      </ButtonGroup>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                      <span className="text-xs font-bold text-default-400 uppercase tracking-widest px-1">Size</span>
+                      <ButtonGroup size="sm" variant="flat" fullWidth>
+                        {[{ l: 'S', v: 0.88 }, { l: 'M', v: 1 }, { l: 'L', v: 1.14 }].map(({ l, v }) => (
+                          <Button
+                            key={l}
+                            className={size === v ? "bg-primary text-primary-foreground font-bold" : ""}
+                            onPress={() => setSize(v)}
+                          >{l}</Button>
+                        ))}
+                      </ButtonGroup>
+                    </div>
+                    {onEdit && (
+                      <>
+                        <Separator />
+                        <Button size="sm" variant="flat" fullWidth onPress={onEdit} className="font-bold">Edit Song</Button>
+                      </>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           )}
           {compact && navOverride && <div>{navOverride}</div>}
         </div>
          
-        <StructureRibbon structure={song.structure || []} compact />
+        <div className="mt-2">
+          <StructureRibbon structure={song.structure || []} compact />
+        </div>
 
-        {/* Capo indicator — visible when not scrolled */}
         {!compact && !scrolled && capo > 0 && (
-          <div style={{ paddingBottom: 4 }}>
+          <div className="mt-2">
             <MetaPill label="Capo" value={`${capo} → ${transposeKey(song.key, chordTranspose)} shapes`} highlight />
           </div>
         )}
 
-        {/* Nav override for non-compact (not in title row) */}
         {!compact && navOverride && !scrolled && (
-          <div style={{ paddingBottom: 4 }}>
+          <div className="mt-2">
             {navOverride}
           </div>
         )}
 
-        {/* Aa settings popover */}
-        {showSettings && !compact && !scrolled && (
-          <div style={{
-            padding: '10px 0 6px',
-            borderTop: '1px solid var(--border)',
-            display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Layout</span>
-              <button onClick={() => setCols('auto')} style={toggleStyle(cols === 'auto')}>Auto</button>
-              {[1, 2].map(n => (
-                <button key={n} onClick={() => setCols(n)} style={toggleStyle(cols === n)}>
-                  {n}col
-                </button>
-              ))}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Size</span>
-              {[{ l: 'S', v: 0.88 }, { l: 'M', v: 1 }, { l: 'L', v: 1.14 }].map(({ l, v }) => (
-                <button key={l} onClick={() => setSize(v)} style={toggleStyle(size === v)}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Chord diagram strip */}
         {showDiagrams && uniqueChords.length > 0 && (
-          <div style={{
-            display: 'flex', gap: 8, flexWrap: 'nowrap',
-            paddingTop: 8, paddingBottom: 4,
-            borderTop: '1px solid var(--border)',
-            marginTop: 4,
-            overflowX: 'auto',
-          }}>
+          <ScrollShadow orientation="horizontal" className="flex gap-4 py-2 mt-2 border-t border-divider hide-scrollbar">
             {uniqueChords.map(chord => (
-                <ChordDiagram key={chord} chord={chord} size={80} />
+              <div key={chord} className="bg-content2/50 rounded-lg p-1 border border-divider">
+                <ChordDiagram chord={chord} size={70} />
+                <div className="text-[10px] font-mono font-bold text-center mt-0.5 text-warning">{chord}</div>
+              </div>
             ))}
-          </div>
+          </ScrollShadow>
         )}
-      </div>
+      </header>
 
-      {/* Chart body */}
-      <div
-        className={cols === 'auto' ? 'chart-auto-cols' : undefined}
+      <main
+        className={`p-6 ${cols === 'auto' ? 'chart-auto-cols' : ''}`}
         style={{
           ...(cols !== 'auto' && {
             display: isExplicit2Col ? 'grid' : 'block',
             gridTemplateColumns: isExplicit2Col ? '1fr 1fr' : '1fr',
           }),
-          gap: 10, padding: '14px 16px 50px',
+          gap: 20,
           transform: `scale(${size})`, transformOrigin: 'top left',
           width: size !== 1 ? `${100 / size}%` : '100%',
         }}
       >
-        <div>
+        <div className="space-y-6">
           {song.sections.slice(0, mid).map((sec, i) => (
             <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[i]} />
           ))}
         </div>
         {(isExplicit2Col || cols === 'auto') && (
-          <div>
+          <div className="space-y-6">
             {song.sections.slice(mid).map((sec, i) => (
               <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[mid + i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[mid + i]} />
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

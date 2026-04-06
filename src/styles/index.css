@@ -1,4 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-primary: var(--accent);
+  --color-danger: var(--danger);
+
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
 
 :root {
   --bg: #0b0b0f;
@@ -55,21 +66,12 @@ body {
 
 html { scroll-behavior: smooth; }
 
-button { min-height: 36px; font-family: var(--fb); }
-input { font-family: var(--fb); }
-textarea { font-family: var(--fm); }
-
 /* Scrollbar styling for the song strip in live mode */
 .hide-scrollbar { scrollbar-width: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 
 @supports (-webkit-touch-callout: none) {
   body { min-height: -webkit-fill-available; }
-}
-
-/* Responsive: phone — larger touch targets, horizontal scroll ribbon */
-@media (max-width: 639px) {
-  button { min-height: 44px; }
 }
 
 /* Auto column layout for chart body */

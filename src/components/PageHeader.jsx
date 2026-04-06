@@ -1,20 +1,16 @@
+import React from 'react';
+
 export default function PageHeader({ title, children }) {
   return (
-    <div style={{
-      padding: '20px 24px 12px',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    }}>
-      <h1 style={{
-        margin: 0, fontSize: 20, fontWeight: 700,
-        color: 'var(--text-bright)', letterSpacing: '-0.02em',
-      }}>
+    <header className="px-6 pt-6 pb-3 flex items-center justify-between sticky top-0 z-40 bg-background/80 backdrop-blur-md">
+      <h1 className="text-xl font-bold tracking-tight text-foreground">
         {title}
       </h1>
       {children && (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div className="flex gap-2 items-center">
           {children}
         </div>
       )}
-    </div>
+    </header>
   );
 }

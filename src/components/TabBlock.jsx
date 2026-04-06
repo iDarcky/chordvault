@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 
-const STRING_NAMES = ['e', 'B', 'G', 'D', 'A', 'E'];
 const STRING_SPACING = 18;
 const LABEL_WIDTH = 28;
 const PADDING_TOP = 12;
@@ -21,7 +20,7 @@ export default function TabBlock({ data }) {
       width="100%"
       viewBox={`0 0 ${totalWidth} ${height}`}
       preserveAspectRatio="xMinYMid meet"
-      style={{ display: 'block', margin: '6px 0', maxWidth: 800 }}
+      className="block my-2 max-w-[800px]"
     >
       {/* String lines */}
       {parsed.strings.map((str, i) => {
@@ -33,7 +32,7 @@ export default function TabBlock({ data }) {
             y1={y}
             x2={LABEL_WIDTH + contentWidth}
             y2={y}
-            stroke="var(--border)"
+            stroke="var(--heroui-divider)"
             strokeWidth={1}
           />
         );
@@ -47,8 +46,8 @@ export default function TabBlock({ data }) {
             key={`label-${i}`}
             x={LABEL_WIDTH - 8}
             y={y + 4}
-            fill="var(--text-muted)"
-            fontFamily="var(--fm)"
+            fill="var(--heroui-default-400)"
+            fontFamily="var(--font-mono)"
             fontSize={11}
             fontWeight={600}
             textAnchor="end"
@@ -66,7 +65,7 @@ export default function TabBlock({ data }) {
           y1={PADDING_TOP - 4}
           x2={LABEL_WIDTH + pos * CHAR_WIDTH}
           y2={PADDING_TOP + (parsed.strings.length - 1) * STRING_SPACING + 4}
-          stroke="var(--text-dim)"
+          stroke="var(--heroui-default-200)"
           strokeWidth={1.5}
         />
       ))}
@@ -76,21 +75,19 @@ export default function TabBlock({ data }) {
         const y = PADDING_TOP + si * STRING_SPACING;
         return str.frets.map((f, fi) => (
           <g key={`fret-${si}-${fi}`}>
-            {/* Background rect to break the line */}
             <rect
               x={LABEL_WIDTH + f.pos * CHAR_WIDTH - (f.fret >= 10 ? 7 : 4)}
               y={y - 7}
               width={f.fret >= 10 ? 16 : 10}
               height={14}
-              fill="var(--bg)"
+              fill="var(--heroui-background)"
               rx={2}
             />
-            {/* Fret number */}
             <text
-              x={LABEL_WIDTH + f.pos * CHAR_WIDTH + (f.fret >= 10 ? 1 : 1)}
+              x={LABEL_WIDTH + f.pos * CHAR_WIDTH + 1}
               y={y + 4}
-              fill="var(--chord)"
-              fontFamily="var(--fm)"
+              fill="var(--heroui-warning)"
+              fontFamily="var(--font-mono)"
               fontSize={12}
               fontWeight={700}
               textAnchor="middle"
@@ -102,8 +99,8 @@ export default function TabBlock({ data }) {
               <text
                 x={LABEL_WIDTH + (f.pos + 1) * CHAR_WIDTH + 2}
                 y={y - 6}
-                fill="var(--text-muted)"
-                fontFamily="var(--fm)"
+                fill="var(--heroui-default-400)"
+                fontFamily="var(--font-mono)"
                 fontSize={9}
                 fontWeight={600}
               >
@@ -119,13 +116,11 @@ export default function TabBlock({ data }) {
 
 function parseForRender(data) {
   const result = { strings: [], barPositions: [], maxLen: 0 };
-
   if (!data || !data.strings || data.strings.length === 0) return result;
 
   for (const str of data.strings) {
     const content = str.content;
     if (content.length > result.maxLen) result.maxLen = content.length;
-
     const frets = [];
     let i = 0;
     while (i < content.length) {
@@ -151,13 +146,11 @@ function parseForRender(data) {
     result.strings.push({ note: str.note, frets });
   }
 
-  // Find bar line positions from first string's content
   if (data.strings.length > 0) {
     const content = data.strings[0].content;
     for (let i = 0; i < content.length; i++) {
       if (content[i] === '|') result.barPositions.push(i);
     }
   }
-
   return result;
 }

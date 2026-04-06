@@ -1,3 +1,5 @@
+import React from 'react';
+import { Card, CardContent, Chip } from "@heroui/react";
 import { transposeChord, sectionStyle } from '../music';
 import { parseLine, extractInlineNotes } from '../parser';
 import TabBlock from './TabBlock';
@@ -5,18 +7,11 @@ import TabBlock from './TabBlock';
 function ChordToken({ chord, text, transpose }) {
   const transposed = chord ? transposeChord(chord, transpose) : '';
   return (
-    <span style={{ display: 'inline-block', verticalAlign: 'top', marginRight: 1 }}>
-      <span style={{
-        display: 'block', fontFamily: 'var(--fm)', fontWeight: 700,
-        fontSize: 13, color: 'var(--chord)', height: 19, lineHeight: '19px',
-        whiteSpace: 'pre', letterSpacing: '0.01em',
-      }}>
+    <span className="inline-block align-top mr-0.5">
+      <span className="block font-mono font-bold text-[13px] text-warning h-[19px] leading-[19px] whitespace-pre tracking-tight">
         {transposed || '\u00A0'}
       </span>
-      <span style={{
-        display: 'block', fontFamily: 'var(--fb)', fontSize: 15,
-        color: 'var(--text)', lineHeight: '21px', whiteSpace: 'pre',
-      }}>
+      <span className="block font-sans text-[15px] text-foreground leading-[21px] whitespace-pre">
         {text || '\u00A0'}
       </span>
     </span>
@@ -33,31 +28,21 @@ const LEADER_STYLES = {
 function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
   const style = LEADER_STYLES[leaderStyle] || LEADER_STYLES.dashes;
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'flex-end',
-      flex: 1, minWidth: 40, marginLeft: 6,
-    }}>
+    <span className="inline-flex items-end flex-1 min-w-[40px] ml-1.5">
       {leaderStyle !== 'none' && (
-        <span style={{
-          flex: 1, alignSelf: 'center',
-          ...style,
-          height: 2,
-          marginRight: style.arrow ? 0 : 6,
-          minWidth: 20,
-        }} />
+        <span
+          className="flex-1 self-center h-[2px] min-w-[20px] mr-1.5"
+          style={{
+            ...style,
+            marginRight: style.arrow ? 0 : 6,
+          }}
+        />
       )}
-      {leaderStyle === 'none' && <span style={{ flex: 1 }} />}
+      {leaderStyle === 'none' && <span className="flex-1" />}
       {style.arrow && (
-        <span style={{
-          alignSelf: 'center', color: 'rgba(255,255,255,0.18)',
-          fontSize: 9, lineHeight: 1, marginRight: 6,
-        }}>&#9656;</span>
+        <span className="self-center text-default-300 text-[9px] leading-none mr-1.5">▶</span>
       )}
-      <span style={{
-        fontSize: 10.5, fontStyle: 'italic', whiteSpace: 'nowrap',
-        color: 'var(--chord)', opacity: 0.7,
-        fontFamily: 'var(--fb)', lineHeight: '19px',
-      }}>
+      <span className="text-[10px] font-bold italic whitespace-nowrap text-warning opacity-80 font-sans leading-[19px] uppercase tracking-wider">
         {notes.join(' · ')}
       </span>
     </span>
@@ -67,81 +52,48 @@ function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
 function ModulateBadge({ semitones }) {
   const sign = semitones > 0 ? '+' : '';
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      margin: '6px 0', padding: '4px 0',
-      borderTop: '1px dashed var(--accent)',
-      borderBottom: '1px dashed var(--accent)',
-    }}>
-      <span style={{
-        fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)',
-        color: 'var(--accent-text)', background: 'var(--accent-soft)',
-        borderRadius: 4, padding: '2px 8px',
-      }}>
-        Key Change: {sign}{semitones}
-      </span>
+    <div className="flex items-center gap-2 my-2 py-1.5 border-y border-dashed border-primary/30">
+      <Chip size="sm" variant="flat" color="primary" className="font-mono font-bold text-[10px]">
+        KEY CHANGE: {sign}{semitones}
+      </Chip>
     </div>
   );
 }
 
 export default function SectionBlock({ section, transpose = 0, modulateOffset = 0, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', collapsed = false }) {
   const s = sectionStyle(section.type);
+  const colorKey = s.b === '#53796F' ? 'primary' : 'default';
 
   if (collapsed) {
     return (
-      <div style={{
-        background: `${s.b}0a`, border: `1.5px solid ${s.b}33`,
-        borderRadius: 10, padding: '10px 16px', marginBottom: 8,
-        position: 'relative', opacity: 0.7,
-      }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, bottom: 0, width: 3,
-          background: s.b, borderRadius: '3px 0 0 3px',
-        }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 22, height: 22, borderRadius: '50%',
-            border: `2px solid ${s.d}`, color: s.d,
-            fontSize: 8, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
-          }}>
+      <Card shadow="none" className={`bg-${colorKey}/5 border border-${colorKey}/20 mb-3 relative overflow-hidden`}>
+        <div className={`absolute top-0 left-0 bottom-0 w-1 bg-${colorKey}`} />
+        <CardContent className="py-2.5 px-4 flex flex-row items-center gap-2">
+          <span className={`flex items-center justify-center w-6 h-6 rounded-full border-2 border-${colorKey}/40 text-${colorKey} text-[9px] font-bold font-mono flex-shrink-0`}>
             {s.l}
           </span>
-          <span style={{
-            fontSize: 12, fontWeight: 700, color: 'var(--text-muted)',
-          }}>
+          <span className="text-xs font-bold text-foreground">
             {section.type}
           </span>
-          <span style={{
-            fontSize: 10, color: 'var(--text-dim)', fontStyle: 'italic',
-            fontFamily: 'var(--fb)',
-          }}>
+          <span className="text-[10px] text-default-400 italic">
             (see above)
           </span>
           {section.note && (
-            <span style={{
-              fontSize: 10.5, color: 'var(--text-muted)',
-              fontStyle: 'italic', marginLeft: 'auto',
-              maxWidth: '45%', textAlign: 'right', lineHeight: 1.3,
-            }}>
+            <span className="text-[10px] text-primary font-medium italic ml-auto max-w-[45%] text-right truncate">
               {section.note}
             </span>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
   const isDrummer = displayRole === 'drummer';
   const isVocalist = displayRole === 'vocalist';
-
-  // Count non-empty lyric lines for drummer bar count
   const lineCount = isDrummer ? section.lines.filter(l => typeof l === 'string' && l.trim()).length : 0;
 
-  // Pre-compute lines with running modulate offset
   const renderLines = () => {
     if (isDrummer) {
-      // Drummer view: only show modulate badges
       return section.lines.map((line, i) => {
         if (typeof line === 'object' && line.type === 'modulate') {
           return <ModulateBadge key={i} semitones={line.semitones} />;
@@ -159,7 +111,7 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
       if (typeof line === 'object' && line.type === 'tab') {
         return <TabBlock key={i} data={line} />;
       }
-      if (!line.trim()) return <div key={i} style={{ height: 5 }} />;
+      if (!line.trim()) return <div key={i} className="h-1.5" />;
 
       const { clean, notes } = extractInlineNotes(line);
       const effectiveTranspose = transpose + modulateOffset + runningMod;
@@ -168,15 +120,10 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
       const hasNotes = showInlineNotes && notes.length > 0;
 
       if (isVocalist) {
-        // Vocalist: lyrics only, no chords
         const lyricsText = parts.map(p => p.text).join('');
         return (
-          <div key={i} style={{
-            display: hasNotes ? 'flex' : 'block', alignItems: 'flex-end',
-            fontSize: 15, color: 'var(--text)',
-            lineHeight: '21px', marginBottom: 1,
-          }}>
-            <span style={{ whiteSpace: 'pre-wrap' }}>{lyricsText || clean}</span>
+          <div key={i} className={`${hasNotes ? 'flex' : 'block'} items-end text-[15px] text-foreground leading-[21px] mb-0.5`}>
+            <span className="whitespace-pre-wrap">{lyricsText || clean}</span>
             {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
           </div>
         );
@@ -184,20 +131,16 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
 
       if (!hasChords) {
         return (
-          <div key={i} style={{
-            display: hasNotes ? 'flex' : 'block', alignItems: 'flex-end',
-            fontSize: 15, color: 'var(--text)',
-            lineHeight: '21px', marginBottom: 1,
-          }}>
-            <span style={{ whiteSpace: 'pre-wrap' }}>{clean}</span>
+          <div key={i} className={`${hasNotes ? 'flex' : 'block'} items-end text-[15px] text-foreground leading-[21px] mb-0.5`}>
+            <span className="whitespace-pre-wrap">{clean}</span>
             {hasNotes && <InlineNoteTag notes={notes} leaderStyle={inlineNoteStyle} />}
           </div>
         );
       }
 
       return (
-        <div key={i} style={{ display: 'flex', alignItems: 'flex-end', marginBottom: 1, lineHeight: 1 }}>
-          <span style={{ whiteSpace: 'pre-wrap' }}>
+        <div key={i} className="flex items-end mb-0.5 leading-none">
+          <span className="whitespace-pre-wrap">
             {parts.map((p, j) => (
               <ChordToken key={j} chord={p.chord} text={p.text} transpose={effectiveTranspose} />
             ))}
@@ -209,69 +152,33 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
   };
 
   return (
-    <div style={{
-      background: s.bg, border: `1.5px solid ${s.b}88`,
-      borderRadius: 10, padding: '12px 16px', marginBottom: 8,
-      position: 'relative',
-    }}>
-      {/* Left accent bar */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, bottom: 0, width: 3,
-        background: s.b, borderRadius: '3px 0 0 3px',
-      }} />
+    <Card shadow="none" className={`bg-content1/50 border border-divider mb-4 relative overflow-hidden`}>
+      <div className={`absolute top-0 left-0 bottom-0 w-1 bg-${colorKey}`} />
 
-      {/* Section header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        marginBottom: (!isDrummer && section.lines.length) ? 8 : 0,
-      }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 28, height: 28, borderRadius: '50%',
-          border: `2px solid ${s.d}`, color: s.d,
-          fontSize: 10, fontWeight: 700, fontFamily: 'var(--fm)', flexShrink: 0,
-        }}>
-          {s.l}
-        </span>
-        <span style={{
-          fontSize: 13, fontWeight: 700, color: 'var(--text-bright)',
-        }}>
-          {section.type}
-        </span>
-        {isDrummer && lineCount > 0 && (
-          <span style={{
-            fontSize: 11, fontWeight: 600, fontFamily: 'var(--fm)',
-            color: 'var(--text-dim)', opacity: 0.6,
-          }}>
-            {lineCount} line{lineCount !== 1 ? 's' : ''}
+      <CardContent className="p-4">
+        <header className={`flex items-center gap-2 ${(!isDrummer && section.lines.length) ? 'mb-3' : ''}`}>
+          <span className={`flex items-center justify-center w-7 h-7 rounded-full border-2 border-${colorKey}/40 text-${colorKey} text-[10px] font-bold font-mono flex-shrink-0`}>
+            {s.l}
           </span>
-        )}
-        {section.note && (
-          <span style={{
-            fontSize: isDrummer ? 12 : 10.5,
-            color: isDrummer ? 'var(--text-muted)' : 'var(--text-dim)',
-            fontStyle: 'italic', marginLeft: 'auto',
-            maxWidth: isDrummer ? '60%' : '45%', textAlign: 'right', lineHeight: 1.3,
-            fontWeight: isDrummer ? 600 : 400,
-          }}>
-            {section.note}
+          <span className="text-[13px] font-black uppercase tracking-widest text-foreground">
+            {section.type}
           </span>
-        )}
-      </div>
+          {isDrummer && lineCount > 0 && (
+            <Chip size="xs" variant="flat" className="font-mono font-bold h-4 text-[9px] text-default-400">
+              {lineCount} LINES
+            </Chip>
+          )}
+          {section.note && (
+            <span className={`text-[11px] font-medium italic ml-auto ${isDrummer ? 'text-foreground' : 'text-primary'} max-w-[50%] text-right leading-tight`}>
+              {section.note}
+            </span>
+          )}
+        </header>
 
-      {/* Drummer modulate badges (no lyric content) */}
-      {isDrummer && (
-        <div style={{ paddingLeft: 36 }}>
+        <div className="pl-9">
           {renderLines()}
         </div>
-      )}
-
-      {/* Chord/lyric lines (non-drummer) */}
-      {!isDrummer && section.lines.length > 0 && (
-        <div style={{ paddingLeft: 36 }}>
-          {renderLines()}
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

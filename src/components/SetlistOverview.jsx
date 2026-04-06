@@ -1,11 +1,14 @@
-import { useMemo } from 'react';
-import { transposeKey, sectionStyle } from '../music';
-
-const btnStyle = {
-  border: 'none', borderRadius: 7, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: 5,
-  fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
-};
+import React, { useMemo } from 'react';
+import {
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Separator,
+  ButtonGroup,
+  ScrollShadow
+} from "@heroui/react";
+import { transposeKey } from '../music';
 
 export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay }) {
   const getSong = (id) => songs.find(s => s.id === id);
@@ -21,7 +24,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
         const s = getSong(it.songId);
         if (s) {
           const bpm = s.tempo || 120;
-          dur += Math.round(240 / bpm * s.sections.length);
+          dur += Math.round(240 / bpm * (s.sections?.length || 1));
         }
       }
     }
@@ -33,183 +36,110 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg, rgba(11,11,15,0.92))', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{
-            background: 'none', border: 'none', color: '#94a3b8',
-            cursor: 'pointer', padding: 4,
-          }}>
-            &#8592; Back
-          </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-divider px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button isIconOnly variant="light" size="sm" onPress={onBack} className="text-default-500">
+            <span className="text-xl">←</span>
+          </Button>
+          <h1 className="text-lg font-bold tracking-tight text-foreground truncate max-w-[150px] sm:max-w-none">
             {setlist.name || 'Untitled Setlist'}
-          </span>
+          </h1>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={onExport} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-          }}>
-            &#8595; Export
-          </button>
-          <button onClick={onEdit} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-          }}>
-            Edit
-          </button>
-          <button onClick={onPlay} style={{
-            ...btnStyle, background: 'var(--accent-soft)',
-            border: '1px solid var(--accent-border)',
-            color: 'var(--accent-text)', padding: '7px 16px',
-          }}>
+        <div className="flex gap-1 sm:gap-2">
+          <ButtonGroup size="sm" variant="flat">
+            <Button onPress={onExport} className="font-bold">Export</Button>
+            <Button onPress={onEdit} className="font-bold">Edit</Button>
+          </ButtonGroup>
+          <Button
+            color="primary"
+            variant="flat"
+            size="sm"
+            className="font-bold px-6"
+            onPress={onPlay}
+          >
             Live
-          </button>
+          </Button>
         </div>
-      </div>
+      </header>
 
-      {/* Meta */}
-      <div style={{ padding: '16px 18px 8px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{
-          padding: '4px 10px', borderRadius: 6,
-          background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-          fontSize: 12, fontWeight: 600, color: 'var(--accent-text)',
-        }}>
+      <div className="px-6 py-4 flex items-center gap-3 flex-wrap">
+        <Chip color="primary" variant="flat" size="sm" className="font-bold uppercase tracking-wider h-6">
           {setlist.service || 'Service'}
-        </span>
-        <span style={{ fontSize: 13, color: 'var(--text)' }}>{dateStr}</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>
+        </Chip>
+        <span className="text-sm font-semibold text-default-600">{dateStr}</span>
+        <Separator orientation="vertical" className="h-4" />
+        <span className="text-xs font-mono text-default-400">
           {songCount} song{songCount !== 1 ? 's' : ''}
           {breakCount > 0 && ` + ${breakCount} break${breakCount !== 1 ? 's' : ''}`}
           {totalDuration > 0 && ` · ~${totalDuration} min`}
         </span>
       </div>
 
-      {/* Items */}
-      <div style={{ padding: '8px 18px 40px' }}>
+      <div className="px-6 pb-24 space-y-3">
         {setlist.items.map((item, idx) => {
-          // Break item
-          if (item.type === 'break') {
-            return (
-              <div key={idx} style={{
-                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-                padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
-              }}>
-                <span style={{
-                  fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
-                  fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
-                }}>
-                  {idx + 1}
-                </span>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: 'rgba(107,114,128,0.15)',
-                  border: '1px solid rgba(107,114,128,0.3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, color: 'rgba(255,255,255,0.4)',
-                }}>
-                  &#9646;
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                    fontStyle: 'italic',
-                  }}>
-                    {item.label || 'Break'}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                    {item.duration > 0 && (
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>
-                        {item.duration} min
-                      </span>
-                    )}
-                    {item.note && (
-                      <span style={{ fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic' }}>
-                        {item.note}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          }
+          const isBreak = item.type === 'break';
+          const song = !isBreak ? getSong(item.songId) : null;
 
-          // Song item
-          const song = getSong(item.songId);
-          if (!song) return null;
-          const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-          const displayKey = transposeKey(song.key, item.transpose);
+          if (!isBreak && !song) return null;
+          const displayKey = !isBreak ? transposeKey(song.key, item.transpose) : '';
 
           return (
-            <div key={idx} style={{
-              display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-              borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-              padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
-            }}>
-              <span style={{
-                fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
-                fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
-              }}>
-                {idx + 1}
-              </span>
-              <div style={{
-                width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                border: `1px solid ${s.b}44`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
-              }}>
-                {displayKey}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {song.title}
+            <Card key={idx} shadow="sm" className="bg-content1 border-none">
+              <CardContent className="p-4 flex flex-row items-center gap-4">
+                <span className="font-mono text-lg font-bold text-default-200 w-6 flex-shrink-0">
+                  {idx + 1}
+                </span>
+
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isBreak ? 'bg-default-100 text-default-400' : 'bg-warning-50 text-warning'}`}>
+                  {isBreak ? (
+                    <span className="text-xl">⏸</span>
+                  ) : (
+                    <span className="font-mono font-bold text-lg">{displayKey}</span>
+                  )}
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
-                  {song.artist} · {song.tempo} bpm · {song.time}
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className={`font-bold truncate ${isBreak ? 'italic text-default-500' : 'text-foreground'}`}>
+                      {isBreak ? (item.label || 'Break') : song.title}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {!isBreak && (
+                      <span className="text-xs text-default-400 uppercase font-semibold truncate">
+                        {song.artist}
+                      </span>
+                    )}
+                    {isBreak && item.duration > 0 && (
+                      <Chip size="sm" variant="flat" className="h-4 px-1 text-[9px] font-mono">
+                        {item.duration} MIN
+                      </Chip>
+                    )}
+                    {item.note && (
+                      <span className="text-[11px] text-primary italic truncate">
+                        {isBreak ? '' : ' · '}{item.note}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-                {item.transpose !== 0 && (
-                  <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
-                    fontFamily: 'var(--fm)', color: 'var(--chord)',
-                    background: 'rgba(226,168,50,0.1)', border: '1px solid rgba(226,168,50,0.2)',
-                  }}>
-                    {song.key} → {displayKey}
-                  </span>
+
+                {!isBreak && (item.transpose !== 0 || (item.capo || 0) > 0) && (
+                  <div className="hidden sm:flex flex-col items-end gap-1">
+                    {item.transpose !== 0 && (
+                      <Chip size="xs" variant="flat" color="warning" className="h-4 text-[9px] font-bold">
+                        {song.key} → {displayKey}
+                      </Chip>
+                    )}
+                    {(item.capo || 0) > 0 && (
+                      <Chip size="xs" variant="flat" color="primary" className="h-4 text-[9px] font-bold">
+                        CAPO {item.capo}
+                      </Chip>
+                    )}
+                  </div>
                 )}
-                {(item.capo || 0) > 0 && (
-                  <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
-                    fontFamily: 'var(--fm)', color: 'var(--accent-text)',
-                    background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-                  }}>
-                    Capo {item.capo}
-                  </span>
-                )}
-                {item.note && (
-                  <span style={{
-                    fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic',
-                    maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {item.note}
-                  </span>
-                )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           );
         })}
       </div>

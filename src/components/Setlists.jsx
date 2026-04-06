@@ -1,4 +1,17 @@
-import { useState, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
+import {
+  Button,
+  Card,
+  CardContent,
+  ListBox,
+  ListBoxItem,
+  Chip,
+  Dropdown,
+  DropdownTrigger,
+  DropdownPopover,
+  DropdownMenu,
+  DropdownItem
+} from "@heroui/react";
 import { transposeKey } from '../music';
 import PageHeader from './PageHeader';
 
@@ -6,7 +19,6 @@ export default function Setlists({
   songs, setlists,
   onViewSetlist, onPlaySetlist, onNewSetlist, onImportSetlist,
 }) {
-  const [fabOpen, setFabOpen] = useState(false);
   const fileRef = useRef(null);
 
   const upcoming = useMemo(() => {
@@ -25,204 +37,112 @@ export default function Setlists({
       weekday: 'short', month: 'short', day: 'numeric',
     });
 
-  const renderSetlistRow = (sl, i, arr) => {
-    const songCount = sl.items?.length || 0;
-    return (
-      <div
-        key={sl.id}
-        onClick={() => onViewSetlist(sl)}
-        role="button"
-        tabIndex={0}
-        style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 16px',
-          borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-          cursor: 'pointer', background: 'var(--card)',
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 14, fontWeight: 500, color: 'var(--text-bright)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {sl.name || 'Untitled Setlist'}
-          </div>
-          <div style={{
-            fontSize: 12, color: 'var(--text-muted)', marginTop: 3,
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}>
-            <span>{formatDate(sl.date)}</span>
-            {sl.service && (
-              <>
-                <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-                <span>{sl.service}</span>
-              </>
-            )}
-            <span style={{ color: 'var(--text-dim)' }}>&middot;</span>
-            <span style={{ fontFamily: 'var(--fm)', fontSize: 11 }}>
-              {songCount} song{songCount !== 1 ? 's' : ''}
-            </span>
-          </div>
-          {songCount > 0 && (
-            <div style={{
-              display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6,
-            }}>
-              {sl.items.slice(0, 6).map((it, idx) => {
-                if (it.type === 'break') {
-                  return (
-                    <span key={idx} style={{
-                      display: 'inline-flex', alignItems: 'center',
-                      padding: '2px 6px', borderRadius: 10,
-                      background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      fontSize: 10, color: 'var(--text-dim)',
-                      fontStyle: 'italic',
-                    }}>
-                      {it.label || 'Break'}
-                    </span>
-                  );
-                }
-                const song = songs.find(s => s.id === it.songId);
-                if (!song) return null;
-                return (
-                  <span key={idx} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 3,
-                    padding: '2px 6px', borderRadius: 10,
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    fontSize: 10, color: 'var(--text-muted)',
-                  }}>
-                    <span style={{
-                      fontFamily: 'var(--fm)', fontWeight: 700,
-                      color: 'var(--chord)', fontSize: 9,
-                    }}>
-                      {transposeKey(song.key, it.transpose)}
-                    </span>
-                    {song.title}
-                  </span>
-                );
-              })}
-              {sl.items.length > 6 && (
-                <span style={{
-                  fontSize: 10, color: 'var(--text-dim)', padding: '2px 4px',
-                }}>
-                  +{sl.items.length - 6} more
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-        <button onClick={e => { e.stopPropagation(); onPlaySetlist(sl); }} style={{
-          border: '1px solid var(--accent-border)',
-          borderRadius: 7, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 5,
-          fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
-          padding: '6px 14px', flexShrink: 0, marginLeft: 12,
-          background: 'var(--accent-soft)', color: 'var(--accent-text)',
-        }}>
-          Live
-        </button>
-      </div>
-    );
-  };
-
-  const renderSection = (label, items) => (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{
-        fontSize: 16, fontWeight: 700,
-        color: 'var(--text-dim)',
-        marginBottom: 6, padding: '0 2px',
-      }}>
+  const renderSetlistSection = (label, items) => (
+    <div className="mb-8 text-foreground">
+      <h2 className="text-sm font-bold text-default-400 uppercase tracking-widest mb-3 px-1">
         {label}
-      </div>
-      <div style={{
-        border: '1px solid var(--border)',
-        borderRadius: 10, overflow: 'hidden',
-      }}>
-        {items.map((sl, i) => renderSetlistRow(sl, i, items))}
-      </div>
+      </h2>
+      <Card className="bg-content1 border-none shadow-sm">
+        <CardContent className="p-0">
+          <ListBox
+            aria-label={`Section ${label}`}
+            items={items}
+            onAction={(key) => onViewSetlist(items.find(sl => sl.id === key))}
+          >
+            {(sl) => (
+              <ListBoxItem
+                key={sl.id}
+                className="px-4 py-4 border-b border-divider last:border-none"
+                textValue={sl.name || 'Untitled Setlist'}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-base font-semibold truncate">{sl.name || 'Untitled Setlist'}</div>
+                    <div className="flex items-center gap-1 mt-1 text-xs text-default-400">
+                      <span>{formatDate(sl.date)}</span>
+                      {sl.service && <span>&middot; {sl.service}</span>}
+                      <span>&middot; {sl.items?.length || 0} song{(sl.items?.length || 0) !== 1 ? 's' : ''}</span>
+                    </div>
+                    {sl.items?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {sl.items.slice(0, 5).map((it, idx) => {
+                          if (it.type === 'break') {
+                            return (
+                              <Chip key={idx} size="xs" variant="flat" className="h-4 px-1 text-[9px] italic opacity-60">
+                                {it.label || 'Break'}
+                              </Chip>
+                            );
+                          }
+                          const song = songs.find(s => s.id === it.songId);
+                          if (!song) return null;
+                          return (
+                            <Chip key={idx} size="xs" variant="flat" color="default" className="h-4 px-1 text-[9px]">
+                              <span className="font-mono font-bold text-warning mr-1">
+                                {transposeKey(song.key, it.transpose)}
+                              </span>
+                              {song.title}
+                            </Chip>
+                          );
+                        })}
+                        {sl.items.length > 5 && (
+                          <span className="text-[9px] text-default-300">+${sl.items.length - 5} more</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-xs font-bold">
+                    Live
+                  </div>
+                </div>
+              </ListBoxItem>
+            )}
+          </ListBox>
+        </CardContent>
+      </Card>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-background pb-24 text-foreground">
       <PageHeader title="Setlists" />
 
-      <div style={{ padding: '0 24px', paddingBottom: 100 }}>
+      <div className="px-6">
         {setlists.length === 0 && (
-          <div style={{
-            textAlign: 'center', padding: '48px 20px',
-            color: 'var(--text-dim)', fontSize: 14,
-            border: '1px solid var(--border)', borderRadius: 10,
-          }}>
+          <div className="text-center py-12 text-default-400 border-2 border-dashed border-divider rounded-xl">
             No setlists yet. Tap + to create one.
           </div>
         )}
 
-        {upcoming.length > 0 && renderSection('Upcoming', upcoming)}
-        {all.length > 0 && renderSection('All', all)}
+        {upcoming.length > 0 && renderSetlistSection('Upcoming', upcoming)}
+        {all.length > 0 && renderSetlistSection('All Setlists', all)}
       </div>
 
-      {/* FAB */}
-      {fabOpen && (
-        <div onClick={() => setFabOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 89 }} />
-      )}
-      <div style={{
-        position: 'fixed', bottom: 80, right: 20,
-        display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-        gap: 8, zIndex: 90,
-      }}>
-        {fabOpen && (
-          <>
-            <button onClick={() => { setFabOpen(false); onNewSetlist(); }} style={{
-              borderRadius: 24, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
-              padding: '10px 18px',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+      <div className="fixed bottom-24 right-6 z-50">
+        <Dropdown>
+          <DropdownTrigger
+            radius="full"
+            className="w-14 h-14 bg-primary text-primary-foreground shadow-lg shadow-primary/40 min-w-0 p-0 flex items-center justify-center"
+          >
+            <span className="text-3xl font-light">+</span>
+          </DropdownTrigger>
+          <DropdownPopover>
+            <DropdownMenu aria-label="Action Menu" onAction={(key) => {
+              if (key === 'new-setlist') onNewSetlist();
+              if (key === 'import-zip') fileRef.current?.click();
             }}>
-              New Setlist
-            </button>
-            <button onClick={() => { setFabOpen(false); fileRef.current?.click(); }} style={{
-              borderRadius: 24, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 13,
-              padding: '10px 18px',
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-bright)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            }}>
-              Import .zip
-            </button>
-          </>
-        )}
-        <button
-          onClick={() => setFabOpen(prev => !prev)}
-          style={{
-            width: 56, height: 56, borderRadius: 28,
-            background: 'linear-gradient(135deg, var(--accent), #6b9e91)',
-            border: 'none', color: '#fff',
-            fontSize: 28, fontWeight: 300, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(83,121,111,0.4)',
-            transition: 'transform 0.2s',
-            transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-          }}
-        >
-          +
-        </button>
+              <DropdownItem key="new-setlist">New Setlist</DropdownItem>
+              <DropdownItem key="import-zip">Import .zip</DropdownItem>
+            </DropdownMenu>
+          </DropdownPopover>
+        </Dropdown>
       </div>
+
       <input ref={fileRef} type="file" accept=".zip"
         onChange={e => {
           if (e.target.files[0]) onImportSetlist(e.target.files[0]);
           e.target.value = '';
         }}
-        style={{ display: 'none' }} />
+        className="hidden" />
     </div>
   );
 }

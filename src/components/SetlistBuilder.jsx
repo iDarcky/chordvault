@@ -1,553 +1,354 @@
-import { useState, useMemo } from 'react';
-import { transposeKey, sectionStyle, ALL_KEYS, semitonesBetween } from '../music';
+import React, { useState, useMemo } from 'react';
+import {
+  Button,
+  Input,
+  Card,
+  CardContent,
+  ButtonGroup,
+  Chip,
+  Select,
+  Separator,
+  Modal,
+  ModalDialog,
+  ModalHeader,
+  ModalBody,
+  ListBox,
+  ListBoxItem
+} from "@heroui/react";
+import { transposeKey, ALL_KEYS, semitonesBetween } from '../music';
 import { generateId } from '../parser';
-
-const inputStyle = {
-  width: '100%', padding: '9px 12px',
-  background: 'var(--surface)',
-  border: '1px solid rgba(255,255,255,0.07)',
-  borderRadius: 7, color: 'var(--text)',
-  fontSize: 14, outline: 'none',
-  fontFamily: 'var(--fb)', boxSizing: 'border-box',
-};
-
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 4,
-};
-
-const cB = {
-  width: 28, height: 28, borderRadius: 6,
-  border: '1px solid rgba(255,255,255,0.1)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 15, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fm)',
-};
 
 export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete }) {
   const [name, setName] = useState(setlist?.name || '');
   const [date, setDate] = useState(setlist?.date || new Date().toISOString().slice(0, 10));
   const [service, setService] = useState(setlist?.service || 'Morning');
   const [items, setItems] = useState(setlist?.items || []);
-  const [adding, setAdding] = useState(false);
+  const [isAddingOpen, setIsAddingOpen] = useState(false);
   const [search, setSearch] = useState('');
 
   const available = useMemo(() => {
-    if (!search.trim()) return songs;
     const q = search.toLowerCase();
     return songs.filter(s =>
-      s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
+      s.title.toLowerCase().includes(q) ||
+      s.artist.toLowerCase().includes(q)
     );
   }, [songs, search]);
 
   const addSong = (song) => {
-    setItems(p => [...p, { songId: song.id, note: '', transpose: 0, capo: 0 }]);
-    setAdding(false);
+    setItems([...items, {
+      type: 'song',
+      songId: song.id,
+      transpose: 0,
+      capo: 0,
+      note: '',
+    }]);
+    setIsAddingOpen(false);
     setSearch('');
   };
+
   const addBreak = () => {
-    setItems(p => [...p, { type: 'break', label: '', note: '', duration: 0 }]);
+    setItems([...items, {
+      type: 'break',
+      label: 'Prayer',
+      duration: 5,
+      note: '',
+    }]);
   };
-  const updateBreakField = (idx, field, value) =>
-    setItems(p => p.map((it, i) => i === idx ? { ...it, [field]: value } : it));
-  const removeItem = (idx) => setItems(p => p.filter((_, i) => i !== idx));
+
+  const removeItem = (idx) => {
+    setItems(items.filter((_, i) => i !== idx));
+  };
+
   const moveItem = (idx, dir) => {
-    setItems(p => {
-      const n = [...p];
-      const t = n[idx];
-      n[idx] = n[idx + dir];
-      n[idx + dir] = t;
-      return n;
-    });
+    const newItems = [...items];
+    const target = idx + dir;
+    if (target < 0 || target >= items.length) return;
+    [newItems[idx], newItems[target]] = [newItems[target], newItems[idx]];
+    setItems(newItems);
   };
-  const updateNote = (idx, note) =>
-    setItems(p => p.map((it, i) => i === idx ? { ...it, note } : it));
-  const updateTranspose = (idx, val) =>
-    setItems(p => p.map((it, i) => i === idx ? { ...it, transpose: val } : it));
-  const updateCapo = (idx, val) =>
-    setItems(p => p.map((it, i) => i === idx ? { ...it, capo: val } : it));
-  const getSong = (id) => songs.find(s => s.id === id);
+
+  const updateTranspose = (idx, t) => {
+    const newItems = [...items];
+    newItems[idx] = { ...newItems[idx], transpose: t };
+    setItems(newItems);
+  };
+
+  const updateCapo = (idx, c) => {
+    const newItems = [...items];
+    newItems[idx] = { ...newItems[idx], capo: c };
+    setItems(newItems);
+  };
+
+  const updateNote = (idx, n) => {
+    const newItems = [...items];
+    newItems[idx] = { ...newItems[idx], note: n };
+    setItems(newItems);
+  };
+
+  const updateBreakField = (idx, field, val) => {
+    const newItems = [...items];
+    newItems[idx] = { ...newItems[idx], [field]: val };
+    setItems(newItems);
+  };
 
   const handleSave = () => {
-    if (!name.trim()) { alert('Please enter a setlist name'); return; }
     onSave({
       id: setlist?.id || generateId(),
-      name: name.trim(), date, service, items,
-      createdAt: setlist?.createdAt || Date.now(),
+      name, date, service, items,
     });
   };
 
-  const songCount = items.filter(it => it.type !== 'break').length;
-  const breakCount = items.filter(it => it.type === 'break').length;
-  const totalDuration = items.reduce((sum, it) => {
-    if (it.type === 'break') return sum + (it.duration || 0);
-    const s = getSong(it.songId);
-    if (!s) return sum;
-    const bpm = s.tempo || 120;
-    return sum + Math.round(240 / bpm * s.sections.length);
-  }, 0);
+  const getSong = (id) => songs.find(s => s.id === id);
+
+  const songCount = items.filter(it => it.type === 'song').length;
+  const breakCount = items.length - songCount;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{
-            background: 'none', border: 'none', color: '#94a3b8',
-            cursor: 'pointer', padding: 4,
-          }}>
-            &#8592; Back
-          </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
-            {setlist ? 'Edit Setlist' : 'New Setlist'}
-          </span>
+    <div className="min-h-screen bg-background pb-32">
+      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-divider px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button isIconOnly variant="light" size="sm" onPress={onBack}>
+            <span className="text-xl">←</span>
+          </Button>
+          <h1 className="text-xl font-bold tracking-tight">{setlist ? 'Edit Setlist' : 'New Setlist'}</h1>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {setlist && onDelete && (
-            <button
-              onClick={() => { if (confirm('Delete this setlist?')) onDelete(setlist.id); }}
-              style={{
-                background: 'var(--danger-soft)',
-                border: '1px solid rgba(239,68,68,0.2)',
-                borderRadius: 7, padding: '7px 14px',
-                color: 'var(--danger)', fontSize: 13,
-                fontWeight: 600, cursor: 'pointer',
-              }}
-            >
+        <div className="flex gap-2">
+          {setlist && (
+            <Button color="danger" variant="flat" size="sm" className="font-bold" onPress={() => { if (confirm('Delete this setlist?')) onDelete(setlist.id); }}>
               Delete
-            </button>
+            </Button>
           )}
-          <button onClick={handleSave} style={{
-            background: 'var(--accent-soft)',
-            border: '1px solid var(--accent-border)',
-            borderRadius: 7, padding: '7px 18px',
-            color: 'var(--accent-text)', fontSize: 13,
-            fontWeight: 600, cursor: 'pointer',
-          }}>
+          <Button color="primary" size="sm" className="font-bold" onPress={handleSave}>
             Save
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Meta fields */}
-      <div style={{ padding: '16px 18px', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <label style={labelStyle}>Setlist Name</label>
-          <input
-            value={name} onChange={e => setName(e.target.value)}
-            placeholder="e.g. Sunday Morning Service" style={inputStyle}
-          />
-        </div>
-        <div style={{ flex: '0 0 150px' }}>
-          <label style={labelStyle}>Date</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
-        </div>
-        <div style={{ flex: '0 0 130px' }}>
-          <label style={labelStyle}>Service</label>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {['Morning', 'Evening', 'Special'].map(s => (
-              <button key={s} onClick={() => setService(s)} style={{
-                ...cB, padding: '6px 10px', width: 'auto', fontSize: 11,
-                borderColor: service === s ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-                color: service === s ? 'var(--accent-text)' : 'rgba(255,255,255,0.4)',
-                background: service === s ? 'var(--accent-soft)' : 'var(--surface)',
-              }}>
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Song order */}
-      <div style={{ padding: '0 18px' }}>
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', marginBottom: 10,
-        }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>
-            Items ({items.length})
-            {breakCount > 0 && (
-              <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
-                {' '}({songCount} songs + {breakCount} breaks)
-              </span>
-            )}
-            {totalDuration > 0 && (
-              <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
-                {' '}· ~{totalDuration} min est.
-              </span>
-            )}
-          </span>
-        </div>
-
-        {items.map((item, idx) => {
-          // Shared move/reorder column
-          const orderCol = (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', width: 44,
-              background: 'rgba(255,255,255,0.02)',
-              borderRight: '1px solid rgba(255,255,255,0.04)',
-              gap: 2, padding: '4px 0',
-            }}>
-              <button
-                onClick={() => idx > 0 && moveItem(idx, -1)}
-                disabled={idx === 0}
-                style={{
-                  background: 'none', border: 'none',
-                  color: idx > 0 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
-                  cursor: idx > 0 ? 'pointer' : 'default', padding: 2, display: 'flex',
-                  minHeight: 'auto',
-                }}
-              >
-                &#9650;
-              </button>
-              <span style={{
-                fontSize: 14, fontWeight: 700,
-                color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--fm)',
-              }}>
-                {idx + 1}
-              </span>
-              <button
-                onClick={() => idx < items.length - 1 && moveItem(idx, 1)}
-                disabled={idx === items.length - 1}
-                style={{
-                  background: 'none', border: 'none',
-                  color: idx < items.length - 1 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.1)',
-                  cursor: idx < items.length - 1 ? 'pointer' : 'default',
-                  padding: 2, display: 'flex', minHeight: 'auto',
-                }}
-              >
-                &#9660;
-              </button>
-            </div>
-          );
-
-          // Break item
-          if (item.type === 'break') {
-            return (
-              <div key={idx} style={{
-                display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
-                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-                overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
-              }}>
-                {orderCol}
-                <div style={{
-                  flex: 1, padding: '10px 14px',
-                  display: 'flex', alignItems: 'center', gap: 12,
-                }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                    background: 'rgba(107,114,128,0.15)',
-                    border: '1px solid rgba(107,114,128,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16, color: 'rgba(255,255,255,0.4)',
-                  }}>
-                    &#9646;
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <input
-                      value={item.label}
-                      onChange={e => updateBreakField(idx, 'label', e.target.value)}
-                      placeholder="e.g. Prayer, Announcements, Offering..."
-                      style={{
-                        ...inputStyle, padding: '5px 8px', fontSize: 13,
-                        fontWeight: 600, background: 'transparent',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                      }}
-                    />
-                  </div>
-                </div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 10px',
-                  borderLeft: '1px solid rgba(255,255,255,0.04)',
-                }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <span style={{
-                      fontSize: 8, color: 'var(--text-dim)',
-                      }}>
-                      Min
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={item.duration || ''}
-                      onChange={e => updateBreakField(idx, 'duration', parseInt(e.target.value) || 0)}
-                      placeholder="0"
-                      style={{
-                        width: 36, padding: '3px 4px', textAlign: 'center',
-                        background: 'var(--surface)',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                        borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                        fontFamily: 'var(--fm)', outline: 'none',
-                      }}
-                    />
-                  </div>
-                  <input
-                    value={item.note}
-                    onChange={e => updateBreakField(idx, 'note', e.target.value)}
-                    placeholder="Note..."
-                    style={{
-                      width: 100, padding: '5px 8px',
-                      background: 'var(--surface)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                      fontFamily: 'var(--fb)', outline: 'none',
-                    }}
-                  />
-                  <button
-                    onClick={() => removeItem(idx)}
-                    style={{
-                      background: 'none', border: 'none',
-                      color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-                      padding: 4, display: 'flex', minHeight: 'auto',
-                    }}
-                  >
-                    &#10005;
-                  </button>
-                </div>
-              </div>
-            );
-          }
-
-          // Song item
-          const song = getSong(item.songId);
-          if (!song) return null;
-          const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-          return (
-            <div key={idx} style={{
-              display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: 6,
-              borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-              overflow: 'hidden', background: 'rgba(255,255,255,0.015)',
-            }}>
-              {orderCol}
-              <div style={{
-                flex: 1, padding: '10px 14px',
-                display: 'flex', alignItems: 'center', gap: 12,
-              }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                  border: `1px solid ${s.b}44`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
-                }}>
-                  {transposeKey(song.key, item.transpose)}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {song.title}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
-                    {song.artist} · {song.tempo} bpm · {song.time}
-                  </div>
-                </div>
-              </div>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 10px',
-                borderLeft: '1px solid rgba(255,255,255,0.04)',
-              }}>
-                <div style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 2,
-                }}>
-                  <span style={{
-                    fontSize: 8, color: 'var(--text-dim)',
-                  }}>
-                    Key
-                  </span>
-                  <select
-                    value={transposeKey(song.key, item.transpose)}
-                    onChange={e => updateTranspose(idx, semitonesBetween(song.key, e.target.value))}
-                    style={{
-                      padding: '3px 4px', borderRadius: 5,
-                      background: 'var(--surface)',
-                      border: `1px solid ${item.transpose ? 'var(--chord)' : 'rgba(255,255,255,0.06)'}`,
-                      color: item.transpose ? 'var(--chord)' : 'var(--text)',
-                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
-                      outline: 'none', cursor: 'pointer',
-                    }}
-                  >
-                    {ALL_KEYS.map(k => (
-                      <option key={k} value={k}>{k}{k === song.key ? ' (orig)' : ''}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 2,
-                }}>
-                  <span style={{
-                    fontSize: 8, color: 'var(--text-dim)',
-                  }}>
-                    Capo
-                  </span>
-                  <select
-                    value={item.capo || 0}
-                    onChange={e => updateCapo(idx, parseInt(e.target.value))}
-                    style={{
-                      padding: '3px 4px', borderRadius: 5,
-                      background: 'var(--surface)',
-                      border: `1px solid ${item.capo ? 'var(--accent)' : 'rgba(255,255,255,0.06)'}`,
-                      color: item.capo ? 'var(--accent-text)' : 'var(--text)',
-                      fontSize: 12, fontFamily: 'var(--fm)', fontWeight: 700,
-                      outline: 'none', cursor: 'pointer',
-                    }}
-                  >
-                    {[0,1,2,3,4,5,6,7,8,9].map(n => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                </div>
-                <input
-                  value={item.note}
-                  onChange={e => updateNote(idx, e.target.value)}
-                  placeholder="Note..."
-                  style={{
-                    width: 100, padding: '5px 8px',
-                    background: 'var(--surface)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    borderRadius: 5, color: 'var(--text)', fontSize: 11,
-                    fontFamily: 'var(--fb)', outline: 'none',
-                  }}
-                />
-                <button
-                  onClick={() => removeItem(idx)}
-                  style={{
-                    background: 'none', border: 'none',
-                    color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-                    padding: 4, display: 'flex', minHeight: 'auto',
-                  }}
-                >
-                  &#10005;
-                </button>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Add song */}
-        {adding ? (
-          <div style={{
-            border: '1px solid var(--accent-border)',
-            borderRadius: 10, overflow: 'hidden', marginTop: 8,
-          }}>
-            <div style={{
-              padding: 10,
-              borderBottom: '1px solid rgba(255,255,255,0.05)',
-            }}>
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                autoFocus
-                placeholder="Search songs..."
-                style={{ ...inputStyle, fontSize: 13 }}
+      <div className="px-6 py-6 space-y-8">
+        <Card className="bg-content1 border-none shadow-sm">
+          <CardContent className="p-4 space-y-4">
+            <Input
+              label="Setlist Name"
+              placeholder="e.g. Sunday Morning Service"
+              variant="flat"
+              value={name}
+              onValueChange={setName}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="date"
+                label="Date"
+                variant="flat"
+                value={date}
+                onValueChange={setDate}
               />
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] font-bold text-default-400 uppercase tracking-widest px-1">Service</span>
+                <ButtonGroup size="sm" variant="flat" fullWidth>
+                  {['Morning', 'Evening', 'Special'].map(s => (
+                    <Button
+                      key={s}
+                      onPress={() => setService(s)}
+                      className={service === s ? "bg-primary text-primary-foreground font-bold" : ""}
+                    >
+                      {s}
+                    </Button>
+                  ))}
+                </ButtonGroup>
+              </div>
             </div>
-            <div style={{ maxHeight: 250, overflowY: 'auto' }}>
-              {available.map(song => {
-                const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-                return (
-                  <button key={song.id} onClick={() => addSong(song)} style={{
-                    width: '100%', display: 'flex', alignItems: 'center',
-                    gap: 10, padding: '10px 12px', background: 'none',
-                    border: 'none', borderBottom: '1px solid rgba(255,255,255,0.03)',
-                    cursor: 'pointer', textAlign: 'left',
-                  }}>
-                    <span style={{
-                      width: 32, height: 32, borderRadius: 7, flexShrink: 0,
-                      background: `linear-gradient(135deg,${s.b}33,${s.b}11)`,
-                      border: `1px solid ${s.b}44`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 700, color: s.d,
-                    }}>
-                      {song.key}
-                    </span>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
-                        {song.title}
+          </CardContent>
+        </Card>
+
+        <section>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h2 className="text-sm font-bold text-default-400 uppercase tracking-widest">
+              Items ({items.length})
+            </h2>
+            <div className="flex gap-2 text-[10px] font-bold text-default-300 uppercase">
+              <span>{songCount} songs</span>
+              <span>&middot;</span>
+              <span>{breakCount} breaks</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {items.map((item, idx) => {
+              const isBreak = item.type === 'break';
+              const song = !isBreak ? getSong(item.songId) : null;
+
+              if (!isBreak && !song) return null;
+
+              return (
+                <Card key={idx} className="bg-content1 border-none overflow-hidden shadow-sm">
+                  <CardContent className="p-0 flex flex-row items-stretch">
+                    <div className="w-10 bg-default-50 flex flex-col items-center justify-center border-r border-divider py-1">
+                      <Button isIconOnly size="sm" variant="light" className="h-6 w-8 min-w-0" isDisabled={idx === 0} onPress={() => moveItem(idx, -1)}>
+                        <span className="text-xs text-default-400">▲</span>
+                      </Button>
+                      <span className="font-mono text-xs font-bold text-default-300">{idx + 1}</span>
+                      <Button isIconOnly size="sm" variant="light" className="h-6 w-8 min-w-0" isDisabled={idx === items.length - 1} onPress={() => moveItem(idx, 1)}>
+                        <span className="text-xs text-default-400">▼</span>
+                      </Button>
+                    </div>
+
+                    <div className="flex-1 p-3 flex flex-col gap-2 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        {isBreak ? (
+                          <Input
+                            size="sm"
+                            variant="flat"
+                            placeholder="Break label (e.g. Prayer)"
+                            value={item.label}
+                            onValueChange={(v) => updateBreakField(idx, 'label', v)}
+                            className="max-w-[200px]"
+                          />
+                        ) : (
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-bold truncate">{song.title}</h3>
+                            <p className="text-[10px] text-default-400 truncate uppercase font-semibold">{song.artist}</p>
+                          </div>
+                        )}
+                        <Button isIconOnly size="sm" variant="light" color="danger" onPress={() => removeItem(idx)}>
+                          <span className="text-lg">×</span>
+                        </Button>
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                        {song.artist}
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {!isBreak && (
+                          <>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[9px] font-bold text-default-300 uppercase">Key</span>
+                              <Select
+                                size="sm"
+                                variant="flat"
+                                selectedKeys={[transposeKey(song.key, item.transpose)]}
+                                onSelectionChange={(keys) => updateTranspose(idx, semitonesBetween(song.key, Array.from(keys)[0]))}
+                                className="w-20"
+                                disallowEmptySelection
+                                classNames={{ trigger: "h-7 min-h-unit-7 bg-default-100", value: "text-xs font-mono font-bold text-warning" }}
+                              >
+                                {ALL_KEYS.map(k => <ListBoxItem key={k} value={k}>{k}</ListBoxItem>)}
+                              </Select>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[9px] font-bold text-default-300 uppercase">Capo</span>
+                              <Select
+                                size="sm"
+                                variant="flat"
+                                selectedKeys={[String(item.capo || 0)]}
+                                onSelectionChange={(keys) => updateCapo(idx, parseInt(Array.from(keys)[0]))}
+                                className="w-16"
+                                disallowEmptySelection
+                                classNames={{ trigger: "h-7 min-h-unit-7 bg-default-100", value: "text-xs font-mono font-bold" }}
+                              >
+                                {[0,1,2,3,4,5,6,7,8,9].map(n => <ListBoxItem key={String(n)} value={String(n)}>{String(n)}</ListBoxItem>)}
+                              </Select>
+                            </div>
+                          </>
+                        )}
+                        {isBreak && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-[9px] font-bold text-default-300 uppercase">Min</span>
+                            <Input
+                              type="number"
+                              size="sm"
+                              variant="flat"
+                              className="w-16"
+                              classNames={{ input: "text-xs font-mono text-center", inputWrapper: "h-7 min-h-unit-7" }}
+                              value={String(item.duration || 0)}
+                              onValueChange={(v) => updateBreakField(idx, 'duration', parseInt(v) || 0)}
+                            />
+                          </div>
+                        )}
+                        <Input
+                          size="sm"
+                          variant="flat"
+                          placeholder="Performance note..."
+                          className="flex-1 min-w-[120px]"
+                          classNames={{ input: "text-xs italic", inputWrapper: "h-7 min-h-unit-7" }}
+                          value={item.note}
+                          onValueChange={(v) => isBreak ? updateBreakField(idx, 'note', v) : updateNote(idx, v)}
+                        />
                       </div>
                     </div>
-                  </button>
-                );
-              })}
-              {available.length === 0 && (
-                <div style={{
-                  padding: 20, textAlign: 'center',
-                  color: 'var(--text-dim)', fontSize: 13,
-                }}>
-                  No songs found
-                </div>
-              )}
-            </div>
-            <div style={{
-              padding: 8,
-              borderTop: '1px solid rgba(255,255,255,0.05)',
-            }}>
-              <button
-                onClick={() => { setAdding(false); setSearch(''); }}
-                style={{
-                  width: '100%', justifyContent: 'center',
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 7, padding: '7px 12px',
-                  color: '#94a3b8', fontSize: 12, fontWeight: 600,
-                  cursor: 'pointer', fontFamily: 'var(--fb)',
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button
-              onClick={() => setAdding(true)}
-              style={{
-                flex: 1, justifyContent: 'center',
-                padding: '14px 0',
-                background: 'var(--surface)',
-                border: '1px dashed var(--border)',
-                borderRadius: 7, color: '#94a3b8', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
-                display: 'flex', alignItems: 'center', gap: 5,
-              }}
+
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <Button
+              variant="flat"
+              className="border-2 border-dashed border-divider h-14 font-bold text-default-500"
+              onPress={() => setIsAddingOpen(true)}
             >
               + Add Song
-            </button>
-            <button
-              onClick={addBreak}
-              style={{
-                flex: 1, justifyContent: 'center',
-                padding: '14px 0',
-                background: 'var(--surface)',
-                border: '1px dashed rgba(107,114,128,0.4)',
-                borderRadius: 7, color: 'rgba(107,114,128,0.7)', fontSize: 12,
-                fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--fb)',
-                display: 'flex', alignItems: 'center', gap: 5,
-              }}
+            </Button>
+            <Button
+              variant="flat"
+              className="border-2 border-dashed border-divider h-14 font-bold text-default-500"
+              onPress={addBreak}
             >
               + Add Break
-            </button>
+            </Button>
           </div>
-        )}
+        </section>
       </div>
-      <div style={{ height: 60 }} />
+
+      <Modal
+        isOpen={isAddingOpen}
+        onOpenChange={setIsAddingOpen}
+        scrollBehavior="inside"
+        placement="center"
+        size="lg"
+      >
+        <ModalDialog>
+          {(onClose) => (
+            <>
+              <ModalHeader className="px-4 py-4 border-b border-divider flex flex-col gap-1">
+                <span className="text-lg font-bold">Add Song to Setlist</span>
+                <Input
+                  autoFocus
+                  placeholder="Search songs..."
+                  variant="flat"
+                  isClearable
+                  value={search}
+                  onValueChange={setSearch}
+                  size="sm"
+                />
+              </ModalHeader>
+              <ModalBody className="p-0">
+                <ListBox
+                  aria-label="Available songs"
+                  onAction={(key) => addSong(songs.find(s => s.id === key))}
+                  variant="flat"
+                >
+                  {available.map(song => (
+                    <ListBoxItem
+                      key={song.id}
+                      className="px-4 py-3 border-b border-divider last:border-none"
+                      textValue={song.title}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-default-100 flex items-center justify-center font-bold text-warning font-mono text-xs">{song.key}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold truncate">{song.title}</div>
+                          <div className="text-xs text-default-400 truncate">{song.artist}</div>
+                        </div>
+                      </div>
+                    </ListBoxItem>
+                  ))}
+                </ListBox>
+                {available.length === 0 && (
+                  <div className="text-center py-12 text-default-400 text-sm">No songs found</div>
+                )}
+              </ModalBody>
+            </>
+          )}
+        </ModalDialog>
+      </Modal>
     </div>
   );
 }

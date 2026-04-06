@@ -1,48 +1,38 @@
+import React from 'react';
+import { Chip } from "@heroui/react";
+
 export default function SyncStatus({ syncState, onClick }) {
   const { state, lastSync, provider } = syncState;
 
-  const dotColors = {
-    idle: 'var(--text-dim)',
-    syncing: 'var(--accent)',
-    synced: '#22c55e',
-    error: 'var(--danger)',
+  const colorMap = {
+    idle: provider ? 'default' : 'default',
+    syncing: 'primary',
+    synced: 'success',
+    error: 'danger',
   };
 
   const labels = {
-    idle: provider ? 'Idle' : 'Offline',
+    idle: provider ? 'Cloud Connected' : 'Offline Mode',
     syncing: 'Syncing...',
-    synced: lastSync ? formatRelative(lastSync) : 'Synced',
+    synced: lastSync ? `Last synced ${formatRelative(lastSync)}` : 'Synced',
     error: 'Sync error',
   };
 
   return (
-    <button
+    <Chip
+      as="button"
       onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '5px 10px',
-        borderRadius: 20,
-        border: '1px solid var(--border)',
-        background: 'var(--surface)',
-        cursor: 'pointer',
-        fontFamily: 'var(--fb)',
-        fontSize: 11,
-        fontWeight: 600,
-        color: 'var(--text-muted)',
-      }}
+      color={colorMap[state] || 'default'}
+      variant="flat"
+      size="sm"
+      className="cursor-pointer font-bold uppercase text-[9px] tracking-widest h-6"
+      startContent={
+        <span className={`w-1.5 h-1.5 rounded-full ml-1 ${state === 'syncing' ? 'animate-pulse' : ''}`}
+              style={{ background: 'currentColor' }} />
+      }
     >
-      <span style={{
-        width: 7,
-        height: 7,
-        borderRadius: '50%',
-        background: dotColors[state] || dotColors.idle,
-        display: 'inline-block',
-        animation: state === 'syncing' ? 'pulse 1.5s infinite' : 'none',
-      }} />
       {labels[state] || 'Offline'}
-    </button>
+    </Chip>
   );
 }
 

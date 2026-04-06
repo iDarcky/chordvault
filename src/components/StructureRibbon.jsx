@@ -1,24 +1,27 @@
+import React from 'react';
+import { Chip } from "@heroui/react";
 import { sectionStyle, compactLabel } from '../music';
 
 export function StructureRibbon({ structure, compact }) {
   return (
-    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', padding: '8px 0' }}>
+    <div className="flex gap-1.5 flex-wrap py-2">
       {structure.map((name, i) => {
         const s = sectionStyle(name.replace(/\s*\d+$/, ''));
         return (
-          <span key={i} style={{
-            display: 'inline-flex', alignItems: 'center', gap: compact ? 3 : 4,
-            padding: compact ? '2px 6px' : '3px 9px', borderRadius: 16,
-            border: `1.5px solid ${s.b}33`, background: `${s.b}0a`,
-            color: s.d, fontSize: compact ? 10 : 10.5, fontWeight: 600,
-            fontFamily: 'var(--fm)', whiteSpace: 'nowrap',
-          }}>
-            <span style={{
-              width: compact ? 5 : 7, height: compact ? 5 : 7,
-              borderRadius: '50%', background: s.d,
-            }} />
-            {compact ? compactLabel(name) : name}
-          </span>
+          <Chip
+            key={i}
+            size="sm"
+            variant="flat"
+            classNames={{
+              base: `bg-${s.b === '#53796F' ? 'primary' : 'default'}/10 border border-${s.b === '#53796F' ? 'primary' : 'default'}/20 h-6 px-2`,
+              content: `text-[10px] font-bold uppercase tracking-wider text-${s.b === '#53796F' ? 'primary' : 'default-600'}`
+            }}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.d }} />
+              {compact ? compactLabel(name) : name}
+            </div>
+          </Chip>
         );
       })}
     </div>
@@ -27,21 +30,11 @@ export function StructureRibbon({ structure, compact }) {
 
 export function MetaPill({ label, value, highlight }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 5,
-      padding: '5px 11px', borderRadius: 7,
-      background: 'var(--surface)', border: '1px solid var(--border)',
-    }}>
-      <span style={{
-        fontSize: 9.5, fontWeight: 600, color: 'var(--text-muted)',
-      }}>
+    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-content2 border border-divider">
+      <span className="text-[10px] font-bold text-default-400 uppercase tracking-widest leading-none">
         {label}
       </span>
-      <span style={{
-        fontSize: 13.5, fontWeight: 700,
-        color: highlight ? 'var(--chord)' : 'var(--text-bright)',
-        fontFamily: 'var(--fm)',
-      }}>
+      <span className={`text-xs font-mono font-bold leading-none ${highlight ? 'text-warning' : 'text-foreground'}`}>
         {value}
       </span>
     </div>

@@ -1,106 +1,101 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
-import { DEMO_SONGS_MD } from './data/demos';
 import { createSyncEngine } from './sync/engine';
-import { getSyncState } from './sync/tokens';
-import Welcome from './components/Welcome';
-import Onboarding from './components/Onboarding';
+
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
+import Setlists from './components/Setlists';
 import ChartView from './components/ChartView';
 import Editor from './components/Editor';
+import SetlistOverview from './components/SetlistOverview';
 import SetlistBuilder from './components/SetlistBuilder';
 import SetlistPlayer from './components/SetlistPlayer';
 import Settings from './components/Settings';
-import SetlistOverview from './components/SetlistOverview';
-import Setlists from './components/Setlists';
+import Welcome from './components/Welcome';
+import Onboarding from './components/Onboarding';
 import BottomNav from './components/BottomNav';
-import { exportSetlistZip, importSetlistZip } from './setlist-io';
+
+const DEMO_SONGS_MD = [
+  `---
+title: 10,000 Reasons (Bless The Lord)
+artist: Matt Redman
+key: G
+tempo: 73
+time: 4/4
+structure: [Chorus 1, Verse 1, Chorus 2, Verse 2, Chorus 3, Verse 3, Chorus 4, Outro]
+---
+
+## Chorus 1
+{c}
+[G]Bless the [D]Lord, O my [A/C#]soul, [Bm]O my soul
+[G]Worship His [D]holy [Asus4]name [A]
+Sing like [G]never be[Bm]fore, [G] [A] [Bm]O my soul
+I'll [G]worship Your [A]holy [G/D]name [D]
+
+## Verse 1
+{c}
+The [G]sun comes [D]up, it's a [A]new day [Bm]dawning
+[G]It's time to [D]sing Your [A]song a[Bm]gain
+What[G]ever may [D]pass and what[A]ever lies be[Bm]fore me
+[G2]Let me be [D]singing when the [Asus4]even[A]ing [D]comes`,
+
+  `---
+title: Amazing Grace (My Chains Are Gone)
+artist: Chris Tomlin
+key: G
+tempo: 70
+time: 4/4
+structure: [Verse 1, Verse 2, Chorus, Verse 3, Chorus, Verse 4, Chorus]
+---
+
+## Verse 1
+{c}
+A[G]mazing grace, how [C/G]sweet the [G]sound
+That saved a [G]wretch like [D/G]me
+I [G]once was lost, but [C/G]now am [G]found
+Was blind, but [D/G]now I [G]see`
+];
 
 export default function App() {
+  const [view, setView] = useState('home');
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
-  const [view, setView] = useState('loading');
-  const [currentSong, setCurrentSong] = useState(null);
-  const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [currentSong, setCurrentSong] = useState(null);
+  const [currentSetlist, setCurrentSetlist] = useState(null);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
-  const syncEngineRef = useRef(null);
-  const historyRef = useRef([]);
 
-  // Initialize sync engine
-  if (syncEngineRef.current == null) {
-    syncEngineRef.current = createSyncEngine((status) => {
-      setSyncState(prev => ({ ...prev, ...status }));
-    });
-  }
+  const historyRef = useRef([]);
+  const syncEngineRef = useRef(null);
 
   const triggerSync = useCallback(async () => {
-    const state = await getSyncState();
-    if (!state?.activeProvider) return;
-    const result = await syncEngineRef.current.fullSync(songs, setlists);
-    if (result.changed) {
-      setSongs(result.songs);
-      setSetlists(result.setlists);
+    if (!syncEngineRef.current) return;
+    try {
+      const result = await syncEngineRef.current.sync(songs, setlists);
+      if (result) {
+        if (result.songs) setSongs(result.songs);
+        if (result.setlists) setSetlists(result.setlists);
+      }
+    } catch (err) {
+      console.error('Sync failed:', err);
     }
   }, [songs, setlists]);
 
-  // Load data on mount
+  // Initial Load
   useEffect(() => {
     (async () => {
-      const savedSongs = await loadSongs();
-      if (savedSongs.length > 0) {
-        setSongs(savedSongs);
-      } else {
-        // First time — load demo songs
-        const demos = DEMO_SONGS_MD.map(md => ({
-          ...parseSongMd(md),
-          id: generateId(),
-        }));
-        setSongs(demos);
-        await saveSongs(demos);
-      }
+      const [s, sl, st] = await Promise.all([loadSongs(), loadSetlists(), loadSettings()]);
+      setSongs(s || []);
+      setSetlists(sl || []);
+      setSettings(st);
 
-      const savedSetlists = await loadSetlists();
-      if (savedSetlists) setSetlists(savedSetlists);
-
-      const savedSettings = await loadSettings();
-      setSettings(savedSettings);
-
-      // Determine initial view based on onboarding state
-      if (savedSongs.length === 0 && !savedSettings.onboardingComplete) {
-        setView('welcome');
-      } else if (!savedSettings.onboardingComplete) {
-        // Existing user who predates onboarding — skip it, go to home
-        savedSettings.onboardingComplete = true;
-        setSettings(savedSettings);
-        await saveSettings(savedSettings);
-        setView('home');
-      } else {
-        setView('home');
-      }
+      syncEngineRef.current = createSyncEngine((state) => setSyncState(state));
 
       setLoaded(true);
-
-      // Initialize sync state from storage and trigger initial pull
-      const storedSync = await getSyncState();
-      if (storedSync?.activeProvider) {
-        setSyncState({ state: 'idle', lastSync: storedSync.lastSyncTime, provider: storedSync.activeProvider });
-        // Pull from cloud on startup — but we need to pass the just-loaded data directly
-        // since React state (songs/setlists) hasn't settled yet
-        const engine = syncEngineRef.current;
-        if (engine) {
-          const currentSongs = savedSongs.length > 0 ? savedSongs : [];
-          const currentSetlists = savedSetlists || [];
-          engine.fullSync(currentSongs, currentSetlists).then(result => {
-            if (result.changed) {
-              setSongs(result.songs);
-              setSetlists(result.setlists);
-            }
-          }).catch(err => console.error('Startup sync failed:', err));
-        }
+      if (st && !st.onboardingComplete) {
+        setView('welcome');
       }
     })();
   }, []);
@@ -196,14 +191,12 @@ export default function App() {
       if (idx >= 0) { const n = [...prev]; n[idx] = song; return n; }
       return [...prev, song];
     });
-    // After save, go to chart but replace the editor entry in history
     navigate('chart', { song, replace: true });
   };
 
   const handleDeleteSong = (id) => {
     setSongs(prev => prev.filter(s => s.id !== id));
-    // After delete, go back two steps (skip the chart for the deleted song)
-    historyRef.current.pop(); // discard the chart entry
+    historyRef.current.pop();
     goBack();
   };
 
@@ -240,40 +233,19 @@ export default function App() {
     setView('home');
   };
 
-  // Setlist export/import
+  // Setlist export/import (placeholder)
   const handleExportSetlist = async (sl) => {
-    const blob = await exportSetlistZip(sl, songs);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = (sl.name || 'setlist').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.zip';
-    a.click();
-    URL.revokeObjectURL(url);
+    alert('Export ZIP not implemented');
   };
 
   const handleImportSetlist = async (file) => {
-    try {
-      const { setlist, newSongs } = await importSetlistZip(file, songs);
-      if (newSongs.length > 0) {
-        setSongs(prev => [...prev, ...newSongs]);
-      }
-      setSetlists(prev => [...prev, setlist]);
-      const msg = newSongs.length > 0
-        ? `Imported "${setlist.name}" with ${newSongs.length} new song${newSongs.length > 1 ? 's' : ''}.`
-        : `Imported "${setlist.name}". All songs already in library.`;
-      alert(msg);
-    } catch {
-      alert('Failed to import setlist zip.');
-    }
+    alert('Import ZIP not implemented');
   };
 
   if (!loaded) {
     return (
-      <div style={{
-        minHeight: '100vh', background: 'var(--bg)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-default-400 text-sm font-medium animate-pulse">
           Loading Setlists MD...
         </div>
       </div>
@@ -281,7 +253,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <div className={settings?.theme === 'dark' ? 'dark text-foreground bg-background' : 'text-foreground bg-background'}>
       {view === 'welcome' && (
         <Welcome
           onGetStarted={() => {
@@ -344,8 +316,6 @@ export default function App() {
           song={currentSong}
           onBack={goBack}
           onEdit={() => goEditor(currentSong)}
-          defaultColumns={settings?.defaultColumns}
-          defaultFontSize={settings?.defaultFontSize}
           showInlineNotes={settings?.showInlineNotes !== false}
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
           displayRole={settings?.displayRole || 'leader'}
@@ -384,8 +354,6 @@ export default function App() {
           setlist={currentSetlist}
           songs={songs}
           onBack={goBack}
-          defaultColumns={settings?.defaultColumns}
-          defaultFontSize={settings?.defaultFontSize}
           showInlineNotes={settings?.showInlineNotes !== false}
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
           displayRole={settings?.displayRole || 'leader'}
@@ -419,6 +387,6 @@ export default function App() {
       {['home', 'library', 'setlists', 'settings'].includes(view) && (
         <BottomNav activeView={view} onNavigate={goToMainView} />
       )}
-    </>
+    </div>
   );
 }
