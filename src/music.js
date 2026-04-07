@@ -90,3 +90,21 @@ export function compactLabel(name) {
   const style = sectionStyle(name);
   return style.l + num;
 }
+
+// Convert a chord to Nashville Number System
+export function getNashvilleNumber(chord, key) {
+  if (!chord || !key) return chord;
+  if (chord.includes('/')) {
+    const [main, bass] = chord.split('/');
+    return getNashvilleNumber(main, key) + '/' + getNashvilleNumber(bass, key);
+  }
+  const { root, suffix } = parseRoot(chord);
+  const keyRoot = parseRoot(key).root;
+  const fi = CHROMATIC.indexOf(keyRoot);
+  const ti = CHROMATIC.indexOf(root);
+  if (fi === -1 || ti === -1) return chord;
+
+  const semitones = (ti - fi + 12) % 12;
+  const map = { 0: '1', 1: 'b2', 2: '2', 3: 'b3', 4: '3', 5: '4', 6: 'b5', 7: '5', 8: 'b6', 9: '6', 10: 'b7', 11: '7' };
+  return (map[semitones] || '?') + suffix;
+}
