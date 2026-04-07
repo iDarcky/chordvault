@@ -7,7 +7,7 @@ function ChordToken({ chord, text, transpose }) {
   const transposed = chord ? transposeChord(chord, transpose) : '';
   return (
     <span className="inline-block align-top mr-px">
-      <span className="block font-mono font-bold text-[13px] text-[var(--chord)] h-[19px] leading-[19px] whitespace-pre tracking-tight">
+      <span className="block font-mono font-bold text-[13px] text-amber-600 dark:text-amber-500 h-[19px] leading-[19px] whitespace-pre tracking-tight">
         {transposed || '\u00A0'}
       </span>
       <span className="block text-[15px] text-[var(--ds-gray-900)] leading-[21px] whitespace-pre">
@@ -48,8 +48,8 @@ function InlineNoteTag({ notes, leaderStyle = 'dashes' }) {
 function ModulateBadge({ semitones }) {
   const sign = semitones > 0 ? '+' : '';
   return (
-    <div className="flex items-center gap-2 my-1.5 py-1 border-t border-b border-dashed border-[var(--color-brand)]">
-      <Badge variant="brand" className="text-label-10-mono">
+    <div className="flex items-center gap-2 my-1.5 py-1 border-t border-b border-dashed border-emerald-500/20">
+      <Badge className="text-label-10-mono bg-emerald-600 dark:bg-emerald-500 text-white border-transparent hover:bg-emerald-700">
         Key Change: {sign}{semitones}
       </Badge>
     </div>
@@ -178,7 +178,7 @@ export default function SectionBlock({ section, transpose = 0, modulateOffset = 
         >
           {s.l}
         </span>
-        <span className="text-label-13 font-bold text-[var(--ds-gray-1000)]">
+        <span className="text-label-13 font-bold text-emerald-700 dark:text-emerald-500">
           {section.type}
         </span>
         {isDrummer && lineCount > 0 && (

@@ -111,11 +111,7 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
         {/* Title row */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            {!compact && (
-              <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Go back">
-                &#8592;
-              </IconButton>
-            )}
+            {/* The close button was moved to the floating side button */}
             <div className="min-w-0">
               <h1
                 className="text-[var(--ds-gray-1000)] m-0 truncate"
@@ -271,6 +267,16 @@ export default function ChartView({ song, onBack, onEdit, navOverride, compact, 
           </div>
         )}
       </div>
+
+      {/* Floating Close Button */}
+      {!compact && (
+        <button
+          onClick={onBack}
+          className="fixed right-0 top-1/2 -translate-y-1/2 bg-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-800)] text-[var(--ds-background-100)] p-3 pr-2 pl-3 rounded-l-full shadow-lg transition-transform hover:-translate-x-1 active:scale-95 z-50 flex items-center justify-center border-y border-l border-[var(--ds-gray-800)]"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+      )}
     </div>
   );
 }
