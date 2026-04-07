@@ -1,79 +1,89 @@
 import { useState, useMemo } from 'react';
-import { sectionStyle } from '../../music';
-import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Chip } from '../ui/Chip';
 
 /**
- * Song search/picker panel for adding songs to a setlist.
+ * Song library picker — search and click to add songs.
+ * Shows which songs are already in the set with a checkmark.
  */
-export default function SetlistSongPicker({ songs, onAddSong, onClose }) {
+export default function SetlistSongPicker({ songs, currentItems, onAddSong }) {
   const [search, setSearch] = useState('');
 
-  const available = useMemo(() => {
+  // IDs already in set
+  const inSet = useMemo(() => {
+    const ids = new Set();
+    currentItems.forEach(it => { if (it.songId) ids.add(it.songId); });
+    return ids;
+  }, [currentItems]);
+
+  const results = useMemo(() => {
     if (!search.trim()) return songs;
     const q = search.toLowerCase();
     return songs.filter(s =>
-      s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
+      s.title.toLowerCase().includes(q) || s.artist?.toLowerCase().includes(q)
     );
   }, [songs, search]);
 
   return (
-    <div className="border border-[var(--color-brand-border)] rounded-xl overflow-hidden mt-2">
-      <div className="p-2.5 border-b border-[var(--ds-gray-300)]">
-        <Input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          autoFocus
-          placeholder="Search songs..."
-          size="sm"
-        />
-      </div>
-      <div className="max-h-[250px] overflow-y-auto">
-        {available.map(song => {
-          const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
+    <div className="flex flex-col gap-4">
+      <p className="section-title m-0">Song Library</p>
+
+      <Input
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        placeholder="Filter library…"
+        prefix={
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
+            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+          </svg>
+        }
+      />
+
+      <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)] max-h-[400px] overflow-y-auto">
+        {results.map(song => {
+          const added = inSet.has(song.id);
           return (
-            <button
+            <div
               key={song.id}
-              onClick={() => { onAddSong(song); setSearch(''); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-transparent border-none border-b border-[var(--ds-gray-300)] cursor-pointer text-left hover:bg-[var(--ds-gray-100)] transition-colors"
-              style={{ minHeight: 'auto' }}
+              role="button"
+              tabIndex={0}
+              onClick={() => !added && onAddSong(song)}
+              onKeyDown={(e) => e.key === 'Enter' && !added && onAddSong(song)}
+              className={`flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer ${
+                added
+                  ? 'bg-[var(--color-brand-soft)]'
+                  : 'hover:bg-[var(--ds-gray-alpha-100)]'
+              }`}
             >
-              <span
-                className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center font-mono text-label-12 font-bold border"
-                style={{
-                  background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                  borderColor: `${s.b}44`,
-                  color: s.d,
-                }}
-              >
-                {song.key}
-              </span>
-              <div>
-                <div className="text-label-13 font-semibold text-[var(--ds-gray-1000)]">
-                  {song.title}
-                </div>
-                <div className="text-copy-11 text-[var(--ds-gray-600)]">
-                  {song.artist}
-                </div>
+              {/* Checkbox indicator */}
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                added
+                  ? 'bg-[var(--color-brand)] border-[var(--color-brand)]'
+                  : 'border-[var(--ds-gray-400)] bg-transparent'
+              }`}>
+                {added && (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                )}
               </div>
-            </button>
+
+              <div className="flex-1 min-w-0">
+                <p className={`text-heading-14 m-0 truncate ${added ? 'text-[var(--color-brand-text)]' : 'text-[var(--ds-gray-1000)]'}`}>
+                  {song.title}
+                </p>
+                <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
+                  {song.artist} · {song.key}
+                </p>
+              </div>
+            </div>
           );
         })}
-        {available.length === 0 && (
-          <div className="py-5 text-center text-[var(--ds-gray-500)] text-copy-13">
+        {results.length === 0 && (
+          <div className="py-8 text-center text-copy-13 text-[var(--ds-gray-600)]">
             No songs found
           </div>
         )}
-      </div>
-      <div className="p-2 border-t border-[var(--ds-gray-300)]">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onClose}
-          className="w-full justify-center"
-        >
-          Cancel
-        </Button>
       </div>
     </div>
   );

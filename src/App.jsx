@@ -380,6 +380,7 @@ export default function App() {
           onEdit={() => goSetlistBuild(currentSetlist)}
           onExport={() => handleExportSetlist(currentSetlist)}
           onPlay={() => goSetlistPlay(currentSetlist)}
+          onDelete={() => handleDeleteSetlist(currentSetlist.id)}
         />
       )}
       {view === 'setlist-build' && (
@@ -431,8 +432,8 @@ export default function App() {
           onSyncNow={triggerSync} onDesign={() => setView("design")}
         />
       )}
-      {['home', 'library', 'setlists', 'settings'].includes(view) && (
-        <BottomNav activeView={view} onNavigate={goToMainView} />
+      {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
+        <BottomNav activeView={view === 'setlist-view' ? 'setlists' : view} onNavigate={goToMainView} />
       )}
       <Toaster />
     </Suspense>

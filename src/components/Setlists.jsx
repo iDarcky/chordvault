@@ -58,7 +58,8 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
     const q = query.toLowerCase();
     return setlists.filter(sl =>
       (sl.name || '').toLowerCase().includes(q) ||
-      (sl.service || '').toLowerCase().includes(q)
+      (sl.service || '').toLowerCase().includes(q) ||
+      (sl.tags || []).some(t => t.toLowerCase().includes(q))
     );
   }, [setlists, query]);
 

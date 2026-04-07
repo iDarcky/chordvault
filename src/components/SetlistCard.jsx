@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card } from './ui/Card';
+import { Chip } from './ui/Chip';
 import { Button } from './ui/Button';
 
 export default function SetlistCard({ setlist, onPlay, onView }) {
@@ -7,7 +8,14 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
     weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
   }).toUpperCase();
 
-  const songCount = setlist.items?.length || 0;
+  const songCount = setlist.items?.filter(it => it.type !== 'break').length || 0;
+
+  // Support both new tags array and legacy service field
+  const displayTags = setlist.tags?.length
+    ? setlist.tags
+    : setlist.service
+      ? [setlist.service]
+      : [];
 
   return (
     <Card onClick={onView} className="flex flex-col gap-6 cursor-pointer">
@@ -15,9 +23,11 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
         <div className="text-label-12-mono text-[var(--ds-gray-700)] tracking-widest uppercase">
           {dateStr}
         </div>
-        {setlist.service && (
-          <div className="text-label-12 text-[var(--ds-gray-700)] px-2 py-0.5 rounded-md bg-[var(--ds-gray-200)] border border-[var(--ds-gray-400)] uppercase tracking-tight">
-            {setlist.service}
+        {displayTags.length > 0 && (
+          <div className="flex flex-col items-end gap-1">
+            {displayTags.map((tag, i) => (
+              <Chip key={i} variant="success" size="sm">{tag}</Chip>
+            ))}
           </div>
         )}
       </div>
