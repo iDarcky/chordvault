@@ -4,9 +4,10 @@ import SectionBlock from './SectionBlock';
 import TabBlock from './TabBlock';
 import ChordDiagram from './ChordDiagram';
 import PageHeader from './PageHeader';
-import Button from './ui/Button';
+import { Button } from './ui/Button';
+import { Card } from './ui/Card';
 import { cn } from '../lib/utils';
-import StructureRibbon, { MetaPill } from './StructureRibbon';
+import { StructureRibbon, MetaPill } from './StructureRibbon';
 
 export default function ChartView({
   song, onBack, onEdit, isPreview,
@@ -20,6 +21,7 @@ export default function ChartView({
   const [nns, setNns] = useState(false);
   const [showChords, setShowChords] = useState(true);
   const [showDiagrams, setShowDiagrams] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleTranspose = (dir) => setTranspose(prev => prev + dir);
   const displayKey = transpose === 0 ? song.key : transposeChord(song.key, transpose);
@@ -50,7 +52,9 @@ export default function ChartView({
             <Button variant="secondary" size="sm" onClick={onEdit} className="w-9 px-0">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
             </Button>
-            {/* The close button was moved to the floating side button */}
+            <Button variant="secondary" size="sm" onClick={onBack} className="w-9 px-0" aria-label="Close chart">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </Button>
           </div>
         </PageHeader>
       )}
@@ -73,16 +77,31 @@ export default function ChartView({
 
             {!isPreview && (
               <div className="flex flex-wrap gap-2">
-                <div className="flex bg-[var(--accents-1)] border border-[var(--geist-border)] rounded-geist-button p-0.5">
-                   <button
-                    onClick={() => setColumns(1)}
-                    className={cn("px-2 py-1 text-[10px] font-bold rounded-sm transition-all", columns === 1 ? "bg-[var(--geist-background)] text-brand shadow-sm" : "text-[var(--accents-4)]")}
-                   >1 COL</button>
-                   <button
-                    onClick={() => setColumns(2)}
-                    className={cn("px-2 py-1 text-[10px] font-bold rounded-sm transition-all", columns === 2 ? "bg-[var(--geist-background)] text-brand shadow-sm" : "text-[var(--accents-4)]")}
-                   >2 COL</button>
-                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowSettings(!showSettings)}
+                  className={cn("text-[12px] font-bold px-3", showSettings && "bg-[var(--accents-2)]")}
+                >Aa</Button>
+                {showSettings && (
+                  <>
+                    <div className="flex bg-[var(--accents-1)] border border-[var(--geist-border)] rounded-geist-button p-0.5">
+                       <button
+                        onClick={() => setColumns(1)}
+                        className={cn("px-2 py-1 text-[10px] font-bold rounded-sm transition-all", columns === 1 ? "bg-[var(--geist-background)] text-brand shadow-sm" : "text-[var(--accents-4)]")}
+                       >1 COL</button>
+                       <button
+                        onClick={() => setColumns(2)}
+                        className={cn("px-2 py-1 text-[10px] font-bold rounded-sm transition-all", columns === 2 ? "bg-[var(--geist-background)] text-brand shadow-sm" : "text-[var(--accents-4)]")}
+                       >2 COL</button>
+                    </div>
+                    <div className="bg-[var(--accents-1)] border border-[var(--geist-border)] rounded-geist-button p-0.5 flex">
+                      <button onClick={() => setFontSize(prev => Math.max(10, prev-2))} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--accents-2)] rounded transition-colors">-</button>
+                      <span className="px-2 py-1 text-[10px] font-mono font-bold flex items-center">{fontSize}PX</span>
+                      <button onClick={() => setFontSize(prev => Math.min(30, prev+2))} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--accents-2)] rounded transition-colors">+</button>
+                    </div>
+                  </>
+                )}
                 <Button
                   variant="secondary"
                   size="sm"
@@ -101,11 +120,6 @@ export default function ChartView({
                   onClick={() => setShowDiagrams(!showDiagrams)}
                   className={cn("text-[10px] font-bold px-2", showDiagrams && "border-brand text-brand bg-brand/5")}
                 >DIAGRAMS</Button>
-                <div className="bg-[var(--accents-1)] border border-[var(--geist-border)] rounded-geist-button p-0.5 flex">
-                  <button onClick={() => setFontSize(prev => Math.max(10, prev-2))} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--accents-2)] rounded transition-colors">-</button>
-                  <span className="px-2 py-1 text-[10px] font-mono font-bold flex items-center">{fontSize}PX</span>
-                  <button onClick={() => setFontSize(prev => Math.min(30, prev+2))} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--accents-2)] rounded transition-colors">+</button>
-                </div>
               </div>
             )}
           </div>
@@ -159,15 +173,6 @@ export default function ChartView({
         </div>
       </div>
 
-      {/* Floating Close Button */}
-      {!isPreview && (
-        <button
-          onClick={onBack}
-          className="fixed right-0 top-1/2 -translate-y-1/2 bg-[var(--accents-8)] hover:bg-[var(--geist-foreground)] text-[var(--geist-background)] p-3 pr-2 pl-3 rounded-l-full shadow-lg transition-transform hover:-translate-x-1 active:scale-95 z-50 flex items-center justify-center border-y border-l border-[var(--geist-border)]"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
-        </button>
-      )}
     </div>
   );
 }
