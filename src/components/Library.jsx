@@ -69,17 +69,17 @@ function SkeletonRows() {
     <div className="flex flex-col gap-8">
       {[1, 2, 3].map(g => (
         <div key={g} className="flex flex-col gap-3">
-          <div className="h-5 w-8 bg-[var(--ds-gray-200)] rounded animate-pulse mx-1" />
-          <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)]">
+          <div className="h-5 w-8 bg-[var(--bg-2)] rounded animate-pulse mx-1" />
+          <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)]">
             {[1, 2, 3].map(r => (
               <div key={r} className="flex items-center justify-between px-5 py-4">
                 <div className="flex flex-col gap-2 flex-1">
-                  <div className="h-4 w-40 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                  <div className="h-3 w-24 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-4 w-40 bg-[var(--bg-2)] rounded animate-pulse" />
+                  <div className="h-3 w-24 bg-[var(--bg-2)] rounded animate-pulse" />
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <div className="h-3 w-6 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                  <div className="h-3 w-14 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-3 w-6 bg-[var(--bg-2)] rounded animate-pulse" />
+                  <div className="h-3 w-14 bg-[var(--bg-2)] rounded animate-pulse" />
                 </div>
               </div>
             ))}
@@ -180,7 +180,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                 width="18" height="18" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor"
                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ds-gray-600)] pointer-events-none"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-2)] pointer-events-none"
               >
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
@@ -190,7 +190,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                 placeholder="Search..."
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
+                className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] text-copy-14 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none focus:border-[var(--border-3)] transition-colors"
               />
             </div>
 
@@ -204,8 +204,8 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                     flex items-center gap-2
                     text-label-14 transition-all duration-150
                     ${selectedTags.length > 0
-                      ? 'border-[var(--color-brand)] text-[var(--color-brand)] bg-[var(--ds-background-100)]'
-                      : 'border-[var(--ds-gray-400)] text-[var(--ds-gray-1000)] bg-[var(--ds-background-100)] hover:border-[var(--ds-gray-600)]'
+                      ? 'border-[var(--color-brand)] text-[var(--color-brand)] bg-[var(--bg-1)]'
+                      : 'border-[var(--border-1)] text-[var(--text-1)] bg-[var(--bg-1)] hover:border-[var(--border-3)]'
                     }
                   `}
                 >
@@ -224,7 +224,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                 </button>
 
                 {tagsOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] shadow-lg z-50 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-lg z-50 overflow-hidden">
                     {allTags.length > 5 && (
                       <div className="px-3 pt-3 pb-2">
                         <input
@@ -233,7 +233,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                           value={tagQuery}
                           onChange={e => setTagQuery(e.target.value)}
                           onClick={e => e.stopPropagation()}
-                          className="w-full h-8 px-3 rounded-lg border border-[var(--ds-gray-400)] bg-[var(--ds-background-200)] text-copy-13 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
+                          className="w-full h-8 px-3 rounded-lg border border-[var(--border-1)] bg-[var(--bg-2)] text-copy-13 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none focus:border-[var(--border-3)] transition-colors"
                         />
                       </div>
                     )}
@@ -250,7 +250,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                             {visible.map(tag => (
                               <label
                                 key={tag}
-                                className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-[var(--ds-gray-alpha-100)] transition-colors"
+                                className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-[var(--bg-2)] transition-colors"
                               >
                                 <input
                                   type="checkbox"
@@ -258,11 +258,11 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                                   onChange={() => toggleTag(tag)}
                                   className="w-4 h-4 rounded accent-[var(--color-brand)] cursor-pointer"
                                 />
-                                <span className="text-copy-14 text-[var(--ds-gray-1000)]">{tag}</span>
+                                <span className="text-copy-14 text-[var(--text-1)]">{tag}</span>
                               </label>
                             ))}
                             {visible.length === 0 && (
-                              <div className="px-4 py-3 text-copy-13 text-[var(--ds-gray-700)]">No tags found</div>
+                              <div className="px-4 py-3 text-copy-13 text-[var(--text-2)]">No tags found</div>
                             )}
                             {hasMore && (
                               <div className="px-4 py-2 text-copy-12 text-[var(--ds-gray-600)]">
@@ -275,10 +275,10 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                     </div>
                     {selectedTags.length > 0 && (
                       <>
-                        <div className="border-t border-[var(--ds-gray-300)]" />
+                        <div className="border-t border-[var(--border-1)]" />
                         <button
                           onClick={() => { setSelectedTags([]); setTagQuery(''); }}
-                          className="w-full px-4 py-2.5 text-copy-14 text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-alpha-100)] transition-colors cursor-pointer bg-transparent border-none text-center"
+                          className="w-full px-4 py-2.5 text-copy-14 text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--ds-gray-alpha-100)] transition-colors cursor-pointer bg-transparent border-none text-center"
                         >
                           Clear all
                         </button>
@@ -300,8 +300,8 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                   px-4 py-2 rounded-full text-label-14 font-semibold cursor-pointer
                   transition-all duration-150 border-none flex items-center gap-1.5
                   ${sortMode === mode.key
-                    ? 'bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]'
-                    : 'bg-transparent text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-alpha-100)]'
+                    ? 'bg-[var(--text-1)] text-[var(--bg-1)]'
+                    : 'bg-transparent text-[var(--text-1)] hover:bg-[var(--ds-gray-alpha-100)]'
                   }
                 `}
               >
@@ -330,14 +330,14 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
               {sortedKeys.map(groupKey => (
                 <div key={groupKey} className="flex flex-col gap-3">
                   <div className="flex items-baseline gap-2 px-1">
-                    <h3 className="text-heading-16 text-[var(--ds-gray-1000)]">
+                    <h3 className="text-heading-16 text-[var(--text-1)]">
                       {groupKey}
                     </h3>
-                    <span className="text-label-12 text-[var(--ds-gray-600)]">
+                    <span className="text-label-12 text-[var(--text-2)]">
                       {groups[groupKey].length}
                     </span>
                   </div>
-                  <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)]">
+                  <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)]">
                     {groups[groupKey].map(song => (
                       <SongCard
                         key={song.id}
@@ -352,7 +352,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
               ))}
             </div>
           ) : (
-            <div className="py-16 text-center text-[var(--ds-gray-700)] text-copy-14">
+            <div className="py-16 text-center text-[var(--text-2)] text-copy-14">
               {query || selectedTags.length > 0
                 ? 'No songs matching your filters.'
                 : 'Your library is empty.'}
@@ -371,13 +371,13 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
           <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
             <button
               onClick={() => { setFabOpen(false); onNewSong(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
             >
               New Song
             </button>
             <button
               onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
             >
               Import
             </button>

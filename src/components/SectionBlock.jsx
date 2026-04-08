@@ -14,11 +14,11 @@ export default function SectionBlock({
       if (line.type === 'modulate') {
         return (
           <div key={idx} className="my-6 flex items-center gap-4">
-            <div className="h-[1px] flex-1 bg-emerald-500/20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-emerald-600 dark:bg-emerald-500 text-white rounded-full shadow-sm">
+            <div className="h-[1px] flex-1 bg-[var(--ds-green-400)]/20" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-[var(--ds-green-700)] text-white rounded-full shadow-sm">
               Key Change: {line.semitones > 0 ? '+' : ''}{line.semitones}
             </span>
-            <div className="h-[1px] flex-1 bg-emerald-500/20" />
+            <div className="h-[1px] flex-1 bg-[var(--ds-green-400)]/20" />
           </div>
         );
       }
@@ -29,7 +29,7 @@ export default function SectionBlock({
 
     if (!line.includes('[') || !showChords) {
       return (
-        <div key={idx} className="min-h-[1.5em] whitespace-pre-wrap text-[var(--geist-foreground)] font-mono opacity-90">
+        <div key={idx} className="min-h-[1.5em] whitespace-pre-wrap text-[var(--text-1)] font-mono opacity-90">
           {line.replace(/\{!.*?\}/g, '')}
         </div>
       );
@@ -55,10 +55,10 @@ export default function SectionBlock({
 
     return (
       <div key={idx} className="mb-4 last:mb-0 group/line">
-        <div className="font-mono font-bold text-amber-600 dark:text-amber-500 whitespace-pre text-[0.95em] leading-none mb-1 select-none">
+        <div className="font-mono font-bold text-[var(--ds-amber-700)] whitespace-pre text-[0.95em] leading-none mb-1 select-none">
           {chordLine || ' '}
         </div>
-        <div className="text-[var(--geist-foreground)] font-mono whitespace-pre-wrap leading-tight">
+        <div className="text-[var(--text-1)] font-mono whitespace-pre-wrap leading-tight">
           {lyricLine || ' '}
         </div>
       </div>
@@ -69,16 +69,16 @@ export default function SectionBlock({
     <div className="mb-12 break-inside-avoid">
       <div className="flex items-center gap-4 mb-6">
         <div className="flex flex-col">
-          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-emerald-700 dark:text-emerald-500">
+          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[var(--ds-green-700)]">
             {section.type}
           </span>
           {section.note && (
-            <span className="text-[10px] font-bold italic text-[var(--accents-4)] mt-1 px-1 border-l-2 border-emerald-500/20 ml-0.5">
+            <span className="text-[10px] font-bold italic text-[var(--text-2)] mt-1 px-1 border-l-2 border-[var(--ds-green-400)]/20 ml-0.5">
               {section.note}
             </span>
           )}
         </div>
-        <div className="h-[1px] flex-1 bg-[var(--geist-border)] opacity-20" />
+        <div className="h-[1px] flex-1 bg-[var(--border-1)] opacity-20" />
       </div>
       <div className="space-y-1">
         {(section.lines || []).map((line, i) => renderLine(line, i))}

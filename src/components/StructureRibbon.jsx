@@ -10,14 +10,14 @@ export function StructureRibbon({ structure, compact }) {
             key={i}
             className={`inline-flex items-center font-mono font-semibold whitespace-nowrap rounded-full border-[1.5px] ${compact ? 'gap-0.5 px-1.5 py-0.5 text-label-10' : 'gap-1 px-2 py-0.5 text-label-11'}`}
             style={{
-              borderColor: `${s.b}33`,
+              borderColor: s.br,
               background: s.bg,
               color: s.d,
             }}
           >
             <span
               className={`rounded-full ${compact ? 'w-[5px] h-[5px]' : 'w-[7px] h-[7px]'}`}
-              style={{ background: s.d }}
+              style={{ background: s.b }}
             />
             {compact ? compactLabel(name) : name}
           </span>

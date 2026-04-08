@@ -38,13 +38,13 @@ export default function ChartView({
 
   return (
     <div className={cn(
-      "min-h-screen flex flex-col bg-[var(--geist-background)]",
+      "min-h-screen flex flex-col bg-[var(--ds-background-200)]",
       isPreview && "min-h-0 bg-transparent"
     )}>
       {!isPreview && (
-        <PageHeader title={song.title} className="bg-[var(--geist-background)]/90 backdrop-blur-md">
+        <PageHeader title={song.title} className="bg-[var(--ds-background-200)]/90 backdrop-blur-md">
           <div className="flex gap-1.5 items-center">
-            <div className="flex bg-[var(--accents-1)] border border-[var(--geist-border)] rounded-geist-button p-0.5">
+            <div className="flex bg-[var(--bg-1)] border border-[var(--border-1)] rounded-md p-0.5">
               <Button variant="ghost" size="sm" className="px-2 h-7" onClick={() => handleTranspose(-1)}>-</Button>
               <span className="px-2 text-xs font-mono font-bold flex items-center min-w-[30px] justify-center">{transpose > 0 ? `+${transpose}` : transpose}</span>
               <Button variant="ghost" size="sm" className="px-2 h-7" onClick={() => handleTranspose(1)}>+</Button>
@@ -65,9 +65,9 @@ export default function ChartView({
       )}>
         <div className="mb-8 flex flex-col gap-6">
           {/* Meta Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--geist-border)] pb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-1)] pb-6">
             <div className="space-y-1">
-              <div className="text-sm font-semibold text-[var(--accents-5)]">{song.artist}</div>
+              <div className="text-sm font-semibold text-[var(--text-2)]">{song.artist}</div>
               <div className="flex gap-3">
                 <MetaPill label="Key" value={displayKey} />
                 {song.tempo && <MetaPill label="Tempo" value={`${song.tempo} BPM`} />}
@@ -81,24 +81,24 @@ export default function ChartView({
                   variant="secondary"
                   size="sm"
                   onClick={() => setShowSettings(!showSettings)}
-                  className={cn("text-[12px] font-bold px-3", showSettings && "bg-[var(--accents-2)]")}
+                  className={cn("text-[12px] font-bold px-3", showSettings && "bg-[var(--bg-2)]")}
                 >Aa</Button>
                 {showSettings && (
                   <>
-                    <div className="flex bg-[var(--accents-1)] border border-[var(--geist-border)] rounded-geist-button p-0.5">
+                    <div className="flex bg-[var(--bg-1)] border border-[var(--border-1)] rounded-md p-0.5">
                        <button
                         onClick={() => setColumns(1)}
-                        className={cn("px-2 py-1 text-[10px] font-bold rounded-sm transition-all", columns === 1 ? "bg-[var(--geist-background)] text-brand shadow-sm" : "text-[var(--accents-4)]")}
+                        className={cn("px-2 py-1 text-[10px] font-bold rounded-sm transition-all", columns === 1 ? "bg-[var(--ds-background-200)] text-brand shadow-sm" : "text-[var(--text-2)]")}
                        >1 COL</button>
                        <button
                         onClick={() => setColumns(2)}
-                        className={cn("px-2 py-1 text-[10px] font-bold rounded-sm transition-all", columns === 2 ? "bg-[var(--geist-background)] text-brand shadow-sm" : "text-[var(--accents-4)]")}
+                        className={cn("px-2 py-1 text-[10px] font-bold rounded-sm transition-all", columns === 2 ? "bg-[var(--ds-background-200)] text-brand shadow-sm" : "text-[var(--text-2)]")}
                        >2 COL</button>
                     </div>
-                    <div className="bg-[var(--accents-1)] border border-[var(--geist-border)] rounded-geist-button p-0.5 flex">
-                      <button onClick={() => setFontSize(prev => Math.max(10, prev-2))} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--accents-2)] rounded transition-colors">-</button>
+                    <div className="bg-[var(--bg-1)] border border-[var(--border-1)] rounded-md p-0.5 flex">
+                      <button onClick={() => setFontSize(prev => Math.max(10, prev-2))} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-2)] rounded transition-colors">-</button>
                       <span className="px-2 py-1 text-[10px] font-mono font-bold flex items-center">{fontSize}PX</span>
-                      <button onClick={() => setFontSize(prev => Math.min(30, prev+2))} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--accents-2)] rounded transition-colors">+</button>
+                      <button onClick={() => setFontSize(prev => Math.min(30, prev+2))} className="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-2)] rounded transition-colors">+</button>
                     </div>
                   </>
                 )}
@@ -138,10 +138,10 @@ export default function ChartView({
 
         {/* Chord Diagrams Strip */}
         {showDiagrams && !isPreview && (
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-8 mb-8 border-b border-[var(--geist-border)]">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-8 mb-8 border-b border-[var(--border-1)]">
             {allChords.map(chord => (
               <div key={chord} className="flex flex-col items-center gap-1 flex-shrink-0">
-                <div className="text-[10px] font-mono font-bold text-[var(--accents-5)]">{transposeChord(chord, transpose)}</div>
+                <div className="text-[10px] font-mono font-bold text-[var(--text-2)]">{transposeChord(chord, transpose)}</div>
                 <Card className="w-24 h-28 flex items-center justify-center p-2">
                    <ChordDiagram chord={transposeChord(chord, transpose)} />
                 </Card>

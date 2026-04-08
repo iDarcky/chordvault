@@ -20,7 +20,7 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
   return (
     <Card onClick={onView} className="flex flex-col gap-6 cursor-pointer">
       <div className="flex justify-between items-start">
-        <div className="text-label-12-mono text-[var(--ds-gray-700)] tracking-widest uppercase">
+        <div className="text-label-12-mono text-[var(--text-2)] tracking-widest uppercase">
           {dateStr}
         </div>
         {displayTags.length > 0 && (
@@ -33,10 +33,10 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
       </div>
 
       <div>
-        <h3 className="text-heading-20 text-[var(--ds-gray-1000)] m-0 leading-tight">
+        <h3 className="text-heading-20 text-[var(--text-1)] m-0 leading-tight">
           {setlist.name || 'Untitled Setlist'}
         </h3>
-        <p className="text-copy-14 text-[var(--ds-gray-700)] mt-2">
+        <p className="text-copy-14 text-[var(--text-2)] mt-2">
           {songCount} song{songCount !== 1 ? 's' : ''}
         </p>
       </div>

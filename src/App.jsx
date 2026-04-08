@@ -275,7 +275,7 @@ export default function App() {
   if (!loaded) {
     return (
       <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
-        <div className="text-copy-14 text-[var(--ds-gray-600)]">
+        <div className="text-copy-14 text-[var(--text-2)]">
           Loading ChordVault...
         </div>
       </div>
@@ -284,7 +284,7 @@ export default function App() {
 
   const lazyFallback = (
     <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
-      <div className="text-copy-14 text-[var(--ds-gray-600)]">Loading…</div>
+      <div className="text-copy-14 text-[var(--text-2)]">Loading…</div>
     </div>
   );
 

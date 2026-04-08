@@ -77,10 +77,10 @@ export default function Dashboard({
 
       {/* Welcome Greeting */}
       <div className="max-w-5xl mx-auto px-6 pt-10 pb-2">
-        <h1 className="text-heading-40 text-[var(--ds-gray-1000)] m-0">
+        <h1 className="text-heading-40 text-[var(--text-1)] m-0">
           Welcome, {userName}
         </h1>
-        <p className="text-copy-16 text-[var(--ds-gray-700)] mt-1">
+        <p className="text-copy-16 text-[var(--text-2)] mt-1">
           {dateStr}
         </p>
       </div>
@@ -90,7 +90,7 @@ export default function Dashboard({
         {/* Upcoming Setlists */}
         <section className="flex flex-col gap-5">
           <div className="flex justify-between items-center">
-            <h2 className="text-heading-18 text-[var(--ds-gray-1000)] uppercase tracking-wider">
+            <h2 className="text-heading-18 text-[var(--text-1)] uppercase tracking-wider">
               Upcoming Setlists
             </h2>
             <Button
@@ -113,8 +113,8 @@ export default function Dashboard({
               />
             ))}
             {upcomingSetlists.length === 0 && (
-              <div className="col-span-full py-14 text-center border-2 border-dashed border-[var(--ds-gray-400)] rounded-xl flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--ds-gray-700)] font-medium">
+              <div className="col-span-full py-14 text-center border-2 border-dashed border-[var(--border-1)] rounded-xl flex flex-col items-center gap-3">
+                <p className="text-copy-14 text-[var(--text-2)] font-medium">
                   No upcoming setlists.
                 </p>
                 <Button variant="brand" size="sm" onClick={onNewSetlist}>
@@ -128,7 +128,7 @@ export default function Dashboard({
         {/* Recently Edited */}
         <section className="flex flex-col gap-5">
           <div className="flex justify-between items-center">
-            <h2 className="text-heading-18 text-[var(--ds-gray-1000)] uppercase tracking-wider">
+            <h2 className="text-heading-18 text-[var(--text-1)] uppercase tracking-wider">
               Recently Edited
             </h2>
             <Button
@@ -141,7 +141,7 @@ export default function Dashboard({
             </Button>
           </div>
 
-          <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)]">
+          <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)]">
             {latestSongs.map(song => (
               <SongCard
                 key={song.id}
@@ -152,7 +152,7 @@ export default function Dashboard({
             ))}
             {latestSongs.length === 0 && (
               <div className="py-14 text-center flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--ds-gray-700)] font-medium">
+                <p className="text-copy-14 text-[var(--text-2)] font-medium">
                   Your library is empty.
                 </p>
                 <Button variant="brand" size="sm" onClick={onNewSong}>
@@ -172,7 +172,7 @@ export default function Dashboard({
           onClick={() => setSearchOpen(false)}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-[var(--ds-background-200)] opacity-80" />
+          <div className="absolute inset-0 bg-[var(--bg-1)] opacity-80" />
 
           {/* Search Content */}
           <div
@@ -204,7 +204,7 @@ export default function Dashboard({
             />
 
             {searchQuery.trim() && (
-              <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)] shadow-lg">
+              <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)] shadow-lg">
                 {searchResults.length > 0 ? (
                   searchResults.map(song => (
                     <SongCard
@@ -218,7 +218,7 @@ export default function Dashboard({
                     />
                   ))
                 ) : (
-                  <div className="px-4 py-6 text-center text-copy-14 text-[var(--ds-gray-700)]">
+                  <div className="px-4 py-6 text-center text-copy-14 text-[var(--text-2)]">
                     No songs found.
                   </div>
                 )}
@@ -227,7 +227,7 @@ export default function Dashboard({
 
             <button
               onClick={() => setSearchOpen(false)}
-              className="mt-2 self-center text-label-13 text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-1000)] transition-colors bg-transparent border-none cursor-pointer"
+              className="mt-2 self-center text-label-13 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors bg-transparent border-none cursor-pointer"
             >
               Press Esc or tap to close
             </button>
@@ -249,13 +249,13 @@ export default function Dashboard({
           <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
             <button
               onClick={() => { setFabOpen(false); onNewSong(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
             >
               New Song
             </button>
             <button
               onClick={() => { setFabOpen(false); onNewSetlist(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
             >
               New Setlist
             </button>
@@ -266,9 +266,9 @@ export default function Dashboard({
           {/* Search FAB */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="w-11 h-11 rounded-full bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg flex items-center justify-center cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 active:scale-95"
+            className="w-11 h-11 rounded-full bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg flex items-center justify-center cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 active:scale-95"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-1000)]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-1)]">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
             </svg>

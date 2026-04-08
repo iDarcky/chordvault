@@ -25,7 +25,7 @@
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
 
-  /* Geist Backgrounds (Dark Mode) */
+  /* Page Backgrounds (Dark Mode fallback) */
   --ds-background-100: #0a0a0a;
   --ds-background-200: #000000;
 
@@ -219,34 +219,27 @@
   --ds-gray-alpha-1000: #ffffffeb;
 
 
-  /* Semantic Aliases (map to Geist scales) */
-  --ds-error-100: hsla(357, 37%, 12%, 1);
-  --ds-error-200: hsla(357, 46%, 16%, 1);
-  --ds-error-400: hsla(357, 55%, 26%, 1);
-  --ds-error-600: hsla(358, 75%, 59%, 1);
-  --ds-error-700: hsla(358, 75%, 59%, 1);
-  --ds-error-900: hsla(358, 100%, 69%, 1);
-  --ds-error-1000: hsla(353, 90%, 96%, 1);
-  --ds-error-soft: hsla(358, 75%, 59%, 0.1);
-  --ds-error-border: hsla(358, 75%, 59%, 0.2);
-
-  --ds-warning-100: hsla(35, 100%, 8%, 1);
-  --ds-warning-200: hsla(32, 100%, 10%, 1);
-  --ds-warning-400: hsla(35, 100%, 17%, 1);
-  --ds-warning-600: hsla(39, 85%, 49%, 1);
-  --ds-warning-900: hsla(39, 90%, 50%, 1);
-  --ds-warning-1000: hsla(40, 94%, 93%, 1);
-  --ds-warning-soft: hsla(39, 85%, 49%, 0.1);
-  --ds-warning-border: hsla(39, 85%, 49%, 0.2);
-
-  --ds-success-100: hsla(136, 50%, 9%, 1);
-  --ds-success-200: hsla(137, 50%, 12%, 1);
-  --ds-success-400: hsla(135, 70%, 16%, 1);
-  --ds-success-600: hsla(135, 70%, 34%, 1);
-  --ds-success-900: hsla(131, 43%, 57%, 1);
-  --ds-success-1000: hsla(136, 73%, 94%, 1);
-  --ds-success-soft: hsla(135, 70%, 34%, 0.1);
-  --ds-success-border: hsla(135, 70%, 34%, 0.2);
+  /* Semantic Status Aliases (Map to functional scales) */
+  --ds-error-100: var(--ds-red-100);
+  --ds-error-400: var(--ds-red-400);
+  --ds-error-900: var(--ds-red-900);
+  --ds-error-1000: var(--ds-red-1000);
+  --ds-error-soft: hsla(var(--ds-red-500-value), 0.1);
+  --ds-error-border: hsla(var(--ds-red-500-value), 0.2);
+ 
+  --ds-warning-100: var(--ds-amber-100);
+  --ds-warning-400: var(--ds-amber-400);
+  --ds-warning-900: var(--ds-amber-900);
+  --ds-warning-1000: var(--ds-amber-1000);
+  --ds-warning-soft: hsla(var(--ds-amber-500-value), 0.1);
+  --ds-warning-border: hsla(var(--ds-amber-500-value), 0.2);
+ 
+  --ds-success-100: var(--ds-green-100);
+  --ds-success-400: var(--ds-green-400);
+  --ds-success-900: var(--ds-green-900);
+  --ds-success-1000: var(--ds-green-1000);
+  --ds-success-soft: hsla(var(--ds-green-500-value), 0.1);
+  --ds-success-border: hsla(var(--ds-green-500-value), 0.2);
 
   /* Shadows (Dark Mode) */
   --shadow-smallest: 0px 2px 4px rgba(0, 0, 0, 0.3);
@@ -254,6 +247,18 @@
   --shadow-small: 0 5px 10px rgba(0, 0, 0, 0.35);
   --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.35);
   --shadow-large: 0 30px 60px rgba(0, 0, 0, 0.35);
+
+  /* Global Functional Aliases (Color 1-10 Rule) */
+  --bg-1: var(--ds-gray-100);
+  --bg-2: var(--ds-gray-200);
+  --bg-3: var(--ds-gray-300);
+  --border-1: var(--ds-gray-400);
+  --border-2: var(--ds-gray-500);
+  --border-3: var(--ds-gray-600);
+  --bg-hc-1: var(--ds-gray-700);
+  --bg-hc-2: var(--ds-gray-800);
+  --text-2: var(--ds-gray-900);
+  --text-1: var(--ds-gray-1000);
 
   /* Functional tokens */
   --chord: #e2a832;
@@ -264,7 +269,7 @@
 @layer base {
   [data-theme="light"] {
     --ds-background-100: #ffffff;
-    --ds-background-200: #fafafa;
+    --ds-background-200: #F9FAFB;
 
         /* Geist Gray Scale (Light Mode) */
     --ds-gray-100-value: 0, 0%, 95%;
@@ -455,34 +460,7 @@
     --ds-gray-alpha-900: #000000b3;
     --ds-gray-alpha-1000: #000000e8;
 
-    /* Semantic Aliases (Light Mode) */
-    --ds-error-100: hsla(0, 100%, 97%, 1);
-    --ds-error-200: hsla(0, 90%, 93%, 1);
-    --ds-error-400: hsla(0, 75%, 75%, 1);
-    --ds-error-600: hsla(0, 72%, 51%, 1);
-    --ds-error-700: hsla(0, 72%, 45%, 1);
-    --ds-error-900: hsla(0, 80%, 35%, 1);
-    --ds-error-1000: hsla(0, 80%, 20%, 1);
-    --ds-error-soft: hsla(0, 72%, 51%, 0.08);
-    --ds-error-border: hsla(0, 72%, 51%, 0.15);
-
-    --ds-warning-100: hsla(38, 100%, 97%, 1);
-    --ds-warning-200: hsla(38, 90%, 92%, 1);
-    --ds-warning-400: hsla(38, 75%, 60%, 1);
-    --ds-warning-600: hsla(38, 92%, 40%, 1);
-    --ds-warning-900: hsla(38, 80%, 30%, 1);
-    --ds-warning-1000: hsla(38, 80%, 18%, 1);
-    --ds-warning-soft: hsla(38, 92%, 50%, 0.08);
-    --ds-warning-border: hsla(38, 92%, 50%, 0.15);
-
-    --ds-success-100: hsla(152, 70%, 96%, 1);
-    --ds-success-200: hsla(152, 60%, 90%, 1);
-    --ds-success-400: hsla(152, 50%, 55%, 1);
-    --ds-success-600: hsla(152, 69%, 31%, 1);
-    --ds-success-900: hsla(152, 60%, 22%, 1);
-    --ds-success-1000: hsla(152, 60%, 14%, 1);
-    --ds-success-soft: hsla(152, 69%, 31%, 0.08);
-    --ds-success-border: hsla(152, 69%, 31%, 0.15);
+    /* Semantic Status Aliases (Handled by global [data-theme] inheritance) */
 
     /* Shadows (Light Mode) */
     --shadow-smallest: 0px 2px 4px rgba(0, 0, 0, 0.1);

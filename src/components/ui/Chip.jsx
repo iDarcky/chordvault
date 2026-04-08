@@ -18,11 +18,11 @@ const Chip = React.forwardRef(({
   ...props
 }, ref) => {
   const variants = {
-    default: 'bg-[var(--ds-gray-200)] text-[var(--ds-gray-900)] border-[var(--ds-gray-300)]',
-    success: 'bg-[var(--ds-success-soft)] text-[var(--ds-success-900)] border-[var(--ds-success-border)]',
-    error: 'bg-[var(--ds-error-soft)] text-[var(--ds-error-900)] border-[var(--ds-error-border)]',
-    warning: 'bg-[var(--ds-warning-soft)] text-[var(--ds-warning-900)] border-[var(--ds-warning-border)]',
-    brand: 'bg-[var(--color-brand-soft)] text-[var(--color-brand-text)] border-[var(--color-brand-border)]',
+    default: 'bg-[var(--bg-1)] text-[var(--text-1)] border-[var(--border-1)]',
+    success: 'bg-[var(--ds-green-100)] text-[var(--ds-green-1000)] border-[var(--ds-green-400)]',
+    error: 'bg-[var(--ds-red-100)] text-[var(--ds-red-1000)] border-[var(--ds-red-400)]',
+    warning: 'bg-[var(--ds-amber-100)] text-[var(--ds-amber-1000)] border-[var(--ds-amber-400)]',
+    brand: 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-1000)] border-[var(--ds-teal-400)]',
   };
 
   const sizes = {
