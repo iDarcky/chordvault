@@ -54,7 +54,3 @@ To run Setlists MD locally, you need Node.js installed.
    `npm run lint`
 
 ---
-
-## 🤝 Contributing
-
-(Contribution guidelines coming soon. For now, please feel free to open issues for bugs or feature requests!)

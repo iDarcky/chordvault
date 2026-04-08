@@ -27,10 +27,7 @@ The App is provided on an "AS IS" and "AS AVAILABLE" basis, without warranties o
 
 To the fullest extent permitted by law, the creators and maintainers of Setlists MD shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from (a) your use or inability to use the App; or (b) any unauthorized access to or alteration of your transmissions or content.
 
-## 6. Open Source
 
-Setlists MD is an open-source project. Usage, modification, and distribution of the source code are governed by the license included in the repository.
-
-## 7. Changes to Terms
+## 6. Changes to Terms
 
 We reserve the right to modify these terms at any time. We will indicate changes by updating the effective date at the top of this document.
