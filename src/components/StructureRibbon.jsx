@@ -12,9 +12,9 @@ export function StructureRibbon({ structure, compact, onSelect }) {
             key={i}
             {...(onSelect ? { type: 'button', onClick: () => onSelect(i) } : {})}
             className={cn(
-              "inline-flex items-center gap-1 rounded-full border font-medium transition-colors",
-              compact ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-0.5 text-[12px]",
-              onSelect && "cursor-pointer hover:opacity-80"
+              "inline-flex items-center font-mono font-semibold whitespace-nowrap rounded-full border-[1.5px] transition-opacity",
+              onSelect ? 'cursor-pointer hover:opacity-80' : '',
+              compact ? 'gap-0.5 px-1.5 py-0.5 text-label-10' : 'gap-1 px-2 py-0.5 text-label-11'
             )}
             style={{
               borderColor: s.br,

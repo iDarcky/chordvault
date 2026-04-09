@@ -8,7 +8,7 @@ import { Card } from './ui/Card';
 import { SegmentedControl } from './ui/SegmentedControl';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/Select';
 import { cn } from '../lib/utils';
-import { StructureRibbon } from './StructureRibbon';
+import { StructureRibbon, MetaPill } from './StructureRibbon';
 
 const FONT_SIZES = { S: 13, M: 16, L: 20 };
 
@@ -41,6 +41,7 @@ export default function ChartView({
   const scrollContainerRef = useRef(null);
 
   const transpose = semitonesBetween(song.key, selectedKey);
+  const displayKey = selectedKey;
 
   const toggleInfo = () => { setShowInfo(s => !s); setShowSettings(false); setShowMusicSettings(false); };
   const toggleAa = () => { setShowSettings(s => !s); setShowInfo(false); setShowMusicSettings(false); };
@@ -79,17 +80,14 @@ export default function ChartView({
       })
   ));
 
-  // Check if any metadata exists
   const hasMetadata = song.capo > 0 || song.ccli || (song.tags?.length > 0) || song.notes || song.spotify || song.youtube;
-
-  // Close expanded panels when header collapses
   const panelOpen = showSettings || showMusicSettings || showInfo;
 
   return (
     <div
       ref={scrollContainerRef}
       className={cn(
-        "h-screen overflow-y-auto overflow-x-hidden bg-[var(--ds-background-100)]",
+        "h-screen overflow-y-auto overflow-x-hidden material-page",
         isPreview && "h-auto overflow-visible bg-transparent"
       )}
     >
@@ -113,7 +111,7 @@ export default function ChartView({
             <div className="flex gap-1.5 items-center flex-shrink-0">
               <div className={cn(
                 "flex gap-1.5 items-center transition-all duration-200 overflow-hidden",
-                scrolled ? "max-w-0 opacity-0 pointer-events-none" : "max-w-[200px] opacity-100"
+                scrolled ? "max-w-0 opacity-0 pointer-events-none" : "max-w-[400px] opacity-100"
               )}>
                 <IconButton
                    variant={showInfo ? 'active' : 'default'}
@@ -158,42 +156,19 @@ export default function ChartView({
           </div>
 
           {!scrolled && (
-            <div className="max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-3 pb-1.5 transition-all duration-200">
-              <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
-              <div className="w-px h-3.5 bg-[var(--border-1)]" />
-              <Select value={selectedKey} onValueChange={setSelectedKey}>
-                <SelectTrigger className="h-6 px-1.5 border-transparent bg-transparent text-label-14 font-bold text-[var(--text-1)] hover:bg-[var(--bg-2)] gap-1 min-w-0 w-auto">
-                  <span className="text-label-12 font-semibold text-[var(--text-2)] mr-0.5">Key</span>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ALL_KEYS.map(k => {
-                    const st = semitonesBetween(song.key, k);
-                    const display = st > 6 ? st - 12 : st;
-                    return (
-                      <SelectItem key={k} value={k}>
-                        {k} {st !== 0 && `(${display > 0 ? '+' : ''}${display})`}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              {song.tempo && (
-                <span className="text-label-14 text-[var(--text-2)]">
-                  <span className="text-label-12 font-semibold mr-0.5">Tempo</span>
-                  <span className="font-bold">{song.tempo}</span>
-                </span>
-              )}
-              {song.time && (
-                <span className="text-label-14 text-[var(--text-2)]">
-                  <span className="text-label-12 font-semibold mr-0.5">Time</span>
-                  <span className="font-bold">{song.time}</span>
-                </span>
-              )}
+            <div className="max-w-[1600px] mx-auto px-6 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-1)] pb-6 mt-4">
+              <div className="space-y-1">
+                <div className="text-label-14 text-[var(--text-2)]">{song.artist}</div>
+                <div className="flex gap-3">
+                  <MetaPill label="Key" value={displayKey} />
+                  {song.tempo && <MetaPill label="Tempo" value={`${song.tempo} BPM`} />}
+                  {song.time && <MetaPill label="Time" value={song.time} />}
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="max-w-[1600px] mx-auto px-6 pb-2">
+          <div className="max-w-[1600px] mx-auto px-6 py-2">
             <StructureRibbon
               structure={song.sections.map(s => s.type)}
               compact
@@ -242,17 +217,19 @@ export default function ChartView({
                     variant={nns ? 'brand' : 'secondary'}
                     size="xs"
                     onClick={() => setNns(!nns)}
+                    className={cn("text-label-10 font-bold", nns && "border-[var(--color-brand-border)] text-[var(--color-brand-text)] bg-[var(--color-brand-soft)]")}
                   >NUMBERS</Button>
                   <Button
                     variant="secondary"
                     size="xs"
                     onClick={() => setShowChords(!showChords)}
-                    className={cn(!showChords && "opacity-40")}
+                    className={cn("text-label-10 font-bold", !showChords && "opacity-40")}
                   >CHORDS</Button>
                   <Button
-                    variant={showDiagrams ? 'brand' : 'secondary'}
+                    variant="secondary"
                     size="xs"
                     onClick={() => setShowDiagrams(!showDiagrams)}
+                    className={cn("text-label-10 font-bold", showDiagrams && "border-[var(--color-brand-border)] text-[var(--color-brand-text)] bg-[var(--color-brand-soft)]")}
                   >DIAGRAMS</Button>
                 </>
               )}
