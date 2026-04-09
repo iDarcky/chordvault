@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { transposeChord, sectionStyle, getNashvilleNumber } from '../music';
-
 import TabBlock from './TabBlock';
 
 const NOTE_SEPARATORS = {
@@ -87,11 +86,11 @@ export default function SectionBlock({
     });
 
     return (
-      <div key={idx} className="mb-4 last:mb-0 group/line">
-        <div className="font-bold text-[var(--chord)] whitespace-pre-wrap text-[0.95em] leading-none mb-1 select-none">
+      <div key={idx} className="mb-4 last:mb-0 overflow-x-auto">
+        <div className="font-bold text-[var(--chord)] whitespace-pre text-[0.95em] leading-none mb-1 select-none">
           {chordLine || ' '}
         </div>
-        <div className="text-[var(--text-1)] whitespace-pre-wrap leading-tight">
+        <div className="text-[var(--text-1)] whitespace-pre leading-tight">
           {lyricLine || ' '}
           {inlineNotes && inlineNote && (
             <span className="text-[var(--text-2)] italic text-[0.8em]">
@@ -104,7 +103,7 @@ export default function SectionBlock({
   };
 
   return (
-    <div className="mb-12 break-inside-avoid">
+    <div className="mb-8 md:mb-12 break-inside-avoid">
       <div className="flex items-center gap-4 mb-6">
         <div className="flex flex-col">
           <span className="text-label-14 font-black uppercase tracking-[0.15em]" style={{ color: s.b }}>

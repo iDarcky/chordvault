@@ -19,8 +19,10 @@ function parseInitialMeta(md) {
     return {
       title: song.title || '', artist: song.artist || '',
       key: song.key || 'C', tempo: String(song.tempo || 120),
-      time: song.time || '4/4', structure: (song.structure || []).join(', '),
-      ccli: song.ccli || '', tags: (song.tags || []).join(', '),
+      time: song.time || '4/4',
+      structure: Array.isArray(song.structure) ? song.structure.join(', ') : (song.structure || ''),
+      ccli: song.ccli || '',
+      tags: Array.isArray(song.tags) ? song.tags.join(', ') : (song.tags || ''),
       capo: song.capo ? String(song.capo) : '', spotify: song.spotify || '',
       youtube: song.youtube || '', notes: song.notes || '',
     };

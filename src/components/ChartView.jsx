@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { transposeChord, transposeKey, ALL_KEYS, semitonesBetween, compactLabel } from '../music';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { transposeChord, ALL_KEYS, semitonesBetween } from '../music';
 import SectionBlock from './SectionBlock';
 import ChordDiagram from './ChordDiagram';
 import { Button } from './ui/Button';
@@ -36,12 +36,24 @@ export default function ChartView({
   const [showSettings, setShowSettings] = useState(false);
   const [showMusicSettings, setShowMusicSettings] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  const scrollContainerRef = useRef(null);
 
   const transpose = semitonesBetween(song.key, selectedKey);
 
   const toggleInfo = () => { setShowInfo(s => !s); setShowSettings(false); setShowMusicSettings(false); };
   const toggleAa = () => { setShowSettings(s => !s); setShowInfo(false); setShowMusicSettings(false); };
   const toggleMusic = () => { setShowMusicSettings(s => !s); setShowInfo(false); setShowSettings(false); };
+
+  // Detect scroll position for collapsing header
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onScroll = () => setScrolled(el.scrollTop > 40);
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Compute cumulative modulate offsets per section
   const sectionModOffsets = useMemo(() => {
@@ -70,48 +82,71 @@ export default function ChartView({
   // Check if any metadata exists
   const hasMetadata = song.capo > 0 || song.ccli || (song.tags?.length > 0) || song.notes || song.spotify || song.youtube;
 
+  // Close expanded panels when header collapses
+  const panelOpen = showSettings || showMusicSettings || showInfo;
+
   return (
-    <div className={cn(
-      "h-screen overflow-y-auto overflow-x-hidden bg-[var(--ds-background-100)]",
-      isPreview && "h-auto overflow-visible bg-transparent"
-    )}>
+    <div
+      ref={scrollContainerRef}
+      className={cn(
+        "h-screen overflow-y-auto overflow-x-hidden bg-[var(--ds-background-100)]",
+        isPreview && "h-auto overflow-visible bg-transparent"
+      )}
+    >
       {/* ── Sticky Header ── */}
       {!isPreview && (
-        <div className="material-header">
-          {/* Line 1: Title + buttons */}
-          <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between pt-3 pb-1">
-            <h1 className="text-heading-24 text-[var(--text-1)] m-0 truncate mr-3">{song.title}</h1>
+        <div className="material-header transition-all duration-200">
+          {/* Line 1: Title + meta (compact) or Title only (expanded) + buttons */}
+          <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between pt-3 pb-1 gap-3">
+            <div className="min-w-0 flex-1 flex items-center gap-3">
+              <h1 className={cn(
+                "text-[var(--text-1)] m-0 truncate transition-all duration-200",
+                scrolled ? "text-heading-16" : "text-heading-24"
+              )}>{song.title}</h1>
+              {/* Inline meta — visible only in compact mode */}
+              {scrolled && (
+                <div className="hidden sm:flex items-center gap-2 flex-shrink-0 text-label-11 text-[var(--text-2)]">
+                  <span className="font-bold text-[var(--text-1)]">{selectedKey}</span>
+                  {song.tempo && <span>{song.tempo} bpm</span>}
+                  {song.time && <span>{song.time}</span>}
+                </div>
+              )}
+            </div>
             <div className="flex gap-1.5 items-center flex-shrink-0">
-              <IconButton
-                variant={showInfo ? 'active' : 'default'}
-                size="sm"
-                onClick={toggleInfo}
-                aria-label="Song info"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 16v-4" />
-                  <path d="M12 8h.01" />
-                </svg>
-              </IconButton>
-              <IconButton
-                variant={showSettings ? 'active' : 'default'}
-                size="sm"
-                onClick={toggleAa}
-                aria-label="Layout settings"
-              >Aa</IconButton>
-              <IconButton
-                variant={showMusicSettings ? 'active' : 'default'}
-                size="sm"
-                onClick={toggleMusic}
-                aria-label="Music display settings"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                </svg>
-              </IconButton>
-
-              <div className="w-px h-5 bg-[var(--border-1)]" />
+              <div className={cn(
+                "flex gap-1.5 items-center transition-all duration-200 overflow-hidden",
+                scrolled ? "max-w-0 opacity-0 pointer-events-none" : "max-w-[200px] opacity-100"
+              )}>
+                <IconButton
+                  variant={showInfo ? 'active' : 'default'}
+                  size="sm"
+                  onClick={toggleInfo}
+                  aria-label="Song info"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4" />
+                    <path d="M12 8h.01" />
+                  </svg>
+                </IconButton>
+                <IconButton
+                  variant={showSettings ? 'active' : 'default'}
+                  size="sm"
+                  onClick={toggleAa}
+                  aria-label="Layout settings"
+                >Aa</IconButton>
+                <IconButton
+                  variant={showMusicSettings ? 'active' : 'default'}
+                  size="sm"
+                  onClick={toggleMusic}
+                  aria-label="Music display settings"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                  </svg>
+                </IconButton>
+                <div className="w-px h-5 bg-[var(--border-1)]" />
+              </div>
 
               <IconButton variant="default" size="sm" onClick={onEdit} aria-label="Edit chart">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
@@ -124,8 +159,11 @@ export default function ChartView({
             </div>
           </div>
 
-          {/* Line 2: Artist + Key / Tempo / Time */}
-          <div className="max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-3 pb-1.5">
+          {/* Line 2: Artist + Key / Tempo / Time — collapses when scrolled */}
+          <div className={cn(
+            "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-3 transition-all duration-200 overflow-hidden",
+            scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-12 opacity-100 pb-1.5"
+          )}>
             <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
             <div className="w-px h-3.5 bg-[var(--border-1)]" />
             <Select value={selectedKey} onValueChange={setSelectedKey}>
@@ -159,7 +197,7 @@ export default function ChartView({
             )}
           </div>
 
-          {/* Line 3: Structure ribbon */}
+          {/* Structure ribbon — always visible */}
           <div className="max-w-[1600px] mx-auto px-6 pb-2">
             <StructureRibbon
               structure={song.sections.map(s => s.type)}
@@ -171,9 +209,12 @@ export default function ChartView({
             />
           </div>
 
-          {/* Expanded controls sub-row (all panels render here) */}
-          {(showSettings || showMusicSettings || showInfo) && (
-            <div className="max-w-[1600px] mx-auto px-6 pb-3 flex flex-wrap items-center gap-1.5">
+          {/* Expanded controls sub-row — collapses when scrolled */}
+          {panelOpen && (
+            <div className={cn(
+              "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-1.5 transition-all duration-200 overflow-hidden",
+              scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-24 opacity-100 pb-3"
+            )}>
               {showSettings && (
                 <>
                   <SegmentedControl
@@ -280,13 +321,13 @@ export default function ChartView({
         {/* ── Sections Grid ── */}
         <div
           className={cn(
-            "grid gap-x-16 gap-y-4",
-            columns === 2 ? "lg:grid-cols-2" : "grid-cols-1"
+            "grid gap-x-12 gap-y-4",
+            columns === 2 ? "grid-cols-2" : "grid-cols-1"
           )}
           style={{ fontSize, fontFamily: FONT_FAMILIES[fontFamily] }}
         >
           {song.sections.map((section, idx) => (
-            <div key={section.id || idx} id={`section-${idx}`}>
+            <div key={section.id || idx} id={`section-${idx}`} style={{ scrollMarginTop: '10rem' }}>
               <SectionBlock
                 section={section}
                 transpose={transpose}
