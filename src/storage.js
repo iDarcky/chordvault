@@ -41,6 +41,7 @@ export const DEFAULT_SETTINGS = {
   inlineNoteStyle: 'dashes',
   displayRole: 'leader',
   duplicateSections: 'full',
+  chartLayout: 'columns',
 };
 
 export async function loadSettings() {

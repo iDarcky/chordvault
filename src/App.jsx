@@ -364,6 +364,7 @@ export default function App() {
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
           displayRole={settings?.displayRole || 'leader'}
           duplicateSections={settings?.duplicateSections || 'full'}
+          chartLayout={settings?.chartLayout || 'columns'}
         />
       )}
       {view === 'editor' && (

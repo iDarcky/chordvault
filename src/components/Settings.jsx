@@ -110,6 +110,24 @@ export default function Settings({
 
         {/* Global Chart Preferences */}
         <Section title="Chart Preferences">
+          <Row label="Chart Flow" description="How sections fill when using 2 columns.">
+            <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
+              {[
+                { key: 'columns', label: 'Top ↓ Down' },
+                { key: 'rows', label: 'Left → Right' },
+              ].map(({ key, label }) => (
+                <Button
+                  key={key}
+                  size="sm"
+                  variant={settings.chartLayout === key ? 'secondary' : 'ghost'}
+                  onClick={() => update('chartLayout', key)}
+                  className={settings.chartLayout === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </Row>
           <Row label="Display Mode" description="Control which elements are visible by default.">
              <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg flex-wrap">
               {[

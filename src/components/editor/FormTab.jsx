@@ -52,6 +52,17 @@ export default function FormTab({ md, onChange }) {
   const [chordAnchor, setChordAnchor] = useState(null);
   const [tabEditorTarget, setTabEditorTarget] = useState(null);
   const lyricRefs = useRef({});
+  const isInternalUpdate = useRef(false);
+
+  // Re-sync form state when md changes externally (e.g. from Raw/Visual tab edits)
+  useEffect(() => {
+    if (isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return;
+    }
+    setMeta(parseInitialMeta(md));
+    setSections(parseInitialSections(md));
+  }, [md]);
 
   // ─── Generate md from form state whenever it changes ───
   const generateMd = useCallback(() => {
@@ -62,7 +73,7 @@ export default function FormTab({ md, onChange }) {
     if (meta.tempo) lines.push(`tempo: ${meta.tempo}`);
     if (meta.time) lines.push(`time: ${meta.time}`);
 
-    const structure = meta.structure || sections.map(s => s.type).join(', ');
+    const structure = sections.map(s => s.type).join(', ');
     if (structure) lines.push(`structure: [${structure}]`);
 
     if (meta.ccli) lines.push(`ccli: ${meta.ccli}`);
@@ -85,10 +96,13 @@ export default function FormTab({ md, onChange }) {
     return lines.join('\n');
   }, [meta, sections]);
 
-  // Push changes to parent
+  // Push changes to parent when form state changes
   useEffect(() => {
     const newMd = generateMd();
-    if (newMd !== md) onChange(newMd);
+    if (newMd !== md) {
+      isInternalUpdate.current = true;
+      onChange(newMd);
+    }
   }, [generateMd]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Section operations ───

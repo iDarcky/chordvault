@@ -22,7 +22,8 @@ export default function ChartView({
   song, onBack, onEdit, isPreview,
   defaultColumns = 1, defaultFontSize = 16,
   showInlineNotes = true, inlineNoteStyle = 'dashes',
-  displayRole = 'leader', duplicateSections = 'full'
+  displayRole = 'leader', duplicateSections = 'full',
+  chartLayout = 'columns'
 }) {
   const initialFontSize = FONT_SIZES[defaultFontSize] || (typeof defaultFontSize === 'number' ? defaultFontSize : 16);
 
@@ -105,7 +106,7 @@ export default function ChartView({
               )}>{song.title}</h1>
               {/* Inline meta — visible only in compact mode */}
               {scrolled && (
-                <div className="hidden sm:flex items-center gap-2 flex-shrink-0 text-label-11 text-[var(--text-2)]">
+                <div className="flex items-center gap-2 flex-shrink-0 text-label-11 text-[var(--text-2)]">
                   <span className="font-bold text-[var(--text-1)]">{selectedKey}</span>
                   {song.tempo && <span>{song.tempo} bpm</span>}
                   {song.time && <span>{song.time}</span>}
@@ -318,16 +319,22 @@ export default function ChartView({
           </div>
         )}
 
-        {/* ── Sections Grid ── */}
+        {/* ── Sections ── */}
         <div
-          className={cn(
-            "grid gap-x-12 gap-y-4",
-            columns === 2 ? "grid-cols-2" : "grid-cols-1"
-          )}
-          style={{ fontSize, fontFamily: FONT_FAMILIES[fontFamily] }}
+          style={{
+            fontSize,
+            fontFamily: FONT_FAMILIES[fontFamily],
+            columnCount: columns,
+            columnGap: '3rem',
+          }}
         >
-          {song.sections.map((section, idx) => (
-            <div key={section.id || idx} id={`section-${idx}`} style={{ scrollMarginTop: '10rem' }}>
+          {/* For left→right with 2 cols, reorder: evens then odds so CSS columns reads L→R */}
+          {(chartLayout === 'rows' && columns === 2
+            ? [...song.sections.map((s, i) => ({ s, i })).filter((_, j) => j % 2 === 0),
+               ...song.sections.map((s, i) => ({ s, i })).filter((_, j) => j % 2 === 1)]
+            : song.sections.map((s, i) => ({ s, i }))
+          ).map(({ s: section, i: idx }) => (
+            <div key={section.id || idx} id={`section-${idx}`} style={{ scrollMarginTop: '10rem', breakInside: 'avoid' }}>
               <SectionBlock
                 section={section}
                 transpose={transpose}

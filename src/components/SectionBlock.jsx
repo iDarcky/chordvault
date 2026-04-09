@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { transposeChord, sectionStyle, getNashvilleNumber } from '../music';
+import { parseLine } from '../parser';
 import TabBlock from './TabBlock';
 
 const NOTE_SEPARATORS = {
@@ -33,7 +34,7 @@ export default function SectionBlock({
       if (line.type === 'tab') return <TabBlock key={idx} data={line} />;
       if (line.type === 'modulate') {
         return (
-          <div key={idx} className="my-6 flex items-center gap-4">
+          <div key={idx} className="my-4 flex items-center gap-4">
             <div className="h-[1px] flex-1 bg-[var(--color-brand-border)]" />
             <span className="text-label-10 font-black uppercase tracking-[0.2em] px-3 py-1 bg-[var(--color-brand)] text-white rounded-full shadow-sm">
               Key Change: {line.semitones > 0 ? '+' : ''}{line.semitones}
@@ -52,12 +53,11 @@ export default function SectionBlock({
     const inlineNote = noteMatch ? noteMatch[1] : null;
     const cleanLine = line.replace(/\{!.*?\}/g, '');
 
-    const parts = cleanLine.split(/(\[.*?\])/);
-
+    // Plain text line (no chords) or chords hidden
     if (!cleanLine.includes('[') || !showChords) {
       const displayLine = !showChords ? cleanLine.replace(/\[.*?\]/g, '') : cleanLine;
       return (
-        <div key={idx} className="min-h-[1.5em] whitespace-pre-wrap text-[var(--text-1)] opacity-90">
+        <div key={idx} className="min-h-[1.3em] whitespace-pre-wrap text-[var(--text-1)] opacity-90">
           {displayLine}
           {inlineNotes && inlineNote && (
             <span className="text-[var(--text-2)] italic text-[0.8em]">
@@ -68,32 +68,37 @@ export default function SectionBlock({
       );
     }
 
-    let chordLine = '';
-    let lyricLine = '';
+    // Parse into chord+text pairs using the parser
+    const pairs = parseLine(cleanLine);
+    const hasLyrics = pairs.some(p => p.text.trim());
 
-    parts.forEach(part => {
-      if (part.startsWith('[') && part.endsWith(']')) {
-        const chord = part.slice(1, -1);
-        const displayChord = nns
-          ? getNashvilleNumber(chord, songKey)
-          : transposeChord(chord, effectiveTranspose);
-
-        const padding = Math.max(0, lyricLine.length - chordLine.length);
-        chordLine += ' '.repeat(padding) + displayChord;
-      } else {
-        lyricLine += part;
-      }
-    });
-
+    // Render each chord+text pair as inline-block so they wrap naturally
+    // while keeping each chord positioned above its syllable
     return (
-      <div key={idx} className="mb-4 last:mb-0 overflow-x-auto">
-        <div className="font-bold text-[var(--chord)] whitespace-pre text-[0.95em] leading-none mb-1 select-none">
-          {chordLine || ' '}
-        </div>
-        <div className="text-[var(--text-1)] whitespace-pre leading-tight">
-          {lyricLine || ' '}
+      <div key={idx} className={hasLyrics ? "mb-2 last:mb-0" : "last:mb-0"} style={{ lineHeight: 1 }}>
+        <div className="flex flex-wrap items-end">
+          {pairs.map((p, i) => {
+            const chord = p.chord
+              ? (nns ? getNashvilleNumber(p.chord, songKey) : transposeChord(p.chord, effectiveTranspose))
+              : null;
+
+            return (
+              <span key={i} className="inline-flex flex-col justify-end">
+                {chord && (
+                  <span className="font-bold text-[var(--chord)] text-[0.95em] leading-none select-none whitespace-nowrap" style={{ paddingBottom: hasLyrics ? 3 : 0 }}>
+                    {chord}{'\u2003'}
+                  </span>
+                )}
+                {hasLyrics && (
+                  <span className="text-[var(--text-1)] whitespace-pre-wrap leading-tight">
+                    {p.text || (chord ? '\u00A0' : '')}
+                  </span>
+                )}
+              </span>
+            );
+          })}
           {inlineNotes && inlineNote && (
-            <span className="text-[var(--text-2)] italic text-[0.8em]">
+            <span className="text-[var(--text-2)] italic text-[0.8em] self-end">
               {NOTE_SEPARATORS[noteStyle] || NOTE_SEPARATORS.dashes}{inlineNote}
             </span>
           )}
@@ -103,8 +108,8 @@ export default function SectionBlock({
   };
 
   return (
-    <div className="mb-8 md:mb-12 break-inside-avoid">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="mb-6 md:mb-8 break-inside-avoid">
+      <div className="flex items-center gap-4 mb-2">
         <div className="flex flex-col">
           <span className="text-label-14 font-black uppercase tracking-[0.15em]" style={{ color: s.b }}>
             {sectionLabel}:
@@ -117,7 +122,7 @@ export default function SectionBlock({
         </div>
         <div className="h-[1px] flex-1 bg-[var(--border-1)] opacity-20" />
       </div>
-      <div className="space-y-1">
+      <div>
         {(section.lines || []).map((line, i) => renderLine(line, i))}
       </div>
     </div>
