@@ -96,14 +96,12 @@ export default function ChartView({
       {/* ── Sticky Header ── */}
       {!isPreview && (
         <div className="material-header transition-all duration-200">
-          {/* Line 1: Title + meta (compact) or Title only (expanded) + buttons */}
           <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between pt-3 pb-1 gap-3">
             <div className="min-w-0 flex-1 flex items-center gap-3">
               <h1 className={cn(
                 "text-[var(--text-1)] m-0 truncate transition-all duration-200",
                 scrolled ? "text-heading-16" : "text-heading-24"
               )}>{song.title}</h1>
-              {/* Inline meta — visible only in compact mode */}
               {scrolled && (
                 <div className="hidden sm:flex items-center gap-2 flex-shrink-0 text-label-11 text-[var(--text-2)]">
                   <span className="font-bold text-[var(--text-1)]">{selectedKey}</span>
@@ -118,10 +116,10 @@ export default function ChartView({
                 scrolled ? "max-w-0 opacity-0 pointer-events-none" : "max-w-[200px] opacity-100"
               )}>
                 <IconButton
-                  variant={showInfo ? 'active' : 'default'}
-                  size="sm"
-                  onClick={toggleInfo}
-                  aria-label="Song info"
+                   variant={showInfo ? 'active' : 'default'}
+                   size="sm"
+                   onClick={toggleInfo}
+                   aria-label="Song info"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
@@ -159,45 +157,42 @@ export default function ChartView({
             </div>
           </div>
 
-          {/* Line 2: Artist + Key / Tempo / Time — collapses when scrolled */}
-          <div className={cn(
-            "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-3 transition-all duration-200 overflow-hidden",
-            scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-12 opacity-100 pb-1.5"
-          )}>
-            <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
-            <div className="w-px h-3.5 bg-[var(--border-1)]" />
-            <Select value={selectedKey} onValueChange={setSelectedKey}>
-              <SelectTrigger className="h-6 px-1.5 border-transparent bg-transparent text-label-14 font-bold text-[var(--text-1)] hover:bg-[var(--bg-2)] gap-1 min-w-0 w-auto focus:ring-0">
-                <span className="text-label-12 font-semibold text-[var(--text-2)] mr-0.5">Key</span>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ALL_KEYS.map(k => {
-                  const st = semitonesBetween(song.key, k);
-                  const display = st > 6 ? st - 12 : st;
-                  return (
-                    <SelectItem key={k} value={k}>
-                      {k} {st !== 0 && `(${display > 0 ? '+' : ''}${display})`}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            {song.tempo && (
-              <span className="text-label-14 text-[var(--text-2)]">
-                <span className="text-label-12 font-semibold mr-0.5">Tempo</span>
-                <span className="font-bold">{song.tempo}</span>
-              </span>
-            )}
-            {song.time && (
-              <span className="text-label-14 text-[var(--text-2)]">
-                <span className="text-label-12 font-semibold mr-0.5">Time</span>
-                <span className="font-bold">{song.time}</span>
-              </span>
-            )}
-          </div>
+          {!scrolled && (
+            <div className="max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-3 pb-1.5 transition-all duration-200">
+              <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
+              <div className="w-px h-3.5 bg-[var(--border-1)]" />
+              <Select value={selectedKey} onValueChange={setSelectedKey}>
+                <SelectTrigger className="h-6 px-1.5 border-transparent bg-transparent text-label-14 font-bold text-[var(--text-1)] hover:bg-[var(--bg-2)] gap-1 min-w-0 w-auto">
+                  <span className="text-label-12 font-semibold text-[var(--text-2)] mr-0.5">Key</span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ALL_KEYS.map(k => {
+                    const st = semitonesBetween(song.key, k);
+                    const display = st > 6 ? st - 12 : st;
+                    return (
+                      <SelectItem key={k} value={k}>
+                        {k} {st !== 0 && `(${display > 0 ? '+' : ''}${display})`}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              {song.tempo && (
+                <span className="text-label-14 text-[var(--text-2)]">
+                  <span className="text-label-12 font-semibold mr-0.5">Tempo</span>
+                  <span className="font-bold">{song.tempo}</span>
+                </span>
+              )}
+              {song.time && (
+                <span className="text-label-14 text-[var(--text-2)]">
+                  <span className="text-label-12 font-semibold mr-0.5">Time</span>
+                  <span className="font-bold">{song.time}</span>
+                </span>
+              )}
+            </div>
+          )}
 
-          {/* Structure ribbon — always visible */}
           <div className="max-w-[1600px] mx-auto px-6 pb-2">
             <StructureRibbon
               structure={song.sections.map(s => s.type)}
@@ -209,12 +204,8 @@ export default function ChartView({
             />
           </div>
 
-          {/* Expanded controls sub-row — collapses when scrolled */}
-          {panelOpen && (
-            <div className={cn(
-              "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-1.5 transition-all duration-200 overflow-hidden",
-              scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-24 opacity-100 pb-3"
-            )}>
+          {panelOpen && !scrolled && (
+            <div className="max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-1.5 pb-3 transition-all duration-200">
               {showSettings && (
                 <>
                   <SegmentedControl
@@ -304,9 +295,8 @@ export default function ChartView({
         "px-6 pt-4 pb-24 max-w-[1600px] mx-auto w-full",
         isPreview && "px-0 pt-0 pb-0"
       )}>
-        {/* ── Chord Diagrams Strip ── */}
         {showDiagrams && !isPreview && (
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-8 mb-8 border-b border-[var(--border-1)]">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-8 mb-8 border-b border-[var(--ds-gray-400)]">
             {allChords.map(chord => (
               <div key={chord} className="flex flex-col items-center gap-1 flex-shrink-0">
                 <div className="text-label-10-mono font-bold text-[var(--text-2)]">{transposeChord(chord, transpose)}</div>
@@ -318,7 +308,6 @@ export default function ChartView({
           </div>
         )}
 
-        {/* ── Sections Grid ── */}
         <div
           className={cn(
             "grid gap-x-12 gap-y-4",

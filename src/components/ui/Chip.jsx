@@ -18,7 +18,7 @@ const Chip = React.forwardRef(({
   ...props
 }, ref) => {
   const variants = {
-    default: 'bg-[var(--bg-1)] text-[var(--text-1)] border-[var(--border-1)]',
+    default: 'bg-[var(--ds-gray-100)] text-[var(--ds-gray-1000)] border-[var(--ds-gray-400)]',
     success: 'bg-[var(--ds-green-100)] text-[var(--ds-green-1000)] border-[var(--ds-green-400)]',
     error: 'bg-[var(--ds-red-100)] text-[var(--ds-red-1000)] border-[var(--ds-red-400)]',
     warning: 'bg-[var(--ds-amber-100)] text-[var(--ds-amber-1000)] border-[var(--ds-amber-400)]',

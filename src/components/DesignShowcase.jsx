@@ -20,39 +20,39 @@ export default function DesignShowcase({ onBack }) {
         {/* Layer A: Tokens (Colors) */}
         <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
-            <h2 className="text-label-14 text-[var(--text-2)] uppercase tracking-widest font-bold">Colors & Functional Rules</h2>
-            <p className="text-copy-14 text-[var(--text-1)]">The official 1–10 color system mapping raw scales to semantic UI roles.</p>
+            <h2 className="text-label-14 text-[var(--ds-gray-900)] uppercase tracking-widest font-bold">Colors & Functional Rules</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-1000)]">The official 1–10 color system mapping raw scales to functional UI roles.</p>
           </div>
           
-          <div className="flex bg-[var(--bg-1)] border border-[var(--border-1)] rounded-md overflow-hidden h-24">
+          <div className="flex bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md overflow-hidden h-24">
             {[100, 200, 300, 400, 500, 600, 700, 800, 900, 1000].map(scale => (
               <div 
                 key={scale}
                 className="flex-1 flex flex-col items-center justify-end pb-2"
                 style={{ backgroundColor: `var(--ds-gray-${scale})` }}
               >
-                <span className={`text-[10px] uppercase font-mono ${scale > 500 ? 'text-[var(--ds-background-200)]' : 'text-[var(--text-1)]'}`}>
+                <span className={`text-[10px] uppercase font-mono ${scale > 500 ? 'text-[var(--ds-background-200)]' : 'text-[var(--ds-gray-1000)]'}`}>
                   {scale / 100}
                 </span>
               </div>
             ))}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-md bg-[var(--bg-1)] border border-[var(--border-1)] text-[var(--text-1)] flex flex-col justify-between h-24">
-              <span className="text-[10px] text-[var(--text-2)]">Color 1: BG</span>
-              <span className="text-label-14-mono">--bg-1</span>
+            <div className="p-4 rounded-md bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] text-[var(--ds-gray-1000)] flex flex-col justify-between h-24">
+              <span className="text-[10px] text-[var(--ds-gray-900)]">Color 1: BG</span>
+              <span className="text-label-14-mono">--ds-gray-100</span>
             </div>
-            <div className="p-4 border border-[var(--border-1)] rounded-md bg-[var(--ds-background-100)] text-[var(--text-1)] flex flex-col justify-between h-24">
-              <span className="text-[10px] text-[var(--text-2)]">Panel BG</span>
+            <div className="p-4 border border-[var(--ds-gray-400)] rounded-md bg-[var(--ds-background-100)] text-[var(--ds-gray-1000)] flex flex-col justify-between h-24">
+              <span className="text-[10px] text-[var(--ds-gray-900)]">Panel BG</span>
               <span className="text-label-14-mono">--ds-background-100</span>
             </div>
-            <div className="p-4 border border-[var(--border-1)] rounded-md bg-[var(--ds-background-200)] text-[var(--text-1)] flex flex-col justify-between h-24">
-              <span className="text-[10px] text-[var(--text-2)]">Global Page BG</span>
+            <div className="p-4 border border-[var(--ds-gray-400)] rounded-md bg-[var(--ds-background-200)] text-[var(--ds-gray-1000)] flex flex-col justify-between h-24">
+              <span className="text-[10px] text-[var(--ds-gray-900)]">Global Page BG</span>
               <span className="text-label-14-mono">--ds-background-200</span>
             </div>
-            <div className="p-4 rounded-md bg-[var(--text-1)] text-[var(--bg-1)] flex flex-col justify-between h-24">
+            <div className="p-4 rounded-md bg-[var(--ds-gray-1000)] text-[var(--ds-gray-100)] flex flex-col justify-between h-24">
               <span className="text-[10px]">Color 10: Primary Text</span>
-              <span className="text-label-14-mono">--text-1</span>
+              <span className="text-label-14-mono">--ds-gray-1000</span>
             </div>
           </div>
         </section>
@@ -62,23 +62,23 @@ export default function DesignShowcase({ onBack }) {
         {/* Layer A: Typography */}
         <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
-            <h2 className="text-label-14 text-[var(--text-2)] uppercase tracking-widest font-bold">Typography</h2>
-            <p className="text-copy-14 text-[var(--text-1)]">Geist Sans and Geist Mono typography hierarchy.</p>
+            <h2 className="text-label-14 text-[var(--ds-gray-900)] uppercase tracking-widest font-bold">Typography</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-1000)]">Geist Sans and Geist Mono typography hierarchy.</p>
           </div>
           <Card className="grid gap-6">
             <div>
-              <h1 className="text-heading-32 text-[var(--text-1)] m-0">Heading 32 - Page Titles</h1>
-              <p className="text-label-12-mono text-[var(--text-2)]">.text-heading-32</p>
+              <h1 className="text-heading-32 text-[var(--ds-gray-1000)] m-0">Heading 32 - Page Titles</h1>
+              <p className="text-label-12-mono text-[var(--ds-gray-900)]">.text-heading-32</p>
             </div>
             <div>
-              <h2 className="text-heading-24 text-[var(--text-1)] m-0">Heading 24 - Section Titles</h2>
-              <p className="text-label-12-mono text-[var(--text-2)]">.text-heading-24</p>
+              <h2 className="text-heading-24 text-[var(--ds-gray-1000)] m-0">Heading 24 - Section Titles</h2>
+              <p className="text-label-12-mono text-[var(--ds-gray-900)]">.text-heading-24</p>
             </div>
             <div>
-              <p className="text-copy-14 text-[var(--text-1)] m-0 leading-relaxed">
+              <p className="text-copy-14 text-[var(--ds-gray-1000)] m-0 leading-relaxed">
                 Copy 14 - Default body text. Geist is designed for precision and clarity. Vercel products use this for descriptions and regular content.
               </p>
-              <p className="text-label-12-mono text-[var(--text-2)] mt-1">.text-copy-14</p>
+              <p className="text-label-12-mono text-[var(--ds-gray-900)] mt-1">.text-copy-14</p>
             </div>
           </Card>
         </section>
@@ -88,19 +88,19 @@ export default function DesignShowcase({ onBack }) {
         {/* Layer B: Materials */}
         <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
-            <h2 className="text-label-14 text-[var(--text-2)] uppercase tracking-widest font-bold">Materials (Layouts)</h2>
-            <p className="text-copy-14 text-[var(--text-1)]">Presets for radii, fills, strokes, and shadows based on standard vercel utility classes.</p>
+            <h2 className="text-label-14 text-[var(--ds-gray-900)] uppercase tracking-widest font-bold">Materials (Layouts)</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-1000)]">Presets for radii, fills, strokes, and shadows based on standard vercel utility classes.</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="material-panel p-6 flex flex-col gap-2">
-              <h3 className="text-heading-16 text-[var(--text-1)] m-0">Material Panel</h3>
-              <p className="text-copy-14 text-[var(--text-1)] m-0">A lower elevation surface used for minor items. Sharp 6px radius.</p>
-              <span className="text-label-12-mono text-[var(--text-2)] mt-2">.material-panel</span>
+              <h3 className="text-heading-16 text-[var(--ds-gray-1000)] m-0">Material Panel</h3>
+              <p className="text-copy-14 text-[var(--ds-gray-1000)] m-0">A lower elevation surface used for minor items. Sharp 6px radius.</p>
+              <span className="text-label-12-mono text-[var(--ds-gray-900)] mt-2">.material-panel</span>
             </div>
             <div className="material-card p-6 flex flex-col gap-2">
-              <h3 className="text-heading-16 text-[var(--text-1)] m-0">Material Card</h3>
-              <p className="text-copy-14 text-[var(--text-1)] m-0">A standard elevated container with a drop-shadow. Soft 12px radius.</p>
-              <span className="text-label-12-mono text-[var(--text-2)] mt-2">.material-card</span>
+              <h3 className="text-heading-16 text-[var(--ds-gray-1000)] m-0">Material Card</h3>
+              <p className="text-copy-14 text-[var(--ds-gray-1000)] m-0">A standard elevated container with a drop-shadow. Soft 12px radius.</p>
+              <span className="text-label-12-mono text-[var(--ds-gray-900)] mt-2">.material-card</span>
             </div>
           </div>
         </section>
@@ -110,12 +110,12 @@ export default function DesignShowcase({ onBack }) {
         {/* Layer B: Atomic Components */}
         <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
-            <h2 className="text-label-14 text-[var(--text-2)] uppercase tracking-widest font-bold">Base UI Components</h2>
-            <p className="text-copy-14 text-[var(--text-1)]">Atomic building blocks like buttons and inputs.</p>
+            <h2 className="text-label-14 text-[var(--ds-gray-900)] uppercase tracking-widest font-bold">Base UI Components</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-1000)]">Atomic building blocks like buttons and inputs.</p>
           </div>
           <Card className="flex flex-col gap-8">
             <div className="flex flex-col gap-3">
-              <h4 className="text-label-12-mono text-[var(--text-2)]">Buttons</h4>
+              <h4 className="text-label-12-mono text-[var(--ds-gray-900)]">Buttons</h4>
               <div className="flex flex-wrap gap-4 items-center">
                 <Button variant="primary">Primary</Button>
                 <Button variant="secondary">Secondary</Button>
@@ -148,8 +148,8 @@ export default function DesignShowcase({ onBack }) {
         {/* FAB Cluster & Popover */}
         <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
-            <h2 className="text-label-14 text-[var(--text-2)] uppercase tracking-widest font-bold">FAB Cluster & Popover</h2>
-            <p className="text-copy-14 text-[var(--text-1)]">Floating action buttons used on the Dashboard for quick creation and search.</p>
+            <h2 className="text-label-14 text-[var(--ds-gray-900)] uppercase tracking-widest font-bold">FAB Cluster & Popover</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-1000)]">Floating action buttons used on the Dashboard for quick creation and search.</p>
           </div>
           <Card className="flex flex-col gap-8">
             <div className="flex flex-col gap-3">
@@ -157,13 +157,13 @@ export default function DesignShowcase({ onBack }) {
               <div className="flex flex-wrap gap-6 items-end">
                 {/* Search FAB */}
                 <div className="flex flex-col items-center gap-2">
-                  <button className="w-11 h-11 rounded-full bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg flex items-center justify-center cursor-pointer hover:border-[var(--border-3)] transition-all duration-150">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-1)]">
+                  <button className="w-11 h-11 rounded-full bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] shadow-lg flex items-center justify-center cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-1000)]">
                       <circle cx="11" cy="11" r="8" />
                       <path d="m21 21-4.3-4.3" />
                     </svg>
                   </button>
-                  <span className="text-label-11 text-[var(--text-2)]">Search</span>
+                  <span className="text-label-11 text-[var(--ds-gray-900)]">Search</span>
                 </div>
                 {/* Create FAB */}
                 <div className="flex flex-col items-center gap-2">
@@ -173,27 +173,27 @@ export default function DesignShowcase({ onBack }) {
                       <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
                   </button>
-                  <span className="text-label-11 text-[var(--text-2)]">Create</span>
+                  <span className="text-label-11 text-[var(--ds-gray-900)]">Create</span>
                 </div>
               </div>
             </div>
             <Separator />
             <div className="flex flex-col gap-3">
-              <h4 className="text-label-12-mono text-[var(--text-2)]">Popover Menu</h4>
+              <h4 className="text-label-12-mono text-[var(--ds-gray-900)]">Popover Menu</h4>
               <div className="flex flex-col gap-2 max-w-xs">
-                <button className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150">
-                  <span className="w-8 h-8 rounded-full bg-[var(--bg-2)] flex items-center justify-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-1)]">
+                <button className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150">
+                  <span className="w-8 h-8 rounded-full bg-[var(--ds-gray-200)] flex items-center justify-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-1000)]">
                       <path d="M9 18V5l12-2v13" />
                       <circle cx="6" cy="18" r="3" />
                       <circle cx="18" cy="16" r="3" />
                     </svg>
                   </span>
-                  <span className="text-label-14 text-[var(--text-1)]">New Song</span>
+                  <span className="text-label-14 text-[var(--ds-gray-1000)]">New Song</span>
                 </button>
-                <button className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150">
-                  <span className="w-8 h-8 rounded-full bg-[var(--bg-2)] flex items-center justify-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-1)]">
+                <button className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150">
+                  <span className="w-8 h-8 rounded-full bg-[var(--ds-gray-200)] flex items-center justify-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-1000)]">
                       <line x1="8" y1="6" x2="21" y2="6" />
                       <line x1="8" y1="12" x2="21" y2="12" />
                       <line x1="8" y1="18" x2="21" y2="18" />
@@ -202,7 +202,7 @@ export default function DesignShowcase({ onBack }) {
                       <line x1="3" y1="18" x2="3.01" y2="18" />
                     </svg>
                   </span>
-                  <span className="text-label-14 text-[var(--text-1)]">New Setlist</span>
+                  <span className="text-label-14 text-[var(--ds-gray-1000)]">New Setlist</span>
                 </button>
               </div>
             </div>
@@ -214,30 +214,30 @@ export default function DesignShowcase({ onBack }) {
         {/* Song Card Row Variant */}
         <section className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
-            <h2 className="text-label-14 text-[var(--text-2)] uppercase tracking-widest font-bold">Song Card Row</h2>
-            <p className="text-copy-14 text-[var(--text-1)]">Compact row variant of the SongCard, used in the Dashboard's Recently Edited section.</p>
+            <h2 className="text-label-14 text-[var(--ds-gray-900)] uppercase tracking-widest font-bold">Song Card Row</h2>
+            <p className="text-copy-14 text-[var(--ds-gray-1000)]">Compact row variant of the SongCard, used in the Dashboard's Recently Edited section.</p>
           </div>
-          <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)]">
-            <div className="flex items-center justify-between px-4 py-3 cursor-pointer rounded-lg transition-colors duration-150 hover:bg-[var(--bg-2)]">
+          <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-gray-100)] overflow-hidden divide-y divide-[var(--ds-gray-400)]">
+            <div className="flex items-center justify-between px-4 py-3 cursor-pointer rounded-lg transition-colors duration-150 hover:bg-[var(--ds-gray-200)]">
               <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                <span className="text-label-14 text-[var(--text-1)] truncate">Amazing Grace</span>
-                <span className="text-copy-13 text-[var(--text-2)] truncate">John Newton</span>
+                <span className="text-label-14 text-[var(--ds-gray-1000)] truncate">Amazing Grace</span>
+                <span className="text-copy-13 text-[var(--ds-gray-900)] truncate">John Newton</span>
               </div>
               <div className="flex items-center gap-1.5 ml-4 shrink-0">
                 <span className="text-label-12 text-[var(--chord)] font-semibold">G</span>
-                <span className="text-[var(--text-2)] text-[10px]">•</span>
-                <span className="text-label-12 text-[var(--text-2)]">120 BPM</span>
+                <span className="text-[var(--ds-gray-900)] text-[10px]">•</span>
+                <span className="text-label-12 text-[var(--ds-gray-900)]">120 BPM</span>
               </div>
             </div>
-            <div className="flex items-center justify-between px-4 py-3 cursor-pointer rounded-lg transition-colors duration-150 hover:bg-[var(--bg-2)]">
+            <div className="flex items-center justify-between px-4 py-3 cursor-pointer rounded-lg transition-colors duration-150 hover:bg-[var(--ds-gray-200)]">
               <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                <span className="text-label-14 text-[var(--text-1)] truncate">How Great Is Our God</span>
-                <span className="text-copy-13 text-[var(--text-2)] truncate">Chris Tomlin</span>
+                <span className="text-label-14 text-[var(--ds-gray-1000)] truncate">How Great Is Our God</span>
+                <span className="text-copy-13 text-[var(--ds-gray-900)] truncate">Chris Tomlin</span>
               </div>
               <div className="flex items-center gap-1.5 ml-4 shrink-0">
                 <span className="text-label-12 text-[var(--chord)] font-semibold">A</span>
-                <span className="text-[var(--text-2)] text-[10px]">•</span>
-                <span className="text-label-12 text-[var(--text-2)]">78 BPM</span>
+                <span className="text-[var(--ds-gray-900)] text-[10px]">•</span>
+                <span className="text-label-12 text-[var(--ds-gray-900)]">78 BPM</span>
               </div>
             </div>
           </div>

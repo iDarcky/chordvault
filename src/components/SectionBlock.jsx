@@ -115,7 +115,7 @@ export default function SectionBlock({
             </span>
           )}
         </div>
-        <div className="h-[1px] flex-1 bg-[var(--border-1)] opacity-20" />
+        <div className="h-[1px] flex-1 bg-[var(--ds-gray-400)] opacity-20" />
       </div>
       <div className="space-y-1">
         {(section.lines || []).map((line, i) => renderLine(line, i))}

@@ -14,9 +14,9 @@ const Button = React.forwardRef(({
   const baseStyles = "inline-flex items-center justify-center rounded-md font-medium cursor-pointer transition-all duration-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
 
   const variants = {
-    primary: "bg-[var(--text-1)] text-[var(--bg-1)] hover:bg-[var(--text-2)] focus:ring-[var(--text-2)]",
-    secondary: "bg-[var(--bg-1)] text-[var(--text-1)] border border-[var(--border-1)] hover:bg-[var(--bg-2)] hover:border-[var(--border-2)] focus:ring-[var(--border-1)]",
-    ghost: "bg-transparent text-[var(--text-1)] hover:bg-[var(--bg-2)] focus:ring-[var(--bg-2)]",
+    primary: "bg-[var(--ds-gray-1000)] text-[var(--ds-gray-100)] hover:bg-[var(--ds-gray-900)] focus:ring-[var(--ds-gray-900)]",
+    secondary: "bg-[var(--ds-gray-100)] text-[var(--ds-gray-1000)] border border-[var(--ds-gray-400)] hover:bg-[var(--ds-gray-200)] hover:border-[var(--ds-gray-500)] focus:ring-[var(--ds-gray-400)]",
+    ghost: "bg-transparent text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-200)] focus:ring-[var(--ds-gray-200)]",
     error: "bg-[var(--ds-red-100)] text-[var(--ds-red-1000)] border border-[var(--ds-red-400)] hover:bg-[var(--ds-red-200)] focus:ring-[var(--ds-red-400)]",
     warning: "bg-[var(--ds-amber-100)] text-[var(--ds-amber-1000)] border border-[var(--ds-amber-400)] hover:bg-[var(--ds-amber-200)] focus:ring-[var(--ds-amber-400)]",
     brand: "bg-[var(--ds-teal-900)] text-white hover:opacity-90 focus:ring-[var(--ds-teal-900)]",
