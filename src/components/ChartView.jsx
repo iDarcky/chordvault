@@ -321,19 +321,14 @@ export default function ChartView({
 
         {/* ── Sections ── */}
         <div
+          className={chartLayout === 'rows' && columns === 2 ? "grid grid-cols-2 gap-x-12 items-start" : undefined}
           style={{
             fontSize,
             fontFamily: FONT_FAMILIES[fontFamily],
-            columnCount: columns,
-            columnGap: '3rem',
+            ...(chartLayout !== 'rows' || columns !== 2 ? { columnCount: columns, columnGap: '3rem' } : {}),
           }}
         >
-          {/* For left→right with 2 cols, reorder: evens then odds so CSS columns reads L→R */}
-          {(chartLayout === 'rows' && columns === 2
-            ? [...song.sections.map((s, i) => ({ s, i })).filter((_, j) => j % 2 === 0),
-               ...song.sections.map((s, i) => ({ s, i })).filter((_, j) => j % 2 === 1)]
-            : song.sections.map((s, i) => ({ s, i }))
-          ).map(({ s: section, i: idx }) => (
+          {song.sections.map((section, idx) => (
             <div key={section.id || idx} id={`section-${idx}`} style={{ scrollMarginTop: '10rem', breakInside: 'avoid' }}>
               <SectionBlock
                 section={section}
