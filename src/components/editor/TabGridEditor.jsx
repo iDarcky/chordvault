@@ -83,6 +83,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
     if (!initialTab || !initialTab.strings || initialTab.strings.length === 0) return;
     const maxMeasures = Math.max(2, initialTab.strings[0]?.content?.split('|').length || 2);
     const newGrid = makeGrid(maxMeasures, timeSig);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMeasures(maxMeasures);
 
     initialTab.strings.forEach((str, si) => {
@@ -188,13 +189,6 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
     onSave(`${header}\n${ascii}\n{/tab}`);
   };
 
-  const handleKeyDown = (e, si, pos) => {
-    if (e.key === 'Escape') { setActiveInput(null); return; }
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      clearCell(si, pos);
-      setActiveInput(null);
-    }
-  };
 
   const handleGridKeyDown = useCallback((e) => {
     if (activeInput) return;

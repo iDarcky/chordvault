@@ -22,7 +22,7 @@ export default function ChartView({
   song, onBack, onEdit, isPreview,
   defaultColumns = 1, defaultFontSize = 16,
   showInlineNotes = true, inlineNoteStyle = 'dashes',
-  displayRole = 'leader', duplicateSections = 'full'
+
 }) {
   const initialFontSize = FONT_SIZES[defaultFontSize] || (typeof defaultFontSize === 'number' ? defaultFontSize : 16);
 

@@ -1,32 +1,43 @@
 import * as React from "react"
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
+import { Avatar as HeroAvatar } from "@heroui/react";
 import { cn } from "../../lib/utils"
 
-const Avatar = React.forwardRef(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Root
-    ref={ref}
-    className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[var(--ds-gray-200)]", className)}
-    {...props}
-  />
-))
-Avatar.displayName = AvatarPrimitive.Root.displayName
+// Radix Avatar wrapper compatibility
+// <Avatar><AvatarImage src="..." /><AvatarFallback>US</AvatarFallback></Avatar>
 
-const AvatarImage = React.forwardRef(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-))
-AvatarImage.displayName = AvatarPrimitive.Image.displayName
+// Extract src from AvatarImage and fallback string from AvatarFallback
+const Avatar = React.forwardRef(({ className, children, ...props }, ref) => {
+  let src = undefined;
+  let fallback = undefined;
 
-const AvatarFallback = React.forwardRef(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Fallback
-    ref={ref}
-    className={cn("flex h-full w-full items-center justify-center rounded-full bg-[var(--ds-gray-100)] text-[var(--ds-gray-600)] text-xs font-medium", className)}
-    {...props}
-  />
-))
-AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+  React.Children.forEach(children, child => {
+    if (!React.isValidElement(child)) return;
+    if (child.type === AvatarImage) {
+      src = child.props.src;
+    }
+    if (child.type === AvatarFallback) {
+      fallback = child.props.children;
+    }
+  });
+
+  return (
+    <HeroAvatar
+      ref={ref}
+      src={src}
+      name={typeof fallback === 'string' ? fallback : undefined}
+      showFallback={!!fallback}
+      fallback={typeof fallback !== 'string' ? fallback : undefined}
+      className={cn(className)}
+      {...props}
+    />
+  );
+})
+Avatar.displayName = "Avatar"
+
+const AvatarImage = () => null;
+AvatarImage.displayName = "AvatarImage";
+
+const AvatarFallback = () => null;
+AvatarFallback.displayName = "AvatarFallback";
 
 export { Avatar, AvatarImage, AvatarFallback }

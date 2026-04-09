@@ -49,20 +49,20 @@ export default function BottomNav({ activeView, onNavigate }) {
         height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
       }}
     >
-      {tabs.map(({ id, label, Icon }) => {
-        const active = activeView === id;
+      {tabs.map((item) => {
+        const active = activeView === item.id;
         return (
           <button
-            key={id}
-            onClick={() => onNavigate(id)}
+            key={item.id}
+            onClick={() => onNavigate(item.id)}
             className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
               active ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
             }`}
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            <Icon />
+            <item.Icon />
             <span className={`text-label-12 ${active ? 'font-semibold' : 'font-medium'}`}>
-              {label}
+              {item.label}
             </span>
           </button>
         );

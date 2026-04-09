@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
 import PageHeader from './PageHeader';
 import { Button } from './ui/Button';
@@ -40,20 +39,7 @@ export default function Settings({
   onSyncNow,
   onDesign
 }) {
-  const [detectingKey, setDetectingKey] = useState(null);
-
-  const update = (key, value) => onUpdate({ ...settings, [key]: value });
-
-  const handleDetectKey = (field) => {
-    setDetectingKey(field);
-    const handler = (e) => {
-      e.preventDefault();
-      update(field, e.code);
-      setDetectingKey(null);
-      window.removeEventListener('keydown', handler);
-    };
-    window.addEventListener('keydown', handler);
-  };
+    const update = (key, value) => onUpdate({ ...settings, [key]: value });
 
   return (
     <div className="min-h-screen material-page pb-32">

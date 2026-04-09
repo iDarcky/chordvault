@@ -68,6 +68,7 @@ export default function Dashboard({
       searchInputRef.current.focus();
     }
     if (!searchOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery('');
     }
   }, [searchOpen]);

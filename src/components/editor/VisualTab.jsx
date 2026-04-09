@@ -59,7 +59,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
       ta.selectionStart = ta.selectionEnd = newCursor;
       ta.focus();
     });
-  }, [onChange]);
+  }, [onChange, textareaRef]);
 
   // ─── Chord insertion ───
   const handleChordSelect = useCallback((chord) => {
@@ -88,7 +88,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
       });
     }
     setShowChordPicker(false);
-  }, [onChange]);
+  }, [onChange, textareaRef]);
 
   // ─── Section insertion with auto-numbering ───
   const handleSectionInsert = useCallback((type) => {
@@ -120,7 +120,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
   const handleModInsert = useCallback((n) => {
     insertAtCursor(`{modulate: +${n}}\n`, { newLine: true });
     setShowModMenu(false);
-  }, [insertAtCursor]);
+  }, [insertAtCursor, textareaRef]);
 
   const handleTabInsert = useCallback(() => {
     const ta = textareaRef.current;
@@ -150,7 +150,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
     setTabEditState(editState);
     setShowTabEditor(true);
-  }, [md]);
+  }, [md, textareaRef]);
 
   const handleTabEditorSave = useCallback((asciiBlock) => {
     if (tabEditState?.range) {

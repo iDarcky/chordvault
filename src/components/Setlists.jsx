@@ -31,7 +31,7 @@ function SkeletonCards() {
   );
 }
 
-export default function Setlists({ songs, setlists, loaded = true, onViewSetlist, onPlaySetlist, onNewSetlist, onImportSetlist }) {
+export default function Setlists({  setlists, loaded = true, onViewSetlist, onPlaySetlist, onNewSetlist, onImportSetlist }) {
   const [query, setQuery] = useState('');
   const [fabOpen, setFabOpen] = useState(false);
   const fabRef = useRef(null);

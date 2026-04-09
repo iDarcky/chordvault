@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { generateId } from '../parser';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
@@ -66,7 +66,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   }, []);
 
   // Touch drag for mobile
-  const handleTouchStart = useCallback((idx, e) => {
+  const handleTouchStart = useCallback((idx) => {
     setDragIdx(idx);
   }, []);
 
@@ -186,7 +186,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                       onUpdateCapo={updateCapo}
                       onUpdateBreakField={updateBreakField}
                       dragHandleProps={{
-                        onTouchStart: (e) => handleTouchStart(idx, e),
+                        onTouchStart: () => handleTouchStart(idx),
                         onTouchMove: handleTouchMove,
                         onTouchEnd: handleTouchEnd,
                         onTouchCancel: handleTouchEnd,

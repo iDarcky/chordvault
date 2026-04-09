@@ -1,18 +1,18 @@
 import React from 'react';
+import { Card as HeroCard, CardContent } from "@heroui/react";
 import { cn } from '../../lib/utils';
 
 const Card = React.forwardRef(({ className, children, ...props }, ref) => {
   return (
-    <div
+    <HeroCard
       ref={ref}
-      className={cn(
-        "rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] p-6 transition-all duration-150 hover:border-[var(--ds-gray-600)]",
-        className
-      )}
+      className={cn("w-full", className)}
       {...props}
     >
-      {children}
-    </div>
+      <CardContent className="p-6">
+        {children}
+      </CardContent>
+    </HeroCard>
   );
 });
 

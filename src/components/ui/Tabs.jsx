@@ -1,41 +1,26 @@
 import React from 'react';
+import { Tabs as HeroTabs, Tab } from "@heroui/react";
 import { cn } from '../../lib/utils';
 
-/**
- * Geist-style underline tab component.
- *
- * Usage:
- *   <Tabs
- *     tabs={[{ id: 'form', label: 'Form' }, { id: 'visual', label: 'Visual' }]}
- *     activeTab="form"
- *     onTabChange={(id) => setActiveTab(id)}
- *   />
- */
 function Tabs({ tabs, activeTab, onTabChange, className }) {
   return (
-    <div className={cn("flex", className)}>
-      {tabs.map(t => {
-        const active = activeTab === t.id;
-        const disabled = t.disabled;
-        return (
-          <button
-            key={t.id}
-            onClick={() => !disabled && onTabChange(t.id)}
-            disabled={disabled}
-            className={cn(
-              "relative px-3.5 py-2 text-label-12 font-semibold transition-colors duration-100 bg-transparent border-none cursor-pointer",
-              "border-b-2",
-              active
-                ? "border-b-[var(--color-brand)] text-[var(--ds-gray-1000)]"
-                : "border-b-transparent text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)]",
-              disabled && "opacity-40 cursor-not-allowed"
-            )}
-          >
-            {t.label}
-          </button>
-        );
-      })}
-    </div>
+    <HeroTabs
+      selectedKey={activeTab}
+      onSelectionChange={onTabChange}
+      variant="underlined"
+      color="primary"
+      classNames={{
+        tabList: cn("gap-2 w-full relative rounded-none p-0 border-b border-divider", className),
+        cursor: "w-full bg-primary",
+        tab: "max-w-fit px-0 h-10",
+        tabContent: "group-data-[selected=true]:text-primary"
+      }}
+      items={tabs}
+    >
+      {(item) => (
+        <Tab key={item.id} title={item.label} isDisabled={item.disabled} />
+      )}
+    </HeroTabs>
   );
 }
 
