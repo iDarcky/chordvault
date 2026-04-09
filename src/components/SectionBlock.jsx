@@ -1,12 +1,33 @@
+import { useMemo } from 'react';
 import { transposeChord, sectionStyle, getNashvilleNumber } from '../music';
-import { cn } from '../lib/utils';
+
 import TabBlock from './TabBlock';
 
+const NOTE_SEPARATORS = {
+  dashes: ' ---- ',
+  dots:   ' ...... ',
+  arrow:  ' ----> ',
+};
+
 export default function SectionBlock({
-  section, transpose, nns, songKey,
+  section, transpose, modOffset = 0, nns, songKey,
   showChords = true, inlineNotes = true, noteStyle = 'dashes'
 }) {
   const s = sectionStyle(section.type);
+
+  // Pre-compute per-line modulate offsets (cumulative within this section)
+  const lineOffsets = useMemo(() => {
+    const acc = { running: modOffset };
+    return (section.lines || []).map(line => {
+      if (typeof line === 'object' && line.type === 'modulate') {
+        acc.running += line.semitones;
+      }
+      return acc.running;
+    });
+  }, [section.lines, modOffset]);
+
+  // Strip trailing colon from section type for display (demos may include it)
+  const sectionLabel = section.type.replace(/:+$/, '');
 
   const renderLine = (line, idx) => {
     if (typeof line !== 'string') {
@@ -14,23 +35,36 @@ export default function SectionBlock({
       if (line.type === 'modulate') {
         return (
           <div key={idx} className="my-6 flex items-center gap-4">
-            <div className="h-[1px] flex-1 bg-[var(--ds-green-400)]/20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-[var(--ds-green-700)] text-white rounded-full shadow-sm">
+            <div className="h-[1px] flex-1 bg-[var(--color-brand-border)]" />
+            <span className="text-label-10 font-black uppercase tracking-[0.2em] px-3 py-1 bg-[var(--color-brand)] text-white rounded-full shadow-sm">
               Key Change: {line.semitones > 0 ? '+' : ''}{line.semitones}
             </span>
-            <div className="h-[1px] flex-1 bg-[var(--ds-green-400)]/20" />
+            <div className="h-[1px] flex-1 bg-[var(--color-brand-border)]" />
           </div>
         );
       }
       return null;
     }
 
-    const parts = line.split(/(\[.*?\])/);
+    const effectiveTranspose = transpose + lineOffsets[idx];
 
-    if (!line.includes('[') || !showChords) {
+    // Extract inline notes {!...}
+    const noteMatch = line.match(/\{!(.*?)\}/);
+    const inlineNote = noteMatch ? noteMatch[1] : null;
+    const cleanLine = line.replace(/\{!.*?\}/g, '');
+
+    const parts = cleanLine.split(/(\[.*?\])/);
+
+    if (!cleanLine.includes('[') || !showChords) {
+      const displayLine = !showChords ? cleanLine.replace(/\[.*?\]/g, '') : cleanLine;
       return (
-        <div key={idx} className="min-h-[1.5em] whitespace-pre-wrap text-[var(--text-1)] font-mono opacity-90">
-          {line.replace(/\{!.*?\}/g, '')}
+        <div key={idx} className="min-h-[1.5em] whitespace-pre-wrap text-[var(--text-1)] opacity-90">
+          {displayLine}
+          {inlineNotes && inlineNote && (
+            <span className="text-[var(--text-2)] italic text-[0.8em]">
+              {NOTE_SEPARATORS[noteStyle] || NOTE_SEPARATORS.dashes}{inlineNote}
+            </span>
+          )}
         </div>
       );
     }
@@ -43,23 +77,27 @@ export default function SectionBlock({
         const chord = part.slice(1, -1);
         const displayChord = nns
           ? getNashvilleNumber(chord, songKey)
-          : transposeChord(chord, transpose);
+          : transposeChord(chord, effectiveTranspose);
 
         const padding = Math.max(0, lyricLine.length - chordLine.length);
         chordLine += ' '.repeat(padding) + displayChord;
       } else {
-        const cleanText = part.replace(/\{!.*?\}/g, '');
-        lyricLine += cleanText;
+        lyricLine += part;
       }
     });
 
     return (
       <div key={idx} className="mb-4 last:mb-0 group/line">
-        <div className="font-mono font-bold text-[var(--ds-amber-700)] whitespace-pre text-[0.95em] leading-none mb-1 select-none">
+        <div className="font-bold text-[var(--chord)] whitespace-pre-wrap text-[0.95em] leading-none mb-1 select-none">
           {chordLine || ' '}
         </div>
-        <div className="text-[var(--text-1)] font-mono whitespace-pre-wrap leading-tight">
+        <div className="text-[var(--text-1)] whitespace-pre-wrap leading-tight">
           {lyricLine || ' '}
+          {inlineNotes && inlineNote && (
+            <span className="text-[var(--text-2)] italic text-[0.8em]">
+              {NOTE_SEPARATORS[noteStyle] || NOTE_SEPARATORS.dashes}{inlineNote}
+            </span>
+          )}
         </div>
       </div>
     );
@@ -69,11 +107,11 @@ export default function SectionBlock({
     <div className="mb-12 break-inside-avoid">
       <div className="flex items-center gap-4 mb-6">
         <div className="flex flex-col">
-          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[var(--ds-green-700)]">
-            {section.type}
+          <span className="text-label-14 font-black uppercase tracking-[0.15em]" style={{ color: s.b }}>
+            {sectionLabel}:
           </span>
           {section.note && (
-            <span className="text-[10px] font-bold italic text-[var(--text-2)] mt-1 px-1 border-l-2 border-[var(--ds-green-400)]/20 ml-0.5">
+            <span className="text-label-11 italic text-[var(--text-2)] mt-1 px-1 ml-0.5 border-l-2" style={{ borderColor: s.br }}>
               {section.note}
             </span>
           )}

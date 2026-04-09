@@ -110,21 +110,6 @@ export default function Settings({
 
         {/* Global Chart Preferences */}
         <Section title="Chart Preferences">
-          <Row label="Default Font Size">
-            <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
-              {['S', 'M', 'L'].map(s => (
-                <Button
-                  key={s}
-                  size="sm"
-                  variant={settings.defaultFontSize === s ? 'secondary' : 'ghost'}
-                  onClick={() => update('defaultFontSize', s)}
-                  className={settings.defaultFontSize === s ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
-                >
-                  {s}
-                </Button>
-              ))}
-            </div>
-          </Row>
           <Row label="Display Mode" description="Control which elements are visible by default.">
              <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg flex-wrap">
               {[

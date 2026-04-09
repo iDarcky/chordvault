@@ -1,14 +1,21 @@
 import { sectionStyle, compactLabel } from '../music';
+import { cn } from '../lib/utils';
 
-export function StructureRibbon({ structure, compact }) {
+export function StructureRibbon({ structure, compact, onSelect }) {
   return (
-    <div className="flex gap-1 flex-wrap py-2">
+    <div className="flex gap-1 flex-wrap py-1">
       {structure.map((name, i) => {
         const s = sectionStyle(name.replace(/\s*\d+$/, ''));
+        const Tag = onSelect ? 'button' : 'span';
         return (
-          <span
+          <Tag
             key={i}
-            className={`inline-flex items-center font-mono font-semibold whitespace-nowrap rounded-full border-[1.5px] ${compact ? 'gap-0.5 px-1.5 py-0.5 text-label-10' : 'gap-1 px-2 py-0.5 text-label-11'}`}
+            {...(onSelect ? { type: 'button', onClick: () => onSelect(i) } : {})}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border font-medium transition-colors",
+              compact ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-0.5 text-[12px]",
+              onSelect && "cursor-pointer hover:opacity-80"
+            )}
             style={{
               borderColor: s.br,
               background: s.bg,
@@ -16,11 +23,11 @@ export function StructureRibbon({ structure, compact }) {
             }}
           >
             <span
-              className={`rounded-full ${compact ? 'w-[5px] h-[5px]' : 'w-[7px] h-[7px]'}`}
+              className={cn("rounded-full flex-shrink-0", compact ? "w-1.5 h-1.5" : "w-2 h-2")}
               style={{ background: s.b }}
             />
             {compact ? compactLabel(name) : name}
-          </span>
+          </Tag>
         );
       })}
     </div>
@@ -34,7 +41,7 @@ export function MetaPill({ label, value, highlight }) {
         {label}
       </span>
       <span
-        className={`text-label-14-mono font-bold ${highlight ? 'text-[var(--chord)]' : 'text-[var(--ds-gray-1000)]'}`}
+        className={cn("text-label-14-mono font-bold", highlight ? "text-[var(--chord)]" : "text-[var(--ds-gray-1000)]")}
       >
         {value}
       </span>

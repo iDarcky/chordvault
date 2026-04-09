@@ -201,7 +201,9 @@ export default function App() {
       if (idx >= 0) { const n = [...prev]; n[idx] = stamped; return n; }
       return [...prev, stamped];
     });
-    // After save, go to chart but replace the editor entry in history
+    // After save, pop the stale chart entry that was pushed when entering the editor,
+    // then navigate to chart with the updated song (no new history entry)
+    historyRef.current.pop();
     navigate('chart', { song, replace: true });
   };
 
