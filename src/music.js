@@ -108,3 +108,14 @@ export function getNashvilleNumber(chord, key) {
   const map = { 0: '1', 1: 'b2', 2: '2', 3: 'b3', 4: '3', 5: '4', 6: 'b5', 7: '5', 8: 'b6', 9: '6', 10: 'b7', 11: '7' };
   return (map[semitones] || '?') + suffix;
 }
+ 
+// Diatonic chords for a given key (I, ii, iii, IV, V, vi, vii°)
+const DIATONIC_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
+const DIATONIC_QUALITIES = ['', 'm', 'm', '', '', 'm', 'dim'];
+ 
+export function getDiatonicChords(key) {
+  if (!key) return ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bdim'];
+  return DIATONIC_INTERVALS.map((interval, i) =>
+    transposeChord(key, interval) + DIATONIC_QUALITIES[i]
+  );
+}

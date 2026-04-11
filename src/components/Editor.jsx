@@ -3,6 +3,7 @@ import { parseSongMd, songToMd, generateId } from '../parser';
 import RawTab from './editor/RawTab';
 import VisualTab from './editor/VisualTab';
 import FormTab from './editor/FormTab';
+import PlaceTab from './editor/PlaceTab';
 import PreviewPanel from './editor/PreviewPanel';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
@@ -13,6 +14,7 @@ const TAB_LIST = [
   { id: 'form', label: 'Form' },
   { id: 'visual', label: 'Visual' },
   { id: 'raw', label: 'Raw' },
+  { id: 'place', label: 'Place' },
 ];
 
 const DEFAULT_MD = `---
