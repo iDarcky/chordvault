@@ -2,8 +2,8 @@ export default function SyncStatus({ syncState, onClick }) {
   const { state, lastSync, provider } = syncState;
 
   const dotColors = {
-    idle: 'var(--ds-gray-500)',
-    syncing: 'var(--color-brand)',
+    idle: 'var(--color-default-400)',
+    syncing: 'var(--color-primary)',
     synced: 'var(--ds-success-900)',
     error: 'var(--ds-error-900)',
   };
@@ -18,7 +18,7 @@ export default function SyncStatus({ syncState, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[var(--ds-gray-400)] bg-[var(--ds-gray-100)] cursor-pointer text-label-11 font-semibold text-[var(--ds-gray-600)] hover:bg-[var(--ds-gray-200)] transition-colors"
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-default-300 bg-default-100 cursor-pointer text-label-11 font-semibold text-default-500 hover:bg-default-200 transition-colors"
     >
       <span
         className="inline-block w-[7px] h-[7px] rounded-full"

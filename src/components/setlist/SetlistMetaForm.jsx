@@ -57,13 +57,13 @@ export default function SetlistMetaForm({ name, date, tags, onNameChange, onDate
       {/* Tags */}
       <div className="flex flex-col gap-1">
         <label className="section-title px-0.5">
-          Tags {tags.length > 0 && <span className="font-normal text-[var(--ds-gray-600)]">({tags.length}/{MAX_TAGS})</span>}
+          Tags {tags.length > 0 && <span className="font-normal text-default-500">({tags.length}/{MAX_TAGS})</span>}
         </label>
-        <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] min-h-[42px] focus-within:border-[var(--ds-gray-600)] transition-colors">
+        <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-xl border border-default-300 bg-content1 min-h-[42px] focus-within:border-default-500 transition-colors">
           {tags.map((tag, idx) => (
             <span
               key={idx}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--ds-gray-200)] text-label-12 text-[var(--ds-gray-1000)] select-none"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-default-200 text-label-12 text-foreground select-none"
             >
               {tag}
               <span
@@ -71,7 +71,7 @@ export default function SetlistMetaForm({ name, date, tags, onNameChange, onDate
                 tabIndex={0}
                 onClick={() => removeTag(idx)}
                 onKeyDown={(e) => e.key === 'Enter' && removeTag(idx)}
-                className="text-[var(--ds-gray-600)] hover:text-[var(--ds-error-600)] cursor-pointer text-[10px] leading-none ml-0.5"
+                className="text-default-500 hover:text-danger-500 cursor-pointer text-[10px] leading-none ml-0.5"
               >
                 ✕
               </span>
@@ -86,7 +86,7 @@ export default function SetlistMetaForm({ name, date, tags, onNameChange, onDate
               onBlur={addTag}
               maxLength={10}
               placeholder={tags.length === 0 ? 'Type and press Enter…' : ''}
-              className="flex-1 min-w-[80px] bg-transparent border-none outline-none text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)]"
+              className="flex-1 min-w-[80px] bg-transparent border-none outline-none text-copy-14 text-foreground placeholder:text-default-500"
               style={{ minHeight: 'auto', padding: 0 }}
             />
           )}

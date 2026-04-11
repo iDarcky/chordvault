@@ -109,7 +109,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
       {/* ── Sticky header ── */}
       <div className="material-header">
         <div className="max-w-5xl mx-auto px-5 flex items-center justify-between py-3">
-          <h1 className="text-heading-18 text-[var(--ds-gray-1000)] m-0">
+          <h1 className="text-heading-18 text-foreground m-0">
             {setlist ? 'Edit Setlist' : 'New Setlist'}
           </h1>
           <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
             />
 
             {/* Divider */}
-            <div className="border-t border-[var(--ds-gray-300)]" />
+            <div className="border-t border-default-200" />
 
             {/* Current set */}
             <div>
@@ -171,8 +171,8 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                                 : 'none'
                           )
                         : 'none',
-                      borderTop: dragOverIdx !== null && dragIdx !== null && dragIdx > dragOverIdx && idx === dragOverIdx ? '2px solid var(--color-brand)' : '',
-                      borderBottom: dragOverIdx !== null && dragIdx !== null && dragIdx < dragOverIdx && idx === dragOverIdx ? '2px solid var(--color-brand)' : '',
+                      borderTop: dragOverIdx !== null && dragIdx !== null && dragIdx > dragOverIdx && idx === dragOverIdx ? '2px solid var(--color-primary)' : '',
+                      borderBottom: dragOverIdx !== null && dragIdx !== null && dragIdx < dragOverIdx && idx === dragOverIdx ? '2px solid var(--color-primary)' : '',
                       transition: 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)'
                     }}
                   >
@@ -197,7 +197,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
               </div>
 
               {items.length === 0 && (
-                <div className="py-10 text-center border-2 border-dashed border-[var(--ds-gray-400)] rounded-xl text-copy-14 text-[var(--ds-gray-700)]">
+                <div className="py-10 text-center border-2 border-dashed border-default-300 rounded-xl text-copy-14 text-default-600">
                   Add songs from the library below
                 </div>
               )}
@@ -209,7 +209,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                   tabIndex={0}
                   onClick={addBreak}
                   onKeyDown={e => e.key === 'Enter' && addBreak()}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-[var(--ds-gray-alpha-100)] border border-dashed border-[var(--ds-gray-400)] text-label-12 font-semibold text-[var(--ds-gray-600)] cursor-pointer hover:bg-[var(--ds-gray-200)] hover:border-[var(--ds-gray-500)] transition-colors select-none"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-default-100 border border-dashed border-default-300 text-label-12 font-semibold text-default-500 cursor-pointer hover:bg-default-200 hover:border-default-400 transition-colors select-none"
                 >
                   + Add Break
                 </div>

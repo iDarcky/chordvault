@@ -43,7 +43,7 @@ const tabs = [
 export default function BottomNav({ activeView, onNavigate }) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)] border-t border-[var(--ds-gray-200)]"
+      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-background border-t border-default-200"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
@@ -56,7 +56,7 @@ export default function BottomNav({ activeView, onNavigate }) {
             key={item.id}
             onClick={() => onNavigate(item.id)}
             className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
-              active ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
+              active ? 'text-foreground' : 'text-default-500'
             }`}
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >

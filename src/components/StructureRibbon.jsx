@@ -36,12 +36,12 @@ export function StructureRibbon({ structure, compact, onSelect }) {
 
 export function MetaPill({ label, value, highlight }) {
   return (
-    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)]">
-      <span className="text-label-10 font-semibold text-[var(--ds-gray-600)]">
+    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-default-100 border border-default-300">
+      <span className="text-label-10 font-semibold text-default-500">
         {label}
       </span>
       <span
-        className={cn("text-label-14-mono font-bold", highlight ? "text-[var(--chord)]" : "text-[var(--ds-gray-1000)]")}
+        className={cn("text-label-14-mono font-bold", highlight ? "text-[var(--chord)]" : "text-foreground")}
       >
         {value}
       </span>

@@ -62,7 +62,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           {collapsed ? (
             /* ── Collapsed: title + actions in one row ── */
             <div className="flex items-center justify-between gap-3 py-2.5">
-              <h1 className="text-heading-16 text-[var(--ds-gray-1000)] m-0 truncate flex-1 min-w-0">
+              <h1 className="text-heading-16 text-foreground m-0 truncate flex-1 min-w-0">
                 {setlist.name || 'Untitled Setlist'}
               </h1>
               {actionIcons}
@@ -72,14 +72,14 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
             <>
               {/* Row 1: date + actions */}
               <div className="flex items-center justify-between pt-3 pb-1">
-                <span className="text-label-11 text-[var(--ds-gray-700)] uppercase tracking-widest">
+                <span className="text-label-11 text-default-600 uppercase tracking-widest">
                   {dateStr}
                 </span>
                 {actionIcons}
               </div>
 
               {/* Row 2: setlist name */}
-              <h1 className="text-heading-24 text-[var(--ds-gray-1000)] m-0 mb-2 truncate">
+              <h1 className="text-heading-24 text-foreground m-0 mb-2 truncate">
                 {setlist.name || 'Untitled Setlist'}
               </h1>
 
@@ -90,7 +90,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                     <Chip key={i} variant="success">{tag}</Chip>
                   ))}
                 </div>
-                <span className="text-label-12 text-[var(--ds-gray-700)] shrink-0">
+                <span className="text-label-12 text-default-600 shrink-0">
                   {songCount} song{songCount !== 1 ? 's' : ''}
                   {breakCount > 0 && ` + ${breakCount} break${breakCount !== 1 ? 's' : ''}`}
                 </span>
@@ -116,21 +116,21 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                   key={idx}
                   className="material-card flex items-center gap-3 px-4 py-3"
                 >
-                  <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
+                  <span className="text-label-14 text-default-400 tabular-nums w-7 text-center shrink-0">
                     {num}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <span className="text-copy-14 text-[var(--ds-gray-1000)] italic">
+                    <span className="text-copy-14 text-foreground italic">
                       {item.label || 'Break'}
                     </span>
                     {item.note && (
-                      <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
+                      <p className="text-copy-12 text-default-600 m-0 mt-0.5 truncate">
                         {item.note}
                       </p>
                     )}
                   </div>
                   {(item.duration || 0) > 0 && (
-                    <span className="text-label-12 text-[var(--ds-gray-600)] shrink-0">
+                    <span className="text-label-12 text-default-500 shrink-0">
                       {item.duration} min
                     </span>
                   )}
@@ -148,29 +148,29 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                 key={idx}
                 className="material-card flex items-center gap-3 px-4 py-3"
               >
-                <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
+                <span className="text-label-14 text-default-400 tabular-nums w-7 text-center shrink-0">
                   {num}
                 </span>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-heading-14 text-[var(--ds-gray-1000)] m-0 truncate">
+                  <p className="text-heading-14 text-foreground m-0 truncate">
                     {song.title}
                   </p>
-                  <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
+                  <p className="text-copy-12 text-default-600 m-0 mt-0.5 truncate">
                     {song.artist}
                   </p>
                 </div>
 
                 <div className="flex flex-col items-end shrink-0 gap-0.5">
-                  <span className="text-label-14 text-[var(--ds-gray-1000)] font-semibold flex items-center gap-1.5">
+                  <span className="text-label-14 text-foreground font-semibold flex items-center gap-1.5">
                     {(item.capo || 0) > 0 && (
-                      <span className="text-label-10 text-[var(--ds-gray-600)] uppercase font-normal">
+                      <span className="text-label-10 text-default-500 uppercase font-normal">
                         Capo {item.capo}
                       </span>
                     )}
                     {displayKey}
                   </span>
-                  <span className="text-label-11 text-[var(--ds-gray-600)] tabular-nums">
+                  <span className="text-label-11 text-default-500 tabular-nums">
                     {song.tempo} BPM
                   </span>
                 </div>
@@ -188,7 +188,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
             tabIndex={0}
             onClick={handleDelete}
             onKeyDown={(e) => e.key === 'Enter' && handleDelete()}
-            className="text-label-11 text-[var(--ds-error-600)] hover:text-[var(--ds-error-900)] uppercase tracking-widest cursor-pointer transition-colors select-none"
+            className="text-label-11 text-danger-500 hover:text-danger-800 uppercase tracking-widest cursor-pointer transition-colors select-none"
           >
             Delete Setlist
           </span>
@@ -205,7 +205,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           tabIndex={0}
           onClick={onPlay}
           onKeyDown={(e) => e.key === 'Enter' && onPlay?.()}
-          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95"
+          className="w-14 h-14 rounded-full bg-primary shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95"
           aria-label="Play setlist"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-0.5">

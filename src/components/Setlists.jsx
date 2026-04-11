@@ -8,19 +8,19 @@ function SkeletonCards() {
     <div className="flex flex-col gap-8">
       {[1, 2].map(section => (
         <div key={section} className="flex flex-col gap-4">
-          <div className="h-5 w-28 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+          <div className="h-5 w-28 bg-default-200 rounded animate-pulse" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[1, 2].map(c => (
-              <div key={c} className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] p-6 flex flex-col gap-4">
+              <div key={c} className="rounded-xl border border-default-300 bg-content1 p-6 flex flex-col gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-4 w-24 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                  <div className="h-4 w-16 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-4 w-24 bg-default-200 rounded animate-pulse" />
+                  <div className="h-4 w-16 bg-default-200 rounded animate-pulse" />
                 </div>
-                <div className="h-6 w-40 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                <div className="h-4 w-20 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                <div className="h-6 w-40 bg-default-200 rounded animate-pulse" />
+                <div className="h-4 w-20 bg-default-200 rounded animate-pulse" />
                 <div className="flex gap-3 mt-2">
-                  <div className="h-10 flex-1 bg-[var(--ds-gray-200)] rounded-md animate-pulse" />
-                  <div className="h-10 flex-1 bg-[var(--ds-gray-200)] rounded-md animate-pulse" />
+                  <div className="h-10 flex-1 bg-default-200 rounded-md animate-pulse" />
+                  <div className="h-10 flex-1 bg-default-200 rounded-md animate-pulse" />
                 </div>
               </div>
             ))}
@@ -89,13 +89,13 @@ export default function Setlists({  setlists, loaded = true, onViewSetlist, onPl
       <div className="max-w-3xl mx-auto px-6 flex flex-col gap-0">
 
         {/* Sticky Search */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4">
+        <div className="sticky top-0 z-20 bg-background pt-6 pb-4">
           <div className="relative">
             <svg
               width="18" height="18" viewBox="0 0 24 24"
               fill="none" stroke="currentColor"
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ds-gray-600)] pointer-events-none"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-default-500 pointer-events-none"
             >
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
@@ -105,7 +105,7 @@ export default function Setlists({  setlists, loaded = true, onViewSetlist, onPl
               placeholder="Search setlists..."
               value={query}
               onChange={e => setQuery(e.target.value)}
-              className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
+              className="w-full h-11 pl-11 pr-4 rounded-xl border border-default-300 bg-content1 text-copy-14 text-foreground placeholder:text-default-500 outline-none focus:border-default-500 transition-colors"
             />
           </div>
         </div>
@@ -120,10 +120,10 @@ export default function Setlists({  setlists, loaded = true, onViewSetlist, onPl
               {upcoming.length > 0 && (
                 <section className="flex flex-col gap-4">
                   <div className="flex items-baseline gap-2">
-                    <h2 className="text-heading-18 text-[var(--ds-gray-1000)] uppercase tracking-wider">
+                    <h2 className="text-heading-18 text-foreground uppercase tracking-wider">
                       Upcoming
                     </h2>
-                    <span className="text-label-12 text-[var(--ds-gray-600)]">
+                    <span className="text-label-12 text-default-500">
                       {upcoming.length}
                     </span>
                   </div>
@@ -144,10 +144,10 @@ export default function Setlists({  setlists, loaded = true, onViewSetlist, onPl
               {past.length > 0 && (
                 <section className="flex flex-col gap-4">
                   <div className="flex items-baseline gap-2">
-                    <h2 className="text-heading-18 text-[var(--ds-gray-1000)] uppercase tracking-wider">
+                    <h2 className="text-heading-18 text-foreground uppercase tracking-wider">
                       Past
                     </h2>
-                    <span className="text-label-12 text-[var(--ds-gray-600)]">
+                    <span className="text-label-12 text-default-500">
                       {past.length}
                     </span>
                   </div>
@@ -166,8 +166,8 @@ export default function Setlists({  setlists, loaded = true, onViewSetlist, onPl
 
               {/* Empty State */}
               {filtered.length === 0 && (
-                <div className="py-24 text-center border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center gap-4">
-                  <p className="text-copy-14 text-[var(--ds-gray-700)]">
+                <div className="py-24 text-center border-2 border-dashed border-default-300 rounded-2xl flex flex-col items-center gap-4">
+                  <p className="text-copy-14 text-default-600">
                     {query
                       ? 'No setlists matching your search.'
                       : 'Organize your songs into setlists for rehearsals or live performances.'
@@ -195,13 +195,13 @@ export default function Setlists({  setlists, loaded = true, onViewSetlist, onPl
           <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
             <button
               onClick={() => { setFabOpen(false); onNewSetlist(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+              className="px-5 py-3 rounded-xl bg-content1 border border-default-300 shadow-lg cursor-pointer hover:border-default-500 transition-all duration-150 whitespace-nowrap text-label-14 text-foreground text-left"
             >
               Create Setlist
             </button>
             <button
               onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+              className="px-5 py-3 rounded-xl bg-content1 border border-default-300 shadow-lg cursor-pointer hover:border-default-500 transition-all duration-150 whitespace-nowrap text-label-14 text-foreground text-left"
             >
               Import Setlist
             </button>
@@ -210,7 +210,7 @@ export default function Setlists({  setlists, loaded = true, onViewSetlist, onPl
 
         <button
           onClick={() => setFabOpen(!fabOpen)}
-          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
+          className="w-14 h-14 rounded-full bg-primary shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
         >
           <svg
             width="24" height="24" viewBox="0 0 24 24"

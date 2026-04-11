@@ -45,7 +45,7 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
   return (
     <div
       ref={ref}
-      className="fixed z-[100] bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] rounded-xl p-2.5 w-[290px]"
+      className="fixed z-[100] bg-background border border-default-300 rounded-xl p-2.5 w-[290px]"
       style={{
         top: anchorRect ? anchorRect.bottom + 4 : '50%',
         left: anchorRect ? Math.min(anchorRect.left, window.innerWidth - 310) : '50%',
@@ -61,8 +61,8 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
             onClick={() => setRoot(r)}
             className={`flex-1 rounded-md py-1.5 text-label-13 font-semibold font-mono text-center cursor-pointer border transition-colors ${
               root === r
-                ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
-                : 'bg-[var(--ds-gray-100)] text-[var(--ds-gray-1000)] border-[var(--ds-gray-400)] hover:bg-[var(--ds-gray-200)]'
+                ? 'bg-primary text-white border-[var(--color-primary)]'
+                : 'bg-default-100 text-foreground border-default-300 hover:bg-default-200'
             }`}
           >
             {r}
@@ -73,8 +73,8 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
           onClick={() => setAccidental(a => a === '#' ? '' : '#')}
           className={`w-8 rounded-md py-1.5 text-label-13 font-semibold font-mono text-center cursor-pointer border transition-colors ${
             accidental === '#'
-              ? 'bg-[var(--color-brand-soft)] text-[var(--color-brand-text)] border-[var(--color-brand-border)]'
-              : 'bg-[var(--ds-gray-100)] text-[var(--ds-gray-600)] border-[var(--ds-gray-400)]'
+              ? 'bg-[var(--color-primary-100)] text-[var(--color-primary-700)] border-[var(--color-primary-300)]'
+              : 'bg-default-100 text-default-500 border-default-300'
           }`}
         >
           #
@@ -83,8 +83,8 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
           onClick={() => setAccidental(a => a === 'b' ? '' : 'b')}
           className={`w-8 rounded-md py-1.5 text-label-13 font-semibold font-mono text-center cursor-pointer border transition-colors ${
             accidental === 'b'
-              ? 'bg-[var(--color-brand-soft)] text-[var(--color-brand-text)] border-[var(--color-brand-border)]'
-              : 'bg-[var(--ds-gray-100)] text-[var(--ds-gray-600)] border-[var(--ds-gray-400)]'
+              ? 'bg-[var(--color-primary-100)] text-[var(--color-primary-700)] border-[var(--color-primary-300)]'
+              : 'bg-default-100 text-default-500 border-default-300'
           }`}
         >
           b
@@ -93,7 +93,7 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
 
       {/* Selected root preview */}
       {root && (
-        <div className="text-center text-copy-11 text-[var(--ds-gray-600)] mb-1 font-mono">
+        <div className="text-center text-copy-11 text-default-500 mb-1 font-mono">
           {root}{accidental} + suffix:
         </div>
       )}
@@ -106,8 +106,8 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
             onClick={() => handleSuffix(s.value)}
             className={`rounded-md px-2 py-1.5 text-label-11 font-semibold font-mono text-center border transition-colors ${
               root
-                ? 'bg-[var(--ds-gray-100)] text-[var(--ds-gray-1000)] border-[var(--ds-gray-400)] cursor-pointer hover:bg-[var(--ds-gray-200)]'
-                : 'bg-[var(--ds-gray-100)] text-[var(--ds-gray-500)] border-[var(--ds-gray-300)] cursor-not-allowed opacity-40'
+                ? 'bg-default-100 text-foreground border-default-300 cursor-pointer hover:bg-default-200'
+                : 'bg-default-100 text-default-400 border-default-200 cursor-not-allowed opacity-40'
             }`}
           >
             {s.label}
@@ -118,7 +118,7 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
       {/* Slash chord option */}
       {root && (
         <div className="mt-1.5 flex gap-1 items-center">
-          <span className="text-label-10 text-[var(--ds-gray-500)]">Slash:</span>
+          <span className="text-label-10 text-default-400">Slash:</span>
           {ROOTS.map(r => (
             <button
               key={r}
@@ -126,7 +126,7 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
                 onSelect(root + accidental + '/' + r);
                 setRoot(null); setAccidental('');
               }}
-              className="rounded-md px-1.5 py-1 text-label-10 font-semibold font-mono bg-[var(--ds-gray-100)] text-[var(--ds-gray-600)] border border-[var(--ds-gray-400)] cursor-pointer hover:bg-[var(--ds-gray-200)] transition-colors"
+              className="rounded-md px-1.5 py-1 text-label-10 font-semibold font-mono bg-default-100 text-default-500 border border-default-300 cursor-pointer hover:bg-default-200 transition-colors"
             >
               /{r}
             </button>

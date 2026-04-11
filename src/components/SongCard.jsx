@@ -19,22 +19,22 @@ export default function SongCard({ song, onClick, variant = 'card', showTags = f
     return (
       <div
         onClick={onClick}
-        className="flex items-center justify-between px-5 py-4 cursor-pointer transition-colors duration-150 hover:bg-[var(--bg-2)]"
+        className="flex items-center justify-between px-5 py-4 cursor-pointer transition-colors duration-150 hover:bg-default-100"
       >
         <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <span className="text-heading-16 text-[var(--text-1)] truncate">
+          <span className="text-heading-16 text-foreground truncate">
             {song.title}
           </span>
           <div className="flex items-center gap-1.5 flex-wrap">
             {song.artist && (
-              <span className="text-copy-14 text-[var(--color-brand)] truncate">
+              <span className="text-copy-14 text-[var(--color-primary)] truncate">
                 {song.artist}
               </span>
             )}
             {showTags && song.tags?.length > 0 && song.tags.map(tag => (
               <span
                 key={tag}
-                className="text-label-11 text-[var(--text-2)] px-2 py-0.5 rounded-md border border-[var(--border-1)] bg-[var(--bg-1)]"
+                className="text-label-11 text-default-500 px-2 py-0.5 rounded-md border border-default-200 bg-content1"
               >
                 {tag}
               </span>
@@ -46,13 +46,13 @@ export default function SongCard({ song, onClick, variant = 'card', showTags = f
             <span className="text-label-12-mono text-[var(--chord)] font-semibold">
               {song.key || 'C'}
             </span>
-            <span className="text-[var(--text-2)] text-[10px]">•</span>
-            <span className="text-label-12-mono text-[var(--text-2)]">
+            <span className="text-default-500 text-[10px]">•</span>
+            <span className="text-label-12-mono text-default-500">
               {song.tempo ? `${song.tempo} BPM` : 'No Tempo'}
             </span>
           </div>
           {song.updatedAt && (
-            <span className="text-label-11 text-[var(--text-2)]">
+            <span className="text-label-11 text-default-500">
               {formatRelativeTime(song.updatedAt)}
             </span>
           )}
@@ -66,20 +66,20 @@ export default function SongCard({ song, onClick, variant = 'card', showTags = f
       onClick={onClick}
       className="cursor-pointer flex flex-col gap-2"
     >
-      <h3 className="text-heading-18 text-[var(--text-1)] m-0 leading-tight">
+      <h3 className="text-heading-18 text-foreground m-0 leading-tight">
         {song.title}
       </h3>
       <div className="flex items-center gap-2">
-        <span className="text-label-12 text-[var(--text-2)] uppercase font-semibold">
+        <span className="text-label-12 text-default-500 uppercase font-semibold">
           {song.key || 'C'}
         </span>
-        <span className="text-[var(--text-2)] text-[10px]">•</span>
-        <span className="text-label-12 text-[var(--text-2)]">
+        <span className="text-default-500 text-[10px]">•</span>
+        <span className="text-label-12 text-default-500">
           {song.tempo ? `${song.tempo} BPM` : 'No Tempo'}
         </span>
       </div>
       {song.artist && (
-        <p className="text-copy-14 text-[var(--text-2)] mt-1 line-clamp-1">
+        <p className="text-copy-14 text-default-500 mt-1 line-clamp-1">
           {song.artist}
         </p>
       )}

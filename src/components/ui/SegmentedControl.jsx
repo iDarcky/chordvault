@@ -19,7 +19,7 @@ import { cn } from '../../lib/utils';
 function SegmentedControl({ options, value, onChange, size = 'sm', className }) {
   return (
     <div className={cn(
-      "flex p-1 rounded-lg bg-[var(--ds-gray-200)]",
+      "flex p-1 rounded-lg bg-default-200",
       className
     )}>
       {options.map(opt => {
@@ -35,8 +35,8 @@ function SegmentedControl({ options, value, onChange, size = 'sm', className }) 
               size === 'sm' && "px-3 py-1 text-label-12",
               size === 'md' && "px-4 py-1.5 text-button-14",
               active
-                ? "bg-[var(--ds-background-100)] text-[var(--ds-gray-1000)] shadow-sm"
-                : "bg-transparent text-[var(--ds-gray-900)] hover:text-[var(--ds-gray-1000)]",
+                ? "bg-content1 text-foreground shadow-sm"
+                : "bg-transparent text-default-800 hover:text-foreground",
               opt.disabled && "opacity-40 cursor-not-allowed"
             )}
           >

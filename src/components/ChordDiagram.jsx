@@ -44,23 +44,23 @@ export default function ChordDiagram({ chord, size = 80 }) {
       if (svg) {
         svg.querySelectorAll('circle[fill]').forEach(el => {
           if (el.getAttribute('fill') !== 'none') {
-            el.setAttribute('fill', 'var(--color-brand)');
+            el.setAttribute('fill', 'var(--color-primary)');
           }
         });
         svg.querySelectorAll('text').forEach(el => {
-          el.setAttribute('fill', 'var(--ds-gray-600)');
+          el.setAttribute('fill', 'var(--color-default-500)');
         });
         svg.querySelectorAll('line, path, rect').forEach(el => {
           if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
-            el.setAttribute('stroke', 'var(--ds-gray-400)');
+            el.setAttribute('stroke', 'var(--color-default-300)');
           }
           if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none' && el.tagName !== 'circle') {
-            el.setAttribute('fill', 'var(--ds-gray-500)');
+            el.setAttribute('fill', 'var(--color-default-400)');
           }
         });
         // Title text brighter
         const titleEl = svg.querySelector('text');
-        if (titleEl) titleEl.setAttribute('fill', 'var(--ds-gray-1000)');
+        if (titleEl) titleEl.setAttribute('fill', 'var(--color-foreground)');
         // Set SVG dimensions
         svg.setAttribute('width', size);
         svg.setAttribute('height', size + 16);
@@ -82,7 +82,7 @@ export default function ChordDiagram({ chord, size = 80 }) {
     <div
       ref={containerRef}
       title={chord}
-      className="inline-flex shrink-0 items-center justify-center bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-lg p-0.5"
+      className="inline-flex shrink-0 items-center justify-center bg-default-100 border border-default-300 rounded-lg p-0.5"
       style={{ width: size, height: size + 16 }}
     />
   );

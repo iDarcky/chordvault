@@ -48,6 +48,7 @@ const Button = React.forwardRef(({
 
   // Map legacy sizes to HeroUI sizes
   let heroSize = "md";
+  let isIconOnly = false;
   switch (size) {
     case 'xs':
     case 'sm':
@@ -61,7 +62,7 @@ const Button = React.forwardRef(({
       break;
     case 'icon':
       heroSize = "md";
-      props.isIconOnly = true;
+      isIconOnly = true;
       break;
   }
 
@@ -71,6 +72,7 @@ const Button = React.forwardRef(({
       variant={heroVariant}
       color={heroColor}
       size={heroSize}
+      isIconOnly={isIconOnly}
       isLoading={loading}
       isDisabled={disabled}
       className={cn(className)}

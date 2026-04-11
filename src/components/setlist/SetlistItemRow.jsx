@@ -24,13 +24,13 @@ export default function SetlistItemRow({
           {/* Drag handle */}
           <span
             {...dragHandleProps}
-            className="text-[var(--ds-gray-500)] cursor-grab active:cursor-grabbing shrink-0 select-none"
+            className="text-default-400 cursor-grab active:cursor-grabbing shrink-0 select-none"
             aria-label="Drag to reorder"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
           </span>
 
-          <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
+          <span className="text-label-14 text-default-400 tabular-nums w-7 text-center shrink-0">
             {num}
           </span>
 
@@ -47,14 +47,14 @@ export default function SetlistItemRow({
 
           <div className="flex items-center gap-1.5 shrink-0">
             <div className="flex flex-col items-center">
-              <span className="text-label-10 text-[var(--ds-gray-600)]">Min</span>
+              <span className="text-label-10 text-default-500">Min</span>
               <input
                 type="number"
                 min="0"
                 value={item.duration || ''}
                 onChange={e => onUpdateBreakField(idx, 'duration', parseInt(e.target.value) || 0)}
                 placeholder="0"
-                className="w-10 px-1 py-0.5 text-center text-label-12-mono bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] rounded-md text-[var(--ds-gray-1000)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
+                className="w-10 px-1 py-0.5 text-center text-label-12-mono bg-content1 border border-default-300 rounded-md text-foreground outline-none focus:border-default-500 transition-colors"
                 style={{ minHeight: 'auto' }}
               />
             </div>
@@ -80,41 +80,41 @@ export default function SetlistItemRow({
     <div className="material-card overflow-hidden">
       {/* Collapsed row — always visible */}
       <div
-        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[var(--ds-gray-alpha-100)] transition-colors"
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-default-100 transition-colors"
         onClick={() => setExpanded(e => !e)}
       >
         {/* Drag handle */}
         <span
           {...dragHandleProps}
-          className="text-[var(--ds-gray-500)] cursor-grab active:cursor-grabbing shrink-0 select-none"
+          className="text-default-400 cursor-grab active:cursor-grabbing shrink-0 select-none"
           aria-label="Drag to reorder"
           onClick={e => e.stopPropagation()}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
         </span>
 
-        <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
+        <span className="text-label-14 text-default-400 tabular-nums w-7 text-center shrink-0">
           {num}
         </span>
 
         <div className="flex-1 min-w-0">
-          <p className="text-heading-14 text-[var(--ds-gray-1000)] m-0 truncate">
+          <p className="text-heading-14 text-foreground m-0 truncate">
             {song.title}
           </p>
-          <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
+          <p className="text-copy-12 text-default-600 m-0 mt-0.5 truncate">
             {song.artist}
           </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-label-14 text-[var(--ds-gray-1000)] font-semibold">{displayKey}</span>
-          <span className="text-label-11 text-[var(--ds-gray-600)] tabular-nums">{song.tempo} BPM</span>
-          <span className="text-label-11 text-[var(--ds-gray-600)]">{song.time}</span>
+          <span className="text-label-14 text-foreground font-semibold">{displayKey}</span>
+          <span className="text-label-11 text-default-500 tabular-nums">{song.tempo} BPM</span>
+          <span className="text-label-11 text-default-500">{song.time}</span>
           <svg
             width="14" height="14" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" strokeWidth="2"
             strokeLinecap="round" strokeLinejoin="round"
-            className={`text-[var(--ds-gray-600)] transition-transform duration-150 ${expanded ? 'rotate-180' : ''}`}
+            className={`text-default-500 transition-transform duration-150 ${expanded ? 'rotate-180' : ''}`}
           >
             <path d="m6 9 6 6 6-6" />
           </svg>
@@ -123,17 +123,17 @@ export default function SetlistItemRow({
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-[var(--ds-gray-300)] px-4 py-3 flex flex-wrap items-end gap-4 bg-[var(--ds-gray-alpha-100)]">
+        <div className="border-t border-default-200 px-4 py-3 flex flex-wrap items-end gap-4 bg-default-100">
           {/* Key (transpose) */}
           <div className="flex flex-col gap-0.5">
-            <span className="text-label-10 text-[var(--ds-gray-600)] uppercase">Key</span>
+            <span className="text-label-10 text-default-500 uppercase">Key</span>
             <select
               value={displayKey}
               onChange={e => onUpdateTranspose(idx, semitonesBetween(song.key, e.target.value))}
-              className={`px-2 py-1 rounded-md text-label-13-mono font-bold outline-none cursor-pointer bg-[var(--ds-background-100)] border transition-colors ${
+              className={`px-2 py-1 rounded-md text-label-13-mono font-bold outline-none cursor-pointer bg-content1 border transition-colors ${
                 item.transpose
                   ? 'border-[var(--chord)] text-[var(--chord)]'
-                  : 'border-[var(--ds-gray-400)] text-[var(--ds-gray-1000)]'
+                  : 'border-default-300 text-foreground'
               }`}
               style={{ minHeight: 'auto' }}
             >
@@ -145,14 +145,14 @@ export default function SetlistItemRow({
 
           {/* Capo */}
           <div className="flex flex-col gap-0.5">
-            <span className="text-label-10 text-[var(--ds-gray-600)] uppercase">Capo</span>
+            <span className="text-label-10 text-default-500 uppercase">Capo</span>
             <select
               value={item.capo || 0}
               onChange={e => onUpdateCapo(idx, parseInt(e.target.value))}
-              className={`px-2 py-1 rounded-md text-label-13-mono font-bold outline-none cursor-pointer bg-[var(--ds-background-100)] border transition-colors ${
+              className={`px-2 py-1 rounded-md text-label-13-mono font-bold outline-none cursor-pointer bg-content1 border transition-colors ${
                 item.capo
-                  ? 'border-[var(--color-brand)] text-[var(--color-brand-text)]'
-                  : 'border-[var(--ds-gray-400)] text-[var(--ds-gray-1000)]'
+                  ? 'border-[var(--color-primary)] text-[var(--color-primary-700)]'
+                  : 'border-default-300 text-foreground'
               }`}
               style={{ minHeight: 'auto' }}
             >
@@ -164,7 +164,7 @@ export default function SetlistItemRow({
 
           {/* Note */}
           <div className="flex flex-col gap-0.5 flex-1 min-w-[120px]">
-            <span className="text-label-10 text-[var(--ds-gray-600)] uppercase">Note</span>
+            <span className="text-label-10 text-default-500 uppercase">Note</span>
             <Input
               value={item.note}
               onChange={e => onUpdateNote(idx, e.target.value)}

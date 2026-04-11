@@ -139,6 +139,11 @@ export default function App() {
   useEffect(() => {
     if (!settings) return;
     document.documentElement.setAttribute('data-theme', settings.theme);
+    if (settings.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [settings?.theme]);
 
   // Navigation with history stack

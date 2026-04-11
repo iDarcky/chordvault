@@ -78,10 +78,10 @@ export default function Dashboard({
 
       {/* Welcome Greeting */}
       <div className="max-w-5xl mx-auto px-6 pt-10 pb-2">
-        <h1 className="text-heading-40 text-[var(--text-1)] m-0">
+        <h1 className="text-heading-40 text-foreground m-0">
           Welcome, {userName}
         </h1>
-        <p className="text-copy-16 text-[var(--text-2)] mt-1">
+        <p className="text-copy-16 text-default-500 mt-1">
           {dateStr}
         </p>
       </div>
@@ -91,14 +91,14 @@ export default function Dashboard({
         {/* Upcoming Setlists */}
         <section className="flex flex-col gap-5">
           <div className="flex justify-between items-center">
-            <h2 className="text-heading-18 text-[var(--text-1)] uppercase tracking-wider">
+            <h2 className="text-heading-18 text-foreground uppercase tracking-wider">
               Upcoming Setlists
             </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onGoSetlists}
-              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+              className="text-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-100)]"
             >
               View All
             </Button>
@@ -114,8 +114,8 @@ export default function Dashboard({
               />
             ))}
             {upcomingSetlists.length === 0 && (
-              <div className="col-span-full py-14 text-center border-2 border-dashed border-[var(--border-1)] rounded-xl flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--text-2)] font-medium">
+              <div className="col-span-full py-14 text-center border-2 border-dashed border-default-200 rounded-xl flex flex-col items-center gap-3">
+                <p className="text-copy-14 text-default-500 font-medium">
                   No upcoming setlists.
                 </p>
                 <Button variant="brand" size="sm" onClick={onNewSetlist}>
@@ -129,20 +129,20 @@ export default function Dashboard({
         {/* Recently Edited */}
         <section className="flex flex-col gap-5">
           <div className="flex justify-between items-center">
-            <h2 className="text-heading-18 text-[var(--text-1)] uppercase tracking-wider">
+            <h2 className="text-heading-18 text-foreground uppercase tracking-wider">
               Recently Edited
             </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onGoLibrary}
-              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+              className="text-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-100)]"
             >
               Full Library
             </Button>
           </div>
 
-          <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)]">
+          <div className="rounded-xl border border-default-200 bg-content1 overflow-hidden divide-y divide-default-200">
             {latestSongs.map(song => (
               <SongCard
                 key={song.id}
@@ -153,7 +153,7 @@ export default function Dashboard({
             ))}
             {latestSongs.length === 0 && (
               <div className="py-14 text-center flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--text-2)] font-medium">
+                <p className="text-copy-14 text-default-500 font-medium">
                   Your library is empty.
                 </p>
                 <Button variant="brand" size="sm" onClick={onNewSong}>
@@ -173,7 +173,7 @@ export default function Dashboard({
           onClick={() => setSearchOpen(false)}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-[var(--bg-1)] opacity-80" />
+          <div className="absolute inset-0 bg-content1 opacity-80" />
 
           {/* Search Content */}
           <div
@@ -205,7 +205,7 @@ export default function Dashboard({
             />
 
             {searchQuery.trim() && (
-              <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)] shadow-lg">
+              <div className="rounded-xl border border-default-200 bg-content1 overflow-hidden divide-y divide-default-200 shadow-lg">
                 {searchResults.length > 0 ? (
                   searchResults.map(song => (
                     <SongCard
@@ -219,7 +219,7 @@ export default function Dashboard({
                     />
                   ))
                 ) : (
-                  <div className="px-4 py-6 text-center text-copy-14 text-[var(--text-2)]">
+                  <div className="px-4 py-6 text-center text-copy-14 text-default-500">
                     No songs found.
                   </div>
                 )}
@@ -228,7 +228,7 @@ export default function Dashboard({
 
             <button
               onClick={() => setSearchOpen(false)}
-              className="mt-2 self-center text-label-13 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors bg-transparent border-none cursor-pointer"
+              className="mt-2 self-center text-label-13 text-default-500 hover:text-foreground transition-colors bg-transparent border-none cursor-pointer"
             >
               Press Esc or tap to close
             </button>
@@ -250,13 +250,13 @@ export default function Dashboard({
           <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
             <button
               onClick={() => { setFabOpen(false); onNewSong(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
+              className="px-5 py-3 rounded-xl bg-content1 border border-default-200 shadow-lg cursor-pointer hover:border-default-400 transition-all duration-150 whitespace-nowrap text-label-14 text-foreground text-left"
             >
               New Song
             </button>
             <button
               onClick={() => { setFabOpen(false); onNewSetlist(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
+              className="px-5 py-3 rounded-xl bg-content1 border border-default-200 shadow-lg cursor-pointer hover:border-default-400 transition-all duration-150 whitespace-nowrap text-label-14 text-foreground text-left"
             >
               New Setlist
             </button>
@@ -267,9 +267,9 @@ export default function Dashboard({
           {/* Search FAB */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="w-11 h-11 rounded-full bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg flex items-center justify-center cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 active:scale-95"
+            className="w-11 h-11 rounded-full bg-content1 border border-default-200 shadow-lg flex items-center justify-center cursor-pointer hover:border-default-400 transition-all duration-150 active:scale-95"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-1)]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
             </svg>
@@ -278,7 +278,7 @@ export default function Dashboard({
           {/* Create FAB */}
           <button
             onClick={() => setFabOpen(!fabOpen)}
-            className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
+            className="w-14 h-14 rounded-full bg-primary shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
           >
             <svg
               width="24"

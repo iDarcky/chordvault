@@ -39,7 +39,7 @@ export default function SetlistSongPicker({ songs, currentItems, onAddSong }) {
         }
       />
 
-      <div className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] overflow-hidden divide-y divide-[var(--ds-gray-200)] max-h-[400px] overflow-y-auto">
+      <div className="rounded-xl border border-default-300 bg-content1 overflow-hidden divide-y divide-default-200 max-h-[400px] overflow-y-auto">
         {results.map(song => {
           const added = inSet.has(song.id);
           return (
@@ -51,15 +51,15 @@ export default function SetlistSongPicker({ songs, currentItems, onAddSong }) {
               onKeyDown={(e) => e.key === 'Enter' && !added && onAddSong(song)}
               className={`flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer ${
                 added
-                  ? 'bg-[var(--color-brand-soft)]'
-                  : 'hover:bg-[var(--ds-gray-alpha-100)]'
+                  ? 'bg-[var(--color-primary-100)]'
+                  : 'hover:bg-default-100'
               }`}
             >
               {/* Checkbox indicator */}
               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
                 added
-                  ? 'bg-[var(--color-brand)] border-[var(--color-brand)]'
-                  : 'border-[var(--ds-gray-400)] bg-transparent'
+                  ? 'bg-primary border-[var(--color-primary)]'
+                  : 'border-default-300 bg-transparent'
               }`}>
                 {added && (
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -69,10 +69,10 @@ export default function SetlistSongPicker({ songs, currentItems, onAddSong }) {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className={`text-heading-14 m-0 truncate ${added ? 'text-[var(--color-brand-text)]' : 'text-[var(--ds-gray-1000)]'}`}>
+                <p className={`text-heading-14 m-0 truncate ${added ? 'text-[var(--color-primary-700)]' : 'text-foreground'}`}>
                   {song.title}
                 </p>
-                <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
+                <p className="text-copy-12 text-default-600 m-0 mt-0.5 truncate">
                   {song.artist} · {song.key}
                 </p>
               </div>
@@ -80,7 +80,7 @@ export default function SetlistSongPicker({ songs, currentItems, onAddSong }) {
           );
         })}
         {results.length === 0 && (
-          <div className="py-8 text-center text-copy-13 text-[var(--ds-gray-600)]">
+          <div className="py-8 text-center text-copy-13 text-default-500">
             No songs found
           </div>
         )}

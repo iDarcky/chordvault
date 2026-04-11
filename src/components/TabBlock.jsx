@@ -33,7 +33,7 @@ export default function TabBlock({ data }) {
             y1={y}
             x2={LABEL_WIDTH + contentWidth}
             y2={y}
-            stroke="var(--ds-gray-400)"
+            stroke="var(--color-default-300)"
             strokeWidth={1}
           />
         );
@@ -47,7 +47,7 @@ export default function TabBlock({ data }) {
             key={`label-${i}`}
             x={LABEL_WIDTH - 8}
             y={y + 4}
-            fill="var(--ds-gray-600)"
+            fill="var(--color-default-500)"
             fontFamily="var(--fm)"
             fontSize={11}
             fontWeight={600}
@@ -66,7 +66,7 @@ export default function TabBlock({ data }) {
           y1={PADDING_TOP - 4}
           x2={LABEL_WIDTH + pos * CHAR_WIDTH}
           y2={PADDING_TOP + (parsed.strings.length - 1) * STRING_SPACING + 4}
-          stroke="var(--ds-gray-500)"
+          stroke="var(--color-default-400)"
           strokeWidth={1.5}
         />
       ))}
@@ -82,7 +82,7 @@ export default function TabBlock({ data }) {
               y={y - 7}
               width={f.fret >= 10 ? 16 : 10}
               height={14}
-              fill="var(--ds-background-200)"
+              fill="var(--color-background)"
               rx={2}
             />
             {/* Fret number */}
@@ -102,7 +102,7 @@ export default function TabBlock({ data }) {
               <text
                 x={LABEL_WIDTH + (f.pos + 1) * CHAR_WIDTH + 2}
                 y={y - 6}
-                fill="var(--ds-gray-600)"
+                fill="var(--color-default-500)"
                 fontFamily="var(--fm)"
                 fontSize={9}
                 fontWeight={600}

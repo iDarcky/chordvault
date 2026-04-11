@@ -175,7 +175,7 @@ export default function FormTab({ md, onChange }) {
   return (
     <div className="flex flex-col gap-4">
       {/* ─── Metadata Section ─── */}
-      <div className="p-3.5 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)]">
+      <div className="p-3.5 rounded-xl bg-default-100 border border-default-200">
         <div className="section-title mb-2.5">Song Info</div>
         <div className="grid grid-cols-2 gap-2">
           <FormField label="Title" value={meta.title} onChange={v => updateMeta('title', v)} span={2} />
@@ -185,7 +185,7 @@ export default function FormTab({ md, onChange }) {
             <select
               value={meta.key}
               onChange={e => updateMeta('key', e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-copy-13 font-semibold text-[var(--ds-gray-1000)] outline-none cursor-pointer"
+              className="w-full px-2.5 py-1.5 rounded-md bg-background border border-default-300 text-copy-13 font-semibold text-foreground outline-none cursor-pointer"
             >
               {KEY_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
             </select>
@@ -197,7 +197,7 @@ export default function FormTab({ md, onChange }) {
 
         {/* Collapsible extra fields */}
         <details className="mt-2">
-          <summary className="text-copy-11 text-[var(--ds-gray-500)] cursor-pointer py-1">
+          <summary className="text-copy-11 text-default-400 cursor-pointer py-1">
             More fields
           </summary>
           <div className="grid grid-cols-2 gap-2 mt-1.5">
@@ -214,18 +214,18 @@ export default function FormTab({ md, onChange }) {
       {sections.map((sec, idx) => {
         const baseType = sec.type.replace(/\s*\d+$/, '');
         return (
-          <div key={idx} className="p-3.5 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)]">
+          <div key={idx} className="p-3.5 rounded-xl bg-default-100 border border-default-200">
             {/* Section header row */}
             <div className="flex items-center gap-1.5 mb-2">
               <select
                 value={baseType}
                 onChange={e => changeSectionType(idx, e.target.value)}
-                className="px-2 py-1 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-label-12 font-semibold text-[var(--ds-gray-1000)] outline-none cursor-pointer"
+                className="px-2 py-1 rounded-md bg-background border border-default-300 text-label-12 font-semibold text-foreground outline-none cursor-pointer"
               >
                 {SECTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
 
-              <span className="text-label-12-mono text-[var(--ds-gray-500)]">
+              <span className="text-label-12-mono text-default-400">
                 {sec.type !== baseType ? sec.type.replace(baseType, '').trim() : ''}
               </span>
 
@@ -243,7 +243,7 @@ export default function FormTab({ md, onChange }) {
                 value={sec.note}
                 onChange={e => updateSection(idx, 'note', e.target.value)}
                 placeholder="e.g. Keys & light acoustic"
-                className="w-full px-2.5 py-1.5 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-copy-13 text-[var(--ds-gray-1000)] outline-none"
+                className="w-full px-2.5 py-1.5 rounded-md bg-background border border-default-300 text-copy-13 text-foreground outline-none"
               />
             </div>
 
@@ -260,7 +260,7 @@ export default function FormTab({ md, onChange }) {
                   </button>
                   <button
                     onClick={() => setTabEditorTarget({ sectionIdx: idx })}
-                    className="bg-transparent border-none cursor-pointer text-[var(--color-brand-text)] text-label-12 font-semibold font-mono px-1.5 py-0.5"
+                    className="bg-transparent border-none cursor-pointer text-[var(--color-primary-700)] text-label-12 font-semibold font-mono px-1.5 py-0.5"
                   >
                     + Tab
                   </button>
@@ -289,7 +289,7 @@ export default function FormTab({ md, onChange }) {
                         parsed.time = timePart ? timePart[1] : null;
                         setTabEditorTarget({ sectionIdx: idx, initialTab: parsed, replaceRange: { start: tb.start, end: tb.end } });
                       }}
-                        className="bg-[var(--color-brand-soft)] border border-[var(--color-brand-border)] rounded-md px-2 py-0.5 cursor-pointer text-[var(--color-brand-text)] text-label-10 font-semibold font-mono"
+                        className="bg-[var(--color-primary-100)] border border-[var(--color-primary-300)] rounded-md px-2 py-0.5 cursor-pointer text-[var(--color-primary-700)] text-label-10 font-semibold font-mono"
                       >
                         Edit Tab {tabBlocks.length > 1 ? ti + 1 : ''}
                       </button>
@@ -304,7 +304,7 @@ export default function FormTab({ md, onChange }) {
                 placeholder="[C]Type lyrics with [G]chords in brackets"
                 spellCheck={false}
                 rows={3}
-                className="w-full min-h-[60px] px-2.5 py-1.5 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-copy-13 text-[var(--ds-gray-1000)] outline-none resize-y font-mono leading-relaxed"
+                className="w-full min-h-[60px] px-2.5 py-1.5 rounded-md bg-background border border-default-300 text-copy-13 text-foreground outline-none resize-y font-mono leading-relaxed"
               />
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function FormTab({ md, onChange }) {
       {/* Add Section button */}
       <button
         onClick={addSection}
-        className="py-3 rounded-xl bg-[var(--color-brand-soft)] border border-dashed border-[var(--color-brand-border)] text-[var(--color-brand-text)] text-label-13 font-semibold cursor-pointer text-center hover:bg-[var(--color-brand-soft)] hover:opacity-90 transition-opacity"
+        className="py-3 rounded-xl bg-[var(--color-primary-100)] border border-dashed border-[var(--color-primary-300)] text-[var(--color-primary-700)] text-label-13 font-semibold cursor-pointer text-center hover:bg-[var(--color-primary-100)] hover:opacity-90 transition-opacity"
       >
         + Add Section
       </button>
@@ -359,7 +359,7 @@ function FormField({ label, value, onChange, type = 'text', span = 1 }) {
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full px-2.5 py-1.5 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-copy-13 text-[var(--ds-gray-1000)] outline-none"
+        className="w-full px-2.5 py-1.5 rounded-md bg-background border border-default-300 text-copy-13 text-foreground outline-none"
       />
     </div>
   );

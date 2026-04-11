@@ -98,14 +98,14 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* ─── Sticky Header ─── */}
       <div className="material-header" style={{ padding: '10px 18px 0' }}>
         {/* Row 1: back, title, delete, save */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2.5">
             <Button variant="ghost" size="xs" onClick={onBack}>← Back</Button>
-            <span className="text-heading-16 text-[var(--ds-gray-1000)]">
+            <span className="text-heading-16 text-foreground">
               {song ? 'Edit Song' : 'New Song'}
             </span>
           </div>
@@ -173,7 +173,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
           <div className="flex-1 overflow-auto p-[18px]">
             {renderTab()}
           </div>
-          <div className="flex-1 overflow-auto border-l border-[var(--ds-gray-300)] bg-[var(--ds-background-200)]">
+          <div className="flex-1 overflow-auto border-l border-default-200 bg-background">
             <PreviewPanel preview={preview} />
           </div>
         </div>

@@ -89,7 +89,7 @@ export default function ChartView({
     <div
       ref={scrollContainerRef}
       className={cn(
-        "h-screen overflow-y-auto overflow-x-hidden bg-[var(--ds-background-100)]",
+        "h-screen overflow-y-auto overflow-x-hidden bg-content1",
         isPreview && "h-auto overflow-visible bg-transparent"
       )}
     >
@@ -100,13 +100,13 @@ export default function ChartView({
           <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between pt-3 pb-1 gap-3">
             <div className="min-w-0 flex-1 flex items-center gap-3">
               <h1 className={cn(
-                "text-[var(--text-1)] m-0 truncate transition-all duration-200",
+                "text-foreground m-0 truncate transition-all duration-200",
                 scrolled ? "text-heading-16" : "text-heading-24"
               )}>{song.title}</h1>
               {/* Inline meta — visible only in compact mode */}
               {scrolled && (
-                <div className="hidden sm:flex items-center gap-2 flex-shrink-0 text-label-11 text-[var(--text-2)]">
-                  <span className="font-bold text-[var(--text-1)]">{selectedKey}</span>
+                <div className="hidden sm:flex items-center gap-2 flex-shrink-0 text-label-11 text-default-500">
+                  <span className="font-bold text-foreground">{selectedKey}</span>
                   {song.tempo && <span>{song.tempo} bpm</span>}
                   {song.time && <span>{song.time}</span>}
                 </div>
@@ -145,7 +145,7 @@ export default function ChartView({
                     <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
                   </svg>
                 </IconButton>
-                <div className="w-px h-5 bg-[var(--border-1)]" />
+                <div className="w-px h-5 bg-[var(--color-default-200)]" />
               </div>
 
               <IconButton variant="default" size="sm" onClick={onEdit} aria-label="Edit chart">
@@ -164,11 +164,11 @@ export default function ChartView({
             "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-3 transition-all duration-200 overflow-hidden",
             scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-12 opacity-100 pb-1.5"
           )}>
-            <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
-            <div className="w-px h-3.5 bg-[var(--border-1)]" />
+            <span className="text-copy-14 text-default-500">{song.artist}</span>
+            <div className="w-px h-3.5 bg-[var(--color-default-200)]" />
             <Select value={selectedKey} onValueChange={setSelectedKey}>
-              <SelectTrigger className="h-6 px-1.5 border-transparent bg-transparent text-label-14 font-bold text-[var(--text-1)] hover:bg-[var(--bg-2)] gap-1 min-w-0 w-auto focus:ring-0">
-                <span className="text-label-12 font-semibold text-[var(--text-2)] mr-0.5">Key</span>
+              <SelectTrigger className="h-6 px-1.5 border-transparent bg-transparent text-label-14 font-bold text-foreground hover:bg-default-100 gap-1 min-w-0 w-auto focus:ring-0">
+                <span className="text-label-12 font-semibold text-default-500 mr-0.5">Key</span>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -184,13 +184,13 @@ export default function ChartView({
               </SelectContent>
             </Select>
             {song.tempo && (
-              <span className="text-label-14 text-[var(--text-2)]">
+              <span className="text-label-14 text-default-500">
                 <span className="text-label-12 font-semibold mr-0.5">Tempo</span>
                 <span className="font-bold">{song.tempo}</span>
               </span>
             )}
             {song.time && (
-              <span className="text-label-14 text-[var(--text-2)]">
+              <span className="text-label-14 text-default-500">
                 <span className="text-label-12 font-semibold mr-0.5">Time</span>
                 <span className="font-bold">{song.time}</span>
               </span>
@@ -226,13 +226,13 @@ export default function ChartView({
                     ]}
                     size="xs"
                   />
-                  <div className="flex items-center bg-[var(--bg-1)] border border-[var(--border-1)] rounded-lg p-0.5">
+                  <div className="flex items-center bg-content1 border border-default-200 rounded-lg p-0.5">
                     <IconButton variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.max(10, prev - 2))}>-</IconButton>
-                    <span className="px-1.5 text-label-10-mono text-[var(--text-2)]">{fontSize}px</span>
+                    <span className="px-1.5 text-label-10-mono text-default-500">{fontSize}px</span>
                     <IconButton variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.min(30, prev + 2))}>+</IconButton>
                   </div>
                   <Select value={fontFamily} onValueChange={setFontFamily}>
-                    <SelectTrigger className="h-7 px-2 text-label-11 font-medium text-[var(--text-1)] gap-1 min-w-0 w-auto">
+                    <SelectTrigger className="h-7 px-2 text-label-11 font-medium text-foreground gap-1 min-w-0 w-auto">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -267,32 +267,32 @@ export default function ChartView({
               )}
               {showInfo && (
                 hasMetadata ? (
-                  <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-label-14 text-[var(--text-2)]">
+                  <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-label-14 text-default-500">
                     {song.capo > 0 && (
-                      <span><span className="font-semibold text-[var(--text-1)]">Capo</span> {song.capo}</span>
+                      <span><span className="font-semibold text-foreground">Capo</span> {song.capo}</span>
                     )}
                     {song.ccli && (
-                      <span><span className="font-semibold text-[var(--text-1)]">CCLI</span> {song.ccli}</span>
+                      <span><span className="font-semibold text-foreground">CCLI</span> {song.ccli}</span>
                     )}
                     {song.tags?.length > 0 && (
-                      <span><span className="font-semibold text-[var(--text-1)]">Tags</span> {song.tags.join(', ')}</span>
+                      <span><span className="font-semibold text-foreground">Tags</span> {song.tags.join(', ')}</span>
                     )}
                     {song.notes && (
-                      <span><span className="font-semibold text-[var(--text-1)]">Notes</span> {song.notes}</span>
+                      <span><span className="font-semibold text-foreground">Notes</span> {song.notes}</span>
                     )}
                     {song.spotify && (
-                      <a href={song.spotify} target="_blank" rel="noopener noreferrer" className="text-[var(--color-brand-text)] hover:underline">
+                      <a href={song.spotify} target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary-700)] hover:underline">
                         Spotify ↗
                       </a>
                     )}
                     {song.youtube && (
-                      <a href={song.youtube} target="_blank" rel="noopener noreferrer" className="text-[var(--color-brand-text)] hover:underline">
+                      <a href={song.youtube} target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary-700)] hover:underline">
                         YouTube ↗
                       </a>
                     )}
                   </div>
                 ) : (
-                  <span className="text-label-14 text-[var(--text-2)] italic">No additional song info</span>
+                  <span className="text-label-14 text-default-500 italic">No additional song info</span>
                 )
               )}
             </div>
@@ -306,10 +306,10 @@ export default function ChartView({
       )}>
         {/* ── Chord Diagrams Strip ── */}
         {showDiagrams && !isPreview && (
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-8 mb-8 border-b border-[var(--border-1)]">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-8 mb-8 border-b border-default-200">
             {allChords.map(chord => (
               <div key={chord} className="flex flex-col items-center gap-1 flex-shrink-0">
-                <div className="text-label-10-mono font-bold text-[var(--text-2)]">{transposeChord(chord, transpose)}</div>
+                <div className="text-label-10-mono font-bold text-default-500">{transposeChord(chord, transpose)}</div>
                 <Card className="w-24 h-28 flex items-center justify-center p-2">
                    <ChordDiagram chord={transposeChord(chord, transpose)} />
                 </Card>

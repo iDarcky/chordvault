@@ -4,7 +4,7 @@ import { StructureRibbon, MetaPill } from '../StructureRibbon';
 export default function PreviewPanel({ preview }) {
   if (!preview) {
     return (
-      <div className="py-8 text-center text-[var(--ds-gray-500)] text-copy-14 italic">
+      <div className="py-8 text-center text-default-400 text-copy-14 italic">
         Start typing to see preview…
       </div>
     );

@@ -219,7 +219,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
   return (
     <div className="flex flex-col h-full">
       {/* ─── Toolbar ─── */}
-      <div ref={toolbarRef} className="flex flex-wrap gap-1 py-1.5 border-b border-[var(--ds-gray-300)] mb-2">
+      <div ref={toolbarRef} className="flex flex-wrap gap-1 py-1.5 border-b border-default-200 mb-2">
         <ToolBtn label="♪" title="Insert Chord" onClick={openChordPicker} />
         <ToolBtn label="§" title="Add Section" onClick={(e) => openPopup(setShowSectionMenu, e)} />
         <ToolBtn label="📢" title="Band Cue" onClick={(e) => openPopup(setShowCueInput, e)} />
@@ -235,7 +235,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
         value={md}
         onChange={e => onChange(e.target.value)}
         spellCheck={false}
-        className="flex-1 w-full min-h-[50vh] bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-lg p-4 text-copy-13 leading-relaxed text-[var(--ds-gray-1000)] resize-y outline-none font-mono"
+        className="flex-1 w-full min-h-[50vh] bg-default-100 border border-default-300 rounded-lg p-4 text-copy-13 leading-relaxed text-foreground resize-y outline-none font-mono"
         style={{ caretColor: 'var(--chord)' }}
       />
 
@@ -255,7 +255,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
               <button
                 key={t}
                 onClick={() => handleSectionInsert(t)}
-                className="bg-transparent border-none rounded-md px-3 py-1.5 text-left cursor-pointer text-copy-13 font-medium text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-200)] transition-colors"
+                className="bg-transparent border-none rounded-md px-3 py-1.5 text-left cursor-pointer text-copy-13 font-medium text-foreground hover:bg-default-200 transition-colors"
               >
                 {t}
               </button>
@@ -273,7 +273,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
               onChange={e => setCueText(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleCueInsert(); }}
               placeholder="Band cue text..."
-              className="flex-1 px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
+              className="flex-1 px-2.5 py-1.5 bg-default-100 border border-default-300 rounded-md text-copy-13 text-foreground outline-none font-mono"
             />
             <Button variant="brand" size="xs" onClick={handleCueInsert}>Insert</Button>
           </div>
@@ -289,7 +289,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
               onChange={e => setNoteText(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleNoteInsert(); }}
               placeholder="Inline note..."
-              className="flex-1 px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
+              className="flex-1 px-2.5 py-1.5 bg-default-100 border border-default-300 rounded-md text-copy-13 text-foreground outline-none font-mono"
             />
             <Button variant="brand" size="xs" onClick={handleNoteInsert}>Insert</Button>
           </div>
@@ -331,10 +331,10 @@ function ToolBtn({ label, title, onClick }) {
     <button
       onClick={onClick}
       title={title}
-      className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-lg px-2.5 py-1.5 cursor-pointer text-[var(--ds-gray-1000)] text-[14px] font-semibold flex items-center gap-1 whitespace-nowrap hover:bg-[var(--ds-gray-200)] hover:border-[var(--ds-gray-600)] transition-colors"
+      className="bg-default-100 border border-default-300 rounded-lg px-2.5 py-1.5 cursor-pointer text-foreground text-[14px] font-semibold flex items-center gap-1 whitespace-nowrap hover:bg-default-200 hover:border-default-500 transition-colors"
     >
       <span className="text-[15px]">{label}</span>
-      <span className="text-label-10 text-[var(--ds-gray-600)] font-mono">{title}</span>
+      <span className="text-label-10 text-default-500 font-mono">{title}</span>
     </button>
   );
 }
@@ -360,7 +360,7 @@ function Popup({ anchor, onClose, children }) {
   return (
     <div
       ref={ref}
-      className="fixed z-[100] bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] rounded-xl p-2.5 min-w-[180px]"
+      className="fixed z-[100] bg-background border border-default-300 rounded-xl p-2.5 min-w-[180px]"
       style={{
         top: anchor ? anchor.bottom + 4 : '50%',
         left: anchor ? Math.min(anchor.left, window.innerWidth - 260) : '50%',
@@ -400,9 +400,9 @@ function MetadataOverlay({ meta, onSave, onClose }) {
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-[var(--ds-background-200)] rounded-xl border border-[var(--ds-gray-400)] p-5 w-[90%] max-w-[420px] max-h-[80vh] overflow-auto"
+        className="bg-background rounded-xl border border-default-300 p-5 w-[90%] max-w-[420px] max-h-[80vh] overflow-auto"
       >
-        <div className="text-heading-16 text-[var(--ds-gray-1000)] mb-3.5">
+        <div className="text-heading-16 text-foreground mb-3.5">
           Song Metadata
         </div>
         {fields.map(f => (
@@ -414,7 +414,7 @@ function MetadataOverlay({ meta, onSave, onClose }) {
               value={form[f.key]}
               onChange={e => set(f.key, e.target.value)}
               placeholder={f.placeholder}
-              className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
+              className="w-full px-2.5 py-1.5 bg-default-100 border border-default-300 rounded-md text-copy-13 text-foreground outline-none font-mono"
             />
           </label>
         ))}

@@ -214,15 +214,15 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
         onClick={e => e.stopPropagation()}
         onKeyDown={handleGridKeyDown}
         tabIndex={-1}
-        className="bg-[var(--ds-background-200)] rounded-2xl border border-[var(--ds-gray-400)] p-[18px] w-[95%] max-w-[860px] max-h-[90vh] overflow-auto outline-none"
+        className="bg-background rounded-2xl border border-default-300 p-[18px] w-[95%] max-w-[860px] max-h-[90vh] overflow-auto outline-none"
         style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.6)' }}
       >
         {/* Header */}
         <div className="flex items-center gap-2 mb-3.5">
-          <span className="text-heading-14 text-[var(--ds-gray-1000)] flex-1">
+          <span className="text-heading-14 text-foreground flex-1">
             Tab Editor
           </span>
-          <span className="text-label-11-mono text-[var(--ds-gray-500)]">
+          <span className="text-label-11-mono text-default-400">
             {timeSig}
           </span>
           <IconButton variant="ghost" size="xs" onClick={onClose} aria-label="Close">✕</IconButton>
@@ -239,8 +239,8 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                 title={d.title}
                 className={`rounded-md px-2 py-1 text-[16px] font-semibold font-mono cursor-pointer border transition-colors ${
                   duration === d.id
-                    ? 'border-[var(--color-brand)] text-[var(--color-brand-text)] bg-[var(--color-brand-soft)]'
-                    : 'border-[var(--ds-gray-400)] text-[var(--ds-gray-600)] bg-[var(--ds-gray-100)] hover:bg-[var(--ds-gray-200)]'
+                    ? 'border-[var(--color-primary)] text-[var(--color-primary-700)] bg-[var(--color-primary-100)]'
+                    : 'border-default-300 text-default-500 bg-default-100 hover:bg-default-200'
                 }`}
               >
                 {d.label}
@@ -248,7 +248,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
             ))}
           </div>
 
-          <div className="w-px h-5 bg-[var(--ds-gray-400)]" />
+          <div className="w-px h-5 bg-[var(--color-default-300)]" />
 
           {/* Chord mode */}
           <Button
@@ -259,18 +259,18 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
             Chord
           </Button>
 
-          <div className="w-px h-5 bg-[var(--ds-gray-400)]" />
+          <div className="w-px h-5 bg-[var(--color-default-300)]" />
 
           {/* Technique buttons */}
           <div className="flex gap-1 items-center">
-            <span className="text-label-10 text-[var(--ds-gray-500)] mr-0.5">Technique:</span>
+            <span className="text-label-10 text-default-400 mr-0.5">Technique:</span>
             {TECHNIQUES.map(t => (
               <button
                 key={t}
                 onClick={() => applyTechnique(t)}
                 disabled={!lastPlaced}
                 title={{ h: 'Hammer-on', p: 'Pull-off', s: 'Slide', b: 'Bend', x: 'Mute' }[t]}
-                className={`rounded-md px-2 py-1 text-label-12 font-semibold font-mono cursor-pointer border border-[var(--ds-gray-400)] bg-[var(--ds-gray-100)] text-[var(--ds-gray-600)] hover:bg-[var(--ds-gray-200)] transition-colors ${
+                className={`rounded-md px-2 py-1 text-label-12 font-semibold font-mono cursor-pointer border border-default-300 bg-default-100 text-default-500 hover:bg-default-200 transition-colors ${
                   !lastPlaced ? 'opacity-40 cursor-not-allowed' : ''
                 }`}
               >
@@ -283,7 +283,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
 
           {/* Measure controls */}
           <div className="flex gap-1 items-center">
-            <span className="text-label-10 text-[var(--ds-gray-500)]">{measures} bar{measures !== 1 ? 's' : ''}</span>
+            <span className="text-label-10 text-default-400">{measures} bar{measures !== 1 ? 's' : ''}</span>
             <IconButton variant="default" size="xs" onClick={removeMeasure} disabled={measures <= 1} aria-label="Remove bar">−</IconButton>
             <IconButton variant="default" size="xs" onClick={addMeasure} aria-label="Add bar">+</IconButton>
           </div>
@@ -304,8 +304,8 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                   style={{
                     width: cellW,
                     fontSize: isBeat ? 10 : 8,
-                    color: isBeat ? 'var(--ds-gray-600)' : 'var(--ds-gray-500)',
-                    borderLeft: isBarLine ? '2px solid var(--ds-gray-400)' : 'none',
+                    color: isBeat ? 'var(--color-default-500)' : 'var(--color-default-400)',
+                    borderLeft: isBarLine ? '2px solid var(--color-default-300)' : 'none',
                     fontWeight: isBeat ? 700 : 400,
                   }}
                 >
@@ -319,7 +319,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
           {STRING_NAMES.map((name, si) => (
             <div key={si} className="flex items-center mb-0.5">
               <div
-                className="shrink-0 text-right pr-1.5 text-label-12-mono font-bold text-[var(--ds-gray-600)]"
+                className="shrink-0 text-right pr-1.5 text-label-12-mono font-bold text-default-500"
                 style={{ width: labelW }}
               >
                 {name}
@@ -339,11 +339,11 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                     className="shrink-0 flex items-center justify-center relative cursor-pointer"
                     style={{
                       width: cellW, height: cellH,
-                      borderLeft: isBarLine ? '2px solid var(--ds-gray-500)' : '1px solid var(--ds-gray-300)',
+                      borderLeft: isBarLine ? '2px solid var(--color-default-400)' : '1px solid var(--ds-gray-300)',
                       background: isCursor
-                        ? 'var(--color-brand-soft)'
+                        ? 'var(--color-primary-100)'
                         : cell !== null ? 'rgba(226,168,50,0.06)' : 'transparent',
-                      outline: isCursor ? '1px solid var(--color-brand)' : 'none',
+                      outline: isCursor ? '1px solid var(--color-primary)' : 'none',
                       borderRadius: isCursor ? 3 : 0,
                     }}
                     onClick={() => {
@@ -382,7 +382,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                           if (inputVal) commitInput(si, pos, inputVal);
                           else setActiveInput(null);
                         }}
-                        className="text-center font-mono text-label-13 font-bold outline-none z-[1] relative bg-[var(--color-brand-soft)] border border-[var(--color-brand)] rounded-sm text-[var(--color-brand-text)]"
+                        className="text-center font-mono text-label-13 font-bold outline-none z-[1] relative bg-[var(--color-primary-100)] border border-[var(--color-primary)] rounded-sm text-[var(--color-primary-700)]"
                         style={{
                           width: cellW - 4, height: cellH - 4,
                         }}
@@ -394,7 +394,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                             {fret}
                           </span>
                           {tech && (
-                            <span className="font-mono text-[9px] text-[var(--ds-gray-600)] leading-none">
+                            <span className="font-mono text-[9px] text-default-500 leading-none">
                               {tech}
                             </span>
                           )}
@@ -409,7 +409,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
         </div>
 
         {/* Hint */}
-        <div className="text-label-10-mono text-[var(--ds-gray-500)] mt-2 mb-3.5">
+        <div className="text-label-10-mono text-default-400 mt-2 mb-3.5">
           Click a cell to enter fret (0–24) · Enter/Tab to confirm · Right-click to clear · Arrow keys to navigate
         </div>
 

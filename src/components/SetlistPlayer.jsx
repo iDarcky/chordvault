@@ -44,7 +44,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   if (!resolved.length) {
     return (
-      <div className="p-10 text-center text-[var(--ds-gray-600)] text-copy-14">
+      <div className="p-10 text-center text-default-500 text-copy-14">
         No items in setlist
       </div>
     );
@@ -54,7 +54,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   const nav = (
     <div className="flex items-center gap-1.5">
-      <span className="text-label-11-mono text-[var(--ds-gray-600)]">
+      <span className="text-label-11-mono text-default-500">
         {idx + 1}/{resolved.length}
       </span>
       <IconButton
@@ -91,7 +91,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
             className="flex-1 rounded-sm border-none cursor-pointer transition-all duration-200 min-w-0 p-0"
             style={{
               height: i === idx ? 6 : 4,
-              background: i === idx ? color : i < idx ? 'var(--ds-gray-500)' : 'var(--ds-gray-300)',
+              background: i === idx ? color : i < idx ? 'var(--color-default-400)' : 'var(--ds-gray-300)',
               minHeight: 'auto',
             }}
           />
@@ -110,14 +110,14 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
               key={i}
               onClick={() => setIdx(i)}
               className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border cursor-pointer transition-all duration-150 bg-transparent ${
-                active ? 'border-[var(--ds-gray-500)] bg-[var(--ds-gray-200)]' : 'border-[var(--ds-gray-300)]'
+                active ? 'border-default-400 bg-default-200' : 'border-default-200'
               }`}
               style={{ minHeight: 'auto' }}
             >
-              <span className={`text-label-11-mono font-bold ${active ? 'text-[var(--ds-gray-700)]' : 'text-[var(--ds-gray-500)]'}`}>
+              <span className={`text-label-11-mono font-bold ${active ? 'text-default-600' : 'text-default-400'}`}>
                 {i + 1}
               </span>
-              <span className={`text-copy-11 whitespace-nowrap italic ${active ? 'font-semibold text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'}`}>
+              <span className={`text-copy-11 whitespace-nowrap italic ${active ? 'font-semibold text-foreground' : 'text-default-500'}`}>
                 {r.label || 'Break'}
               </span>
             </button>
@@ -129,7 +129,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
             key={i}
             onClick={() => setIdx(i)}
             className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border cursor-pointer transition-all duration-150 ${
-              active ? '' : 'border-[var(--ds-gray-300)] bg-transparent'
+              active ? '' : 'border-default-200 bg-transparent'
             }`}
             style={{
               borderColor: active ? `${s.b}66` : undefined,
@@ -139,16 +139,16 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
           >
             <span
               className="text-label-11-mono font-bold"
-              style={{ color: active ? s.d : 'var(--ds-gray-500)' }}
+              style={{ color: active ? s.d : 'var(--color-default-400)' }}
             >
               {i + 1}
             </span>
-            <span className={`text-copy-11 whitespace-nowrap ${active ? 'font-semibold text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'}`}>
+            <span className={`text-copy-11 whitespace-nowrap ${active ? 'font-semibold text-foreground' : 'text-default-500'}`}>
               {r.song.title}
             </span>
             <span
               className="text-label-10-mono"
-              style={{ color: active ? 'var(--chord)' : 'var(--ds-gray-400)' }}
+              style={{ color: active ? 'var(--chord)' : 'var(--color-default-300)' }}
             >
               {transposeKey(r.song.key, r.transpose)}
             </span>
@@ -163,7 +163,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
       {/* Back button for the whole player */}
       <div className="flex items-center gap-2.5 px-5 pt-2.5">
         <Button variant="ghost" size="xs" onClick={onBack}>← Back</Button>
-        <span className="text-label-13 font-semibold text-[var(--ds-gray-600)]">
+        <span className="text-label-13 font-semibold text-default-500">
           {setlist.name}
         </span>
       </div>
@@ -171,18 +171,18 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
       {songBar}
       {cur.note && (
         <div className="px-5 pt-1">
-          <div className="px-3 py-1.5 rounded-md bg-[var(--ds-warning-soft)] border border-[var(--ds-warning-border)] text-label-12 text-[var(--ds-warning-900)]">
+          <div className="px-3 py-1.5 rounded-md bg-[var(--color-warning-50)] border border-[var(--color-warning-300)] text-label-12 text-[var(--color-warning-900)]">
             {cur.note}
           </div>
         </div>
       )}
       {cur.isBreak ? (
         <div className="flex flex-col items-center justify-center px-5 py-20 min-h-[50vh]">
-          <div className="text-heading-32 text-[var(--ds-gray-1000)] mb-2">
+          <div className="text-heading-32 text-foreground mb-2">
             {cur.label || 'Break'}
           </div>
           {cur.duration > 0 && (
-            <div className="text-copy-16 text-[var(--ds-gray-600)] font-mono mb-2">
+            <div className="text-copy-16 text-default-500 font-mono mb-2">
               {cur.duration} min
             </div>
           )}

@@ -78,7 +78,7 @@ const Select = React.forwardRef(({
       {...props}
     >
       {items.map(item => (
-        <HeroSelectItem key={item.value} value={item.value}>
+        <HeroSelectItem key={item.value} value={item.value} textValue={typeof item.label === 'string' ? item.label : String(item.value)}>
           {item.label}
         </HeroSelectItem>
       ))}
