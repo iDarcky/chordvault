@@ -190,6 +190,32 @@ export function parseLine(line) {
   return parts;
 }
 
+// Convert a chord-annotated line to placement model
+// "[C]Amazing [G]grace" → { plainText: "Amazing grace", chords: [{chord:"C",pos:0},{chord:"G",pos:8}] }
+export function lineToPlacement(line) {
+  const chords = [];
+  const re = /\[([^\]]+)\]/g;
+  let match, stripped = '', lastIndex = 0;
+  while ((match = re.exec(line)) !== null) {
+    stripped += line.slice(lastIndex, match.index);
+    chords.push({ chord: match[1], pos: stripped.length });
+    lastIndex = re.lastIndex;
+  }
+  stripped += line.slice(lastIndex);
+  return { plainText: stripped, chords };
+}
+ 
+// Convert placement model back to chord-annotated line
+// { plainText: "Amazing grace", chords: [{chord:"C",pos:0},{chord:"G",pos:8}] } → "[C]Amazing [G]grace"
+export function placementToLine({ plainText, chords }) {
+  const sorted = [...chords].sort((a, b) => b.pos - a.pos);
+  let result = plainText;
+  for (const c of sorted) {
+    result = result.slice(0, c.pos) + '[' + c.chord + ']' + result.slice(c.pos);
+  }
+  return result;
+}
+ 
 // Serialize a tab block object back to ASCII
 export function serializeTabBlock(tab) {
   // Prefer raw lines for round-trip fidelity

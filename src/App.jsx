@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { Toaster } from "./components/ui/Toaster";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
@@ -8,15 +9,18 @@ import Welcome from './components/Welcome';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
-import ChartView from './components/ChartView';
-import Editor from './components/Editor';
-import SetlistBuilder from './components/SetlistBuilder';
-import SetlistPlayer from './components/SetlistPlayer';
 import Settings from './components/Settings';
-import SetlistOverview from './components/SetlistOverview';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
+
+// Lazy-loaded: heavy secondary views not needed on initial render
+const ChartView = lazy(() => import('./components/ChartView'));
+const Editor = lazy(() => import('./components/Editor'));
+const SetlistBuilder = lazy(() => import('./components/SetlistBuilder'));
+const SetlistPlayer = lazy(() => import('./components/SetlistPlayer'));
+const SetlistOverview = lazy(() => import('./components/SetlistOverview'));
+const DesignShowcase = lazy(() => import('./components/DesignShowcase'));
 
 export default function App() {
   const [songs, setSongs] = useState([]);
@@ -191,12 +195,15 @@ export default function App() {
 
   // Song CRUD
   const handleSaveSong = (song) => {
+    const stamped = { ...song, updatedAt: Date.now() };
     setSongs(prev => {
       const idx = prev.findIndex(s => s.id === song.id);
-      if (idx >= 0) { const n = [...prev]; n[idx] = song; return n; }
-      return [...prev, song];
+      if (idx >= 0) { const n = [...prev]; n[idx] = stamped; return n; }
+      return [...prev, stamped];
     });
-    // After save, go to chart but replace the editor entry in history
+    // After save, pop the stale chart entry that was pushed when entering the editor,
+    // then navigate to chart with the updated song (no new history entry)
+    historyRef.current.pop();
     navigate('chart', { song, replace: true });
   };
 
@@ -209,7 +216,7 @@ export default function App() {
 
   const handleImportSong = (mdText) => {
     try {
-      const song = { ...parseSongMd(mdText), id: generateId() };
+      const song = { ...parseSongMd(mdText), id: generateId(), updatedAt: Date.now() };
       setSongs(prev => [...prev, song]);
     } catch {
       alert('Failed to parse .md file');
@@ -269,19 +276,23 @@ export default function App() {
 
   if (!loaded) {
     return (
-      <div style={{
-        minHeight: '100vh', background: 'var(--bg)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-          Loading Setlists MD...
+      <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
+        <div className="text-copy-14 text-[var(--text-2)]">
+          Loading ChordVault...
         </div>
       </div>
     );
   }
 
+  const lazyFallback = (
+    <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
+      <div className="text-copy-14 text-[var(--text-2)]">Loading…</div>
+    </div>
+  );
+
   return (
-    <>
+    <Suspense fallback={lazyFallback}>
+      <Toaster />
       {view === 'welcome' && (
         <Welcome
           onGetStarted={() => {
@@ -312,6 +323,7 @@ export default function App() {
         <Dashboard
           songs={songs}
           setlists={setlists}
+          settings={settings}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
           onNewSetlist={() => goSetlistBuild()}
@@ -324,6 +336,7 @@ export default function App() {
       {view === 'library' && (
         <Library
           songs={songs}
+          loaded={loaded}
           onSelectSong={goChart}
           onNewSong={() => goEditor()}
           onImportSong={handleImportSong}
@@ -333,6 +346,7 @@ export default function App() {
         <Setlists
           songs={songs}
           setlists={setlists}
+          loaded={loaded}
           onViewSetlist={goSetlistView}
           onPlaySetlist={goSetlistPlay}
           onNewSetlist={() => goSetlistBuild()}
@@ -350,6 +364,7 @@ export default function App() {
           inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
           displayRole={settings?.displayRole || 'leader'}
           duplicateSections={settings?.duplicateSections || 'full'}
+          chartLayout={settings?.chartLayout || 'columns'}
         />
       )}
       {view === 'editor' && (
@@ -368,6 +383,7 @@ export default function App() {
           onEdit={() => goSetlistBuild(currentSetlist)}
           onExport={() => handleExportSetlist(currentSetlist)}
           onPlay={() => goSetlistPlay(currentSetlist)}
+          onDelete={() => handleDeleteSetlist(currentSetlist.id)}
         />
       )}
       {view === 'setlist-build' && (
@@ -392,7 +408,10 @@ export default function App() {
           duplicateSections={settings?.duplicateSections || 'full'}
         />
       )}
-      {view === 'settings' && settings && (
+      {view === "design" && (
+        <DesignShowcase onBack={() => setView("settings")} />
+      )}
+      {view === "settings" && settings && (
         <Settings
           settings={settings}
           onUpdate={setSettings}
@@ -413,12 +432,13 @@ export default function App() {
           setlistCount={setlists.length}
           syncState={syncState}
           onSyncStateChange={setSyncState}
-          onSyncNow={triggerSync}
+          onSyncNow={triggerSync} onDesign={() => setView("design")}
         />
       )}
-      {['home', 'library', 'setlists', 'settings'].includes(view) && (
-        <BottomNav activeView={view} onNavigate={goToMainView} />
+      {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
+        <BottomNav activeView={view === 'setlist-view' ? 'setlists' : view} onNavigate={goToMainView} />
       )}
-    </>
+      <Toaster />
+    </Suspense>
   );
 }

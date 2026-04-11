@@ -4,20 +4,16 @@ import { StructureRibbon, MetaPill } from '../StructureRibbon';
 export default function PreviewPanel({ preview }) {
   if (!preview) {
     return (
-      <div style={{
-        padding: 32, textAlign: 'center',
-        color: 'var(--text-dim)', fontSize: 14,
-        fontStyle: 'italic',
-      }}>
+      <div className="py-8 text-center text-[var(--ds-gray-500)] text-copy-14 italic">
         Start typing to see preview…
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 16 }}>
+    <div className="p-4">
       {/* Meta row */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+      <div className="flex flex-wrap gap-1.5 mb-2">
         {preview.key && <MetaPill label="Key" value={preview.key} highlight />}
         {preview.tempo && <MetaPill label="BPM" value={preview.tempo} />}
         {preview.time && <MetaPill label="Time" value={preview.time} />}
@@ -30,9 +26,7 @@ export default function PreviewPanel({ preview }) {
       )}
 
       {/* Sections — auto-column layout */}
-      <div className="chart-auto-cols" style={{
-        gap: 10, marginTop: 8,
-      }}>
+      <div className="chart-auto-cols" style={{ gap: 10, marginTop: 8 }}>
         {preview.sections.map((sec, i) => (
           <SectionBlock key={i} section={sec} transpose={0} />
         ))}

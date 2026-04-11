@@ -47,13 +47,18 @@ src/
     ├── SetlistBuilder.jsx    # Build setlists: pick songs, reorder, per-song transpose & notes
     ├── SetlistPlayer.jsx     # Live mode: progress bar, song strip, prev/next navigation
     ├── SetlistOverview.jsx   # Read-only setlist overview with song list and duration
-    └── editor/
-        ├── FormTab.jsx       # Structured form editor: metadata fields + section blocks
-        ├── VisualTab.jsx     # Toolbar + textarea: chord picker, section inserter, tab grid editor
-        ├── RawTab.jsx        # Plain textarea with collapsible syntax reference
-        ├── PreviewPanel.jsx  # Live preview of parsed song (used in split-screen)
-        ├── ChordPicker.jsx   # Popup: root (A-G), accidental (#/b), suffix, slash chord
-        └── TabGridEditor.jsx # Interactive tab grid: duration picker, auto-advance, technique buttons
+    ├── editor/
+    │   ├── FormTab.jsx       # Structured form editor: metadata fields + section blocks
+    │   ├── VisualTab.jsx     # Toolbar + textarea: chord picker, section inserter, tab grid editor
+    │   ├── RawTab.jsx        # Plain textarea with collapsible syntax reference
+    │   ├── PreviewPanel.jsx  # Live preview of parsed song (used in split-screen)
+    │   ├── ChordPicker.jsx   # Popup: root (A-G), accidental (#/b), suffix, slash chord
+    │   └── TabGridEditor.jsx # Interactive tab grid: duration picker, auto-advance, technique buttons
+    └── ui/
+        ├── Button.jsx        # Standard Geist buttons implementation
+        ├── Card.jsx          # Geist 16px radius cards
+        ├── Tabs.jsx          # Underline style tabs
+        └── ...               # Avatar, Badge, Input, SegmentedControl, etc.
 ```
 
 ## Architecture
@@ -128,16 +133,14 @@ Tab blocks live inside sections. Parsed into `{ type: 'tab', strings: [{note, co
 **Serialization**: `songToMd()` calls `serializeTabBlock(tab)` for tab objects in `section.lines[]`.
 **FormTab**: Uses `serializeTabBlock` when converting `s.lines` to lyrics string (avoids `[object Object]`).
 
-## CSS Variables (defined in styles/index.css)
+## Styling (Geist Design System & Tailwind v4)
 
-Use `var(--name)` instead of hardcoded colors:
-- `--bg`, `--surface`, `--border` — backgrounds
-- `--text`, `--text-bright`, `--text-muted`, `--text-dim` — text colors
-- `--chord` — chord highlight color (gold) — also used for fret numbers in TabBlock
-- `--accent`, `--accent-soft`, `--accent-text` — indigo accent
-- `--danger`, `--danger-soft` — red for destructive actions
-- `--fb` — body font (DM Sans)
-- `--fm` — monospace font (Azeret Mono) — used for chords, tab labels, fret numbers
+We utilize standard Vercel Geist design tokens mapped via Tailwind CSS configuration in `styles/index.css`.
+- Backgrounds: `--ds-background-100`, `--ds-background-200`
+- Colors/Text: `--ds-gray-1000` (primary text), `--ds-gray-700` (secondary), `--ds-gray-400` (borders)
+- Typography: Uses standard `text-heading-*` and `text-copy-*` utilities mappings mimicking Geist definitions.
+- Special components limit their custom CSS, leaning entirely on standard `className` declarations from Tailwind.
+- `--chord` (gold) is preserved specifically for unique chord coloration logic.
 
 ## Conventions
 

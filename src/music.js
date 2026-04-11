@@ -55,23 +55,25 @@ export function semitonesBetween(fromKey, toKey) {
   return (ti - fi + 12) % 12;
 }
 
-// Section type → colors, label
+// Section type → colors, label, pre-computed bg/border
+// b = base color, d = display/text color, l = compact label
+// bg = low-opacity background, br = semi-transparent border
 const SECTION_COLORS = {
-  Intro:        { b: '#6366f1', d: '#818cf8', l: 'I' },
-  Refrain:      { b: '#8b5cf6', d: '#a78bfa', l: 'Rf' },
-  Verse:        { b: '#22c55e', d: '#4ade80', l: 'V' },
-  'Pre Chorus': { b: '#f59e0b', d: '#fbbf24', l: 'Pc' },
-  Chorus:       { b: '#ec4899', d: '#f472b6', l: 'C' },
-  Bridge:       { b: '#06b6d4', d: '#22d3ee', l: 'B' },
-  Instrumental: { b: '#eab308', d: '#facc15', l: 'It' },
-  Ending:       { b: '#f43f5e', d: '#fb7185', l: 'E' },
-  Tag:          { b: '#3b82f6', d: '#60a5fa', l: 'T' },
-  Interlude:    { b: '#a855f7', d: '#c084fc', l: 'Il' },
-  Vamp:         { b: '#d97706', d: '#fbbf24', l: 'Vm' },
-  Outro:        { b: '#ef4444', d: '#f87171', l: 'O' },
+  Intro:        { b: 'var(--ds-blue-700)',  d: 'var(--ds-blue-1000)',  l: 'I',  bg: 'var(--ds-blue-100)',  br: 'var(--ds-blue-400)', c: 'blue' },
+  Refrain:      { b: 'var(--ds-purple-700)',d: 'var(--ds-purple-1000)',l: 'Rf', bg: 'var(--ds-purple-100)',br: 'var(--ds-purple-400)',c: 'purple' },
+  Verse:        { b: 'var(--ds-green-700)', d: 'var(--ds-green-1000)', l: 'V',  bg: 'var(--ds-green-100)', br: 'var(--ds-green-400)', c: 'green' },
+  'Pre Chorus': { b: 'var(--ds-amber-700)', d: 'var(--ds-amber-1000)', l: 'Pc', bg: 'var(--ds-amber-100)', br: 'var(--ds-amber-400)', c: 'amber' },
+  Chorus:       { b: 'var(--ds-pink-700)',  d: 'var(--ds-pink-1000)',  l: 'C',  bg: 'var(--ds-pink-100)',  br: 'var(--ds-pink-400)', c: 'pink' },
+  Bridge:       { b: 'var(--ds-teal-700)',  d: 'var(--ds-teal-1000)',  l: 'B',  bg: 'var(--ds-teal-100)',  br: 'var(--ds-teal-400)', c: 'teal' },
+  Instrumental: { b: 'var(--ds-amber-700)', d: 'var(--ds-amber-1000)', l: 'It', bg: 'var(--ds-amber-100)', br: 'var(--ds-amber-400)', c: 'amber' },
+  Ending:       { b: 'var(--ds-red-700)',   d: 'var(--ds-red-1000)',   l: 'E',  bg: 'var(--ds-red-100)',   br: 'var(--ds-red-400)',  c: 'red' },
+  Tag:          { b: 'var(--ds-blue-700)',  d: 'var(--ds-blue-1000)',  l: 'T',  bg: 'var(--ds-blue-100)',  br: 'var(--ds-blue-400)', c: 'blue' },
+  Interlude:    { b: 'var(--ds-purple-700)',d: 'var(--ds-purple-1000)',l: 'Il', bg: 'var(--ds-purple-100)',br: 'var(--ds-purple-400)',c: 'purple' },
+  Vamp:         { b: 'var(--ds-amber-700)', d: 'var(--ds-amber-1000)', l: 'Vm', bg: 'var(--ds-amber-100)', br: 'var(--ds-amber-400)', c: 'amber' },
+  Outro:        { b: 'var(--ds-red-700)',   d: 'var(--ds-red-1000)',   l: 'O',  bg: 'var(--ds-red-100)',   br: 'var(--ds-red-400)',  c: 'red' },
 };
 
-const DEFAULT_STYLE = { b: '#6b7280', d: '#9ca3af', l: '?' };
+const DEFAULT_STYLE = { b: 'var(--ds-gray-700)', d: 'var(--ds-gray-1000)', l: '?', bg: 'var(--ds-gray-100)', br: 'var(--ds-gray-400)', c: 'gray' };
 
 // Get colors for a section type (e.g. "Verse 1" → Verse colors)
 export function sectionStyle(type) {
@@ -87,4 +89,33 @@ export function compactLabel(name) {
   const num = name.match(/(\d+)$/)?.[1] || '';
   const style = sectionStyle(name);
   return style.l + num;
+}
+
+// Convert a chord to Nashville Number System
+export function getNashvilleNumber(chord, key) {
+  if (!chord || !key) return chord;
+  if (chord.includes('/')) {
+    const [main, bass] = chord.split('/');
+    return getNashvilleNumber(main, key) + '/' + getNashvilleNumber(bass, key);
+  }
+  const { root, suffix } = parseRoot(chord);
+  const keyRoot = parseRoot(key).root;
+  const fi = CHROMATIC.indexOf(keyRoot);
+  const ti = CHROMATIC.indexOf(root);
+  if (fi === -1 || ti === -1) return chord;
+
+  const semitones = (ti - fi + 12) % 12;
+  const map = { 0: '1', 1: 'b2', 2: '2', 3: 'b3', 4: '3', 5: '4', 6: 'b5', 7: '5', 8: 'b6', 9: '6', 10: 'b7', 11: '7' };
+  return (map[semitones] || '?') + suffix;
+}
+ 
+// Diatonic chords for a given key (I, ii, iii, IV, V, vi, vii°)
+const DIATONIC_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
+const DIATONIC_QUALITIES = ['', 'm', 'm', '', '', 'm', 'dim'];
+ 
+export function getDiatonicChords(key) {
+  if (!key) return ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bdim'];
+  return DIATONIC_INTERVALS.map((interval, i) =>
+    transposeChord(key, interval) + DIATONIC_QUALITIES[i]
+  );
 }

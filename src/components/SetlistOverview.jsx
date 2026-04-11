@@ -1,217 +1,217 @@
-import { useMemo } from 'react';
-import { transposeKey, sectionStyle } from '../music';
+import { useMemo, useState, useEffect } from 'react';
+import { transposeKey } from '../music';
+import { Chip } from './ui/Chip';
+import { IconButton } from './ui/IconButton';
 
-const btnStyle = {
-  border: 'none', borderRadius: 7, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: 5,
-  fontFamily: 'var(--fb)', fontWeight: 600, fontSize: 12,
-};
-
-export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay }) {
+export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay, onDelete }) {
   const getSong = (id) => songs.find(s => s.id === id);
+  const [collapsed, setCollapsed] = useState(false);
 
-  const { songCount, breakCount, totalDuration } = useMemo(() => {
-    let sc = 0, bc = 0, dur = 0;
+  useEffect(() => {
+    const onScroll = () => setCollapsed(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const { songCount, breakCount } = useMemo(() => {
+    let sc = 0, bc = 0;
     for (const it of setlist.items) {
-      if (it.type === 'break') {
-        bc++;
-        dur += it.duration || 0;
-      } else {
-        sc++;
-        const s = getSong(it.songId);
-        if (s) {
-          const bpm = s.tempo || 120;
-          dur += Math.round(240 / bpm * s.sections.length);
-        }
-      }
+      if (it.type === 'break') bc++;
+      else sc++;
     }
-    return { songCount: sc, breakCount: bc, totalDuration: dur };
+    return { songCount: sc, breakCount: bc };
   }, [setlist, songs]);
 
   const dateStr = new Date(setlist.date + 'T12:00:00').toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
 
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this setlist? This cannot be undone.')) {
+      onDelete?.();
+    }
+  };
+
+  const actionIcons = (
+    <div className="flex items-center gap-1 shrink-0">
+      <IconButton variant="ghost" size="sm" onClick={onExport} aria-label="Export setlist">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        </svg>
+      </IconButton>
+      <IconButton variant="ghost" size="sm" onClick={onEdit} aria-label="Edit setlist">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      </IconButton>
+      <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Close">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </IconButton>
+    </div>
+  );
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg, rgba(11,11,15,0.92))', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: '14px 18px 10px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={onBack} style={{
-            background: 'none', border: 'none', color: '#94a3b8',
-            cursor: 'pointer', padding: 4,
-          }}>
-            &#8592; Back
-          </button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-bright)' }}>
-            {setlist.name || 'Untitled Setlist'}
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={onExport} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-          }}>
-            &#8595; Export
-          </button>
-          <button onClick={onEdit} style={{
-            ...btnStyle, background: 'var(--surface)',
-            border: '1px solid var(--border)', color: '#94a3b8', padding: '7px 12px',
-          }}>
-            Edit
-          </button>
-          <button onClick={onPlay} style={{
-            ...btnStyle, background: 'var(--accent-soft)',
-            border: '1px solid var(--accent-border)',
-            color: 'var(--accent-text)', padding: '7px 16px',
-          }}>
-            Live
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen material-page pb-32">
 
-      {/* Meta */}
-      <div style={{ padding: '16px 18px 8px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{
-          padding: '4px 10px', borderRadius: 6,
-          background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-          fontSize: 12, fontWeight: 600, color: 'var(--accent-text)',
-        }}>
-          {setlist.service || 'Service'}
-        </span>
-        <span style={{ fontSize: 13, color: 'var(--text)' }}>{dateStr}</span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>
-          {songCount} song{songCount !== 1 ? 's' : ''}
-          {breakCount > 0 && ` + ${breakCount} break${breakCount !== 1 ? 's' : ''}`}
-          {totalDuration > 0 && ` · ~${totalDuration} min`}
-        </span>
-      </div>
+      {/* ── Sticky header ── */}
+      <div className="material-header transition-all duration-200">
+        <div className="max-w-3xl mx-auto px-5">
 
-      {/* Items */}
-      <div style={{ padding: '8px 18px 40px' }}>
-        {setlist.items.map((item, idx) => {
-          // Break item
-          if (item.type === 'break') {
-            return (
-              <div key={idx} style={{
-                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-                borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-                padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
-              }}>
-                <span style={{
-                  fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
-                  fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
-                }}>
-                  {idx + 1}
+          {collapsed ? (
+            /* ── Collapsed: title + actions in one row ── */
+            <div className="flex items-center justify-between gap-3 py-2.5">
+              <h1 className="text-heading-16 text-[var(--ds-gray-1000)] m-0 truncate flex-1 min-w-0">
+                {setlist.name || 'Untitled Setlist'}
+              </h1>
+              {actionIcons}
+            </div>
+          ) : (
+            /* ── Expanded: date row, title, chip row ── */
+            <>
+              {/* Row 1: date + actions */}
+              <div className="flex items-center justify-between pt-3 pb-1">
+                <span className="text-label-11 text-[var(--ds-gray-700)] uppercase tracking-widest">
+                  {dateStr}
                 </span>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: 'rgba(107,114,128,0.15)',
-                  border: '1px solid rgba(107,114,128,0.3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, color: 'rgba(255,255,255,0.4)',
-                }}>
-                  &#9646;
+                {actionIcons}
+              </div>
+
+              {/* Row 2: setlist name */}
+              <h1 className="text-heading-24 text-[var(--ds-gray-1000)] m-0 mb-2 truncate">
+                {setlist.name || 'Untitled Setlist'}
+              </h1>
+
+              {/* Row 3: tags + song count */}
+              <div className="flex items-center justify-between gap-3 pb-4">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {(setlist.tags?.length ? setlist.tags : setlist.service ? [setlist.service] : []).map((tag, i) => (
+                    <Chip key={i} variant="success">{tag}</Chip>
+                  ))}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                    fontStyle: 'italic',
-                  }}>
-                    {item.label || 'Break'}
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                    {item.duration > 0 && (
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--fm)' }}>
-                        {item.duration} min
-                      </span>
-                    )}
+                <span className="text-label-12 text-[var(--ds-gray-700)] shrink-0">
+                  {songCount} song{songCount !== 1 ? 's' : ''}
+                  {breakCount > 0 && ` + ${breakCount} break${breakCount !== 1 ? 's' : ''}`}
+                </span>
+              </div>
+            </>
+          )}
+
+        </div>
+      </div>
+
+      {/* ── Set order ── */}
+      <div className="max-w-3xl mx-auto px-5 pt-6 pb-4">
+        <p className="section-title m-0 mb-4">Set Order</p>
+
+        <div className="flex flex-col gap-2">
+          {setlist.items.map((item, idx) => {
+            const num = String(idx + 1).padStart(2, '0');
+
+            /* ── Break row ── */
+            if (item.type === 'break') {
+              return (
+                <div
+                  key={idx}
+                  className="material-card flex items-center gap-3 px-4 py-3"
+                >
+                  <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
+                    {num}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-copy-14 text-[var(--ds-gray-1000)] italic">
+                      {item.label || 'Break'}
+                    </span>
                     {item.note && (
-                      <span style={{ fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic' }}>
+                      <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
                         {item.note}
-                      </span>
+                      </p>
                     )}
                   </div>
+                  {(item.duration || 0) > 0 && (
+                    <span className="text-label-12 text-[var(--ds-gray-600)] shrink-0">
+                      {item.duration} min
+                    </span>
+                  )}
+                </div>
+              );
+            }
+
+            /* ── Song row ── */
+            const song = getSong(item.songId);
+            if (!song) return null;
+            const displayKey = transposeKey(song.key, item.transpose);
+
+            return (
+              <div
+                key={idx}
+                className="material-card flex items-center gap-3 px-4 py-3"
+              >
+                <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
+                  {num}
+                </span>
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-heading-14 text-[var(--ds-gray-1000)] m-0 truncate">
+                    {song.title}
+                  </p>
+                  <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
+                    {song.artist}
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-end shrink-0 gap-0.5">
+                  <span className="text-label-14 text-[var(--ds-gray-1000)] font-semibold flex items-center gap-1.5">
+                    {(item.capo || 0) > 0 && (
+                      <span className="text-label-10 text-[var(--ds-gray-600)] uppercase font-normal">
+                        Capo {item.capo}
+                      </span>
+                    )}
+                    {displayKey}
+                  </span>
+                  <span className="text-label-11 text-[var(--ds-gray-600)] tabular-nums">
+                    {song.tempo} BPM
+                  </span>
                 </div>
               </div>
             );
-          }
+          })}
+        </div>
+      </div>
 
-          // Song item
-          const song = getSong(item.songId);
-          if (!song) return null;
-          const s = sectionStyle(song.sections?.[0]?.type || 'Verse');
-          const displayKey = transposeKey(song.key, item.transpose);
+      {/* ── Delete ── */}
+      {onDelete && (
+        <div className="max-w-3xl mx-auto flex justify-center pt-2 pb-8">
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={handleDelete}
+            onKeyDown={(e) => e.key === 'Enter' && handleDelete()}
+            className="text-label-11 text-[var(--ds-error-600)] hover:text-[var(--ds-error-900)] uppercase tracking-widest cursor-pointer transition-colors select-none"
+          >
+            Delete Setlist
+          </span>
+        </div>
+      )}
 
-          return (
-            <div key={idx} style={{
-              display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6,
-              borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)',
-              padding: '12px 16px', background: 'rgba(255,255,255,0.015)',
-            }}>
-              <span style={{
-                fontSize: 13, fontWeight: 700, color: 'var(--text-dim)',
-                fontFamily: 'var(--fm)', width: 24, textAlign: 'center', flexShrink: 0,
-              }}>
-                {idx + 1}
-              </span>
-              <div style={{
-                width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                background: `linear-gradient(135deg, ${s.b}33, ${s.b}11)`,
-                border: `1px solid ${s.b}44`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: s.d,
-              }}>
-                {displayKey}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 14, fontWeight: 600, color: 'var(--text-bright)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {song.title}
-                </div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
-                  {song.artist} · {song.tempo} bpm · {song.time}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-                {item.transpose !== 0 && (
-                  <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
-                    fontFamily: 'var(--fm)', color: 'var(--chord)',
-                    background: 'rgba(226,168,50,0.1)', border: '1px solid rgba(226,168,50,0.2)',
-                  }}>
-                    {song.key} → {displayKey}
-                  </span>
-                )}
-                {(item.capo || 0) > 0 && (
-                  <span style={{
-                    padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 700,
-                    fontFamily: 'var(--fm)', color: 'var(--accent-text)',
-                    background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-                  }}>
-                    Capo {item.capo}
-                  </span>
-                )}
-                {item.note && (
-                  <span style={{
-                    fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic',
-                    maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {item.note}
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      {/* ── FAB play button ── */}
+      <div
+        className="fixed right-6 z-[150]"
+        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+      >
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={onPlay}
+          onKeyDown={(e) => e.key === 'Enter' && onPlay?.()}
+          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95"
+          aria-label="Play setlist"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-0.5">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </div>
       </div>
     </div>
   );

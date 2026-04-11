@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { parseSongMd, serializeTabBlock, parseTabBlock } from '../../parser';
 import ChordPicker from './ChordPicker';
 import TabGridEditor from './TabGridEditor';
+import { IconButton } from '../ui/IconButton';
+import { Button } from '../ui/Button';
 
 const SECTION_TYPES = [
   'Intro', 'Verse', 'Pre Chorus', 'Chorus', 'Bridge',
@@ -17,8 +19,10 @@ function parseInitialMeta(md) {
     return {
       title: song.title || '', artist: song.artist || '',
       key: song.key || 'C', tempo: String(song.tempo || 120),
-      time: song.time || '4/4', structure: (song.structure || []).join(', '),
-      ccli: song.ccli || '', tags: (song.tags || []).join(', '),
+      time: song.time || '4/4',
+      structure: Array.isArray(song.structure) ? song.structure.join(', ') : (song.structure || ''),
+      ccli: song.ccli || '',
+      tags: Array.isArray(song.tags) ? song.tags.join(', ') : (song.tags || ''),
       capo: song.capo ? String(song.capo) : '', spotify: song.spotify || '',
       youtube: song.youtube || '', notes: song.notes || '',
     };
@@ -44,10 +48,21 @@ function parseInitialSections(md) {
 export default function FormTab({ md, onChange }) {
   const [meta, setMeta] = useState(() => parseInitialMeta(md));
   const [sections, setSections] = useState(() => parseInitialSections(md));
-  const [chordTarget, setChordTarget] = useState(null); // { sectionIdx, cursorPos }
+  const [chordTarget, setChordTarget] = useState(null);
   const [chordAnchor, setChordAnchor] = useState(null);
-  const [tabEditorTarget, setTabEditorTarget] = useState(null); // { sectionIdx, initialTab?, replaceRange? }
+  const [tabEditorTarget, setTabEditorTarget] = useState(null);
   const lyricRefs = useRef({});
+  const isInternalUpdate = useRef(false);
+
+  // Re-sync form state when md changes externally (e.g. from Raw/Visual tab edits)
+  useEffect(() => {
+    if (isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return;
+    }
+    setMeta(parseInitialMeta(md));
+    setSections(parseInitialSections(md));
+  }, [md]);
 
   // ─── Generate md from form state whenever it changes ───
   const generateMd = useCallback(() => {
@@ -58,8 +73,7 @@ export default function FormTab({ md, onChange }) {
     if (meta.tempo) lines.push(`tempo: ${meta.tempo}`);
     if (meta.time) lines.push(`time: ${meta.time}`);
 
-    // Use stored structure if it exists, otherwise auto-generate from sections
-    const structure = meta.structure || sections.map(s => s.type).join(', ');
+    const structure = sections.map(s => s.type).join(', ');
     if (structure) lines.push(`structure: [${structure}]`);
 
     if (meta.ccli) lines.push(`ccli: ${meta.ccli}`);
@@ -82,10 +96,13 @@ export default function FormTab({ md, onChange }) {
     return lines.join('\n');
   }, [meta, sections]);
 
-  // Push changes to parent
+  // Push changes to parent when form state changes
   useEffect(() => {
     const newMd = generateMd();
-    if (newMd !== md) onChange(newMd);
+    if (newMd !== md) {
+      isInternalUpdate.current = true;
+      onChange(newMd);
+    }
   }, [generateMd]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Section operations ───
@@ -96,7 +113,6 @@ export default function FormTab({ md, onChange }) {
   };
 
   const addSection = () => {
-    // Auto-pick type and number
     const typeCounts = {};
     sections.forEach(s => {
       const base = s.type.replace(/\s*\d+$/, '');
@@ -121,7 +137,6 @@ export default function FormTab({ md, onChange }) {
   };
 
   const changeSectionType = (idx, baseType) => {
-    // Auto-number: count how many of this base type exist before this index
     const count = sections.filter((s, i) => i < idx && s.type.replace(/\s*\d+$/, '') === baseType).length;
     const needsNumber = ['Verse', 'Pre Chorus', 'Chorus', 'Bridge'].includes(baseType);
     const label = needsNumber ? `${baseType} ${count + 1}` : baseType;
@@ -145,7 +160,6 @@ export default function FormTab({ md, onChange }) {
     updateSection(sectionIdx, 'lyrics', newLyrics);
     setChordTarget(null);
 
-    // Restore cursor
     requestAnimationFrame(() => {
       const ta = lyricRefs.current[sectionIdx];
       if (ta) {
@@ -160,11 +174,9 @@ export default function FormTab({ md, onChange }) {
     const { sectionIdx, replaceRange } = tabEditorTarget;
     const lyrics = sections[sectionIdx].lyrics;
     if (replaceRange) {
-      // Replace existing tab block
       const newLyrics = lyrics.substring(0, replaceRange.start) + asciiBlock + lyrics.substring(replaceRange.end);
       updateSection(sectionIdx, 'lyrics', newLyrics);
     } else {
-      // Insert new tab block
       const ta = lyricRefs.current[sectionIdx];
       const cursorPos = ta ? ta.selectionStart : lyrics.length;
       const needsNewline = lyrics.length > 0 && !lyrics.endsWith('\n');
@@ -175,21 +187,20 @@ export default function FormTab({ md, onChange }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {/* ─── Metadata Section ─── */}
-      <div style={{
-        padding: 14, borderRadius: 10,
-        background: 'var(--surface)', border: '1px solid var(--border)',
-      }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 10 }}>
-          Song Info
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      <div className="p-3.5 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)]">
+        <div className="section-title mb-2.5">Song Info</div>
+        <div className="grid grid-cols-2 gap-2">
           <FormField label="Title" value={meta.title} onChange={v => updateMeta('title', v)} span={2} />
           <FormField label="Artist" value={meta.artist} onChange={v => updateMeta('artist', v)} span={2} />
           <div>
             <FieldLabel>Key</FieldLabel>
-            <select value={meta.key} onChange={e => updateMeta('key', e.target.value)} style={selectStyle}>
+            <select
+              value={meta.key}
+              onChange={e => updateMeta('key', e.target.value)}
+              className="w-full px-2.5 py-1.5 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-copy-13 font-semibold text-[var(--ds-gray-1000)] outline-none cursor-pointer"
+            >
               {KEY_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
             </select>
           </div>
@@ -199,11 +210,11 @@ export default function FormTab({ md, onChange }) {
         </div>
 
         {/* Collapsible extra fields */}
-        <details style={{ marginTop: 8 }}>
-          <summary style={{ fontSize: 11, color: 'var(--text-dim)', cursor: 'pointer', padding: '4px 0' }}>
+        <details className="mt-2">
+          <summary className="text-copy-11 text-[var(--ds-gray-500)] cursor-pointer py-1">
             More fields
           </summary>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 6 }}>
+          <div className="grid grid-cols-2 gap-2 mt-1.5">
             <FormField label="CCLI" value={meta.ccli} onChange={v => updateMeta('ccli', v)} />
             <FormField label="Tags" value={meta.tags} onChange={v => updateMeta('tags', v)} />
             <FormField label="Spotify" value={meta.spotify} onChange={v => updateMeta('spotify', v)} span={2} />
@@ -217,61 +228,54 @@ export default function FormTab({ md, onChange }) {
       {sections.map((sec, idx) => {
         const baseType = sec.type.replace(/\s*\d+$/, '');
         return (
-          <div key={idx} style={{
-            padding: 14, borderRadius: 10,
-            background: 'var(--surface)', border: '1px solid var(--border)',
-          }}>
+          <div key={idx} className="p-3.5 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)]">
             {/* Section header row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <div className="flex items-center gap-1.5 mb-2">
               <select
                 value={baseType}
                 onChange={e => changeSectionType(idx, e.target.value)}
-                style={{ ...selectStyle, flex: 0, width: 'auto', minWidth: 100 }}
+                className="px-2 py-1 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-label-12 font-semibold text-[var(--ds-gray-1000)] outline-none cursor-pointer"
               >
                 {SECTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
 
-              {/* Auto-number display */}
-              <span style={{ fontSize: 12, color: 'var(--text-dim)', fontFamily: 'var(--fm)' }}>
+              <span className="text-label-12-mono text-[var(--ds-gray-500)]">
                 {sec.type !== baseType ? sec.type.replace(baseType, '').trim() : ''}
               </span>
 
-              <div style={{ flex: 1 }} />
+              <div className="flex-1" />
 
-              {/* Move & delete */}
-              <button onClick={() => moveSection(idx, -1)} disabled={idx === 0} style={smallBtnStyle} title="Move up">▲</button>
-              <button onClick={() => moveSection(idx, 1)} disabled={idx === sections.length - 1} style={smallBtnStyle} title="Move down">▼</button>
-              <button onClick={() => removeSection(idx)} style={{ ...smallBtnStyle, color: 'var(--danger)' }} title="Remove section">✕</button>
+              <IconButton size="xs" variant="ghost" onClick={() => moveSection(idx, -1)} disabled={idx === 0} aria-label="Move up">▲</IconButton>
+              <IconButton size="xs" variant="ghost" onClick={() => moveSection(idx, 1)} disabled={idx === sections.length - 1} aria-label="Move down">▼</IconButton>
+              <IconButton size="xs" variant="error" onClick={() => removeSection(idx)} aria-label="Remove section">✕</IconButton>
             </div>
 
             {/* Band cue */}
-            <div style={{ marginBottom: 6 }}>
+            <div className="mb-1.5">
               <FieldLabel>Band Cue</FieldLabel>
               <input
                 value={sec.note}
                 onChange={e => updateSection(idx, 'note', e.target.value)}
                 placeholder="e.g. Keys & light acoustic"
-                style={{ ...fieldInputStyle, width: '100%' }}
+                className="w-full px-2.5 py-1.5 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-copy-13 text-[var(--ds-gray-1000)] outline-none"
               />
             </div>
 
             {/* Lyrics with chord insertion */}
-            <div style={{ marginBottom: 6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="mb-1.5">
+              <div className="flex items-center justify-between">
                 <FieldLabel>Lyrics & Chords</FieldLabel>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={(e) => openChordPicker(idx, e)} style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--chord)', fontSize: 12, fontWeight: 600,
-                    fontFamily: 'var(--fm)', padding: '2px 6px',
-                  }}>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={(e) => openChordPicker(idx, e)}
+                    className="bg-transparent border-none cursor-pointer text-[var(--chord)] text-label-12 font-semibold font-mono px-1.5 py-0.5"
+                  >
                     + Chord
                   </button>
-                  <button onClick={() => setTabEditorTarget({ sectionIdx: idx })} style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--accent-text)', fontSize: 12, fontWeight: 600,
-                    fontFamily: 'var(--fm)', padding: '2px 6px',
-                  }}>
+                  <button
+                    onClick={() => setTabEditorTarget({ sectionIdx: idx })}
+                    className="bg-transparent border-none cursor-pointer text-[var(--color-brand-text)] text-label-12 font-semibold font-mono px-1.5 py-0.5"
+                  >
                     + Tab
                   </button>
                 </div>
@@ -289,7 +293,7 @@ export default function FormTab({ md, onChange }) {
                 }
                 if (tabBlocks.length === 0) return null;
                 return (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 4 }}>
+                  <div className="flex gap-1 flex-wrap mb-1">
                     {tabBlocks.map((tb, ti) => (
                       <button key={ti} onClick={() => {
                         const blockText = sec.lyrics.substring(tb.start + tb.header.length, tb.end - '{/tab}'.length).trim();
@@ -298,12 +302,9 @@ export default function FormTab({ md, onChange }) {
                         const timePart = tb.header.match(/time:\s*(\S+)/);
                         parsed.time = timePart ? timePart[1] : null;
                         setTabEditorTarget({ sectionIdx: idx, initialTab: parsed, replaceRange: { start: tb.start, end: tb.end } });
-                      }} style={{
-                        background: 'var(--accent-soft)', border: '1px solid var(--accent-border)',
-                        borderRadius: 5, padding: '2px 8px', cursor: 'pointer',
-                        color: 'var(--accent-text)', fontSize: 10, fontWeight: 600,
-                        fontFamily: 'var(--fm)',
-                      }}>
+                      }}
+                        className="bg-[var(--color-brand-soft)] border border-[var(--color-brand-border)] rounded-md px-2 py-0.5 cursor-pointer text-[var(--color-brand-text)] text-label-10 font-semibold font-mono"
+                      >
                         Edit Tab {tabBlocks.length > 1 ? ti + 1 : ''}
                       </button>
                     ))}
@@ -317,11 +318,7 @@ export default function FormTab({ md, onChange }) {
                 placeholder="[C]Type lyrics with [G]chords in brackets"
                 spellCheck={false}
                 rows={3}
-                style={{
-                  ...fieldInputStyle, width: '100%', minHeight: 60,
-                  resize: 'vertical', fontFamily: 'var(--fm)',
-                  lineHeight: 1.6,
-                }}
+                className="w-full min-h-[60px] px-2.5 py-1.5 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-copy-13 text-[var(--ds-gray-1000)] outline-none resize-y font-mono leading-relaxed"
               />
             </div>
           </div>
@@ -329,14 +326,10 @@ export default function FormTab({ md, onChange }) {
       })}
 
       {/* Add Section button */}
-      <button onClick={addSection} style={{
-        background: 'var(--accent-soft)',
-        border: '1px dashed var(--accent-border)',
-        borderRadius: 10, padding: '12px 0',
-        color: 'var(--accent-text)', fontSize: 13,
-        fontWeight: 600, cursor: 'pointer',
-        textAlign: 'center',
-      }}>
+      <button
+        onClick={addSection}
+        className="py-3 rounded-xl bg-[var(--color-brand-soft)] border border-dashed border-[var(--color-brand-border)] text-[var(--color-brand-text)] text-label-13 font-semibold cursor-pointer text-center hover:bg-[var(--color-brand-soft)] hover:opacity-90 transition-opacity"
+      >
         + Add Section
       </button>
 
@@ -366,10 +359,7 @@ export default function FormTab({ md, onChange }) {
 /* ─── Helper components ─── */
 function FieldLabel({ children }) {
   return (
-    <span style={{
-      fontSize: 9.5, fontWeight: 600, color: 'var(--text-muted)',
-      display: 'block', marginBottom: 3,
-    }}>
+    <span className="section-title text-[9.5px] block mb-0.5">
       {children}
     </span>
   );
@@ -383,29 +373,8 @@ function FormField({ label, value, onChange, type = 'text', span = 1 }) {
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
-        style={{ ...fieldInputStyle, width: '100%' }}
+        className="w-full px-2.5 py-1.5 rounded-md bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] text-copy-13 text-[var(--ds-gray-1000)] outline-none"
       />
     </div>
   );
 }
-
-/* ─── Shared styles ─── */
-const fieldInputStyle = {
-  background: 'var(--bg)',
-  border: '1px solid var(--border)',
-  borderRadius: 6, padding: '6px 10px',
-  color: 'var(--text)', fontSize: 13,
-  outline: 'none', boxSizing: 'border-box',
-};
-
-const selectStyle = {
-  ...fieldInputStyle,
-  cursor: 'pointer', fontWeight: 600,
-  width: '100%',
-};
-
-const smallBtnStyle = {
-  background: 'none', border: 'none',
-  color: 'var(--text-dim)', cursor: 'pointer',
-  fontSize: 12, padding: '2px 6px', borderRadius: 4,
-};
