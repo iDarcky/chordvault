@@ -94,6 +94,8 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
         return <VisualTab md={md} onChange={setMd} textareaRef={textareaRef} />;
       case 'raw':
         return <RawTab md={md} onChange={setMd} textareaRef={textareaRef} />;
+      case 'place':
+        return <PlaceTab md={md} onChange={setMd} />;
       default:
         return <FormTab md={md} onChange={setMd} />;
     }
