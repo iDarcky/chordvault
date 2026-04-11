@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from './ui/Button';
+import { Button2 } from './ui/Button2';
 import { Input } from './ui/Input';
 import { Badge } from './ui/Badge';
 import { Switch } from './ui/Switch';
@@ -138,6 +139,41 @@ export default function DesignShowcase({ onBack }) {
                   <Switch checked={true} />
                   <span className="text-copy-14">Switch Label</span>
                 </div>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        <Separator />
+
+        {/* Geist Button 2 Showcase */}
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-label-14 text-[var(--text-2)] uppercase tracking-widest font-bold">Button 2 (Geist Port)</h2>
+            <p className="text-copy-14 text-[var(--text-1)]">Modernized port supporting ghost, shadow, auto-width, and drip effects.</p>
+          </div>
+          <Card className="flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <h4 className="text-label-12-mono text-[var(--text-2)]">Variants & States</h4>
+              <div className="flex flex-wrap gap-4 items-center">
+                <Button2 type="default">Default</Button2>
+                <Button2 type="primary">Primary</Button2>
+                <Button2 type="success">Success</Button2>
+                <Button2 type="warning">Warning</Button2>
+                <Button2 type="error">Error</Button2>
+                <Button2 type="abort">Abort</Button2>
+              </div>
+            </div>
+            <Separator />
+            <div className="flex flex-col gap-4">
+              <h4 className="text-label-12-mono text-[var(--text-2)]">Geist Features</h4>
+              <div className="flex flex-wrap gap-4 items-center">
+                <Button2 type="success" ghost>Ghost Success</Button2>
+                <Button2 type="error" ghost>Ghost Error</Button2>
+                <Button2 shadow type="primary">Shadow</Button2>
+                <Button2 auto type="secondary">Auto Width</Button2>
+                <Button2 loading type="primary">Loading State</Button2>
+                <Button2 disabled type="primary">Disabled</Button2>
               </div>
             </div>
           </Card>
