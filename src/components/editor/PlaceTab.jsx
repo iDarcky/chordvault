@@ -33,50 +33,112 @@ function parsePlacementLine(line) {
   const placement = lineToPlacement(clean);
   return { ...placement, inlineNote };
 }
- 
+
+// Expand plainText with dashes where chords are too close for their labels to fit.
+// Returns { text, displayChords, posMap } where posMap[expandedIdx] = originalIdx.
+function expandForChords(plainText, chords) {
+  if (!chords.length) {
+    const len = plainText.length || 1;
+    return { text: plainText || ' ', displayChords: [], posMap: Array.from({ length: len }, (_, i) => i) };
+  }
+
+  const sorted = chords
+    .map((c, i) => ({ ...c, origIdx: i }))
+    .sort((a, b) => a.pos - b.pos);
+
+  let expanded = '';
+  const displayChords = [];
+  const posMap = [];
+  let srcIdx = 0;
+
+  for (let ci = 0; ci < sorted.length; ci++) {
+    const chord = sorted[ci];
+    const origPos = chord.pos;
+
+    // Copy original text up to this chord's position
+    while (srcIdx < origPos && srcIdx < plainText.length) {
+      posMap.push(srcIdx);
+      expanded += plainText[srcIdx];
+      srcIdx++;
+    }
+
+    // Where this chord needs to start (after previous chord's label + 1 separator)
+    const currentLen = expanded.length;
+    const minPos = displayChords.length > 0
+      ? displayChords[displayChords.length - 1].pos + displayChords[displayChords.length - 1].chord.length + 1
+      : currentLen;
+    const actualPos = Math.max(currentLen, minPos);
+    const dashCount = actualPos - currentLen;
+
+    for (let d = 0; d < dashCount; d++) {
+      posMap.push(origPos);
+      expanded += '-';
+    }
+
+    displayChords.push({ chord: chord.chord, pos: actualPos, origIdx: chord.origIdx });
+  }
+
+  // Copy remaining original text
+  while (srcIdx < plainText.length) {
+    posMap.push(srcIdx);
+    expanded += plainText[srcIdx];
+    srcIdx++;
+  }
+
+  // Ensure at least one character for empty lines with chords
+  if (!expanded) {
+    expanded = ' ';
+    posMap.push(0);
+  }
+
+  return { text: expanded, displayChords, posMap };
+}
+
 // ─── InteractiveLine ───────────────────────────────────────────────
- 
+
 function InteractiveLine({
   plainText, chords, secIdx, lineIdx,
   activeChord, selectedExisting, guidePos,
   onPlace, onChordTap, onGuideUpdate, onGuideClear,
 }) {
-  const isSelected = (ci) =>
+  const { text, displayChords, posMap } = useMemo(
+    () => expandForChords(plainText, chords),
+    [plainText, chords]
+  );
+
+  const isSelected = (origIdx) =>
     selectedExisting &&
     selectedExisting.secIdx === secIdx &&
     selectedExisting.lineIdx === lineIdx &&
-    selectedExisting.chordIdx === ci;
- 
+    selectedExisting.chordIdx === origIdx;
+
   const handlePointerMove = (e) => {
     if (!activeChord && !selectedExisting) return;
     const el = e.currentTarget;
     const pos = charPosFromPointer(e, el);
     onGuideUpdate({ secIdx, lineIdx, charPos: pos });
   };
- 
+
   const handlePointerLeave = () => {
     onGuideClear();
   };
- 
+
   const handlePointerDown = (e) => {
     if (!activeChord && !selectedExisting) return;
     const el = e.currentTarget;
-    const pos = charPosFromPointer(e, el);
-    onPlace(secIdx, lineIdx, pos);
+    const expandedPos = charPosFromPointer(e, el);
+    const origPos = posMap[expandedPos] ?? expandedPos;
+    onPlace(secIdx, lineIdx, origPos);
   };
 
-    // Show guide line?
   const showGuide = guidePos &&
     guidePos.secIdx === secIdx &&
     guidePos.lineIdx === lineIdx;
- 
+
   if (!plainText && chords.length === 0) {
     return <div className="min-h-[1.3em]" />;
   }
 
-    // For empty plainText with chords (chord-only lines), show spaces
-  const displayText = plainText || ' ';
- 
   return (
     <div
       className="relative select-none"
@@ -89,14 +151,10 @@ function InteractiveLine({
       }}
     >
       <div className="flex flex-wrap items-end font-mono" style={{ fontSize: 16 }}>
-        {[...displayText].map((char, i) => {
-          const chord = chords.find(c => c.pos === i);
-          const chordIdx = chord ? chords.indexOf(chord) : -1;
-          const selected = chord && isSelected(chordIdx);
- 
-          // Check if this chord is too close to the next chord — use dash fill
-          const nextChord = chords.find(c => c.pos > i && c.pos <= i + 2);
-          const needsDash = chord && nextChord && (nextChord.pos - chord.pos) <= chord.chord.length + 1;
+        {[...text].map((char, i) => {
+          const dc = displayChords.find(c => c.pos === i);
+          const origIdx = dc ? dc.origIdx : -1;
+          const selected = dc && isSelected(origIdx);
           const isGuided = showGuide && guidePos.charPos === i;
 
           return (
@@ -113,24 +171,22 @@ function InteractiveLine({
                 className="leading-none whitespace-nowrap"
                 style={{ minHeight: '1.4em', paddingBottom: 2 }}
               >
-                {chord ? (
+                {dc ? (
                   <span
                     className="font-bold cursor-pointer transition-all"
                     style={{
                       color: selected ? 'var(--color-brand)' : 'var(--chord)',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 0,
                       borderBottom: selected ? '2px solid var(--color-brand)' : '2px solid transparent',
                       animation: selected ? 'pulse 1.5s ease-in-out infinite' : 'none',
                     }}
                     onPointerDown={(e) => {
                       e.stopPropagation();
-                      onChordTap(secIdx, lineIdx, chordIdx);
+                      onChordTap(secIdx, lineIdx, origIdx);
                     }}
                   >
-                    {chord.chord}
-                    {needsDash ? '-' : '\u2003'}
+                    {dc.chord}{'\u2003'}
                   </span>
                 ) : (
                   '\u00A0'

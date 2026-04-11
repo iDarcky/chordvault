@@ -1,14 +1,12 @@
-import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { parseSongMd, songToMd, generateId } from '../parser';
 import RawTab from './editor/RawTab';
 import VisualTab from './editor/VisualTab';
 import FormTab from './editor/FormTab';
 import PlaceTab from './editor/PlaceTab';
-import PreviewPanel from './editor/PreviewPanel';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Tabs } from './ui/Tabs';
-import { Badge } from './ui/Badge';
 
 const TAB_LIST = [
   { id: 'form', label: 'Form' },
@@ -36,16 +34,8 @@ structure: [Verse 1, Chorus]
 export default function Editor({ song, onSave, onBack, onDelete }) {
   const [md, setMd] = useState(song ? songToMd(song) : DEFAULT_MD);
   const [activeTab, setActiveTab] = useState('form');
-  const [showPreview, setShowPreview] = useState(false);
   const [preview, setPreview] = useState(null);
   const textareaRef = useRef(null);
-
-  // Media query for split-screen
-  const wideMq = useRef(window.matchMedia('(min-width: 768px)'));
-  const isWide = useSyncExternalStore(
-    (cb) => { wideMq.current.addEventListener('change', cb); return () => wideMq.current.removeEventListener('change', cb); },
-    () => wideMq.current.matches,
-  );
 
   // Parse md → preview with debounce
   useEffect(() => {
@@ -55,9 +45,6 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
     }, 300);
     return () => clearTimeout(timer);
   }, [md]);
-
-  const charCount = md.length;
-  const sectionCount = preview?.sections?.length || 0;
 
   const handleSave = useCallback(() => {
     if (!preview) return;
@@ -140,56 +127,17 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
           <Tabs tabs={TAB_LIST} activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="flex items-center gap-1 pb-1">
-            {isWide && (
-              <Badge variant="secondary" className="text-label-10-mono">
-                {charCount} chars
-              </Badge>
-            )}
-            {isWide && (
-              <Badge variant="secondary" className="text-label-10-mono">
-                {sectionCount} {sectionCount === 1 ? 'section' : 'sections'}
-              </Badge>
-            )}
-
             <IconButton variant="ghost" size="xs" onClick={handleUndo} aria-label="Undo">↶</IconButton>
             <IconButton variant="ghost" size="xs" onClick={handleRedo} aria-label="Redo">↷</IconButton>
             <IconButton variant="ghost" size="xs" onClick={handleImport} aria-label="Import from clipboard">📋</IconButton>
-
-            {/* Preview toggle (narrow only) */}
-            {!isWide && (
-              <IconButton
-                variant={showPreview ? 'active' : 'ghost'}
-                size="xs"
-                onClick={() => setShowPreview(v => !v)}
-                aria-label={showPreview ? 'Show editor' : 'Show preview'}
-              >
-                {showPreview ? '✎' : '👁'}
-              </IconButton>
-            )}
           </div>
         </div>
       </div>
 
       {/* ─── Content Area ─── */}
-      {isWide ? (
-        /* Split-screen on wide viewports */
-        <div className="flex flex-1 min-h-0">
-          <div className="flex-1 overflow-auto p-[18px]">
-            {renderTab()}
-          </div>
-          <div className="flex-1 overflow-auto border-l border-[var(--ds-gray-300)] bg-[var(--ds-background-200)]">
-            <PreviewPanel preview={preview} />
-          </div>
-        </div>
-      ) : (
-        /* Toggle on narrow viewports */
-        <div className="flex-1 p-[18px]">
-          {showPreview
-            ? <PreviewPanel preview={preview} />
-            : renderTab()
-          }
-        </div>
-      )}
+      <div className="flex-1 min-h-0 overflow-auto p-[18px]">
+        {renderTab()}
+      </div>
     </div>
   );
 }
