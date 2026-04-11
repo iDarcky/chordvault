@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { transposeKey, sectionStyle } from '../music';
+import { Button } from './ui/Button';
+import { IconButton } from './ui/IconButton';
 import ChartView from './ChartView';
 
 export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, defaultFontSize, showInlineNotes, inlineNoteStyle, displayRole, duplicateSections }) {
@@ -42,10 +44,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   if (!resolved.length) {
     return (
-      <div style={{
-        padding: 40, textAlign: 'center',
-        color: 'var(--text-muted)',
-      }}>
+      <div className="p-10 text-center text-[var(--ds-gray-600)] text-copy-14">
         No items in setlist
       </div>
     );
@@ -53,41 +52,34 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   const cur = resolved[idx];
 
-  const cB = {
-    width: 28, height: 28, borderRadius: 6,
-    border: '1px solid rgba(255,255,255,0.1)',
-    background: 'var(--surface)', color: 'var(--text)',
-    fontSize: 15, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: 'var(--fm)',
-  };
-
   const nav = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{
-        fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--fm)',
-      }}>
+    <div className="flex items-center gap-1.5">
+      <span className="text-label-11-mono text-[var(--ds-gray-600)]">
         {idx + 1}/{resolved.length}
       </span>
-      <button
+      <IconButton
+        variant="default"
+        size="sm"
         onClick={goPrev}
         disabled={idx === 0}
-        style={{ ...cB, opacity: idx === 0 ? 0.3 : 1 }}
+        aria-label="Previous song"
       >
         &#9664;
-      </button>
-      <button
+      </IconButton>
+      <IconButton
+        variant="default"
+        size="sm"
         onClick={goNext}
         disabled={idx === resolved.length - 1}
-        style={{ ...cB, opacity: idx === resolved.length - 1 ? 0.3 : 1 }}
+        aria-label="Next song"
       >
         &#9654;
-      </button>
+      </IconButton>
     </div>
   );
 
   const progress = (
-    <div style={{ display: 'flex', gap: 3, padding: '8px 18px 0', overflow: 'hidden' }}>
+    <div className="flex gap-0.5 px-5 pt-2 overflow-hidden">
       {resolved.map((r, i) => {
         const color = r.isBreak
           ? '#6b7280'
@@ -96,11 +88,11 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
           <button
             key={i}
             onClick={() => setIdx(i)}
+            className="flex-1 rounded-sm border-none cursor-pointer transition-all duration-200 min-w-0 p-0"
             style={{
-              flex: 1, height: i === idx ? 6 : 4, borderRadius: 3,
-              background: i === idx ? color : i < idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
-              border: 'none', cursor: 'pointer',
-              transition: 'all 0.2s ease', minWidth: 0, minHeight: 'auto',
+              height: i === idx ? 6 : 4,
+              background: i === idx ? color : i < idx ? 'var(--ds-gray-500)' : 'var(--ds-gray-300)',
+              minHeight: 'auto',
             }}
           />
         );
@@ -109,34 +101,23 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   );
 
   const songBar = (
-    <div ref={songBarRef} className="hide-scrollbar" style={{
-      display: 'flex', gap: 6, padding: '6px 18px',
-      overflow: 'auto', scrollbarWidth: 'none',
-    }}>
+    <div ref={songBarRef} className="hide-scrollbar flex gap-1.5 px-5 py-1.5 overflow-auto">
       {resolved.map((r, i) => {
         const active = i === idx;
         if (r.isBreak) {
           return (
-            <button key={i} onClick={() => setIdx(i)} style={{
-              flexShrink: 0, display: 'flex', alignItems: 'center',
-              gap: 6, padding: '5px 10px', borderRadius: 8,
-              border: `1px solid ${active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)'}`,
-              background: active ? 'rgba(255,255,255,0.05)' : 'transparent',
-              cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
-            }}>
-              <span style={{
-                fontSize: 11, fontWeight: 700,
-                color: active ? 'rgba(255,255,255,0.5)' : 'var(--text-dim)',
-                fontFamily: 'var(--fm)',
-              }}>
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border cursor-pointer transition-all duration-150 bg-transparent ${
+                active ? 'border-[var(--ds-gray-500)] bg-[var(--ds-gray-200)]' : 'border-[var(--ds-gray-300)]'
+              }`}
+              style={{ minHeight: 'auto' }}
+            >
+              <span className={`text-label-11-mono font-bold ${active ? 'text-[var(--ds-gray-700)]' : 'text-[var(--ds-gray-500)]'}`}>
                 {i + 1}
               </span>
-              <span style={{
-                fontSize: 11.5, fontWeight: active ? 600 : 400,
-                color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-                whiteSpace: 'nowrap', fontFamily: 'var(--fb)',
-                fontStyle: 'italic',
-              }}>
+              <span className={`text-copy-11 whitespace-nowrap italic ${active ? 'font-semibold text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'}`}>
                 {r.label || 'Break'}
               </span>
             </button>
@@ -144,32 +125,31 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
         }
         const s = sectionStyle(r.song.sections?.[0]?.type || 'Verse');
         return (
-          <button key={i} onClick={() => setIdx(i)} style={{
-            flexShrink: 0, display: 'flex', alignItems: 'center',
-            gap: 6, padding: '5px 10px', borderRadius: 8,
-            border: `1px solid ${active ? s.b + '66' : 'rgba(255,255,255,0.04)'}`,
-            background: active ? `${s.b}15` : 'transparent',
-            cursor: 'pointer', transition: 'all 0.15s ease', minHeight: 'auto',
-          }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700,
-              color: active ? s.d : 'var(--text-dim)',
-              fontFamily: 'var(--fm)',
-            }}>
+          <button
+            key={i}
+            onClick={() => setIdx(i)}
+            className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border cursor-pointer transition-all duration-150 ${
+              active ? '' : 'border-[var(--ds-gray-300)] bg-transparent'
+            }`}
+            style={{
+              borderColor: active ? `${s.b}66` : undefined,
+              background: active ? `${s.b}15` : undefined,
+              minHeight: 'auto',
+            }}
+          >
+            <span
+              className="text-label-11-mono font-bold"
+              style={{ color: active ? s.d : 'var(--ds-gray-500)' }}
+            >
               {i + 1}
             </span>
-            <span style={{
-              fontSize: 11.5, fontWeight: active ? 600 : 400,
-              color: active ? 'var(--text-bright)' : 'var(--text-muted)',
-              whiteSpace: 'nowrap', fontFamily: 'var(--fb)',
-            }}>
+            <span className={`text-copy-11 whitespace-nowrap ${active ? 'font-semibold text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'}`}>
               {r.song.title}
             </span>
-            <span style={{
-              fontSize: 10,
-              color: active ? 'var(--chord)' : 'rgba(255,255,255,0.2)',
-              fontFamily: 'var(--fm)',
-            }}>
+            <span
+              className="text-label-10-mono"
+              style={{ color: active ? 'var(--chord)' : 'var(--ds-gray-400)' }}
+            >
               {transposeKey(r.song.key, r.transpose)}
             </span>
           </button>
@@ -181,57 +161,32 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   return (
     <div style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Back button for the whole player */}
-      <div style={{
-        padding: '10px 18px 0',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', color: 'var(--text-muted)',
-          cursor: 'pointer', padding: 4, fontSize: 14,
-        }}>
-          &#8592; Back
-        </button>
-        <span style={{
-          fontSize: 13, fontWeight: 600, color: 'var(--text-muted)',
-        }}>
+      <div className="flex items-center gap-2.5 px-5 pt-2.5">
+        <Button variant="ghost" size="xs" onClick={onBack}>← Back</Button>
+        <span className="text-label-13 font-semibold text-[var(--ds-gray-600)]">
           {setlist.name}
         </span>
       </div>
       {progress}
       {songBar}
       {cur.note && (
-        <div style={{ padding: '4px 18px 0' }}>
-          <div style={{
-            padding: '6px 12px', borderRadius: 6,
-            background: 'rgba(245,158,11,0.08)',
-            border: '1px solid rgba(245,158,11,0.15)',
-            fontSize: 12, color: '#fbbf24', fontFamily: 'var(--fb)',
-          }}>
+        <div className="px-5 pt-1">
+          <div className="px-3 py-1.5 rounded-md bg-[var(--ds-warning-soft)] border border-[var(--ds-warning-border)] text-label-12 text-[var(--ds-warning-900)]">
             {cur.note}
           </div>
         </div>
       )}
       {cur.isBreak ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          padding: '80px 20px', minHeight: '50vh',
-        }}>
-          <div style={{
-            fontSize: 32, fontWeight: 700,
-            color: 'var(--text-bright)', marginBottom: 8,
-          }}>
+        <div className="flex flex-col items-center justify-center px-5 py-20 min-h-[50vh]">
+          <div className="text-heading-32 text-[var(--ds-gray-1000)] mb-2">
             {cur.label || 'Break'}
           </div>
           {cur.duration > 0 && (
-            <div style={{
-              fontSize: 16, color: 'var(--text-muted)',
-              fontFamily: 'var(--fm)', marginBottom: 8,
-            }}>
+            <div className="text-copy-16 text-[var(--ds-gray-600)] font-mono mb-2">
               {cur.duration} min
             </div>
           )}
-          <div style={{ marginTop: 16 }}>{nav}</div>
+          <div className="mt-4">{nav}</div>
         </div>
       ) : (
         <ChartView

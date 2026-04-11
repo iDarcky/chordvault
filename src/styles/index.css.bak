@@ -1,0 +1,349 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Geist Sans';
+  src: url('/node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-brand: #53796F;
+  --color-brand-soft: rgba(83, 121, 111, 0.15);
+  --color-brand-text: #7fb3a6;
+  --color-brand-border: rgba(83, 121, 111, 0.3);
+
+  --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
+
+  /* Geist Backgrounds */
+  --ds-background-100: #0a0a0a;
+  --ds-background-200: #000000;
+
+  /* Geist Gray Scale (Dark Mode) */
+  --ds-gray-100: hsla(0, 0%, 10%, 1);
+  --ds-gray-200: hsla(0, 0%, 12%, 1);
+  --ds-gray-300: hsla(0, 0%, 16%, 1);
+  --ds-gray-400: hsla(0, 0%, 18%, 1);
+  --ds-gray-500: hsla(0, 0%, 27%, 1);
+  --ds-gray-600: hsla(0, 0%, 53%, 1);
+  --ds-gray-700: hsla(0, 0%, 56%, 1);
+  --ds-gray-800: hsla(0, 0%, 49%, 1);
+  --ds-gray-900: hsla(0, 0%, 63%, 1);
+  --ds-gray-1000: hsla(0, 0%, 93%, 1);
+
+  /* Legacy Mapping (Dark Mode default) */
+  --bg: var(--ds-background-200);
+  --surface: var(--ds-gray-100);
+  --card: var(--ds-gray-100);
+  --border: var(--ds-gray-400);
+  --select: var(--ds-gray-200);
+  --text: var(--ds-gray-900);
+  --text-bright: var(--ds-gray-1000);
+  --text-muted: var(--ds-gray-600);
+  --text-dim: var(--ds-gray-500);
+  --chord: #e2a832;
+  --accent: var(--color-brand);
+  --accent-soft: var(--color-brand-soft);
+  --accent-text: var(--color-brand-text);
+  --accent-border: var(--color-brand-border);
+  --danger: #f87171;
+  --danger-soft: rgba(239, 68, 68, 0.1);
+  --header-bg: rgba(11, 11, 15, 0.92);
+  --fb: var(--font-sans);
+  --fm: var(--font-mono);
+}
+
+@layer base {
+  [data-theme="light"] {
+    --ds-background-100: #ffffff;
+    --ds-background-200: #fafafa;
+
+    /* Geist Gray Scale (Light Mode) */
+    --ds-gray-100: hsla(0, 0%, 95%, 1);
+    --ds-gray-200: hsla(0, 0%, 92%, 1);
+    --ds-gray-300: hsla(0, 0%, 90%, 1);
+    --ds-gray-400: hsla(0, 0%, 92%, 1);
+    --ds-gray-500: hsla(0, 0%, 79%, 1);
+    --ds-gray-600: hsla(0, 0%, 66%, 1);
+    --ds-gray-700: hsla(0, 0%, 56%, 1);
+    --ds-gray-800: hsla(0, 0%, 49%, 1);
+    --ds-gray-900: hsla(0, 0%, 30%, 1);
+    --ds-gray-1000: hsla(0, 0%, 9%, 1);
+
+    --bg: var(--ds-background-200);
+    --surface: var(--ds-gray-100);
+    --card: var(--ds-gray-100);
+    --border: var(--ds-gray-400);
+    --select: var(--ds-gray-200);
+    --text: var(--ds-gray-900);
+    --text-bright: var(--ds-gray-1000);
+    --text-muted: var(--ds-gray-600);
+    --text-dim: var(--ds-gray-500);
+    --chord: #b45309;
+    --accent: var(--color-brand);
+    --accent-soft: rgba(83, 121, 111, 0.10);
+    --accent-text: #3d5b53;
+    --accent-border: rgba(83, 121, 111, 0.25);
+    --danger: #dc2626;
+    --danger-soft: rgba(239, 68, 68, 0.08);
+    --header-bg: #fafafa;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--fb);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  button {
+    min-height: 36px;
+    font-family: var(--fb);
+  }
+
+  input {
+    font-family: var(--fb);
+  }
+
+  textarea {
+    font-family: var(--fm);
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    body {
+      min-height: -webkit-fill-available;
+    }
+  }
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .hide-scrollbar {
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chart-auto-cols {
+    @media (orientation: landscape) and (min-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+      display: grid;
+    }
+    @media (orientation: portrait), (max-width: 767px) {
+      grid-template-columns: 1fr;
+      display: block;
+    }
+  }
+}
+
+/* Responsive: phone — larger touch targets */
+@media (max-width: 639px) {
+  button {
+    min-height: 44px;
+  }
+}
+
+/* Geist Typography Utilities */
+@layer utilities {
+  /* Headings */
+  @utility text-heading-72 {
+    font-size: 72px;
+    line-height: 80px;
+    letter-spacing: -0.05em;
+    font-weight: 600;
+  }
+  @utility text-heading-64 {
+    font-size: 64px;
+    line-height: 72px;
+    letter-spacing: -0.05em;
+    font-weight: 600;
+  }
+  @utility text-heading-56 {
+    font-size: 56px;
+    line-height: 64px;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+  }
+  @utility text-heading-48 {
+    font-size: 48px;
+    line-height: 56px;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+  }
+  @utility text-heading-40 {
+    font-size: 40px;
+    line-height: 48px;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+  }
+  @utility text-heading-32 {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+  }
+  @utility text-heading-24 {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  @utility text-heading-20 {
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  @utility text-heading-16 {
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+  @utility text-heading-14 {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+  }
+
+  /* Labels */
+  @utility text-label-20 {
+    font-size: 20px;
+    line-height: 24px;
+    font-weight: 500;
+  }
+  @utility text-label-18 {
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 500;
+  }
+  @utility text-label-16 {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+  @utility text-label-14 {
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+  @utility text-label-14-mono {
+    font-family: var(--fm);
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+  @utility text-label-13 {
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 500;
+  }
+  @utility text-label-13-mono {
+    font-family: var(--fm);
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: 500;
+  }
+  @utility text-label-12 {
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 500;
+  }
+  @utility text-label-12-mono {
+    font-family: var(--fm);
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 500;
+  }
+
+  /* Copy */
+  @utility text-copy-24 {
+    font-size: 24px;
+    line-height: 36px;
+    font-weight: 400;
+  }
+  @utility text-copy-20 {
+    font-size: 20px;
+    line-height: 32px;
+    font-weight: 400;
+  }
+  @utility text-copy-18 {
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 400;
+  }
+  @utility text-copy-16 {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+  @utility text-copy-14 {
+    font-size: 14px;
+    line-height: 22px;
+    font-weight: 400;
+  }
+  @utility text-copy-13 {
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+  @utility text-copy-13-mono {
+    font-family: var(--fm);
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+
+  /* Buttons */
+  @utility text-button-16 {
+    font-size: 16px;
+    line-height: 16px;
+    font-weight: 500;
+  }
+  @utility text-button-14 {
+    font-size: 14px;
+    line-height: 14px;
+    font-weight: 500;
+  }
+  @utility text-button-12 {
+    font-size: 12px;
+    line-height: 12px;
+    font-weight: 500;
+  }
+
+  /* Modifiers */
+  [class*="text-heading-"],
+  [class*="text-label-"],
+  [class*="text-copy-"],
+  [class*="text-button-"] {
+    & strong {
+      font-weight: 600;
+    }
+    & .subtle {
+      color: var(--ds-gray-900);
+    }
+  }
+}

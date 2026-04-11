@@ -44,23 +44,23 @@ export default function ChordDiagram({ chord, size = 80 }) {
       if (svg) {
         svg.querySelectorAll('circle[fill]').forEach(el => {
           if (el.getAttribute('fill') !== 'none') {
-            el.setAttribute('fill', 'var(--accent)');
+            el.setAttribute('fill', 'var(--color-brand)');
           }
         });
         svg.querySelectorAll('text').forEach(el => {
-          el.setAttribute('fill', 'var(--text-muted)');
+          el.setAttribute('fill', 'var(--ds-gray-600)');
         });
         svg.querySelectorAll('line, path, rect').forEach(el => {
           if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') {
-            el.setAttribute('stroke', 'var(--border)');
+            el.setAttribute('stroke', 'var(--ds-gray-400)');
           }
           if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none' && el.tagName !== 'circle') {
-            el.setAttribute('fill', 'var(--text-dim)');
+            el.setAttribute('fill', 'var(--ds-gray-500)');
           }
         });
         // Title text brighter
         const titleEl = svg.querySelector('text');
-        if (titleEl) titleEl.setAttribute('fill', 'var(--text-bright)');
+        if (titleEl) titleEl.setAttribute('fill', 'var(--ds-gray-1000)');
         // Set SVG dimensions
         svg.setAttribute('width', size);
         svg.setAttribute('height', size + 16);
@@ -82,15 +82,8 @@ export default function ChordDiagram({ chord, size = 80 }) {
     <div
       ref={containerRef}
       title={chord}
-      style={{
-        width: size, height: size + 16,
-        display: 'inline-flex', flexShrink: 0,
-        alignItems: 'center', justifyContent: 'center',
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 8,
-        padding: 2,
-      }}
+      className="inline-flex shrink-0 items-center justify-center bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-lg p-0.5"
+      style={{ width: size, height: size + 16 }}
     />
   );
 }

@@ -21,7 +21,7 @@ export default function TabBlock({ data }) {
       width="100%"
       viewBox={`0 0 ${totalWidth} ${height}`}
       preserveAspectRatio="xMinYMid meet"
-      style={{ display: 'block', margin: '6px 0', maxWidth: 800 }}
+      className="block my-1.5 max-w-[800px]"
     >
       {/* String lines */}
       {parsed.strings.map((str, i) => {
@@ -33,7 +33,7 @@ export default function TabBlock({ data }) {
             y1={y}
             x2={LABEL_WIDTH + contentWidth}
             y2={y}
-            stroke="var(--border)"
+            stroke="var(--ds-gray-400)"
             strokeWidth={1}
           />
         );
@@ -47,7 +47,7 @@ export default function TabBlock({ data }) {
             key={`label-${i}`}
             x={LABEL_WIDTH - 8}
             y={y + 4}
-            fill="var(--text-muted)"
+            fill="var(--ds-gray-600)"
             fontFamily="var(--fm)"
             fontSize={11}
             fontWeight={600}
@@ -66,7 +66,7 @@ export default function TabBlock({ data }) {
           y1={PADDING_TOP - 4}
           x2={LABEL_WIDTH + pos * CHAR_WIDTH}
           y2={PADDING_TOP + (parsed.strings.length - 1) * STRING_SPACING + 4}
-          stroke="var(--text-dim)"
+          stroke="var(--ds-gray-500)"
           strokeWidth={1.5}
         />
       ))}
@@ -82,12 +82,12 @@ export default function TabBlock({ data }) {
               y={y - 7}
               width={f.fret >= 10 ? 16 : 10}
               height={14}
-              fill="var(--bg)"
+              fill="var(--ds-background-200)"
               rx={2}
             />
             {/* Fret number */}
             <text
-              x={LABEL_WIDTH + f.pos * CHAR_WIDTH + (f.fret >= 10 ? 1 : 1)}
+              x={LABEL_WIDTH + f.pos * CHAR_WIDTH + 1}
               y={y + 4}
               fill="var(--chord)"
               fontFamily="var(--fm)"
@@ -102,7 +102,7 @@ export default function TabBlock({ data }) {
               <text
                 x={LABEL_WIDTH + (f.pos + 1) * CHAR_WIDTH + 2}
                 y={y - 6}
-                fill="var(--text-muted)"
+                fill="var(--ds-gray-600)"
                 fontFamily="var(--fm)"
                 fontSize={9}
                 fontWeight={600}

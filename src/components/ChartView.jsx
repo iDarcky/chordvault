@@ -1,293 +1,348 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { transposeKey, transposeChord, ALL_KEYS, semitonesBetween } from '../music';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { transposeChord, ALL_KEYS, semitonesBetween } from '../music';
 import SectionBlock from './SectionBlock';
-import { StructureRibbon, MetaPill } from './StructureRibbon';
 import ChordDiagram from './ChordDiagram';
-import { parseLine } from '../parser';
+import { Button } from './ui/Button';
+import { IconButton } from './ui/IconButton';
+import { Card } from './ui/Card';
+import { SegmentedControl } from './ui/SegmentedControl';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/Select';
+import { cn } from '../lib/utils';
+import { StructureRibbon } from './StructureRibbon';
 
-const SIZE_MAP = { S: 0.88, M: 1, L: 1.14 };
+const FONT_SIZES = { S: 13, M: 16, L: 20 };
 
-export default function ChartView({ song, onBack, onEdit, navOverride, compact, forceTranspose, capo = 0, defaultColumns, defaultFontSize, showInlineNotes = true, inlineNoteStyle = 'dashes', displayRole = 'leader', duplicateSections = 'full' }) {
-  const [localTranspose, setLocalTranspose] = useState(0);
-  const [cols, setCols] = useState(defaultColumns || 'auto');
-  const [size, setSize] = useState(SIZE_MAP[defaultFontSize] || 1);
+const FONT_FAMILIES = {
+  'Geist Sans': "var(--font-sans)",
+  'Geist Mono': "var(--font-mono)",
+  'JetBrains Mono': "'JetBrains Mono', monospace",
+};
+
+export default function ChartView({
+  song, onBack, onEdit, isPreview,
+  defaultColumns = 1, defaultFontSize = 16,
+  showInlineNotes = true, inlineNoteStyle = 'dashes',
+  displayRole = 'leader', duplicateSections = 'full',
+  chartLayout = 'columns'
+}) {
+  const initialFontSize = FONT_SIZES[defaultFontSize] || (typeof defaultFontSize === 'number' ? defaultFontSize : 16);
+
+  const [selectedKey, setSelectedKey] = useState(song.key);
+  const [columns, setColumns] = useState(defaultColumns);
+  const [fontSize, setFontSize] = useState(initialFontSize);
+  const [fontFamily, setFontFamily] = useState('Geist Mono');
+  const [nns, setNns] = useState(false);
+  const [showChords, setShowChords] = useState(true);
   const [showDiagrams, setShowDiagrams] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMusicSettings, setShowMusicSettings] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const headerRef = useRef(null);
 
-  const transpose = forceTranspose != null ? forceTranspose : localTranspose;
-  const chordTranspose = capo ? (transpose - capo + 12) % 12 : transpose;
-  const currentKey = transposeKey(song.key, transpose);
+  const scrollContainerRef = useRef(null);
 
-    // Track scroll to collapse header
+  const transpose = semitonesBetween(song.key, selectedKey);
+
+  const toggleInfo = () => { setShowInfo(s => !s); setShowSettings(false); setShowMusicSettings(false); };
+  const toggleAa = () => { setShowSettings(s => !s); setShowInfo(false); setShowMusicSettings(false); };
+  const toggleMusic = () => { setShowMusicSettings(s => !s); setShowInfo(false); setShowSettings(false); };
+
+  // Detect scroll position for collapsing header
   useEffect(() => {
-    if (compact) return;
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [compact]);
- 
-  // Pre-compute cumulative modulate offsets per section
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onScroll = () => setScrolled(el.scrollTop > 40);
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Compute cumulative modulate offsets per section
   const sectionModOffsets = useMemo(() => {
-    const offsets = [];
     const acc = { total: 0 };
-    for (const sec of song.sections) {
-      offsets.push(acc.total);
-      for (const line of sec.lines) {
+    return song.sections.map(section => {
+      const offset = acc.total;
+      (section.lines || []).forEach(line => {
         if (typeof line === 'object' && line.type === 'modulate') {
           acc.total += line.semitones;
         }
-      }
-    }
-    return offsets;
+      });
+      return offset;
+    });
   }, [song.sections]);
 
-  // Compute which sections are collapsed (duplicate type, 1st-only mode)
-  const collapsedSections = useMemo(() => {
-    if (duplicateSections !== 'first') return [];
-    const seen = new Set();
-    return song.sections.map(sec => {
-      const baseType = sec.type.replace(/\s*\d+$/, '').trim();
-      if (seen.has(baseType)) return true;
-      seen.add(baseType);
-      return false;
-    });
-  }, [song.sections, duplicateSections]);
+  // Extract all unique chords for diagrams
+  const allChords = Array.from(new Set(
+    song.sections.flatMap(s => s.lines)
+      .filter(l => typeof l === 'string')
+      .flatMap(l => {
+        const matches = l.match(/\[(.*?)\]/g);
+        return matches ? matches.map(m => m.slice(1, -1)) : [];
+      })
+  ));
 
-  // Collect unique chord names from all sections (transposed)
-  const uniqueChords = useMemo(() => {
-    if (!showDiagrams) return [];
-    const seen = new Set();
-    for (let si = 0; si < song.sections.length; si++) {
-      const sec = song.sections[si];
-      let runningMod = sectionModOffsets[si] || 0;
-      for (const line of sec.lines) {
-        if (typeof line === 'object' && line.type === 'modulate') {
-          runningMod += line.semitones;
-          continue;
-        }
-        if (typeof line !== 'string') continue;
-        const parts = parseLine(line);
-        for (const p of parts) {
-          if (p.chord) {
-            const transposed = transposeChord(p.chord, chordTranspose + runningMod);
-            seen.add(transposed);
-          }
-        }
-      }
-    }
-    return [...seen];
-  }, [showDiagrams, song.sections, chordTranspose, sectionModOffsets]);
+  // Check if any metadata exists
+  const hasMetadata = song.capo > 0 || song.ccli || (song.tags?.length > 0) || song.notes || song.spotify || song.youtube;
 
-  const isExplicit2Col = cols === 2;
-  const mid = (isExplicit2Col || cols === 'auto')
-    ? Math.ceil(song.sections.length / 2)
-    : song.sections.length;
-
-  const btnStyle = {
-    height: 32, borderRadius: 8,
-    border: '1px solid var(--border)',
-    background: 'var(--surface)', color: 'var(--text)',
-    fontSize: 13, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: 'var(--fb)', fontWeight: 500,
-    padding: '0 10px',
-  };
-
-  const toggleStyle = (active) => ({
-    ...btnStyle,
-    borderColor: active ? 'var(--accent)' : 'var(--border)',
-    color: active ? 'var(--accent-text)' : 'var(--text-muted)',
-    background: active ? 'var(--accent-soft)' : 'var(--surface)',
-  });
-
-  const handleKeyChange = (newKey) => {
-    const semitones = semitonesBetween(song.key, newKey);
-    setLocalTranspose(semitones);
-  };
+  // Close expanded panels when header collapses
+  const panelOpen = showSettings || showMusicSettings || showInfo;
 
   return (
-    <div style={{ minHeight: compact ? 'auto' : '100vh', background: 'var(--bg)', paddingTop: compact ? 0 : 'env(safe-area-inset-top, 0px)' }}>
-      {/* Sticky header */}
-      <div ref={headerRef} style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--header-bg)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border)',
-        padding: compact ? '10px 18px 6px' : '12px 18px 8px',
-        paddingTop: compact ? 10 : `calc(12px + env(safe-area-inset-top, 0px))`,
-        transition: 'padding 0.15s ease',
-      }}>
-        {/* Title row */}
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-            {!compact && (
-              <button onClick={onBack} style={{
-                background: 'none', border: 'none', color: 'var(--text-muted)',
-                cursor: 'pointer', padding: '4px 0', fontSize: 18, flexShrink: 0,
-                display: 'flex', alignItems: 'center',
-              }}>
-                &#8592;
-              </button>
-            )}
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{
-                margin: 0, fontSize: compact ? 18 : (scrolled ? 16 : 20), fontWeight: 700,
-                color: 'var(--text-bright)', letterSpacing: '-0.02em',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                transition: 'font-size 0.15s ease',
-              }}>
-                {song.title}
-              </h1>
-              {!compact && !scrolled && (
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
-                  {song.artist}
-                  {song.tempo ? ` · ${song.tempo} bpm` : ''}
-                  {song.time ? ` · ${song.time}` : ''}
-                  {song.ccli ? ` · CCLI ${song.ccli}` : ''}
+    <div
+      ref={scrollContainerRef}
+      className={cn(
+        "h-screen overflow-y-auto overflow-x-hidden bg-[var(--ds-background-100)]",
+        isPreview && "h-auto overflow-visible bg-transparent"
+      )}
+    >
+      {/* ── Sticky Header ── */}
+      {!isPreview && (
+        <div className="material-header transition-all duration-200">
+          {/* Line 1: Title + meta (compact) or Title only (expanded) + buttons */}
+          <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between pt-3 pb-1 gap-3">
+            <div className="min-w-0 flex-1 flex items-center gap-3">
+              <h1 className={cn(
+                "text-[var(--text-1)] m-0 truncate transition-all duration-200",
+                scrolled ? "text-heading-16" : "text-heading-24"
+              )}>{song.title}</h1>
+              {/* Inline meta — visible only in compact mode */}
+              {scrolled && (
+                <div className="flex items-center gap-2 flex-shrink-0 text-label-11 text-[var(--text-2)]">
+                  <span className="font-bold text-[var(--text-1)]">{selectedKey}</span>
+                  {song.tempo && <span>{song.tempo} bpm</span>}
+                  {song.time && <span>{song.time}</span>}
                 </div>
               )}
             </div>
-          </div>
-          {!compact && (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-              {/* Key selector */}
-              <select
-                value={currentKey}
-                onChange={e => handleKeyChange(e.target.value)}
-                style={{
-                  ...btnStyle,
-                  fontFamily: 'var(--fm)', fontWeight: 700, fontSize: 13,
-                  color: transpose !== 0 ? 'var(--chord)' : 'var(--text)',
-                  appearance: 'none', WebkitAppearance: 'none',
-                  padding: '0 24px 0 10px',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 8px center',
-                }}
-              >
-                {ALL_KEYS.map(k => (
-                  <option key={k} value={k}>{k}{k === song.key ? ' (original)' : ''}</option>
-                ))}
-              </select>
-
-              <button onClick={() => setShowDiagrams(v => !v)} style={toggleStyle(showDiagrams)}>
-                Diagrams
-              </button>
- 
-              {!scrolled && onEdit && (
-                <button onClick={onEdit} style={btnStyle}>
-                  Edit
-                </button>
-              )}
-              {!scrolled && (
-                <button
-                  onClick={() => setShowSettings(v => !v)}
-                  style={{
-                    ...btnStyle,
-                    fontFamily: 'var(--fb)',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    borderColor: showSettings ? 'var(--accent)' : 'var(--border)',
-                    color: showSettings ? 'var(--accent-text)' : 'var(--text)',
-                    background: showSettings ? 'var(--accent-soft)' : 'var(--surface)',
-                  }}
+            <div className="flex gap-1.5 items-center flex-shrink-0">
+              <div className={cn(
+                "flex gap-1.5 items-center transition-all duration-200 overflow-hidden",
+                scrolled ? "max-w-0 opacity-0 pointer-events-none" : "max-w-[200px] opacity-100"
+              )}>
+                <IconButton
+                  variant={showInfo ? 'active' : 'default'}
+                  size="sm"
+                  onClick={toggleInfo}
+                  aria-label="Song info"
                 >
-                  Aa
-                </button>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4" />
+                    <path d="M12 8h.01" />
+                  </svg>
+                </IconButton>
+                <IconButton
+                  variant={showSettings ? 'active' : 'default'}
+                  size="sm"
+                  onClick={toggleAa}
+                  aria-label="Layout settings"
+                >Aa</IconButton>
+                <IconButton
+                  variant={showMusicSettings ? 'active' : 'default'}
+                  size="sm"
+                  onClick={toggleMusic}
+                  aria-label="Music display settings"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                  </svg>
+                </IconButton>
+                <div className="w-px h-5 bg-[var(--border-1)]" />
+              </div>
+
+              <IconButton variant="default" size="sm" onClick={onEdit} aria-label="Edit chart">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+              </IconButton>
+              <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Close">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </IconButton>
+            </div>
+          </div>
+
+          {/* Line 2: Artist + Key / Tempo / Time — collapses when scrolled */}
+          <div className={cn(
+            "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-3 transition-all duration-200 overflow-hidden",
+            scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-12 opacity-100 pb-1.5"
+          )}>
+            <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
+            <div className="w-px h-3.5 bg-[var(--border-1)]" />
+            <Select value={selectedKey} onValueChange={setSelectedKey}>
+              <SelectTrigger className="h-6 px-1.5 border-transparent bg-transparent text-label-14 font-bold text-[var(--text-1)] hover:bg-[var(--bg-2)] gap-1 min-w-0 w-auto focus:ring-0">
+                <span className="text-label-12 font-semibold text-[var(--text-2)] mr-0.5">Key</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ALL_KEYS.map(k => {
+                  const st = semitonesBetween(song.key, k);
+                  const display = st > 6 ? st - 12 : st;
+                  return (
+                    <SelectItem key={k} value={k}>
+                      {k} {st !== 0 && `(${display > 0 ? '+' : ''}${display})`}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            {song.tempo && (
+              <span className="text-label-14 text-[var(--text-2)]">
+                <span className="text-label-12 font-semibold mr-0.5">Tempo</span>
+                <span className="font-bold">{song.tempo}</span>
+              </span>
+            )}
+            {song.time && (
+              <span className="text-label-14 text-[var(--text-2)]">
+                <span className="text-label-12 font-semibold mr-0.5">Time</span>
+                <span className="font-bold">{song.time}</span>
+              </span>
+            )}
+          </div>
+
+          {/* Structure ribbon — always visible */}
+          <div className="max-w-[1600px] mx-auto px-6 pb-2">
+            <StructureRibbon
+              structure={song.sections.map(s => s.type)}
+              compact
+              onSelect={(i) => {
+                const el = document.getElementById(`section-${i}`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            />
+          </div>
+
+          {/* Expanded controls sub-row — collapses when scrolled */}
+          {panelOpen && (
+            <div className={cn(
+              "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-1.5 transition-all duration-200 overflow-hidden",
+              scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-24 opacity-100 pb-3"
+            )}>
+              {showSettings && (
+                <>
+                  <SegmentedControl
+                    value={columns}
+                    onChange={setColumns}
+                    options={[
+                      { value: 1, label: '1 COL' },
+                      { value: 2, label: '2 COL' },
+                    ]}
+                    size="xs"
+                  />
+                  <div className="flex items-center bg-[var(--bg-1)] border border-[var(--border-1)] rounded-lg p-0.5">
+                    <IconButton variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.max(10, prev - 2))}>-</IconButton>
+                    <span className="px-1.5 text-label-10-mono text-[var(--text-2)]">{fontSize}px</span>
+                    <IconButton variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.min(30, prev + 2))}>+</IconButton>
+                  </div>
+                  <Select value={fontFamily} onValueChange={setFontFamily}>
+                    <SelectTrigger className="h-7 px-2 text-label-11 font-medium text-[var(--text-1)] gap-1 min-w-0 w-auto">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(FONT_FAMILIES).map(name => (
+                        <SelectItem key={name} value={name}>
+                          <span style={{ fontFamily: FONT_FAMILIES[name] }}>{name}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+              {showMusicSettings && (
+                <>
+                  <Button
+                    variant={nns ? 'brand' : 'secondary'}
+                    size="xs"
+                    onClick={() => setNns(!nns)}
+                  >NUMBERS</Button>
+                  <Button
+                    variant="secondary"
+                    size="xs"
+                    onClick={() => setShowChords(!showChords)}
+                    className={cn(!showChords && "opacity-40")}
+                  >CHORDS</Button>
+                  <Button
+                    variant={showDiagrams ? 'brand' : 'secondary'}
+                    size="xs"
+                    onClick={() => setShowDiagrams(!showDiagrams)}
+                  >DIAGRAMS</Button>
+                </>
+              )}
+              {showInfo && (
+                hasMetadata ? (
+                  <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-label-14 text-[var(--text-2)]">
+                    {song.capo > 0 && (
+                      <span><span className="font-semibold text-[var(--text-1)]">Capo</span> {song.capo}</span>
+                    )}
+                    {song.ccli && (
+                      <span><span className="font-semibold text-[var(--text-1)]">CCLI</span> {song.ccli}</span>
+                    )}
+                    {song.tags?.length > 0 && (
+                      <span><span className="font-semibold text-[var(--text-1)]">Tags</span> {song.tags.join(', ')}</span>
+                    )}
+                    {song.notes && (
+                      <span><span className="font-semibold text-[var(--text-1)]">Notes</span> {song.notes}</span>
+                    )}
+                    {song.spotify && (
+                      <a href={song.spotify} target="_blank" rel="noopener noreferrer" className="text-[var(--color-brand-text)] hover:underline">
+                        Spotify ↗
+                      </a>
+                    )}
+                    {song.youtube && (
+                      <a href={song.youtube} target="_blank" rel="noopener noreferrer" className="text-[var(--color-brand-text)] hover:underline">
+                        YouTube ↗
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-label-14 text-[var(--text-2)] italic">No additional song info</span>
+                )
               )}
             </div>
           )}
-          {compact && navOverride && <div>{navOverride}</div>}
         </div>
-         
-        <StructureRibbon structure={song.structure || []} compact />
+      )}
 
-        {/* Capo indicator — visible when not scrolled */}
-        {!compact && !scrolled && capo > 0 && (
-          <div style={{ paddingBottom: 4 }}>
-            <MetaPill label="Capo" value={`${capo} → ${transposeKey(song.key, chordTranspose)} shapes`} highlight />
-          </div>
-        )}
-
-        {/* Nav override for non-compact (not in title row) */}
-        {!compact && navOverride && !scrolled && (
-          <div style={{ paddingBottom: 4 }}>
-            {navOverride}
-          </div>
-        )}
-
-        {/* Aa settings popover */}
-        {showSettings && !compact && !scrolled && (
-          <div style={{
-            padding: '10px 0 6px',
-            borderTop: '1px solid var(--border)',
-            display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Layout</span>
-              <button onClick={() => setCols('auto')} style={toggleStyle(cols === 'auto')}>Auto</button>
-              {[1, 2].map(n => (
-                <button key={n} onClick={() => setCols(n)} style={toggleStyle(cols === n)}>
-                  {n}col
-                </button>
-              ))}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>Size</span>
-              {[{ l: 'S', v: 0.88 }, { l: 'M', v: 1 }, { l: 'L', v: 1.14 }].map(({ l, v }) => (
-                <button key={l} onClick={() => setSize(v)} style={toggleStyle(size === v)}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Chord diagram strip */}
-        {showDiagrams && uniqueChords.length > 0 && (
-          <div style={{
-            display: 'flex', gap: 8, flexWrap: 'nowrap',
-            paddingTop: 8, paddingBottom: 4,
-            borderTop: '1px solid var(--border)',
-            marginTop: 4,
-            overflowX: 'auto',
-          }}>
-            {uniqueChords.map(chord => (
-                <ChordDiagram key={chord} chord={chord} size={80} />
+      <div className={cn(
+        "px-6 pt-4 pb-24 max-w-[1600px] mx-auto w-full",
+        isPreview && "px-0 pt-0 pb-0"
+      )}>
+        {/* ── Chord Diagrams Strip ── */}
+        {showDiagrams && !isPreview && (
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-8 mb-8 border-b border-[var(--border-1)]">
+            {allChords.map(chord => (
+              <div key={chord} className="flex flex-col items-center gap-1 flex-shrink-0">
+                <div className="text-label-10-mono font-bold text-[var(--text-2)]">{transposeChord(chord, transpose)}</div>
+                <Card className="w-24 h-28 flex items-center justify-center p-2">
+                   <ChordDiagram chord={transposeChord(chord, transpose)} />
+                </Card>
+              </div>
             ))}
           </div>
         )}
-      </div>
 
-      {/* Chart body */}
-      <div
-        className={cols === 'auto' ? 'chart-auto-cols' : undefined}
-        style={{
-          ...(cols !== 'auto' && {
-            display: isExplicit2Col ? 'grid' : 'block',
-            gridTemplateColumns: isExplicit2Col ? '1fr 1fr' : '1fr',
-          }),
-          gap: 10, padding: '14px 16px 50px',
-          transform: `scale(${size})`, transformOrigin: 'top left',
-          width: size !== 1 ? `${100 / size}%` : '100%',
-        }}
-      >
-        <div>
-          {song.sections.slice(0, mid).map((sec, i) => (
-            <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[i]} />
+        {/* ── Sections ── */}
+        <div
+          className={chartLayout === 'rows' && columns === 2 ? "grid grid-cols-2 gap-x-12 items-start" : undefined}
+          style={{
+            fontSize,
+            fontFamily: FONT_FAMILIES[fontFamily],
+            ...(chartLayout !== 'rows' || columns !== 2 ? { columnCount: columns, columnGap: '3rem' } : {}),
+          }}
+        >
+          {song.sections.map((section, idx) => (
+            <div key={section.id || idx} id={`section-${idx}`} style={{ scrollMarginTop: '10rem', breakInside: 'avoid' }}>
+              <SectionBlock
+                section={section}
+                transpose={transpose}
+                modOffset={sectionModOffsets[idx]}
+                nns={nns}
+                songKey={song.key}
+                showChords={showChords}
+                inlineNotes={showInlineNotes}
+                noteStyle={inlineNoteStyle}
+              />
+            </div>
           ))}
         </div>
-        {(isExplicit2Col || cols === 'auto') && (
-          <div>
-            {song.sections.slice(mid).map((sec, i) => (
-              <SectionBlock key={i} section={sec} transpose={chordTranspose} modulateOffset={sectionModOffsets[mid + i] || 0} showInlineNotes={showInlineNotes} inlineNoteStyle={inlineNoteStyle} displayRole={displayRole} collapsed={collapsedSections[mid + i]} />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

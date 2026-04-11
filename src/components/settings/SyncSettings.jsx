@@ -1,158 +1,63 @@
-import { useState } from 'react';
-import { getProvider, getAvailableProviders } from '../../sync/provider';
-import { setActiveProvider, clearProvider, getSyncState } from '../../sync/tokens';
-
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  fontFamily: 'var(--fm)', display: 'block', marginBottom: 6,
-};
-
-const cB = {
-  borderRadius: 6,
-  border: '1px solid var(--border)',
-  background: 'var(--surface)', color: 'var(--text)',
-  fontSize: 12, cursor: 'pointer', fontWeight: 600,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--fb)', padding: '6px 14px',
-};
+import React from 'react';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 
 export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }) {
-  const [connecting, setConnecting] = useState(null);
-  const [error, setError] = useState(null);
-
-  const handleConnect = async (providerName) => {
-    setConnecting(providerName);
-    setError(null);
-    try {
-      const provider = getProvider(providerName);
-      const tokens = await provider.connect();
-      await setActiveProvider(providerName, tokens);
-      onSyncStateChange({ state: 'idle', lastSync: null, provider: providerName });
-      if (onSyncNow) onSyncNow();
-    } catch (err) {
-      const msg = err.message || '';
-      if (msg.includes('popup') || msg.includes('closed')) {
-        setError('Sign-in was cancelled. Please try again.');
-      } else if (msg.includes('not configured')) {
-        setError(msg);
-      } else {
-        setError(msg || 'Failed to connect. Please try again.');
-      }
-    } finally {
-      setConnecting(null);
-    }
-  };
-
-  const handleDisconnect = async () => {
-    const state = await getSyncState();
-    if (state?.activeProvider) {
-      try {
-        const provider = getProvider(state.activeProvider);
-        await provider.disconnect();
-      } catch { /* ignore */ }
-    }
-    await clearProvider();
-    onSyncStateChange({ state: 'idle', lastSync: null, provider: null });
-  };
-
-  const providers = getAvailableProviders();
-  const connected = syncState.provider;
-  const anyConfigured = providers.some(p => p.configured);
+  const providers = [
+    { id: 'google', name: 'Google Drive', icon: '💾' },
+    { id: 'dropbox', name: 'Dropbox', icon: '📦' },
+    { id: 'onedrive', name: 'OneDrive', icon: '☁️' },
+  ];
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <label style={labelStyle}>Cloud Sync</label>
+    <section className="flex flex-col gap-4">
+      <div className="flex justify-between items-center px-2">
+        <h2 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold">
+          Cloud Sync
+        </h2>
+        {syncState.provider && (
+          <Button variant="ghost" size="sm" onClick={onSyncNow} loading={syncState.state === 'syncing'}>
+            Sync Now
+          </Button>
+        )}
+      </div>
 
-      {connected ? (
-        <div>
-          <div style={{
-            padding: '12px 14px', borderRadius: 8,
-            background: 'var(--surface)', border: '1px solid var(--border)',
-            marginBottom: 8,
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-bright)' }}>
-                  {providers.find(p => p.name === connected)?.displayName || connected}
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {syncState.lastSync
-                    ? `Last synced: ${new Date(syncState.lastSync).toLocaleString()}`
-                    : 'Not yet synced'}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={onSyncNow} style={{
-                  ...cB, padding: '5px 12px',
-                  color: 'var(--accent-text)',
-                  background: 'var(--accent-soft)',
-                  borderColor: 'var(--accent-border)',
-                }}>
-                  Sync Now
-                </button>
-                <button onClick={handleDisconnect} style={{
-                  ...cB, padding: '5px 12px',
-                  color: 'var(--danger)',
-                  background: 'var(--danger-soft)',
-                  borderColor: 'rgba(239,68,68,0.2)',
-                }}>
-                  Disconnect
-                </button>
-              </div>
-            </div>
+      <Card className="flex flex-col p-0 overflow-hidden divide-y divide-[var(--ds-gray-400)] border-[var(--ds-gray-400)]">
+        <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)] hover:bg-[var(--ds-gray-100)] transition-colors">
+          <div className="flex flex-col">
+            <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">Status</span>
+            <span className="text-copy-13 text-[var(--ds-gray-700)]">
+              {syncState.lastSync ? `Last synced: ${new Date(syncState.lastSync).toLocaleString()}` : 'Not connected'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mt-2 sm:mt-0">
+            <div className={`h-2 w-2 rounded-full ${syncState.state === 'syncing' ? 'bg-amber-400 animate-pulse' : syncState.provider ? 'bg-emerald-400' : 'bg-[var(--ds-gray-400)]'}`} />
+            <span className="text-label-12 uppercase font-semibold text-[var(--ds-gray-900)]">
+              {syncState.state === 'syncing' ? 'Syncing...' : syncState.provider ? 'Connected' : 'Disconnected'}
+            </span>
           </div>
         </div>
-      ) : (
-        <div>
-          <div style={{
-            fontSize: 12, color: 'var(--text-dim)', marginBottom: 8, lineHeight: 1.5,
-          }}>
-            Connect a cloud provider to sync songs across devices.
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {providers.map(p => {
-              const disabled = !p.configured || !!connecting;
-              return (
-                <button
-                  key={p.name}
-                  onClick={() => handleConnect(p.name)}
-                  disabled={disabled}
-                  title={!p.configured ? 'Not configured' : undefined}
-                  style={{
-                    ...cB,
-                    padding: '10px 16px',
-                    gap: 6,
-                    opacity: !p.configured ? 0.35 : (connecting && connecting !== p.name ? 0.5 : 1),
-                    cursor: !p.configured ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  <span>{p.icon}</span>
-                  {connecting === p.name ? 'Connecting...' : p.displayName}
-                </button>
-              );
-            })}
-          </div>
-          {!anyConfigured && (
-            <div style={{
-              fontSize: 11, color: 'var(--text-dim)', marginTop: 8, lineHeight: 1.5,
-            }}>
-              No cloud providers are configured. Set OAuth client IDs in the environment to enable sync.
-            </div>
-          )}
-        </div>
-      )}
 
-      {error && (
-        <div style={{
-          marginTop: 8, padding: '8px 12px', borderRadius: 6,
-          background: 'var(--danger-soft)', border: '1px solid rgba(239,68,68,0.2)',
-          fontSize: 12, color: 'var(--danger)',
-        }}>
-          {error}
+        <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)] hover:bg-[var(--ds-gray-100)] transition-colors">
+          <div className="flex flex-col">
+            <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">Provider</span>
+            <span className="text-copy-13 text-[var(--ds-gray-700)]">Choose where your data is stored securely.</span>
+          </div>
+          <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg flex-wrap mt-2 sm:mt-0">
+            {providers.map(p => (
+              <Button
+                key={p.id}
+                size="sm"
+                variant={syncState.provider === p.id ? 'secondary' : 'ghost'}
+                onClick={() => onSyncStateChange({ ...syncState, provider: p.id })}
+                className={syncState.provider === p.id ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+              >
+                {p.icon} {p.name}
+              </Button>
+            ))}
+          </div>
         </div>
-      )}
-    </div>
+      </Card>
+    </section>
   );
 }

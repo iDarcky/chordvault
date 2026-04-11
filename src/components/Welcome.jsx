@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { Button } from './ui/Button';
 
 export default function Welcome({ onGetStarted, onImport }) {
   const fileRef = useRef(null);
@@ -12,129 +13,70 @@ export default function Welcome({ onGetStarted, onImport }) {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 24px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <div className="min-h-screen bg-[var(--ds-background-200)] flex flex-col items-center justify-center px-6 py-10 relative overflow-hidden">
       {/* Background glow */}
-      <div style={{
-        position: 'absolute',
-        top: '30%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 600,
-        height: 600,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, var(--accent-soft) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+      <div
+        className="absolute pointer-events-none w-[600px] h-[600px] rounded-full"
+        style={{
+          top: '30%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'radial-gradient(circle, var(--color-brand-soft) 0%, transparent 70%)',
+        }}
+      />
 
       {/* Logo */}
-      <div style={{
-        width: 80,
-        height: 80,
-        borderRadius: 20,
-        background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontSize: 32,
-        fontWeight: 700,
-        marginBottom: 24,
-        boxShadow: '0 8px 32px var(--accent-border)',
-      }}>
-        SM
+      <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-heading-32 mb-6 shadow-lg"
+        style={{
+          background: 'linear-gradient(135deg, var(--color-brand), #6b9e91)',
+          boxShadow: '0 8px 32px var(--color-brand-border)',
+        }}
+      >
+        CV
       </div>
 
       {/* Title */}
-      <h1 style={{
-        margin: 0,
-        fontSize: 32,
-        fontWeight: 700,
-        color: 'var(--text-bright)',
-        letterSpacing: '-0.02em',
-        textAlign: 'center',
-      }}>
-        Setlists MD
+      <h1 className="text-heading-32 text-[var(--ds-gray-1000)] text-center m-0">
+        ChordVault
       </h1>
 
       {/* Tagline */}
-      <p style={{
-        margin: '8px 0 0',
-        fontSize: 16,
-        color: 'var(--text-muted)',
-        textAlign: 'center',
-        fontFamily: 'var(--fb)',
-      }}>
+      <p className="text-copy-16 text-[var(--ds-gray-600)] text-center mt-2">
         Chord charts for worship teams
       </p>
 
       {/* Description */}
-      <p style={{
-        margin: '16px 0 0',
-        fontSize: 14,
-        color: 'var(--text-dim)',
-        textAlign: 'center',
-        maxWidth: 320,
-        lineHeight: 1.6,
-        fontFamily: 'var(--fb)',
-      }}>
+      <p className="text-copy-14 text-[var(--ds-gray-500)] text-center mt-4 max-w-xs leading-relaxed">
         Build chord charts, create setlists, transpose on the fly.
         Works offline on any device.
       </p>
 
       {/* CTA */}
-      <button
+      <Button
+        variant="brand"
+        size="lg"
         onClick={onGetStarted}
-        style={{
-          marginTop: 40,
-          padding: '14px 48px',
-          borderRadius: 12,
-          border: 'none',
-          background: 'linear-gradient(135deg, #53796F, #6b9e91)',
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          boxShadow: '0 4px 16px var(--accent-border)',
-        }}
+        className="mt-10 px-12"
       >
         Get Started
-      </button>
+      </Button>
 
       {/* Import link */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => fileRef.current?.click()}
-        style={{
-          marginTop: 16,
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          fontSize: 13,
-          cursor: 'pointer',
-          fontFamily: 'var(--fb)',
-          textDecoration: 'underline',
-          textUnderlineOffset: 3,
-        }}
+        className="mt-4 text-[var(--ds-gray-600)] underline underline-offset-4 decoration-[var(--ds-gray-400)]"
       >
-        I already have .md files &mdash; Import
-      </button>
+        I already have .md files — Import
+      </Button>
       <input
         ref={fileRef}
         type="file"
         accept=".md,.txt"
         multiple
         onChange={handleFiles}
-        style={{ display: 'none' }}
+        className="hidden"
       />
     </div>
   );

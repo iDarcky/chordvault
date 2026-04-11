@@ -31,6 +31,7 @@ export async function saveSetlists(setlists) {
 
 export const DEFAULT_SETTINGS = {
   theme: 'dark',
+  userName: '',
   defaultColumns: 'auto',
   defaultFontSize: 'M',
   pedalNext: 'ArrowRight',
@@ -40,6 +41,7 @@ export const DEFAULT_SETTINGS = {
   inlineNoteStyle: 'dashes',
   displayRole: 'leader',
   duplicateSections: 'full',
+  chartLayout: 'columns',
 };
 
 export async function loadSettings() {
