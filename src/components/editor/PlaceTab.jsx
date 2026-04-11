@@ -94,8 +94,20 @@ function InteractiveLine({
           const chordIdx = chord ? chords.indexOf(chord) : -1;
           const selected = chord && isSelected(chordIdx);
  
+          // Check if this chord is too close to the next chord — use dash fill
+          const nextChord = chords.find(c => c.pos > i && c.pos <= i + 2);
+          const needsDash = chord && nextChord && (nextChord.pos - chord.pos) <= chord.chord.length + 1;
+          const isGuided = showGuide && guidePos.charPos === i;
+
           return (
-            <span key={i} className="inline-flex flex-col justify-end" data-char-pos={i}>
+            <span
+              key={i}
+              className="inline-flex flex-col justify-end"
+              data-char-pos={i}
+              style={{
+                borderLeft: isGuided ? '2px solid var(--chord)' : '2px solid transparent',
+              }}
+            >
               {/* Chord slot */}
               <span
                 className="leading-none whitespace-nowrap"
@@ -108,8 +120,9 @@ function InteractiveLine({
                       color: selected ? 'var(--color-brand)' : 'var(--chord)',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 2,
+                      gap: 0,
                       borderBottom: selected ? '2px solid var(--color-brand)' : '2px solid transparent',
+                      animation: selected ? 'pulse 1.5s ease-in-out infinite' : 'none',
                     }}
                     onPointerDown={(e) => {
                       e.stopPropagation();
@@ -117,47 +130,17 @@ function InteractiveLine({
                     }}
                   >
                     {chord.chord}
-                    {selected && (
-                      <button
-                        className="text-[10px] leading-none text-[var(--ds-red-700)] hover:text-[var(--ds-red-1000)] cursor-pointer"
-                        style={{ marginLeft: 1 }}
-                        onPointerDown={(e) => {
-                          e.stopPropagation();
-                          onChordTap(secIdx, lineIdx, chordIdx, 'remove');
-                        }}
-                        aria-label="Remove chord"
-                      >
-                        ✕
-                      </button>
-                    )}
-                    {'\u2003'}
+                    {needsDash ? '-' : '\u2003'}
                   </span>
                 ) : (
                   '\u00A0'
                 )}
               </span>
- 
+
               {/* Character */}
               <span className="text-[var(--text-1)] whitespace-pre leading-tight">
                 {char === ' ' ? '\u00A0' : char}
               </span>
- 
-              {/* Guide line */}
-              {showGuide && guidePos.charPos === i && (
-                <div
-                  className="pointer-events-none absolute"
-                  style={{
-                    left: 'calc(50%)',
-                    top: 0,
-                    bottom: 0,
-                    width: 2,
-                    backgroundColor: 'var(--chord)',
-                    opacity: 0.7,
-                    borderRadius: 1,
-                    zIndex: 10,
-                  }}
-                />
-              )}
             </span>
           );
         })}
@@ -361,8 +344,32 @@ export default function PlaceTab({ md, onChange }) {
  
   return (
     <div className="flex flex-col min-h-0 h-full">
+      {/* Chord Palette — top */}
+      <ChordPalette
+        activeChord={activeChord}
+        onSelect={(chord) => {
+          setActiveChord(chord);
+          setSelectedExisting(null);
+        }}
+        onClear={() => {
+          setActiveChord(null);
+          setSelectedExisting(null);
+        }}
+        songKey={song.key}
+        recentChords={effectiveRecent}
+        selectedChord={selectedExisting ? (() => {
+          const sec = placements[selectedExisting.secIdx];
+          const line = sec?.lines[selectedExisting.lineIdx];
+          return line?.chords?.[selectedExisting.chordIdx]?.chord || null;
+        })() : null}
+        onRemoveSelected={selectedExisting ? () => {
+          const { secIdx, lineIdx, chordIdx } = selectedExisting;
+          handleChordTap(secIdx, lineIdx, chordIdx, 'remove');
+        } : null}
+      />
+
       {/* Scrollable sections */}
-      <div className="flex-1 overflow-auto px-4 pt-2 pb-40">
+      <div className="flex-1 overflow-auto px-4 pt-2 pb-8">
         {placements.map((sec, secIdx) => {
           const s = sectionStyle(sec.type);
           const sectionLabel = sec.type.replace(/:+$/, '');
@@ -442,17 +449,6 @@ export default function PlaceTab({ md, onChange }) {
         })}
       </div>
  
-      {/* Chord Palette */}
-      <ChordPalette
-        activeChord={activeChord}
-        onSelect={(chord) => {
-          setActiveChord(chord);
-          setSelectedExisting(null);
-        }}
-        onClear={() => setActiveChord(null)}
-        songKey={song.key}
-        recentChords={effectiveRecent}
-      />
     </div>
   );
 }
