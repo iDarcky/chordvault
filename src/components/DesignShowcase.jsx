@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from './ui/Button';
-import { Button2 } from './ui/Button2';
+  import { Button2 } from './ui/Button2';
 import { Input } from './ui/Input';
 import { Badge } from './ui/Badge';
 import { Switch } from './ui/Switch';
