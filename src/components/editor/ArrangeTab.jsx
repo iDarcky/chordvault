@@ -1,10 +1,19 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { parseSongMd, songToMd, lineToPlacement, placementToLine, extractInlineNotes } from '../../parser';
 import { sectionStyle } from '../../music';
 import TabBlock from '../TabBlock';
 import ChordPalette from './ChordPalette';
- 
-// Find the closest character position from a pointer event within a line element
+import SectionDrawer from './SectionDrawer';
+import { IconButton } from '../ui/IconButton';
+import { Button } from '../ui/Button';
+
+const SECTION_TYPES = [
+  'Intro', 'Verse', 'Pre Chorus', 'Chorus', 'Bridge',
+  'Instrumental', 'Interlude', 'Tag', 'Vamp', 'Outro', 'Ending', 'Refrain',
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────
+
 function charPosFromPointer(e, lineEl) {
   const chars = lineEl.querySelectorAll('[data-char-pos]');
   if (!chars.length) return 0;
@@ -24,8 +33,7 @@ function charPosFromPointer(e, lineEl) {
   }
   return closest;
 }
- 
-// Parse a line string into placement model, preserving inline notes
+
 function parsePlacementLine(line) {
   const { clean } = extractInlineNotes(line);
   const noteMatch = line.match(/\{!(.*?)\}/);
@@ -34,8 +42,6 @@ function parsePlacementLine(line) {
   return { ...placement, inlineNote };
 }
 
-// Expand plainText with dashes where chords are too close for their labels to fit.
-// Returns { text, displayChords, posMap } where posMap[expandedIdx] = originalIdx.
 function expandForChords(plainText, chords) {
   if (!chords.length) {
     const len = plainText.length || 1;
@@ -55,14 +61,12 @@ function expandForChords(plainText, chords) {
     const chord = sorted[ci];
     const origPos = chord.pos;
 
-    // Copy original text up to this chord's position
     while (srcIdx < origPos && srcIdx < plainText.length) {
       posMap.push(srcIdx);
       expanded += plainText[srcIdx];
       srcIdx++;
     }
 
-    // Where this chord needs to start (after previous chord's label + 1 separator)
     const currentLen = expanded.length;
     const minPos = displayChords.length > 0
       ? displayChords[displayChords.length - 1].pos + displayChords[displayChords.length - 1].chord.length + 1
@@ -78,14 +82,12 @@ function expandForChords(plainText, chords) {
     displayChords.push({ chord: chord.chord, pos: actualPos, origIdx: chord.origIdx });
   }
 
-  // Copy remaining original text
   while (srcIdx < plainText.length) {
     posMap.push(srcIdx);
     expanded += plainText[srcIdx];
     srcIdx++;
   }
 
-  // Ensure at least one character for empty lines with chords
   if (!expanded) {
     expanded = ' ';
     posMap.push(0);
@@ -94,12 +96,13 @@ function expandForChords(plainText, chords) {
   return { text: expanded, displayChords, posMap };
 }
 
-// ─── InteractiveLine ───────────────────────────────────────────────
+// ─── InteractiveLine ──────────────────────────────────────────────
 
 function InteractiveLine({
   plainText, chords, secIdx, lineIdx,
   activeChord, selectedExisting, guidePos,
   onPlace, onChordTap, onGuideUpdate, onGuideClear,
+  onLineClick,
 }) {
   const { text, displayChords, posMap } = useMemo(
     () => expandForChords(plainText, chords),
@@ -112,23 +115,26 @@ function InteractiveLine({
     selectedExisting.lineIdx === lineIdx &&
     selectedExisting.chordIdx === origIdx;
 
+  const isChordMode = activeChord || selectedExisting;
+
   const handlePointerMove = (e) => {
-    if (!activeChord && !selectedExisting) return;
+    if (!isChordMode) return;
     const el = e.currentTarget;
     const pos = charPosFromPointer(e, el);
     onGuideUpdate({ secIdx, lineIdx, charPos: pos });
   };
 
-  const handlePointerLeave = () => {
-    onGuideClear();
-  };
+  const handlePointerLeave = () => { onGuideClear(); };
 
   const handlePointerDown = (e) => {
-    if (!activeChord && !selectedExisting) return;
-    const el = e.currentTarget;
-    const expandedPos = charPosFromPointer(e, el);
-    const origPos = posMap[expandedPos] ?? expandedPos;
-    onPlace(secIdx, lineIdx, origPos);
+    if (isChordMode) {
+      const el = e.currentTarget;
+      const expandedPos = charPosFromPointer(e, el);
+      const origPos = posMap[expandedPos] ?? expandedPos;
+      onPlace(secIdx, lineIdx, origPos);
+    } else {
+      onLineClick(secIdx, lineIdx);
+    }
   };
 
   const showGuide = guidePos &&
@@ -146,7 +152,7 @@ function InteractiveLine({
       onPointerLeave={handlePointerLeave}
       onPointerDown={handlePointerDown}
       style={{
-        cursor: activeChord || selectedExisting ? 'crosshair' : 'default',
+        cursor: isChordMode ? 'crosshair' : 'pointer',
         lineHeight: 1,
       }}
     >
@@ -166,7 +172,6 @@ function InteractiveLine({
                 borderLeft: isGuided ? '2px solid var(--chord)' : '2px solid transparent',
               }}
             >
-              {/* Chord slot */}
               <span
                 className="leading-none whitespace-nowrap"
                 style={{ minHeight: '1.4em', paddingBottom: 2 }}
@@ -192,8 +197,6 @@ function InteractiveLine({
                   '\u00A0'
                 )}
               </span>
-
-              {/* Character */}
               <span className="text-[var(--text-1)] whitespace-pre leading-tight">
                 {char === ' ' ? '\u00A0' : char}
               </span>
@@ -204,21 +207,56 @@ function InteractiveLine({
     </div>
   );
 }
- 
-// ─── PlaceTab ──────────────────────────────────────────────────────
- 
-export default function PlaceTab({ md, onChange }) {
+
+// ─── InlineEditor ─────────────────────────────────────────────────
+
+function InlineEditor({ initialValue, onSave, onCancel }) {
+  const [value, setValue] = useState(initialValue);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.focus();
+      ref.current.selectionStart = ref.current.value.length;
+    }
+  }, []);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); onSave(value); }
+    if (e.key === 'Escape') onCancel();
+  };
+
+  return (
+    <input
+      ref={ref}
+      value={value}
+      onChange={e => setValue(e.target.value)}
+      onKeyDown={handleKeyDown}
+      onBlur={() => onSave(value)}
+      spellCheck={false}
+      className="w-full px-2 py-1 bg-[var(--ds-gray-100)] border border-[var(--chord)] rounded text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
+      style={{ caretColor: 'var(--chord)' }}
+    />
+  );
+}
+
+// ─── ArrangeTab ───────────────────────────────────────────────────
+
+export default function ArrangeTab({ md, onChange }) {
   const [activeChord, setActiveChord] = useState(null);
   const [selectedExisting, setSelectedExisting] = useState(null);
   const [guidePos, setGuidePos] = useState(null);
   const [recentChords, setRecentChords] = useState([]);
- 
-  // Derive song and placements from md (pure computation)
+  const [editingLine, setEditingLine] = useState(null);
+  const [drawerTarget, setDrawerTarget] = useState(null);
+  const isInternalUpdate = useRef(false);
+
+  // Derive song and placements from md
   const song = useMemo(() => {
     try { return parseSongMd(md); }
     catch { return null; }
   }, [md]);
- 
+
   const placements = useMemo(() => {
     if (!song) return [];
     return song.sections.map(sec => ({
@@ -231,7 +269,7 @@ export default function PlaceTab({ md, onChange }) {
     }));
   }, [song]);
 
-    // Collect unique chords in the song for recent suggestions
+  // Collect unique chords for recent suggestions
   const songChords = useMemo(() => {
     const set = new Set();
     for (const sec of placements) {
@@ -244,7 +282,6 @@ export default function PlaceTab({ md, onChange }) {
     return [...set];
   }, [placements]);
 
-    // Effective recent chords: user-placed chords first, then song chords
   const effectiveRecent = useMemo(() => {
     const merged = [...recentChords];
     for (const c of songChords) {
@@ -253,7 +290,13 @@ export default function PlaceTab({ md, onChange }) {
     return merged.slice(0, 12);
   }, [recentChords, songChords]);
 
-    // Helper: apply a chord mutation to placements and emit new md
+  // ─── Song mutation helper ───
+  const emitSong = useCallback((updatedSong) => {
+    isInternalUpdate.current = true;
+    onChange(songToMd(updatedSong));
+  }, [onChange]);
+
+  // ─── Chord placement mutations ───
   const applyMutation = useCallback((mutator) => {
     if (!song) return;
     const newPlacements = mutator(placements);
@@ -273,10 +316,9 @@ export default function PlaceTab({ md, onChange }) {
         }),
       })),
     };
-    onChange(songToMd(updatedSong));
-  }, [song, placements, onChange]);
- 
-  // Add chord to recent list
+    emitSong(updatedSong);
+  }, [song, placements, emitSong]);
+
   const addRecent = useCallback((chord) => {
     setRecentChords(prev => {
       const next = [chord, ...prev.filter(c => c !== chord)];
@@ -284,38 +326,26 @@ export default function PlaceTab({ md, onChange }) {
     });
   }, []);
 
-    // ─── Chord placement ───
   const handlePlace = useCallback((secIdx, lineIdx, charPos) => {
     if (selectedExisting) {
-      // Move mode
       const { secIdx: fromSec, lineIdx: fromLine, chordIdx } = selectedExisting;
       applyMutation(prev => prev.map((sec, si) => ({
         ...sec,
         lines: sec.lines.map((line, li) => {
           if (line.plainText === undefined) return line;
- 
           if (si === fromSec && li === fromLine) {
             const movedChord = line.chords[chordIdx];
             const newChords = line.chords.filter((_, ci) => ci !== chordIdx);
             if (si === secIdx && li === lineIdx) {
-              // Same line: remove + insert
               const filtered = newChords.filter(c => c.pos !== charPos);
-              return {
-                ...line,
-                chords: [...filtered, { chord: movedChord.chord, pos: charPos }]
-                  .sort((a, b) => a.pos - b.pos),
-              };
+              return { ...line, chords: [...filtered, { chord: movedChord.chord, pos: charPos }].sort((a, b) => a.pos - b.pos) };
             }
             return { ...line, chords: newChords };
           }
           if (si === secIdx && li === lineIdx && !(si === fromSec && li === fromLine)) {
             const movedChord = prev[fromSec].lines[fromLine].chords[chordIdx];
             const filtered = line.chords.filter(c => c.pos !== charPos);
-            return {
-              ...line,
-              chords: [...filtered, { chord: movedChord.chord, pos: charPos }]
-                .sort((a, b) => a.pos - b.pos),
-            };
+            return { ...line, chords: [...filtered, { chord: movedChord.chord, pos: charPos }].sort((a, b) => a.pos - b.pos) };
           }
           return line;
         }),
@@ -324,28 +354,21 @@ export default function PlaceTab({ md, onChange }) {
       setGuidePos(null);
       return;
     }
- 
-    if (!activeChord) return;
 
-        // Place new chord
+    if (!activeChord) return;
     applyMutation(prev => prev.map((sec, si) => ({
       ...sec,
       lines: sec.lines.map((line, li) => {
         if (si !== secIdx || li !== lineIdx) return line;
         if (line.plainText === undefined) return line;
         const filtered = line.chords.filter(c => c.pos !== charPos);
-        return {
-          ...line,
-          chords: [...filtered, { chord: activeChord, pos: charPos }]
-            .sort((a, b) => a.pos - b.pos),
-        };
+        return { ...line, chords: [...filtered, { chord: activeChord, pos: charPos }].sort((a, b) => a.pos - b.pos) };
       }),
     })));
     addRecent(activeChord);
     setGuidePos(null);
   }, [activeChord, selectedExisting, applyMutation, addRecent]);
 
-    // ─── Chord tap (select for move, or remove) ───
   const handleChordTap = useCallback((secIdx, lineIdx, chordIdx, action) => {
     if (action === 'remove') {
       applyMutation(prev => prev.map((sec, si) => ({
@@ -353,23 +376,13 @@ export default function PlaceTab({ md, onChange }) {
         lines: sec.lines.map((line, li) => {
           if (si !== secIdx || li !== lineIdx) return line;
           if (line.plainText === undefined) return line;
-          return {
-            ...line,
-            chords: line.chords.filter((_, ci) => ci !== chordIdx),
-          };
+          return { ...line, chords: line.chords.filter((_, ci) => ci !== chordIdx) };
         }),
       })));
       setSelectedExisting(null);
       return;
     }
- 
-        // Toggle selection
-    if (
-      selectedExisting &&
-      selectedExisting.secIdx === secIdx &&
-      selectedExisting.lineIdx === lineIdx &&
-      selectedExisting.chordIdx === chordIdx
-    ) {
+    if (selectedExisting && selectedExisting.secIdx === secIdx && selectedExisting.lineIdx === lineIdx && selectedExisting.chordIdx === chordIdx) {
       setSelectedExisting(null);
     } else {
       setSelectedExisting({ secIdx, lineIdx, chordIdx });
@@ -377,40 +390,110 @@ export default function PlaceTab({ md, onChange }) {
     }
   }, [selectedExisting, applyMutation]);
 
-    // Escape to deselect
+  // ─── Section operations ───
+  const addSection = useCallback(() => {
+    if (!song) return;
+    const typeCounts = {};
+    song.sections.forEach(s => {
+      const base = s.type.replace(/\s*\d+$/, '');
+      typeCounts[base] = (typeCounts[base] || 0) + 1;
+    });
+    const type = song.sections.length === 0 ? 'Verse 1' : 'Verse ' + ((typeCounts['Verse'] || 0) + 1);
+    emitSong({ ...song, sections: [...song.sections, { type, note: '', lines: [''] }] });
+  }, [song, emitSong]);
+
+  const removeSection = useCallback((idx) => {
+    if (!song) return;
+    emitSong({ ...song, sections: song.sections.filter((_, i) => i !== idx) });
+  }, [song, emitSong]);
+
+  const moveSection = useCallback((idx, dir) => {
+    if (!song) return;
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= song.sections.length) return;
+    const arr = [...song.sections];
+    [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+    emitSong({ ...song, sections: arr });
+  }, [song, emitSong]);
+
+  const changeSectionType = useCallback((idx, baseType) => {
+    if (!song) return;
+    const count = song.sections.filter((s, i) => i < idx && s.type.replace(/\s*\d+$/, '') === baseType).length;
+    const needsNumber = ['Verse', 'Pre Chorus', 'Chorus', 'Bridge'].includes(baseType);
+    const label = needsNumber ? `${baseType} ${count + 1}` : baseType;
+    const sections = song.sections.map((s, i) => i === idx ? { ...s, type: label } : s);
+    emitSong({ ...song, sections });
+  }, [song, emitSong]);
+
+  const updateSectionNote = useCallback((idx, note) => {
+    if (!song) return;
+    const sections = song.sections.map((s, i) => i === idx ? { ...s, note } : s);
+    emitSong({ ...song, sections });
+  }, [song, emitSong]);
+
+  // ─── Inline editing ───
+  const handleLineClick = useCallback((secIdx, lineIdx) => {
+    if (activeChord || selectedExisting) return;
+    setEditingLine({ secIdx, lineIdx });
+  }, [activeChord, selectedExisting]);
+
+  const handleInlineSave = useCallback((secIdx, lineIdx, newText) => {
+    if (!song) return;
+    const sections = song.sections.map((sec, si) => {
+      if (si !== secIdx) return sec;
+      const lines = sec.lines.map((line, li) => {
+        if (li !== lineIdx) return line;
+        return newText;
+      });
+      return { ...sec, lines };
+    });
+    emitSong({ ...song, sections });
+    setEditingLine(null);
+  }, [song, emitSong]);
+
+  // ─── Section drawer ───
+  const handleDrawerSave = useCallback((sectionIndex, rawText) => {
+    if (!song) return;
+    const newLines = rawText.split('\n');
+    const sections = song.sections.map((sec, i) => {
+      if (i !== sectionIndex) return sec;
+      return { ...sec, lines: newLines };
+    });
+    emitSong({ ...song, sections });
+    setDrawerTarget(null);
+    setActiveChord(null);
+    setSelectedExisting(null);
+  }, [song, emitSong]);
+
+  // ─── Escape to deselect ───
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape') {
         setSelectedExisting(null);
         setActiveChord(null);
         setGuidePos(null);
+        setEditingLine(null);
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, []);
- 
+
   if (!song) {
     return (
       <div className="flex items-center justify-center h-40 text-[var(--ds-gray-600)]">
-        Start typing in another tab to use Place mode
+        Start typing in the Write tab to use Arrange mode
       </div>
     );
   }
- 
+
   return (
     <div className="flex flex-col min-h-0 h-full">
       {/* Chord Palette — top */}
       <ChordPalette
         activeChord={activeChord}
-        onSelect={(chord) => {
-          setActiveChord(chord);
-          setSelectedExisting(null);
-        }}
-        onClear={() => {
-          setActiveChord(null);
-          setSelectedExisting(null);
-        }}
+        onSelect={(chord) => { setActiveChord(chord); setSelectedExisting(null); setEditingLine(null); }}
+        onClear={() => { setActiveChord(null); setSelectedExisting(null); }}
         songKey={song.key}
         recentChords={effectiveRecent}
         selectedChord={selectedExisting ? (() => {
@@ -429,38 +512,47 @@ export default function PlaceTab({ md, onChange }) {
         {placements.map((sec, secIdx) => {
           const s = sectionStyle(sec.type);
           const sectionLabel = sec.type.replace(/:+$/, '');
- 
+          const baseType = sec.type.replace(/\s*\d+$/, '');
+
           return (
-            <div key={secIdx} className="mb-6 md:mb-8">
+            <div key={secIdx} className="mb-6">
               {/* Section header */}
-              <div className="flex items-center gap-4 mb-3">
-                <div className="flex flex-col">
-                  <span
-                    className="text-label-14 font-black uppercase tracking-[0.15em]"
-                    style={{ color: s.b }}
-                  >
-                    {sectionLabel}:
-                  </span>
-                  {sec.note && (
-                    <span
-                      className="text-label-11 italic text-[var(--text-2)] mt-1 px-1 ml-0.5 border-l-2"
-                      style={{ borderColor: s.br }}
-                    >
-                      {sec.note}
-                    </span>
-                  )}
-                </div>
-                <div className="h-[1px] flex-1 bg-[var(--border-1)] opacity-20" />
+              <div className="flex items-center gap-2 mb-2">
+                <select
+                  value={baseType}
+                  onChange={e => changeSectionType(secIdx, e.target.value)}
+                  className="bg-transparent border-none text-label-14 font-black uppercase tracking-[0.15em] cursor-pointer outline-none"
+                  style={{ color: s.b }}
+                >
+                  {SECTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+
+                <input
+                  value={sec.note || ''}
+                  onChange={e => updateSectionNote(secIdx, e.target.value)}
+                  placeholder="cue..."
+                  className="flex-1 bg-transparent border-none text-label-11 italic text-[var(--text-2)] outline-none min-w-0 px-1"
+                  style={{ borderLeft: sec.note ? `2px solid ${s.br}` : 'none' }}
+                />
+
+                <Button
+                  variant="ghost" size="xs"
+                  onClick={() => setDrawerTarget(secIdx)}
+                  title="Edit section lyrics"
+                >
+                  Edit
+                </Button>
+                <IconButton variant="ghost" size="xs" onClick={() => moveSection(secIdx, -1)} aria-label="Move up">↑</IconButton>
+                <IconButton variant="ghost" size="xs" onClick={() => moveSection(secIdx, 1)} aria-label="Move down">↓</IconButton>
+                <IconButton variant="ghost" size="xs" onClick={() => removeSection(secIdx)} aria-label="Remove section">×</IconButton>
               </div>
- 
+
               {/* Lines */}
               <div>
                 {sec.lines.map((line, lineIdx) => {
-                  // Tab block — read-only
                   if (typeof line === 'object' && line.type === 'tab') {
                     return <TabBlock key={lineIdx} data={line} />;
                   }
-                  // Modulate marker — read-only
                   if (typeof line === 'object' && line.type === 'modulate') {
                     return (
                       <div key={lineIdx} className="my-4 flex items-center gap-4">
@@ -472,8 +564,22 @@ export default function PlaceTab({ md, onChange }) {
                       </div>
                     );
                   }
-                  // Interactive lyric line
                   if (line.plainText !== undefined) {
+                    // Inline editing mode
+                    if (editingLine && editingLine.secIdx === secIdx && editingLine.lineIdx === lineIdx) {
+                      let rawLine = placementToLine({ plainText: line.plainText, chords: line.chords });
+                      if (line.inlineNote) rawLine += ` {!${line.inlineNote}}`;
+                      return (
+                        <div key={lineIdx} className="mb-2">
+                          <InlineEditor
+                            initialValue={rawLine}
+                            onSave={(val) => handleInlineSave(secIdx, lineIdx, val)}
+                            onCancel={() => setEditingLine(null)}
+                          />
+                        </div>
+                      );
+                    }
+
                     return (
                       <div key={lineIdx} className="mb-2 last:mb-0">
                         <InteractiveLine
@@ -488,6 +594,7 @@ export default function PlaceTab({ md, onChange }) {
                           onChordTap={handleChordTap}
                           onGuideUpdate={setGuidePos}
                           onGuideClear={() => setGuidePos(null)}
+                          onLineClick={handleLineClick}
                         />
                         {line.inlineNote && (
                           <span className="text-[var(--text-2)] italic text-[0.8em]">
@@ -503,8 +610,24 @@ export default function PlaceTab({ md, onChange }) {
             </div>
           );
         })}
+
+        {/* Add section button */}
+        <div className="mt-4 mb-8">
+          <Button variant="secondary" size="sm" onClick={addSection}>
+            + Add Section
+          </Button>
+        </div>
       </div>
- 
+
+      {/* Section Drawer */}
+      {drawerTarget !== null && song.sections[drawerTarget] && (
+        <SectionDrawer
+          section={song.sections[drawerTarget]}
+          sectionIndex={drawerTarget}
+          onSave={handleDrawerSave}
+          onClose={() => setDrawerTarget(null)}
+        />
+      )}
     </div>
   );
 }

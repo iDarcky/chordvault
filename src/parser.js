@@ -295,3 +295,61 @@ export function extractInlineNotes(line) {
 export function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
+
+// ─── Frontmatter utilities ────────────────────────────────────────
+
+// Split md into frontmatter and body parts
+export function splitMd(md) {
+  const fmMatch = md.match(/^---\n([\s\S]*?)\n---/);
+  if (!fmMatch) return { frontmatter: '', body: md };
+  return {
+    frontmatter: fmMatch[1],
+    body: md.substring(fmMatch[0].length),
+  };
+}
+
+// Replace frontmatter in md while preserving body exactly
+export function replaceFrontmatter(md, newFrontmatter) {
+  const { body } = splitMd(md);
+  return `---\n${newFrontmatter}\n---${body}`;
+}
+
+// Parse frontmatter text into flat field object (strings, for form editing)
+export function parseFrontmatterFields(frontmatter) {
+  const fields = {
+    title: '', artist: '', key: 'C', tempo: '120', time: '4/4',
+    structure: '', ccli: '', tags: '', capo: '',
+    spotify: '', youtube: '', notes: '',
+  };
+  if (!frontmatter) return fields;
+  frontmatter.split('\n').forEach(line => {
+    const m = line.match(/^(\w[\w\s]*?):\s*(.+)$/);
+    if (m) {
+      const key = m[1].trim().toLowerCase();
+      let val = m[2].trim();
+      // Strip brackets from arrays, quotes from strings
+      if (val.startsWith('[') && val.endsWith(']')) val = val.slice(1, -1);
+      if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+      if (Object.hasOwn(fields, key)) fields[key] = val;
+    }
+  });
+  return fields;
+}
+
+// Serialize field object back to frontmatter text
+export function serializeFrontmatterFields(fields) {
+  const lines = [];
+  if (fields.title) lines.push(`title: ${fields.title}`);
+  if (fields.artist) lines.push(`artist: ${fields.artist}`);
+  if (fields.key) lines.push(`key: ${fields.key}`);
+  if (fields.tempo) lines.push(`tempo: ${fields.tempo}`);
+  if (fields.time) lines.push(`time: ${fields.time}`);
+  if (fields.structure) lines.push(`structure: [${fields.structure}]`);
+  if (fields.ccli) lines.push(`ccli: "${fields.ccli}"`);
+  if (fields.tags) lines.push(`tags: [${fields.tags}]`);
+  if (fields.capo) lines.push(`capo: ${fields.capo}`);
+  if (fields.spotify) lines.push(`spotify: ${fields.spotify}`);
+  if (fields.youtube) lines.push(`youtube: ${fields.youtube}`);
+  if (fields.notes) lines.push(`notes: ${fields.notes}`);
+  return lines.join('\n');
+}
