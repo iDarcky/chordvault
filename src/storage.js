@@ -80,6 +80,19 @@ export async function saveSyncState(state) {
   await set(SYNC_KEY, state);
 }
 
+// Returns null if the API is unavailable, otherwise { usage, quota, ratio }.
+// `ratio` is a number between 0 and 1 indicating how full storage is.
+export async function getStorageEstimate() {
+  try {
+    if (typeof navigator === 'undefined' || !navigator.storage?.estimate) return null;
+    const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+    if (!quota) return { usage, quota, ratio: 0 };
+    return { usage, quota, ratio: usage / quota };
+  } catch {
+    return null;
+  }
+}
+
 export async function loadTombstones() {
   try {
     return pruneTombstones(await get(TOMBSTONES_KEY));

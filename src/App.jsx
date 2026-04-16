@@ -2,7 +2,7 @@ import { Toaster } from "./components/ui/Toaster";
 import { toast } from "./components/ui/use-toast";
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
-import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, loadTombstones, saveTombstones, clearAll } from './storage';
+import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, loadTombstones, saveTombstones, getStorageEstimate, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
 import { createSyncEngine } from './sync/engine';
 import { getSyncState } from './sync/tokens';
@@ -15,6 +15,21 @@ import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
 import DesktopLayout from './components/DesktopLayout';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
+
+const QUOTA_WARN_THRESHOLD = 0.8;
+
+async function maybeWarnQuota(warnedRef) {
+  if (warnedRef.current) return;
+  const est = await getStorageEstimate();
+  if (!est || est.ratio < QUOTA_WARN_THRESHOLD) return;
+  warnedRef.current = true;
+  const pct = Math.round(est.ratio * 100);
+  toast({
+    title: 'Storage almost full',
+    description: `This device has used ${pct}% of its browser storage. Consider exporting and archiving older songs.`,
+    variant: 'error',
+  });
+}
 
 function notifyConflicts(conflicts) {
   const titles = conflicts
@@ -49,6 +64,7 @@ export default function App() {
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
+  const quotaWarnedRef = useRef(false);
 
   // Initialize sync engine
   if (syncEngineRef.current == null) {
@@ -145,12 +161,14 @@ export default function App() {
     if (loaded) {
       saveSongs(songs);
       syncEngineRef.current?.debouncedPush(songs, setlists, tombstones, setTombstones);
+      maybeWarnQuota(quotaWarnedRef);
     }
   }, [songs, loaded]);
   useEffect(() => {
     if (loaded) {
       saveSetlists(setlists);
       syncEngineRef.current?.debouncedPush(songs, setlists, tombstones, setTombstones);
+      maybeWarnQuota(quotaWarnedRef);
     }
   }, [setlists, loaded]);
   useEffect(() => { if (loaded) saveTombstones(tombstones); }, [tombstones, loaded]);
