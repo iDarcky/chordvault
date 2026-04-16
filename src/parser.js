@@ -137,8 +137,10 @@ export function songToMd(song) {
   if (song.youtube) md += `youtube: ${song.youtube}\n`;
   if (song.capo) md += `capo: ${song.capo}\n`;
   if (song.notes) md += `notes: ${song.notes}\n`;
-  if (song.structure?.length) {
-    md += `structure: [${song.structure.join(', ')}]\n`;
+  // Always derive structure from actual sections — keeps frontmatter in sync
+  const derivedStructure = song.sections.map(s => s.type);
+  if (derivedStructure.length) {
+    md += `structure: [${derivedStructure.join(', ')}]\n`;
   }
   md += '---\n\n';
 
@@ -344,7 +346,7 @@ export function serializeFrontmatterFields(fields) {
   if (fields.key) lines.push(`key: ${fields.key}`);
   if (fields.tempo) lines.push(`tempo: ${fields.tempo}`);
   if (fields.time) lines.push(`time: ${fields.time}`);
-  if (fields.structure) lines.push(`structure: [${fields.structure}]`);
+  // structure is auto-derived from sections in songToMd — skip here
   if (fields.ccli) lines.push(`ccli: "${fields.ccli}"`);
   if (fields.tags) lines.push(`tags: [${fields.tags}]`);
   if (fields.capo) lines.push(`capo: ${fields.capo}`);

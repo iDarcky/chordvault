@@ -21,21 +21,17 @@ artist:
 key: C
 tempo: 120
 time: 4/4
-structure: [Verse 1, Chorus]
 ---
 
 ## Verse 1
-[C]Write your [G]lyrics here
 
-## Chorus
-[Am]Add your [F]chorus [C]here
 `;
 
 export default function Editor({ song, onSave, onBack, onDelete }) {
   const [md, setMd] = useState(song ? songToMd(song) : DEFAULT_MD);
   const [activeTab, setActiveTab] = useState('arrange');
   const [preview, setPreview] = useState(null);
-  const [metaPanelOpen, setMetaPanelOpen] = useState(false);
+  const [metaPanelOpen, setMetaPanelOpen] = useState(!song);
   const textareaRef = useRef(null);
 
   // Parse md → preview with debounce
@@ -98,99 +94,61 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] flex flex-col">
+    <div className="h-screen bg-[var(--ds-background-200)] flex flex-col">
       {/* ─── Sticky Header ─── */}
-      <div className="material-header" style={{ padding: '10px 18px 0' }}>
-        {/* Row 1: back, title, delete, save */}
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-2.5">
-            <Button variant="ghost" size="xs" onClick={onBack}>← Back</Button>
-            <span className="text-heading-16 text-[var(--ds-gray-1000)] truncate max-w-[200px]">
-              {preview?.title || (song ? 'Edit Song' : 'New Song')}
-            </span>
-          </div>
+      <div className="material-header" style={{ padding: '8px 16px 0' }}>
+        {/* Row 1: back + title + key/bpm/time + actions */}
+        <div className="flex items-center gap-2 mb-1">
+          <Button variant="ghost" size="xs" onClick={onBack}>←</Button>
+          <span className="text-heading-16 text-[var(--ds-gray-1000)] truncate max-w-[140px]">
+            {preview?.title || (song ? 'Edit Song' : 'New Song')}
+          </span>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2 ml-auto">
+            <select
+              value={currentKey}
+              onChange={e => updateField('key', e.target.value)}
+              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none cursor-pointer"
+            >
+              {ALL_KEYS.map(k => <option key={k} value={k}>{k}</option>)}
+            </select>
+            <input
+              type="number"
+              value={currentTempo}
+              onChange={e => updateField('tempo', e.target.value)}
+              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none w-14"
+              min="30" max="300"
+            />
+            <select
+              value={currentTime}
+              onChange={e => updateField('time', e.target.value)}
+              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none cursor-pointer"
+            >
+              {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+
             {song && onDelete && (
-              <Button
-                variant="error"
-                size="xs"
-                onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }}
-              >
+              <Button variant="error" size="xs" onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }}>
                 Delete
               </Button>
             )}
-            <Button
-              variant="brand"
-              size="xs"
-              onClick={handleSave}
-              disabled={!preview}
-            >
+            <Button variant="brand" size="xs" onClick={handleSave} disabled={!preview}>
               Save
             </Button>
           </div>
         </div>
 
-        {/* Row 2: Key, Tempo, Time — always visible */}
-        <div className="flex items-center gap-3 mb-1.5 pb-1.5 border-b border-[var(--ds-gray-300)]">
-          <label className="flex items-center gap-1.5">
-            <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)]">Key</span>
-            <select
-              value={currentKey}
-              onChange={e => updateField('key', e.target.value)}
-              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md px-2 py-1 text-label-12 font-mono text-[var(--ds-gray-1000)] outline-none cursor-pointer"
-            >
-              {ALL_KEYS.map(k => <option key={k} value={k}>{k}</option>)}
-            </select>
-          </label>
+        {/* Collapsible metadata */}
+        <MetadataPanel
+          md={md}
+          onChange={setMd}
+          isOpen={metaPanelOpen}
+          onToggle={() => setMetaPanelOpen(v => !v)}
+        />
 
-          <label className="flex items-center gap-1.5">
-            <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)]">BPM</span>
-            <input
-              type="number"
-              value={currentTempo}
-              onChange={e => updateField('tempo', e.target.value)}
-              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md px-2 py-1 text-label-12 font-mono text-[var(--ds-gray-1000)] outline-none w-16"
-              min="30"
-              max="300"
-            />
-          </label>
-
-          <label className="flex items-center gap-1.5">
-            <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)]">Time</span>
-            <select
-              value={currentTime}
-              onChange={e => updateField('time', e.target.value)}
-              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md px-2 py-1 text-label-12 font-mono text-[var(--ds-gray-1000)] outline-none cursor-pointer"
-            >
-              {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </label>
-
-          {/* Structure summary */}
-          {preview?.structure?.length > 0 && (
-            <div className="flex-1 overflow-hidden">
-              <span className="text-label-10 text-[var(--ds-gray-500)] truncate block">
-                {preview.structure.join(' → ')}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Row 3: Metadata panel toggle */}
-        <div className="px-0">
-          <MetadataPanel
-            md={md}
-            onChange={setMd}
-            isOpen={metaPanelOpen}
-            onToggle={() => setMetaPanelOpen(v => !v)}
-          />
-        </div>
-
-        {/* Row 4: tabs (left) + tools (right) */}
+        {/* Tabs + tools */}
         <div className="flex items-center justify-between">
           <Tabs tabs={TAB_LIST} activeTab={activeTab} onTabChange={setActiveTab} />
-
           <div className="flex items-center gap-1 pb-1">
             {activeTab === 'write' && (
               <>
@@ -204,7 +162,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
       </div>
 
       {/* ─── Content Area ─── */}
-      <div className="flex-1 min-h-0 overflow-auto p-[18px]">
+      <div className={`flex-1 min-h-0 flex flex-col ${activeTab === 'write' ? 'overflow-auto p-[18px]' : 'overflow-hidden'}`}>
         {renderTab()}
       </div>
     </div>
