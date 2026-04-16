@@ -14,7 +14,7 @@ const SUFFIXES = [
   { label: 'aug', value: 'aug' },
 ];
 
-export default function ChordPicker({ onSelect, onClose, anchorRect }) {
+export default function ChordPicker({ onSelect, onClose, anchorRect, recentChords = [] }) {
   const [root, setRoot] = useState(null);
   const [accidental, setAccidental] = useState('');
   const ref = useRef(null);
@@ -53,6 +53,26 @@ export default function ChordPicker({ onSelect, onClose, anchorRect }) {
         boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
       }}
     >
+      {/* Recent chords (if any) */}
+      {recentChords.length > 0 && (
+        <div className="mb-1.5">
+          <div className="text-label-10 text-[var(--ds-gray-500)] font-mono mb-1 uppercase tracking-wider">
+            Recent
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {recentChords.slice(0, 10).map(c => (
+              <button
+                key={c}
+                onClick={() => { onSelect(c); setRoot(null); setAccidental(''); }}
+                className="rounded-md px-2 py-1 text-label-12 font-semibold font-mono bg-[var(--ds-gray-100)] text-[var(--ds-gray-1000)] border border-[var(--ds-gray-400)] cursor-pointer hover:bg-[var(--ds-gray-200)] transition-colors"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Root row */}
       <div className="flex gap-1 mb-1.5">
         {ROOTS.map(r => (
