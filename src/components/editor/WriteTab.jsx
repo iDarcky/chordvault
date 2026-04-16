@@ -1,29 +1,27 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ChordPicker from './ChordPicker';
 import TabGridEditor from './TabGridEditor';
-import { parseTabBlock } from '../../parser';
+import { parseTabBlock, splitMd, parseFrontmatterFields } from '../../parser';
 import { Button } from '../ui/Button';
-import { IconButton } from '../ui/IconButton';
 
 const SECTION_TYPES = [
   'Intro', 'Verse', 'Pre Chorus', 'Chorus', 'Bridge',
   'Instrumental', 'Interlude', 'Tag', 'Vamp', 'Outro', 'Ending', 'Refrain',
 ];
 
-export default function VisualTab({ md, onChange, textareaRef }) {
+export default function WriteTab({ md, onChange, textareaRef }) {
   const [showChordPicker, setShowChordPicker] = useState(false);
   const [showSectionMenu, setShowSectionMenu] = useState(false);
   const [showCueInput, setShowCueInput] = useState(false);
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [showModMenu, setShowModMenu] = useState(false);
-  const [showMetaForm, setShowMetaForm] = useState(false);
   const [showTabEditor, setShowTabEditor] = useState(false);
+  const [showRef, setShowRef] = useState(false);
   const [tabEditState, setTabEditState] = useState(null);
   const [chordAnchor, setChordAnchor] = useState(null);
   const [popupAnchor, setPopupAnchor] = useState(null);
   const [cueText, setCueText] = useState('');
   const [noteText, setNoteText] = useState('');
-  const toolbarRef = useRef(null);
 
   // ─── Textarea helpers ───
   const insertAtCursor = useCallback((text, opts = {}) => {
@@ -59,7 +57,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
       ta.selectionStart = ta.selectionEnd = newCursor;
       ta.focus();
     });
-  }, [onChange]);
+  }, [onChange, textareaRef]);
 
   // ─── Chord insertion ───
   const handleChordSelect = useCallback((chord) => {
@@ -88,17 +86,15 @@ export default function VisualTab({ md, onChange, textareaRef }) {
       });
     }
     setShowChordPicker(false);
-  }, [onChange]);
+  }, [onChange, textareaRef]);
 
   // ─── Section insertion with auto-numbering ───
   const handleSectionInsert = useCallback((type) => {
-    const regex = new RegExp(`^## ${type}(\\\\s+\\\\d+)?$`, 'gm');
+    const regex = new RegExp(`^## ${type}(\\s+\\d+)?$`, 'gm');
     const matches = md.match(regex);
     const count = matches ? matches.length : 0;
-
     const needsNumber = ['Verse', 'Pre Chorus', 'Chorus', 'Bridge'].includes(type);
     const label = needsNumber ? `${type} ${count + 1}` : (count > 0 ? `${type} ${count + 1}` : type);
-
     insertAtCursor(`## ${label}\n`, { newLine: true });
     setShowSectionMenu(false);
   }, [md, insertAtCursor]);
@@ -150,7 +146,7 @@ export default function VisualTab({ md, onChange, textareaRef }) {
 
     setTabEditState(editState);
     setShowTabEditor(true);
-  }, [md]);
+  }, [md, textareaRef]);
 
   const handleTabEditorSave = useCallback((asciiBlock) => {
     if (tabEditState?.range) {
@@ -164,46 +160,6 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     setShowTabEditor(false);
   }, [tabEditState, md, onChange, insertAtCursor]);
 
-  // ─── Metadata form ───
-  const handleMetaSave = useCallback((meta) => {
-    const fmMatch = md.match(/^---\n([\s\S]*?)\n---/);
-    const body = fmMatch ? md.substring(fmMatch[0].length) : '\n' + md;
-
-    const lines = [];
-    if (meta.title) lines.push(`title: ${meta.title}`);
-    if (meta.artist) lines.push(`artist: ${meta.artist}`);
-    if (meta.key) lines.push(`key: ${meta.key}`);
-    if (meta.tempo) lines.push(`tempo: ${meta.tempo}`);
-    if (meta.time) lines.push(`time: ${meta.time}`);
-    if (meta.structure) lines.push(`structure: [${meta.structure}]`);
-    if (meta.ccli) lines.push(`ccli: ${meta.ccli}`);
-    if (meta.tags) lines.push(`tags: [${meta.tags}]`);
-    if (meta.capo) lines.push(`capo: ${meta.capo}`);
-    if (meta.spotify) lines.push(`spotify: ${meta.spotify}`);
-    if (meta.youtube) lines.push(`youtube: ${meta.youtube}`);
-    if (meta.notes) lines.push(`notes: ${meta.notes}`);
-
-    const newMd = `---\n${lines.join('\n')}\n---${body}`;
-    onChange(newMd);
-    setShowMetaForm(false);
-  }, [md, onChange]);
-
-  const parseMeta = () => {
-    const meta = { title: '', artist: '', key: 'C', tempo: '120', time: '4/4', structure: '', ccli: '', tags: '', capo: '', spotify: '', youtube: '', notes: '' };
-    const fmMatch = md.match(/^---\n([\s\S]*?)\n---/);
-    if (!fmMatch) return meta;
-    fmMatch[1].split('\n').forEach(line => {
-      const m = line.match(/^(\w[\w\s]*?):\s*(.+)$/);
-      if (m) {
-        const key = m[1].trim().toLowerCase();
-        let val = m[2].trim();
-        if (val.startsWith('[') && val.endsWith(']')) val = val.slice(1, -1);
-        if (Object.hasOwn(meta, key)) meta[key] = val;
-      }
-    });
-    return meta;
-  };
-
   const openChordPicker = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setChordAnchor(rect);
@@ -216,17 +172,22 @@ export default function VisualTab({ md, onChange, textareaRef }) {
     setter(true);
   };
 
+  // Get time sig from frontmatter for TabGridEditor
+  const getTime = () => {
+    const fields = parseFrontmatterFields(splitMd(md).frontmatter);
+    return fields.time || '4/4';
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* ─── Toolbar ─── */}
-      <div ref={toolbarRef} className="flex flex-wrap gap-1 py-1.5 border-b border-[var(--ds-gray-300)] mb-2">
-        <ToolBtn label="♪" title="Insert Chord" onClick={openChordPicker} />
-        <ToolBtn label="§" title="Add Section" onClick={(e) => openPopup(setShowSectionMenu, e)} />
-        <ToolBtn label="📢" title="Band Cue" onClick={(e) => openPopup(setShowCueInput, e)} />
-        <ToolBtn label="💬" title="Inline Note" onClick={(e) => openPopup(setShowNoteInput, e)} />
+      <div className="flex flex-wrap gap-1 py-1.5 border-b border-[var(--ds-gray-300)] mb-2">
+        <ToolBtn label="♪" title="Chord" onClick={openChordPicker} />
+        <ToolBtn label="§" title="Section" onClick={(e) => openPopup(setShowSectionMenu, e)} />
+        <ToolBtn label="📢" title="Cue" onClick={(e) => openPopup(setShowCueInput, e)} />
+        <ToolBtn label="💬" title="Note" onClick={(e) => openPopup(setShowNoteInput, e)} />
         <ToolBtn label="↑" title="Modulate" onClick={(e) => openPopup(setShowModMenu, e)} />
-        <ToolBtn label="┃" title="Tab Block" onClick={handleTabInsert} />
-        <ToolBtn label="ⓘ" title="Metadata" onClick={() => setShowMetaForm(true)} />
+        <ToolBtn label="┃" title="Tab" onClick={handleTabInsert} />
       </div>
 
       {/* ─── Textarea ─── */}
@@ -238,6 +199,54 @@ export default function VisualTab({ md, onChange, textareaRef }) {
         className="flex-1 w-full min-h-[50vh] bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-lg p-4 text-copy-13 leading-relaxed text-[var(--ds-gray-1000)] resize-y outline-none font-mono"
         style={{ caretColor: 'var(--chord)' }}
       />
+
+      {/* ─── Syntax Reference ─── */}
+      <button
+        onClick={() => setShowRef(v => !v)}
+        className="bg-transparent border-none cursor-pointer text-[var(--color-brand-text)] text-label-12 font-semibold font-mono py-2 text-left flex items-center gap-1.5"
+      >
+        <span className="text-[10px]">{showRef ? '▾' : '▸'}</span>
+        Syntax Reference
+      </button>
+
+      {showRef && (
+        <div className="mb-2.5 p-3 rounded-lg bg-[var(--color-brand-soft)] border border-[var(--color-brand-border)] text-copy-11 text-[var(--ds-gray-600)] leading-relaxed font-mono">
+          <div className="mb-1.5">
+            <strong className="text-[var(--ds-gray-1000)]">Frontmatter</strong> (between <code>---</code> delimiters):
+          </div>
+          <div className="pl-2.5 mb-2 text-[var(--ds-gray-500)]">
+            title: Song Name<br />
+            artist: Artist Name<br />
+            key: C<br />
+            tempo: 120<br />
+            time: 4/4<br />
+            structure: [Verse 1, Chorus, Verse 2, Chorus]<br />
+            <span className="opacity-50">tags, ccli, spotify, youtube, capo, notes — optional</span>
+          </div>
+          <div className="mb-1.5">
+            <strong className="text-[var(--ds-gray-1000)]">Sections & Chords:</strong>
+          </div>
+          <div className="pl-2.5 text-[var(--ds-gray-500)] mb-2">
+            <strong className="text-[var(--color-brand-text)]">## Section Name</strong> — starts a section<br />
+            <strong className="text-[var(--chord)]">[Chord]</strong>lyrics — inline chords above lyrics<br />
+            <strong className="text-[var(--ds-gray-600)]">&gt; note</strong> — band cue<br />
+          </div>
+          <div className="mb-1.5">
+            <strong className="text-[var(--ds-gray-1000)]">Tab Blocks:</strong>
+          </div>
+          <div className="pl-2.5 text-[var(--ds-gray-500)]">
+            <strong className="text-[var(--color-brand-text)]">{'{'}</strong>tab{'}'} ... {'{'}/tab{'}'}<br />
+            <span className="text-[var(--chord)]">e|--0--2h3--|</span> — string lines (e B G D A E)<br />
+            <span className="opacity-70">Techniques: </span>
+            <strong className="text-[var(--chord)]">h</strong> hammer &nbsp;
+            <strong className="text-[var(--chord)]">p</strong> pull &nbsp;
+            <strong className="text-[var(--chord)]">s</strong> slide &nbsp;
+            <strong className="text-[var(--chord)]">b</strong> bend &nbsp;
+            <strong className="text-[var(--chord)]">x</strong> mute &nbsp;
+            <strong className="text-[var(--chord)]">~</strong> vibrato
+          </div>
+        </div>
+      )}
 
       {/* ─── Popups ─── */}
       {showChordPicker && (
@@ -308,15 +317,11 @@ export default function VisualTab({ md, onChange, textareaRef }) {
         </Popup>
       )}
 
-      {showMetaForm && (
-        <MetadataOverlay meta={parseMeta()} onSave={handleMetaSave} onClose={() => setShowMetaForm(false)} />
-      )}
-
       {showTabEditor && (
         <TabGridEditor
           key={tabEditState?.range?.start ?? 'new'}
           initialTab={tabEditState?.initialTab}
-          time={tabEditState?.time || parseMeta().time}
+          time={tabEditState?.time || getTime()}
           onSave={handleTabEditorSave}
           onClose={() => { setShowTabEditor(false); setTabEditState(null); }}
         />
@@ -369,60 +374,6 @@ function Popup({ anchor, onClose, children }) {
       }}
     >
       {children}
-    </div>
-  );
-}
-
-/* ─── Metadata overlay ─── */
-function MetadataOverlay({ meta, onSave, onClose }) {
-  const [form, setForm] = useState({ ...meta });
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const fields = [
-    { key: 'title', label: 'Title', placeholder: 'Song title' },
-    { key: 'artist', label: 'Artist', placeholder: 'Artist / band' },
-    { key: 'key', label: 'Key', placeholder: 'C' },
-    { key: 'tempo', label: 'Tempo', placeholder: '120' },
-    { key: 'time', label: 'Time', placeholder: '4/4' },
-    { key: 'structure', label: 'Structure', placeholder: 'Verse 1, Chorus, Verse 2, Chorus' },
-    { key: 'ccli', label: 'CCLI', placeholder: 'CCLI number' },
-    { key: 'tags', label: 'Tags', placeholder: 'worship, hymn, fast' },
-    { key: 'capo', label: 'Capo', placeholder: '0' },
-    { key: 'spotify', label: 'Spotify', placeholder: 'https://...' },
-    { key: 'youtube', label: 'YouTube', placeholder: 'https://...' },
-    { key: 'notes', label: 'Notes', placeholder: 'Performance notes' },
-  ];
-
-  return (
-    <div
-      className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center"
-      onClick={onClose}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        className="bg-[var(--ds-background-200)] rounded-xl border border-[var(--ds-gray-400)] p-5 w-[90%] max-w-[420px] max-h-[80vh] overflow-auto"
-      >
-        <div className="text-heading-16 text-[var(--ds-gray-1000)] mb-3.5">
-          Song Metadata
-        </div>
-        {fields.map(f => (
-          <label key={f.key} className="block mb-2.5">
-            <span className="section-title text-[10px] block mb-0.5">
-              {f.label}
-            </span>
-            <input
-              value={form[f.key]}
-              onChange={e => set(f.key, e.target.value)}
-              placeholder={f.placeholder}
-              className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
-            />
-          </label>
-        ))}
-        <div className="flex gap-2 mt-3.5 justify-end">
-          <Button variant="secondary" size="sm" onClick={onClose}>Cancel</Button>
-          <Button variant="brand" size="sm" onClick={() => onSave(form)}>Apply</Button>
-        </div>
-      </div>
     </div>
   );
 }

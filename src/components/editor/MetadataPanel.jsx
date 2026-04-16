@@ -1,0 +1,73 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { splitMd, replaceFrontmatter, parseFrontmatterFields, serializeFrontmatterFields } from '../../parser';
+
+const FIELDS = [
+  { key: 'title', label: 'Title', placeholder: 'Song title', span: 2 },
+  { key: 'artist', label: 'Artist', placeholder: 'Artist / band', span: 2 },
+  { key: 'capo', label: 'Capo', placeholder: '0', span: 1 },
+  { key: 'ccli', label: 'CCLI', placeholder: 'CCLI number', span: 1 },
+  { key: 'tags', label: 'Tags', placeholder: 'worship, hymn, fast', span: 2 },
+  { key: 'spotify', label: 'Spotify', placeholder: 'https://...', span: 2 },
+  { key: 'youtube', label: 'YouTube', placeholder: 'https://...', span: 2 },
+  { key: 'notes', label: 'Notes', placeholder: 'Performance notes', span: 2 },
+];
+
+export default function MetadataPanel({ md, onChange, isOpen, onToggle }) {
+  const isInternalUpdate = useRef(false);
+
+  const [fields, setFields] = useState(() => parseFrontmatterFields(splitMd(md).frontmatter));
+
+  // Sync from external md changes (e.g., WriteTab edited frontmatter directly)
+  useEffect(() => {
+    if (isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return;
+    }
+    setFields(parseFrontmatterFields(splitMd(md).frontmatter));
+  }, [md]);
+
+  const handleChange = useCallback((key, value) => {
+    setFields(prev => {
+      const updated = { ...prev, [key]: value };
+      isInternalUpdate.current = true;
+      onChange(replaceFrontmatter(md, serializeFrontmatterFields(updated)));
+      return updated;
+    });
+  }, [md, onChange]);
+
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center gap-1.5 bg-transparent border-none cursor-pointer px-0 py-1.5 text-left"
+      >
+        <span className="text-[10px] text-[var(--ds-gray-600)]">{isOpen ? '▾' : '▸'}</span>
+        <span className="text-label-11 font-semibold text-[var(--ds-gray-600)] uppercase tracking-wider">
+          Song Details
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="grid grid-cols-2 gap-2 pb-3">
+          {FIELDS.map(f => (
+            <label
+              key={f.key}
+              className="block"
+              style={{ gridColumn: f.span === 2 ? 'span 2' : 'span 1' }}
+            >
+              <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)] block mb-0.5">
+                {f.label}
+              </span>
+              <input
+                value={fields[f.key]}
+                onChange={e => handleChange(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
+              />
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
