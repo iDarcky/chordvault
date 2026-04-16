@@ -17,10 +17,10 @@
 }
 
 @theme {
-  --color-brand: #53796F;
-  --color-brand-soft: rgba(83, 121, 111, 0.15);
-  --color-brand-text: #7fb3a6;
-  --color-brand-border: rgba(83, 121, 111, 0.3);
+  --color-brand: hsl(164, 19%, 40%);
+  --color-brand-soft: hsla(164, 19%, 40%, 0.15);
+  --color-brand-text: hsl(164, 19%, 40%);
+  --color-brand-border: hsla(164, 19%, 40%, 0.3);
 
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
@@ -93,7 +93,7 @@
   --ds-teal-600-value: 172, 85%, 32%;
   --ds-teal-700-value: 173, 80%, 36%;
   --ds-teal-800-value: 173, 83%, 30%;
-  --ds-teal-900-value: 174, 90%, 41%;
+  --ds-teal-900-value: 164, 19%, 40%;
   --ds-teal-1000-value: 166, 71%, 93%;
 
   --ds-purple-100-value: 283, 30%, 12%;
@@ -260,17 +260,28 @@
   --text-2: var(--ds-gray-900);
   --text-1: var(--ds-gray-1000);
 
-  /* Functional tokens */
   --chord: #e2a832;
   --header-bg: rgba(0, 0, 0, 0.92);
   --header-bg-blur: rgba(0, 0, 0, 0.65);
   --fm: var(--font-mono);
+
+  /* Shared Dashboard Surfaces (Dark Default) */
+  --dashboard-hero-bg: hsl(0, 0%, 4%);
+  --dashboard-hero-hover: hsl(0, 0%, 6%);
+  --dashboard-row-odd-bg: hsl(0, 0%, 4%);
+  --dashboard-row-even-bg: hsl(0, 0%, 0%);
 }
 
 @layer base {
   [data-theme="light"] {
     --ds-background-100: #ffffff;
     --ds-background-200: #F9FAFB;
+
+    /* Dashboard Surfaces (Light Mode) */
+    --dashboard-hero-bg: hsl(0, 0%, 100%);
+    --dashboard-hero-hover: #fafafa;
+    --dashboard-row-odd-bg: hsl(0, 0%, 100%);
+    --dashboard-row-even-bg: hsl(210, 20%, 98%);
 
         /* Geist Gray Scale (Light Mode) */
     --ds-gray-100-value: 0, 0%, 95%;
@@ -336,7 +347,7 @@
     --ds-teal-600-value: 170, 70%, 57%;
     --ds-teal-700-value: 173, 80%, 36%;
     --ds-teal-800-value: 173, 83%, 30%;
-    --ds-teal-900-value: 174, 91%, 25%;
+    --ds-teal-900-value: 164, 19%, 40%;
     --ds-teal-1000-value: 171, 80%, 13%;
 
     --ds-purple-100-value: 276, 100%, 97%;
@@ -518,7 +529,7 @@
 @layer utilities {
   /* Vercel Materials */
   .material-page {
-    background-color: var(--ds-background-200);
+    background-color: var(--ds-background-100);
   }
   .material-panel {
     background-color: var(--ds-background-100);
@@ -581,6 +592,16 @@
       display: block;
     }
   }
+
+  /* A4 Rule Layout Constraint */
+  .a4-container {
+    width: 100%;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
 }
 
 /* Responsive: phone — larger touch targets */
@@ -591,40 +612,40 @@
 }
 
 /* Geist Typography Utilities */
-@utility text-heading-72 { font-size: 72px; line-height: 80px; letter-spacing: -0.05em; font-weight: 600; }
-@utility text-heading-64 { font-size: 64px; line-height: 72px; letter-spacing: -0.05em; font-weight: 600; }
-@utility text-heading-56 { font-size: 56px; line-height: 64px; letter-spacing: -0.04em; font-weight: 600; }
-@utility text-heading-48 { font-size: 48px; line-height: 56px; letter-spacing: -0.04em; font-weight: 600; }
-@utility text-heading-40 { font-size: 40px; line-height: 48px; letter-spacing: -0.03em; font-weight: 600; }
-@utility text-heading-32 { font-size: 32px; line-height: 40px; letter-spacing: -0.03em; font-weight: 600; }
-@utility text-heading-24 { font-size: 24px; line-height: 32px; letter-spacing: -0.02em; font-weight: 600; }
-@utility text-heading-20 { font-size: 20px; line-height: 28px; letter-spacing: -0.02em; font-weight: 600; }
-@utility text-heading-18 { font-size: 18px; line-height: 26px; letter-spacing: -0.015em; font-weight: 600; }
-@utility text-heading-16 { font-size: 16px; line-height: 24px; letter-spacing: -0.01em; font-weight: 600; }
-@utility text-heading-14 { font-size: 14px; line-height: 20px; font-weight: 600; }
+@utility text-heading-72 { font-size: 80px; line-height: 88px; letter-spacing: -0.05em; font-weight: 600; }
+@utility text-heading-64 { font-size: 72px; line-height: 80px; letter-spacing: -0.05em; font-weight: 600; }
+@utility text-heading-56 { font-size: 64px; line-height: 72px; letter-spacing: -0.04em; font-weight: 600; }
+@utility text-heading-48 { font-size: 56px; line-height: 64px; letter-spacing: -0.04em; font-weight: 600; }
+@utility text-heading-40 { font-size: 48px; line-height: 56px; letter-spacing: -0.03em; font-weight: 600; }
+@utility text-heading-32 { font-size: 36px; line-height: 44px; letter-spacing: -0.03em; font-weight: 600; }
+@utility text-heading-24 { font-size: 26px; line-height: 34px; letter-spacing: -0.02em; font-weight: 600; }
+@utility text-heading-20 { font-size: 22px; line-height: 30px; letter-spacing: -0.02em; font-weight: 600; }
+@utility text-heading-18 { font-size: 20px; line-height: 28px; letter-spacing: -0.015em; font-weight: 600; }
+@utility text-heading-16 { font-size: 18px; line-height: 26px; letter-spacing: -0.01em; font-weight: 600; }
+@utility text-heading-14 { font-size: 16px; line-height: 22px; font-weight: 600; }
 
-@utility text-label-20 { font-size: 20px; line-height: 24px; font-weight: 500; }
-@utility text-label-18 { font-size: 18px; line-height: 22px; font-weight: 500; }
-@utility text-label-16 { font-size: 16px; line-height: 20px; font-weight: 500; }
-@utility text-label-14 { font-size: 14px; line-height: 18px; font-weight: 500; }
-@utility text-label-14-mono { font-family: var(--fm); font-size: 14px; line-height: 18px; font-weight: 500; }
-@utility text-label-13 { font-size: 13px; line-height: 16px; font-weight: 500; }
-@utility text-label-13-mono { font-family: var(--fm); font-size: 13px; line-height: 16px; font-weight: 500; }
-@utility text-label-12 { font-size: 12px; line-height: 14px; font-weight: 500; }
-@utility text-label-12-mono { font-family: var(--fm); font-size: 12px; line-height: 14px; font-weight: 500; }
-@utility text-label-11 { font-size: 11px; line-height: 13px; font-weight: 500; }
-@utility text-label-11-mono { font-family: var(--fm); font-size: 11px; line-height: 13px; font-weight: 500; }
-@utility text-label-10 { font-size: 10px; line-height: 12px; font-weight: 500; }
-@utility text-label-10-mono { font-family: var(--fm); font-size: 10px; line-height: 12px; font-weight: 500; }
+@utility text-label-20 { font-size: 22px; line-height: 26px; font-weight: 500; }
+@utility text-label-18 { font-size: 20px; line-height: 24px; font-weight: 500; }
+@utility text-label-16 { font-size: 18px; line-height: 22px; font-weight: 500; }
+@utility text-label-14 { font-size: 16px; line-height: 20px; font-weight: 500; }
+@utility text-label-14-mono { font-family: var(--fm); font-size: 16px; line-height: 20px; font-weight: 500; }
+@utility text-label-13 { font-size: 15px; line-height: 18px; font-weight: 500; }
+@utility text-label-13-mono { font-family: var(--fm); font-size: 15px; line-height: 18px; font-weight: 500; }
+@utility text-label-12 { font-size: 14px; line-height: 16px; font-weight: 500; }
+@utility text-label-12-mono { font-family: var(--fm); font-size: 14px; line-height: 16px; font-weight: 500; }
+@utility text-label-11 { font-size: 13px; line-height: 15px; font-weight: 500; }
+@utility text-label-11-mono { font-family: var(--fm); font-size: 13px; line-height: 15px; font-weight: 500; }
+@utility text-label-10 { font-size: 12px; line-height: 14px; font-weight: 500; }
+@utility text-label-10-mono { font-family: var(--fm); font-size: 12px; line-height: 14px; font-weight: 500; }
 
-@utility text-copy-24 { font-size: 24px; line-height: 36px; font-weight: 400; }
-@utility text-copy-20 { font-size: 20px; line-height: 32px; font-weight: 400; }
-@utility text-copy-18 { font-size: 18px; line-height: 28px; font-weight: 400; }
-@utility text-copy-16 { font-size: 16px; line-height: 24px; font-weight: 400; }
-@utility text-copy-14 { font-size: 14px; line-height: 22px; font-weight: 400; }
-@utility text-copy-13 { font-size: 13px; line-height: 20px; font-weight: 400; }
-@utility text-copy-13-mono { font-family: var(--fm); font-size: 13px; line-height: 20px; font-weight: 400; }
-@utility text-copy-12 { font-size: 12px; line-height: 18px; font-weight: 400; }
+@utility text-copy-24 { font-size: 26px; line-height: 38px; font-weight: 400; }
+@utility text-copy-20 { font-size: 22px; line-height: 34px; font-weight: 400; }
+@utility text-copy-18 { font-size: 20px; line-height: 30px; font-weight: 400; }
+@utility text-copy-16 { font-size: 18px; line-height: 26px; font-weight: 400; }
+@utility text-copy-14 { font-size: 16px; line-height: 24px; font-weight: 400; }
+@utility text-copy-13 { font-size: 15px; line-height: 22px; font-weight: 400; }
+@utility text-copy-13-mono { font-family: var(--fm); font-size: 15px; line-height: 22px; font-weight: 400; }
+@utility text-copy-12 { font-size: 14px; line-height: 20px; font-weight: 400; }
 @utility text-copy-11 { font-size: 11px; line-height: 16px; font-weight: 400; }
 
 @utility text-button-16 { font-size: 16px; line-height: 16px; font-weight: 500; }

@@ -27,10 +27,10 @@ const IconButton = React.forwardRef(({
   };
 
   const sizes = {
-    xs: "h-6 w-6 text-[12px]",
-    sm: "h-7 w-7 text-[13px]",
-    md: "h-8 w-8 text-[15px]",
-    lg: "h-10 w-10 text-[18px]",
+    xs: "h-7 w-7 text-[13px]",
+    sm: "h-8 w-8 text-[14px]",
+    md: "h-10 w-10 text-[16px]",
+    lg: "h-12 w-12 text-[20px]",
   };
 
   return (

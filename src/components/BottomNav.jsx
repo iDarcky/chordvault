@@ -43,7 +43,7 @@ const tabs = [
 export default function BottomNav({ activeView, onNavigate }) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)] border-t border-[var(--ds-gray-200)]"
+      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)] border-t border-[var(--ds-gray-200)] sm:hidden"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         height: 'calc(64px + env(safe-area-inset-bottom, 0px))',

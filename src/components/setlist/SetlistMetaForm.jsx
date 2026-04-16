@@ -6,7 +6,7 @@ const MAX_TAGS = 3;
 /**
  * Setlist metadata form — name, date, freeform tags.
  */
-export default function SetlistMetaForm({ name, date, tags, onNameChange, onDateChange, onTagsChange }) {
+export default function SetlistMetaForm({ name, date, time = '20:00', location = '', tags, onNameChange, onDateChange, onTimeChange, onLocationChange, onTagsChange }) {
   const [tagInput, setTagInput] = useState('');
 
   const addTag = () => {
@@ -44,13 +44,33 @@ export default function SetlistMetaForm({ name, date, tags, onNameChange, onDate
         />
       </div>
 
-      {/* Date */}
+      {/* Date & Time */}
+      <div className="flex gap-4">
+        <div className="flex-1 flex flex-col gap-1">
+          <label className="section-title px-0.5">Date</label>
+          <Input
+            type="date"
+            value={date}
+            onChange={e => onDateChange(e.target.value)}
+          />
+        </div>
+        <div className="w-32 flex flex-col gap-1">
+          <label className="section-title px-0.5">Time</label>
+          <Input
+            type="time"
+            value={time}
+            onChange={e => onTimeChange(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Location */}
       <div className="flex flex-col gap-1">
-        <label className="section-title px-0.5">Date</label>
+        <label className="section-title px-0.5">Location</label>
         <Input
-          type="date"
-          value={date}
-          onChange={e => onDateChange(e.target.value)}
+          value={location}
+          onChange={e => onLocationChange(e.target.value)}
+          placeholder="e.g. The Blue Note"
         />
       </div>
 

@@ -86,7 +86,7 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
     <div className="min-h-screen material-page pb-32">
       <PageHeader title="Setlists" />
 
-      <div className="max-w-3xl mx-auto px-6 flex flex-col gap-0">
+      <div className="a4-container flex flex-col gap-0">
 
         {/* Sticky Search */}
         <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4">
@@ -102,7 +102,7 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
             </svg>
             <input
               type="text"
-              placeholder="Search setlists..."
+              placeholder="Search setlists…"
               value={query}
               onChange={e => setQuery(e.target.value)}
               className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"

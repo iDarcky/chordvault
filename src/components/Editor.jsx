@@ -96,8 +96,9 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
   return (
     <div className="h-screen bg-[var(--ds-background-200)] flex flex-col">
       {/* ─── Sticky Header ─── */}
-      <div className="material-header" style={{ padding: '8px 16px 0' }}>
-        {/* Row 1: back + title + key/bpm/time + actions */}
+      <div className="material-header border-b border-[var(--ds-gray-200)] pb-1">
+        <div className="a4-container pt-2 flex flex-col gap-1">
+          {/* Row 1: back + title + key/bpm/time + actions */}
         <div className="flex items-center gap-2 mb-1">
           <Button variant="ghost" size="xs" onClick={onBack}>←</Button>
           <span className="text-heading-16 text-[var(--ds-gray-1000)] truncate max-w-[140px]">
@@ -159,10 +160,11 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
             <IconButton variant="ghost" size="xs" onClick={handleImport} aria-label="Import from clipboard">📋</IconButton>
           </div>
         </div>
+        </div>
       </div>
 
       {/* ─── Content Area ─── */}
-      <div className={`flex-1 min-h-0 flex flex-col ${activeTab === 'write' ? 'overflow-auto p-[18px]' : 'overflow-hidden'}`}>
+      <div className={`flex-1 min-h-0 flex flex-col a4-container w-full ${activeTab === 'write' ? 'overflow-auto py-[18px] px-0' : 'overflow-hidden'}`}>
         {renderTab()}
       </div>
     </div>

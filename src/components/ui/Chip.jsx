@@ -26,9 +26,9 @@ const Chip = React.forwardRef(({
   };
 
   const sizes = {
-    sm: 'px-1.5 py-0.5 text-[10px] tracking-wider',
-    md: 'px-2 py-0.5 text-[11px] tracking-wide',
-    lg: 'px-2.5 py-1 text-[12px] tracking-wide',
+    sm: 'px-1.5 py-0.5 text-[12px] tracking-wider',
+    md: 'px-2 py-0.5 text-[13px] tracking-wide',
+    lg: 'px-2.5 py-1 text-[14px] tracking-wide',
   };
 
   return (

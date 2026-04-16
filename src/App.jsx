@@ -12,6 +12,7 @@ import Library from './components/Library';
 import Settings from './components/Settings';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
+import DesktopLayout from './components/DesktopLayout';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
 // Lazy-loaded: heavy secondary views not needed on initial render
@@ -319,124 +320,128 @@ export default function App() {
           }}
         />
       )}
-      {view === 'home' && (
-        <Dashboard
-          songs={songs}
-          setlists={setlists}
-          settings={settings}
-          onSelectSong={goChart}
-          onNewSong={() => goEditor()}
-          onNewSetlist={() => goSetlistBuild()}
-          onViewSetlist={goSetlistView}
-          onPlaySetlist={goSetlistPlay}
-          onGoLibrary={goLibrary}
-          onGoSetlists={goSetlists}
-        />
-      )}
-      {view === 'library' && (
-        <Library
-          songs={songs}
-          loaded={loaded}
-          onSelectSong={goChart}
-          onNewSong={() => goEditor()}
-          onImportSong={handleImportSong}
-        />
-      )}
-      {view === 'setlists' && (
-        <Setlists
-          songs={songs}
-          setlists={setlists}
-          loaded={loaded}
-          onViewSetlist={goSetlistView}
-          onPlaySetlist={goSetlistPlay}
-          onNewSetlist={() => goSetlistBuild()}
-          onImportSetlist={handleImportSetlist}
-        />
-      )}
-      {view === 'chart' && currentSong && (
-        <ChartView
-          song={currentSong}
-          onBack={goBack}
-          onEdit={() => goEditor(currentSong)}
-          defaultColumns={settings?.defaultColumns}
-          defaultFontSize={settings?.defaultFontSize}
-          showInlineNotes={settings?.showInlineNotes !== false}
-          inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
-          displayRole={settings?.displayRole || 'leader'}
-          duplicateSections={settings?.duplicateSections || 'full'}
-          chartLayout={settings?.chartLayout || 'columns'}
-        />
-      )}
-      {view === 'editor' && (
-        <Editor
-          song={currentSong}
-          onSave={handleSaveSong}
-          onBack={goBack}
-          onDelete={currentSong ? handleDeleteSong : null}
-        />
-      )}
-      {view === 'setlist-view' && currentSetlist && (
-        <SetlistOverview
-          setlist={currentSetlist}
-          songs={songs}
-          onBack={goBack}
-          onEdit={() => goSetlistBuild(currentSetlist)}
-          onExport={() => handleExportSetlist(currentSetlist)}
-          onPlay={() => goSetlistPlay(currentSetlist)}
-          onDelete={() => handleDeleteSetlist(currentSetlist.id)}
-        />
-      )}
-      {view === 'setlist-build' && (
-        <SetlistBuilder
-          songs={songs}
-          setlist={currentSetlist}
-          onSave={handleSaveSetlist}
-          onBack={goBack}
-          onDelete={currentSetlist ? handleDeleteSetlist : null}
-        />
-      )}
-      {view === 'setlist-play' && currentSetlist && (
-        <SetlistPlayer
-          setlist={currentSetlist}
-          songs={songs}
-          onBack={goBack}
-          defaultColumns={settings?.defaultColumns}
-          defaultFontSize={settings?.defaultFontSize}
-          showInlineNotes={settings?.showInlineNotes !== false}
-          inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
-          displayRole={settings?.displayRole || 'leader'}
-          duplicateSections={settings?.duplicateSections || 'full'}
-        />
-      )}
-      {view === "design" && (
-        <DesignShowcase onBack={() => setView("settings")} />
-      )}
-      {view === "settings" && settings && (
-        <Settings
-          settings={settings}
-          onUpdate={setSettings}
-          onClearAll={handleClearAll}
-          onDownloadSongs={() => {
-            songs.forEach(s => {
-              const md = songToMd(s);
-              const blob = new Blob([md], { type: 'text/markdown' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = s.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.md';
-              a.click();
-              URL.revokeObjectURL(url);
-            });
-          }}
-          songCount={songs.length}
-          setlistCount={setlists.length}
-          syncState={syncState}
-          onSyncStateChange={setSyncState}
-          onSyncNow={triggerSync} onDesign={() => setView("design")}
-        />
-      )}
-      {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
-        <BottomNav activeView={view === 'setlist-view' ? 'setlists' : view} onNavigate={goToMainView} />
+      {!['welcome', 'onboarding'].includes(view) && (
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView}>
+          {view === 'home' && (
+            <Dashboard
+              songs={songs}
+              setlists={setlists}
+              settings={settings}
+              onSelectSong={goChart}
+              onNewSong={() => goEditor()}
+              onNewSetlist={() => goSetlistBuild()}
+              onViewSetlist={goSetlistView}
+              onPlaySetlist={goSetlistPlay}
+              onGoLibrary={goLibrary}
+              onGoSetlists={goSetlists}
+            />
+          )}
+          {view === 'library' && (
+            <Library
+              songs={songs}
+              loaded={loaded}
+              onSelectSong={goChart}
+              onNewSong={() => goEditor()}
+              onImportSong={handleImportSong}
+            />
+          )}
+          {view === 'setlists' && (
+            <Setlists
+              songs={songs}
+              setlists={setlists}
+              loaded={loaded}
+              onViewSetlist={goSetlistView}
+              onPlaySetlist={goSetlistPlay}
+              onNewSetlist={() => goSetlistBuild()}
+              onImportSetlist={handleImportSetlist}
+            />
+          )}
+          {view === 'chart' && currentSong && (
+            <ChartView
+              song={currentSong}
+              onBack={goBack}
+              onEdit={() => goEditor(currentSong)}
+              defaultColumns={settings?.defaultColumns}
+              defaultFontSize={settings?.defaultFontSize}
+              showInlineNotes={settings?.showInlineNotes !== false}
+              inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
+              displayRole={settings?.displayRole || 'leader'}
+              duplicateSections={settings?.duplicateSections || 'full'}
+              chartLayout={settings?.chartLayout || 'columns'}
+            />
+          )}
+          {view === 'editor' && (
+            <Editor
+              song={currentSong}
+              onSave={handleSaveSong}
+              onBack={goBack}
+              onDelete={currentSong ? handleDeleteSong : null}
+            />
+          )}
+          {view === 'setlist-view' && currentSetlist && (
+            <SetlistOverview
+              setlist={currentSetlist}
+              songs={songs}
+              onBack={goBack}
+              onEdit={() => goSetlistBuild(currentSetlist)}
+              onExport={() => handleExportSetlist(currentSetlist)}
+              onPlay={() => goSetlistPlay(currentSetlist)}
+              onDelete={() => handleDeleteSetlist(currentSetlist.id)}
+            />
+          )}
+          {view === 'setlist-build' && (
+            <SetlistBuilder
+              songs={songs}
+              setlist={currentSetlist}
+              onSave={handleSaveSetlist}
+              onBack={goBack}
+              onDelete={currentSetlist ? handleDeleteSetlist : null}
+            />
+          )}
+          {view === 'setlist-play' && currentSetlist && (
+            <SetlistPlayer
+              setlist={currentSetlist}
+              songs={songs}
+              onBack={goBack}
+              defaultColumns={settings?.defaultColumns}
+              defaultFontSize={settings?.defaultFontSize}
+              showInlineNotes={settings?.showInlineNotes !== false}
+              inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
+              displayRole={settings?.displayRole || 'leader'}
+              duplicateSections={settings?.duplicateSections || 'full'}
+            />
+          )}
+          {view === "design" && (
+            <DesignShowcase onBack={() => setView("settings")} />
+          )}
+          {view === "settings" && settings && (
+            <Settings
+              settings={settings}
+              onUpdate={setSettings}
+              onClearAll={handleClearAll}
+              onDownloadSongs={() => {
+                songs.forEach(s => {
+                  const md = songToMd(s);
+                  const blob = new Blob([md], { type: 'text/markdown' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = s.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.md';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                });
+              }}
+              songCount={songs.length}
+              setlistCount={setlists.length}
+              syncState={syncState}
+              onSyncStateChange={setSyncState}
+              onSyncNow={triggerSync} onDesign={() => setView("design")}
+            />
+          )}
+          {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
+            <BottomNav activeView={view === 'setlist-view' ? 'setlists' : view} onNavigate={goToMainView} />
+          )}
+        </DesktopLayout>
       )}
       <Toaster />
     </Suspense>

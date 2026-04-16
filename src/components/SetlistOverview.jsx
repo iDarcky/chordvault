@@ -22,9 +22,10 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
     return { songCount: sc, breakCount: bc };
   }, [setlist, songs]);
 
-  const dateStr = new Date(setlist.date + 'T12:00:00').toLocaleDateString('en-US', {
+  const dateStr = new Date(setlist.date + 'T' + (setlist.time || '12:00') + ':00').toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
+  const timeStr = setlist.time ? new Date(`1970-01-01T${setlist.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' }) : '';
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this setlist? This cannot be undone.')) {
@@ -35,17 +36,17 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
   const actionIcons = (
     <div className="flex items-center gap-1 shrink-0">
       <IconButton variant="ghost" size="sm" onClick={onExport} aria-label="Export setlist">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
       </IconButton>
       <IconButton variant="ghost" size="sm" onClick={onEdit} aria-label="Edit setlist">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </IconButton>
       <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Close">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </IconButton>
@@ -57,7 +58,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
 
       {/* ── Sticky header ── */}
       <div className="material-header transition-all duration-200">
-        <div className="max-w-3xl mx-auto px-5">
+        <div className="a4-container">
 
           {collapsed ? (
             /* ── Collapsed: title + actions in one row ── */
@@ -73,7 +74,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
               {/* Row 1: date + actions */}
               <div className="flex items-center justify-between pt-3 pb-1">
                 <span className="text-label-11 text-[var(--ds-gray-700)] uppercase tracking-widest">
-                  {dateStr}
+                  {dateStr} {timeStr && `• ${timeStr}`}
                 </span>
                 {actionIcons}
               </div>
@@ -89,6 +90,12 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                   {(setlist.tags?.length ? setlist.tags : setlist.service ? [setlist.service] : []).map((tag, i) => (
                     <Chip key={i} variant="success">{tag}</Chip>
                   ))}
+                  {setlist.location && (
+                    <span className="flex items-center gap-1 text-label-13 text-[var(--ds-gray-700)] ml-2">
+                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                       {setlist.location}
+                    </span>
+                  )}
                 </div>
                 <span className="text-label-12 text-[var(--ds-gray-700)] shrink-0">
                   {songCount} song{songCount !== 1 ? 's' : ''}
@@ -102,7 +109,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
       </div>
 
       {/* ── Set order ── */}
-      <div className="max-w-3xl mx-auto px-5 pt-6 pb-4">
+      <div className="a4-container pt-6 pb-4">
         <p className="section-title m-0 mb-4">Set Order</p>
 
         <div className="flex flex-col gap-2">
@@ -182,7 +189,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
 
       {/* ── Delete ── */}
       {onDelete && (
-        <div className="max-w-3xl mx-auto flex justify-center pt-2 pb-8">
+        <div className="a4-container flex justify-center pt-2 pb-8">
           <span
             role="button"
             tabIndex={0}

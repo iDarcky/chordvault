@@ -33,7 +33,7 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
       </div>
 
       <div>
-        <h3 className="text-heading-20 text-[var(--text-1)] m-0 leading-tight">
+        <h3 className="text-heading-20 text-[var(--text-1)] m-0 leading-tight truncate">
           {setlist.name || 'Untitled Setlist'}
         </h3>
         <p className="text-copy-14 text-[var(--text-2)] mt-2">

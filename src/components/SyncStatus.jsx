@@ -10,7 +10,7 @@ export default function SyncStatus({ syncState, onClick }) {
 
   const labels = {
     idle: provider ? 'Idle' : 'Offline',
-    syncing: 'Syncing...',
+    syncing: 'Syncing…',
     synced: lastSync ? formatRelative(lastSync) : 'Synced',
     error: 'Sync error',
   };

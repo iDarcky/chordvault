@@ -33,7 +33,7 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }
           <div className="flex items-center gap-2 mt-2 sm:mt-0">
             <div className={`h-2 w-2 rounded-full ${syncState.state === 'syncing' ? 'bg-amber-400 animate-pulse' : syncState.provider ? 'bg-emerald-400' : 'bg-[var(--ds-gray-400)]'}`} />
             <span className="text-label-12 uppercase font-semibold text-[var(--ds-gray-900)]">
-              {syncState.state === 'syncing' ? 'Syncing...' : syncState.provider ? 'Connected' : 'Disconnected'}
+              {syncState.state === 'syncing' ? 'Syncing…' : syncState.provider ? 'Connected' : 'Disconnected'}
             </span>
           </div>
         </div>

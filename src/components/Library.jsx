@@ -169,7 +169,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
     <div className="min-h-screen material-page pb-32">
       <PageHeader title="Song Library" />
 
-      <div className="max-w-3xl mx-auto px-6 flex flex-col gap-0">
+      <div className="a4-container flex flex-col gap-0">
 
         {/* Sticky Search + Tags + Filters */}
         <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4 flex flex-col gap-4">
@@ -187,7 +187,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
               </svg>
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search…"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] text-copy-14 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none focus:border-[var(--border-3)] transition-colors"
@@ -229,7 +229,7 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                       <div className="px-3 pt-3 pb-2">
                         <input
                           type="text"
-                          placeholder="Search tags..."
+                          placeholder="Search tags…"
                           value={tagQuery}
                           onChange={e => setTagQuery(e.target.value)}
                           onClick={e => e.stopPropagation()}

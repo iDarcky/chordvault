@@ -9,6 +9,8 @@ import SetlistSongPicker from './setlist/SetlistSongPicker';
 export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete }) {
   const [name, setName] = useState(setlist?.name || '');
   const [date, setDate] = useState(setlist?.date || new Date().toISOString().slice(0, 10));
+  const [time, setTime] = useState(setlist?.time || '20:00');
+  const [location, setLocation] = useState(setlist?.location || '');
   // Migrate legacy `service` field → tags
   const [tags, setTags] = useState(() => {
     if (setlist?.tags?.length) return setlist.tags;
@@ -90,7 +92,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     if (!name.trim()) { alert('Please enter a setlist name'); return; }
     onSave({
       id: setlist?.id || generateId(),
-      name: name.trim(), date, tags, items,
+      name: name.trim(), date, time, location, tags, items,
       // Keep service for backward compat
       service: tags[0] || '',
       createdAt: setlist?.createdAt || Date.now(),
@@ -115,7 +117,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
           <div className="flex items-center gap-2">
             {setlist && onDelete && (
               <IconButton variant="error" size="sm" onClick={handleDelete} aria-label="Delete setlist">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </IconButton>
@@ -137,9 +139,13 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
             <SetlistMetaForm
               name={name}
               date={date}
+              time={time}
+              location={location}
               tags={tags}
               onNameChange={setName}
               onDateChange={setDate}
+              onTimeChange={setTime}
+              onLocationChange={setLocation}
               onTagsChange={setTags}
             />
 

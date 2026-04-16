@@ -7,8 +7,8 @@ const FIELDS = [
   { key: 'capo', label: 'Capo', placeholder: '0', span: 1 },
   { key: 'ccli', label: 'CCLI', placeholder: 'CCLI number', span: 1 },
   { key: 'tags', label: 'Tags', placeholder: 'worship, hymn, fast', span: 2 },
-  { key: 'spotify', label: 'Spotify', placeholder: 'https://...', span: 2 },
-  { key: 'youtube', label: 'YouTube', placeholder: 'https://...', span: 2 },
+  { key: 'spotify', label: 'Spotify', placeholder: 'https://…', span: 2 },
+  { key: 'youtube', label: 'YouTube', placeholder: 'https://…', span: 2 },
   { key: 'notes', label: 'Notes', placeholder: 'Performance notes', span: 2 },
 ];
 

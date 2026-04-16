@@ -59,7 +59,7 @@ export default function Settings({
     <div className="min-h-screen material-page pb-32">
       <PageHeader title="Settings" />
 
-      <div className="max-w-2xl mx-auto px-6 py-10 flex flex-col gap-12">
+      <div className="a4-container py-10 flex flex-col gap-12">
 
         {/* Profile */}
         <Section title="Profile">

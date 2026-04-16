@@ -10,7 +10,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { cn } from '../lib/utils';
 import { StructureRibbon } from './StructureRibbon';
 
-const FONT_SIZES = { S: 13, M: 16, L: 20 };
+const FONT_SIZES = { S: 14, M: 18, L: 22 };
 
 const FONT_FAMILIES = {
   'Geist Sans': "var(--font-sans)",
@@ -98,7 +98,7 @@ export default function ChartView({
       {!isPreview && (
         <div className="material-header transition-all duration-200">
           {/* Line 1: Title + meta (compact) or Title only (expanded) + buttons */}
-          <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between pt-3 pb-1 gap-3">
+          <div className="a4-container flex items-center justify-between pt-3 pb-1 gap-3">
             <div className="min-w-0 flex-1 flex items-center gap-3">
               <h1 className={cn(
                 "text-[var(--text-1)] m-0 truncate transition-all duration-200",
@@ -106,7 +106,8 @@ export default function ChartView({
               )}>{song.title}</h1>
               {/* Inline meta — visible only in compact mode */}
               {scrolled && (
-                <div className="flex items-center gap-2 flex-shrink-0 text-label-11 text-[var(--text-2)]">
+                <div className="flex items-center gap-2 flex-shrink-0 text-label-12 text-[var(--text-2)]">
+                  <span className="text-[var(--text-2)] text-[12px] opacity-60">•</span>
                   <span className="font-bold text-[var(--text-1)]">{selectedKey}</span>
                   {song.tempo && <span>{song.tempo} bpm</span>}
                   {song.time && <span>{song.time}</span>}
@@ -162,7 +163,7 @@ export default function ChartView({
 
           {/* Line 2: Artist + Key / Tempo / Time — collapses when scrolled */}
           <div className={cn(
-            "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-3 transition-all duration-200 overflow-hidden",
+            "a4-container flex flex-wrap items-center gap-3 transition-all duration-200 overflow-hidden",
             scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-12 opacity-100 pb-1.5"
           )}>
             <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
@@ -199,7 +200,7 @@ export default function ChartView({
           </div>
 
           {/* Structure ribbon — always visible */}
-          <div className="max-w-[1600px] mx-auto px-6 pb-2">
+          <div className="a4-container pb-2">
             <StructureRibbon
               structure={song.sections.map(s => s.type)}
               compact
@@ -213,7 +214,7 @@ export default function ChartView({
           {/* Expanded controls sub-row — collapses when scrolled */}
           {panelOpen && (
             <div className={cn(
-              "max-w-[1600px] mx-auto px-6 flex flex-wrap items-center gap-1.5 transition-all duration-200 overflow-hidden",
+              "a4-container flex flex-wrap items-center gap-1.5 transition-all duration-200 overflow-hidden",
               scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-24 opacity-100 pb-3"
             )}>
               {showSettings && (
@@ -228,9 +229,9 @@ export default function ChartView({
                     size="xs"
                   />
                   <div className="flex items-center bg-[var(--bg-1)] border border-[var(--border-1)] rounded-lg p-0.5">
-                    <IconButton variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.max(10, prev - 2))}>-</IconButton>
+                    <IconButton variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.max(10, prev - 2))} aria-label="Decrease font size">-</IconButton>
                     <span className="px-1.5 text-label-10-mono text-[var(--text-2)]">{fontSize}px</span>
-                    <IconButton variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.min(30, prev + 2))}>+</IconButton>
+                    <IconButton variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.min(30, prev + 2))} aria-label="Increase font size">+</IconButton>
                   </div>
                   <Select value={fontFamily} onValueChange={setFontFamily}>
                     <SelectTrigger className="h-7 px-2 text-label-11 font-medium text-[var(--text-1)] gap-1 min-w-0 w-auto">
@@ -302,8 +303,8 @@ export default function ChartView({
       )}
 
       <div className={cn(
-        "px-6 pt-4 pb-24 max-w-[1600px] mx-auto w-full",
-        isPreview && "px-0 pt-0 pb-0"
+        "pt-4 pb-24 a4-container",
+        isPreview && "px-0 pt-0 pb-0 a4-container"
       )}>
         {/* ── Chord Diagrams Strip ── */}
         {showDiagrams && !isPreview && (
