@@ -43,9 +43,9 @@ export function createSyncEngine(onStatusChange) {
     }
   }
 
-  async function pull(songs, setlists) {
+  async function pull(songs, setlists, tombstones = { songs: [], setlists: [] }) {
     const syncState = await getSyncState();
-    if (!syncState.activeProvider) return { songs, setlists, changed: false };
+    if (!syncState.activeProvider) return { songs, setlists, tombstones, changed: false };
 
     const provider = getProvider(syncState.activeProvider);
     await ensureAuth(provider, syncState);
@@ -57,6 +57,12 @@ export function createSyncEngine(onStatusChange) {
     let setlistsChanged = false;
     let updatedSongs = [...songs];
     let updatedSetlists = [...setlists];
+    // Index tombstones for O(1) lookup and potential removal
+    const songTombstones = new Map((tombstones.songs || []).map(t => [t.id, t.deletedAt]));
+    const setlistTombstones = new Map((tombstones.setlists || []).map(t => [t.id, t.deletedAt]));
+    let tombstonesChanged = false;
+    // Track items where local had unsynced edits that were overwritten by remote
+    const conflicts = [];
 
     // Pull songs from Songs subfolder
     const songFiles = await provider.listFiles(SONGS_FOLDER);
@@ -79,6 +85,17 @@ export function createSyncEngine(onStatusChange) {
         : 0;
 
       if (remoteTime > lastSyncedTime) {
+        // Respect local tombstones unless remote was modified after deletion
+        if (songId && songTombstones.has(songId)) {
+          if (songTombstones.get(songId) >= remoteTime) {
+            // Local delete is newer — leave for push to clean up remote
+            continue;
+          }
+          // Remote was edited after local delete — resurrect and drop tombstone
+          songTombstones.delete(songId);
+          tombstonesChanged = true;
+        }
+
         const content = await provider.downloadFile(file.id);
         const parsed = parseSongMd(content);
 
@@ -86,6 +103,15 @@ export function createSyncEngine(onStatusChange) {
           // Update existing song (or re-add if missing from local state)
           const existingIdx = updatedSongs.findIndex(s => s.id === songId);
           if (existingIdx >= 0) {
+            // Detect conflict: local diverged from last-synced before remote changed
+            const localSong = updatedSongs[existingIdx];
+            const lastSyncedHash = manifestEntry?.lastSyncedHash;
+            if (lastSyncedHash != null) {
+              const localHash = quickHash(songToMd(localSong));
+              if (localHash !== lastSyncedHash) {
+                conflicts.push({ kind: 'song', id: songId, title: localSong.title });
+              }
+            }
             updatedSongs[existingIdx] = { ...parsed, id: songId };
           } else {
             updatedSongs.push({ ...parsed, id: songId });
@@ -126,6 +152,15 @@ export function createSyncEngine(onStatusChange) {
         : 0;
 
       if (remoteTime > lastSyncedTime) {
+        // Respect local tombstones unless remote is newer than the delete
+        if (setlistId && setlistTombstones.has(setlistId)) {
+          if (setlistTombstones.get(setlistId) >= remoteTime) {
+            continue;
+          }
+          setlistTombstones.delete(setlistId);
+          tombstonesChanged = true;
+        }
+
         const content = await provider.downloadFile(file.id);
         try {
           const remoteSetlist = JSON.parse(content);
@@ -133,6 +168,14 @@ export function createSyncEngine(onStatusChange) {
             // Update existing setlist (or re-add if missing from local state)
             const existingIdx = updatedSetlists.findIndex(sl => sl.id === setlistId);
             if (existingIdx >= 0) {
+              const localSl = updatedSetlists[existingIdx];
+              const lastSyncedHash = manifestEntry?.lastSyncedHash;
+              if (lastSyncedHash != null) {
+                const localHash = quickHash(JSON.stringify(localSl, null, 2));
+                if (localHash !== lastSyncedHash) {
+                  conflicts.push({ kind: 'setlist', id: setlistId, title: localSl.name });
+                }
+              }
               updatedSetlists[existingIdx] = remoteSetlist;
             } else {
               updatedSetlists.push(remoteSetlist);
@@ -163,16 +206,26 @@ export function createSyncEngine(onStatusChange) {
     if (songsChanged) await updateSyncManifest(manifest);
     if (setlistsChanged) await updateSetlistManifest(slManifest);
 
+    const nextTombstones = tombstonesChanged
+      ? {
+          songs: Array.from(songTombstones, ([id, deletedAt]) => ({ id, deletedAt })),
+          setlists: Array.from(setlistTombstones, ([id, deletedAt]) => ({ id, deletedAt })),
+        }
+      : tombstones;
+
     return {
       songs: updatedSongs,
       setlists: updatedSetlists,
+      tombstones: nextTombstones,
+      tombstonesChanged,
+      conflicts,
       changed: songsChanged || setlistsChanged,
     };
   }
 
-  async function push(songs, setlists) {
+  async function push(songs, setlists, tombstones = { songs: [], setlists: [] }) {
     const syncState = await getSyncState();
-    if (!syncState.activeProvider) return;
+    if (!syncState.activeProvider) return { tombstones, tombstonesChanged: false };
 
     const provider = getProvider(syncState.activeProvider);
     await ensureAuth(provider, syncState);
@@ -260,33 +313,50 @@ export function createSyncEngine(onStatusChange) {
     }
 
     await updateSetlistManifest(slManifest);
+
+    // Drop tombstones whose remote file has been fully deleted
+    const prunedSongTs = (tombstones.songs || []).filter(t => manifest[t.id]);
+    const prunedSetlistTs = (tombstones.setlists || []).filter(t => slManifest[t.id]);
+    const tombstonesChanged =
+      prunedSongTs.length !== (tombstones.songs?.length || 0) ||
+      prunedSetlistTs.length !== (tombstones.setlists?.length || 0);
+    return {
+      tombstones: tombstonesChanged
+        ? { songs: prunedSongTs, setlists: prunedSetlistTs }
+        : tombstones,
+      tombstonesChanged,
+    };
   }
 
   return {
-    async fullSync(songs, setlists) {
-      if (syncing) return { songs, setlists, changed: false };
+    async fullSync(songs, setlists, tombstones = { songs: [], setlists: [] }) {
+      if (syncing) return { songs, setlists, tombstones, changed: false };
       syncing = true;
       setStatus('syncing');
 
       try {
-        const pullResult = await pull(songs, setlists);
-        await push(pullResult.songs, pullResult.setlists);
+        const pullResult = await pull(songs, setlists, tombstones);
+        const pushResult = await push(pullResult.songs, pullResult.setlists, pullResult.tombstones);
 
         const lastSync = new Date().toISOString();
         const syncState = await getSyncState();
         setStatus('synced', { lastSync, provider: syncState.activeProvider });
 
-        return pullResult;
+        return {
+          ...pullResult,
+          tombstones: pushResult.tombstones,
+          tombstonesChanged: pullResult.tombstonesChanged || pushResult.tombstonesChanged,
+        };
       } catch (err) {
         console.error('Sync error:', err);
         setStatus('error');
-        return { songs, setlists, changed: false };
+        return { songs, setlists, tombstones, conflicts: [], changed: false };
       } finally {
         syncing = false;
       }
     },
 
-    debouncedPush(songs, setlists) {
+    debouncedPush(songs, setlists, tombstones = { songs: [], setlists: [] }, onTombstonesPruned) {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {
         const syncState = await getSyncState();
@@ -294,7 +364,10 @@ export function createSyncEngine(onStatusChange) {
 
         setStatus('syncing');
         try {
-          await push(songs, setlists);
+          const pushResult = await push(songs, setlists, tombstones);
+          if (pushResult?.tombstonesChanged) {
+            onTombstonesPruned?.(pushResult.tombstones);
+          }
           const lastSync = new Date().toISOString();
           setStatus('synced', { lastSync, provider: syncState.activeProvider });
         } catch (err) {

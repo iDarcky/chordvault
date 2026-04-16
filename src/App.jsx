@@ -2,7 +2,7 @@ import { Toaster } from "./components/ui/Toaster";
 import { toast } from "./components/ui/use-toast";
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
-import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
+import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, loadTombstones, saveTombstones, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
 import { createSyncEngine } from './sync/engine';
 import { getSyncState } from './sync/tokens';
@@ -16,6 +16,19 @@ import BottomNav from './components/BottomNav';
 import DesktopLayout from './components/DesktopLayout';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
+function notifyConflicts(conflicts) {
+  const titles = conflicts
+    .map(c => c.title || (c.kind === 'song' ? 'Untitled song' : 'Untitled setlist'))
+    .slice(0, 3)
+    .join(', ');
+  const extra = conflicts.length > 3 ? ` and ${conflicts.length - 3} more` : '';
+  toast({
+    title: 'Cloud overwrote local changes',
+    description: `Your edits to ${titles}${extra} were replaced with the cloud version.`,
+    variant: 'error',
+  });
+}
+
 // Lazy-loaded: heavy secondary views not needed on initial render
 const ChartView = lazy(() => import('./components/ChartView'));
 const Editor = lazy(() => import('./components/Editor'));
@@ -27,6 +40,7 @@ const DesignShowcase = lazy(() => import('./components/DesignShowcase'));
 export default function App() {
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
+  const [tombstones, setTombstones] = useState({ songs: [], setlists: [] });
   const [view, setView] = useState('loading');
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
@@ -46,12 +60,18 @@ export default function App() {
   const triggerSync = useCallback(async () => {
     const state = await getSyncState();
     if (!state?.activeProvider) return;
-    const result = await syncEngineRef.current.fullSync(songs, setlists);
+    const result = await syncEngineRef.current.fullSync(songs, setlists, tombstones);
     if (result.changed) {
       setSongs(result.songs);
       setSetlists(result.setlists);
     }
-  }, [songs, setlists]);
+    if (result.tombstonesChanged) {
+      setTombstones(result.tombstones);
+    }
+    if (result.conflicts?.length > 0) {
+      notifyConflicts(result.conflicts);
+    }
+  }, [songs, setlists, tombstones]);
 
   // Load data on mount
   useEffect(() => {
@@ -71,6 +91,9 @@ export default function App() {
 
       const savedSetlists = await loadSetlists();
       if (savedSetlists) setSetlists(savedSetlists);
+
+      const savedTombstones = await loadTombstones();
+      setTombstones(savedTombstones);
 
       const savedSettings = await loadSettings();
       setSettings(savedSettings);
@@ -100,10 +123,16 @@ export default function App() {
         if (engine) {
           const currentSongs = savedSongs.length > 0 ? savedSongs : [];
           const currentSetlists = savedSetlists || [];
-          engine.fullSync(currentSongs, currentSetlists).then(result => {
+          engine.fullSync(currentSongs, currentSetlists, savedTombstones).then(result => {
             if (result.changed) {
               setSongs(result.songs);
               setSetlists(result.setlists);
+            }
+            if (result.tombstonesChanged) {
+              setTombstones(result.tombstones);
+            }
+            if (result.conflicts?.length > 0) {
+              notifyConflicts(result.conflicts);
             }
           }).catch(err => console.error('Startup sync failed:', err));
         }
@@ -115,15 +144,16 @@ export default function App() {
   useEffect(() => {
     if (loaded) {
       saveSongs(songs);
-      syncEngineRef.current?.debouncedPush(songs, setlists);
+      syncEngineRef.current?.debouncedPush(songs, setlists, tombstones, setTombstones);
     }
   }, [songs, loaded]);
   useEffect(() => {
     if (loaded) {
       saveSetlists(setlists);
-      syncEngineRef.current?.debouncedPush(songs, setlists);
+      syncEngineRef.current?.debouncedPush(songs, setlists, tombstones, setTombstones);
     }
   }, [setlists, loaded]);
+  useEffect(() => { if (loaded) saveTombstones(tombstones); }, [tombstones, loaded]);
   useEffect(() => { if (loaded && settings) saveSettings(settings); }, [settings, loaded]);
 
   // Sync on tab focus
@@ -211,6 +241,10 @@ export default function App() {
 
   const handleDeleteSong = (id) => {
     setSongs(prev => prev.filter(s => s.id !== id));
+    setTombstones(prev => ({
+      ...prev,
+      songs: [...prev.songs.filter(t => t.id !== id), { id, deletedAt: Date.now() }],
+    }));
     // After delete, go back two steps (skip the chart for the deleted song)
     historyRef.current.pop(); // discard the chart entry
     goBack();
@@ -237,6 +271,10 @@ export default function App() {
 
   const handleDeleteSetlist = (id) => {
     setSetlists(prev => prev.filter(s => s.id !== id));
+    setTombstones(prev => ({
+      ...prev,
+      setlists: [...prev.setlists.filter(t => t.id !== id), { id, deletedAt: Date.now() }],
+    }));
     historyRef.current.pop();
     goBack();
   };
@@ -245,6 +283,7 @@ export default function App() {
     await clearAll();
     setSongs([]);
     setSetlists([]);
+    setTombstones({ songs: [], setlists: [] });
     historyRef.current = [];
     setView('home');
   };

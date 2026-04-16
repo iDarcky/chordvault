@@ -4,6 +4,17 @@ const SONGS_KEY = 'chordvault:songs';
 const SETLISTS_KEY = 'chordvault:setlists';
 const SETTINGS_KEY = 'chordvault:settings';
 const SYNC_KEY = 'chordvault:sync';
+const TOMBSTONES_KEY = 'chordvault:tombstones';
+
+const TOMBSTONE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+function pruneTombstones(t) {
+  const cutoff = Date.now() - TOMBSTONE_TTL_MS;
+  return {
+    songs: (t?.songs || []).filter(e => e.deletedAt > cutoff),
+    setlists: (t?.setlists || []).filter(e => e.deletedAt > cutoff),
+  };
+}
 
 export async function loadSongs() {
   try {
@@ -69,9 +80,22 @@ export async function saveSyncState(state) {
   await set(SYNC_KEY, state);
 }
 
+export async function loadTombstones() {
+  try {
+    return pruneTombstones(await get(TOMBSTONES_KEY));
+  } catch {
+    return { songs: [], setlists: [] };
+  }
+}
+
+export async function saveTombstones(tombstones) {
+  await set(TOMBSTONES_KEY, pruneTombstones(tombstones));
+}
+
 export async function clearAll() {
   await del(SONGS_KEY);
   await del(SETLISTS_KEY);
   await del(SETTINGS_KEY);
   await del(SYNC_KEY);
+  await del(TOMBSTONES_KEY);
 }

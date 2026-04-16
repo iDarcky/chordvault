@@ -1,8 +1,10 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { generateId } from '../parser';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { toast } from './ui/use-toast';
+
+const UNDO_STACK_LIMIT = 50;
 import SetlistMetaForm from './setlist/SetlistMetaForm';
 import SetlistItemRow from './setlist/SetlistItemRow';
 import SetlistSongPicker from './setlist/SetlistSongPicker';
@@ -19,18 +21,52 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     return [];
   });
   const [items, setItems] = useState(setlist?.items || []);
+  const undoStackRef = useRef([]);
+
+  // Wraps setItems for structural mutations (add/remove/reorder) that
+  // should be undoable via Cmd/Ctrl+Z. Pushes the previous state onto the
+  // undo stack before applying the update. Text-field edits go through
+  // setItems directly to avoid per-keystroke snapshots.
+  const applyStructural = useCallback((updater) => {
+    setItems(prev => {
+      undoStackRef.current.push(prev);
+      if (undoStackRef.current.length > UNDO_STACK_LIMIT) undoStackRef.current.shift();
+      return typeof updater === 'function' ? updater(prev) : updater;
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    const prev = undoStackRef.current.pop();
+    if (prev !== undefined) {
+      setItems(prev);
+      toast({ title: 'Undone', description: 'Reverted the last change.' });
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        undo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo]);
 
   // Drag state
   const [dragIdx, setDragIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
 
   const addSong = (song) => {
-    setItems(p => [...p, { songId: song.id, note: '', transpose: 0, capo: 0 }]);
+    applyStructural(p => [...p, { songId: song.id, note: '', transpose: 0, capo: 0 }]);
   };
   const addBreak = () => {
-    setItems(p => [...p, { type: 'break', label: '', note: '', duration: 0 }]);
+    applyStructural(p => [...p, { type: 'break', label: '', note: '', duration: 0 }]);
   };
-  const removeItem = (idx) => setItems(p => p.filter((_, i) => i !== idx));
+  const removeItem = (idx) => applyStructural(p => p.filter((_, i) => i !== idx));
   const updateNote = (idx, note) =>
     setItems(p => p.map((it, i) => i === idx ? { ...it, note } : it));
   const updateTranspose = (idx, val) =>
@@ -56,7 +92,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
         if (dragIdx === null || dragOverIdx === null || dragIdx === dragOverIdx) {
           return null;
         }
-        setItems(prev => {
+        applyStructural(prev => {
           const next = [...prev];
           const [moved] = next.splice(dragIdx, 1);
           next.splice(dragOverIdx, 0, moved);
@@ -66,7 +102,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
       });
       return null;
     });
-  }, []);
+  }, [applyStructural]);
 
   // Touch drag for mobile
   const handleTouchStart = useCallback((idx, e) => {
