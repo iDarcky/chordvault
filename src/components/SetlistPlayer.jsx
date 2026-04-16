@@ -6,6 +6,7 @@ import ChartView from './ChartView';
 
 export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, defaultFontSize, showInlineNotes, inlineNoteStyle, displayRole, duplicateSections }) {
   const [idx, setIdx] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
   const songBarRef = useRef(null);
 
   const resolved = useMemo(() =>
@@ -35,8 +36,13 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   // Keyboard / Bluetooth pedal navigation
   useEffect(() => {
     const handler = (e) => {
+      // Ignore when typing in an input/textarea
+      const t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
       if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); goNext(); }
       if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goPrev(); }
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) { e.preventDefault(); setShowHelp(s => !s); }
+      if (e.key === 'Escape') { setShowHelp(false); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -74,6 +80,15 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
         aria-label="Next song"
       >
         &#9654;
+      </IconButton>
+      <IconButton
+        variant="default"
+        size="sm"
+        onClick={() => setShowHelp(s => !s)}
+        aria-label="Keyboard shortcuts"
+        title="Keyboard shortcuts (?)"
+      >
+        ?
       </IconButton>
     </div>
   );
@@ -204,6 +219,62 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
           duplicateSections={duplicateSections}
         />
       )}
+      {showHelp && (
+        <ShortcutHelp onClose={() => setShowHelp(false)} />
+      )}
+    </div>
+  );
+}
+
+function ShortcutHelp({ onClose }) {
+  const rows = [
+    { keys: ['→', 'PageDown'], desc: 'Next song' },
+    { keys: ['←', 'PageUp'], desc: 'Previous song' },
+    { keys: ['?'], desc: 'Show / hide this help' },
+    { keys: ['Esc'], desc: 'Close this dialog' },
+  ];
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Keyboard shortcuts"
+    >
+      <div
+        className="w-full max-w-sm rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--ds-gray-300)]">
+          <h2 className="text-heading-16 text-[var(--ds-gray-1000)] m-0">Keyboard shortcuts</h2>
+          <IconButton variant="ghost" size="sm" onClick={onClose} aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </IconButton>
+        </div>
+        <ul className="px-5 py-4 space-y-2.5">
+          {rows.map((row, i) => (
+            <li key={i} className="flex items-center justify-between gap-4">
+              <span className="text-copy-14 text-[var(--ds-gray-1000)]">{row.desc}</span>
+              <span className="flex gap-1.5">
+                {row.keys.map((k) => (
+                  <kbd
+                    key={k}
+                    className="px-2 py-0.5 rounded-md border border-[var(--ds-gray-400)] bg-[var(--ds-background-200)] text-label-11-mono text-[var(--ds-gray-1000)] font-semibold"
+                  >
+                    {k}
+                  </kbd>
+                ))}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div className="px-5 pb-4 text-copy-12 text-[var(--ds-gray-700)]">
+          Tip: Bluetooth pedals that send Page Up/Page Down work for hands-free navigation.
+        </div>
+      </div>
     </div>
   );
 }

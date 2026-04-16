@@ -1,4 +1,5 @@
 import { Toaster } from "./components/ui/Toaster";
+import { toast } from "./components/ui/use-toast";
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, clearAll } from './storage';
@@ -220,7 +221,7 @@ export default function App() {
       const song = { ...parseSongMd(mdText), id: generateId(), updatedAt: Date.now() };
       setSongs(prev => [...prev, song]);
     } catch {
-      alert('Failed to parse .md file');
+      toast({ title: 'Import failed', description: 'Could not parse .md file.', variant: 'error' });
     }
   };
 
@@ -266,12 +267,12 @@ export default function App() {
         setSongs(prev => [...prev, ...newSongs]);
       }
       setSetlists(prev => [...prev, setlist]);
-      const msg = newSongs.length > 0
-        ? `Imported "${setlist.name}" with ${newSongs.length} new song${newSongs.length > 1 ? 's' : ''}.`
-        : `Imported "${setlist.name}". All songs already in library.`;
-      alert(msg);
+      const description = newSongs.length > 0
+        ? `Added ${newSongs.length} new song${newSongs.length > 1 ? 's' : ''} to your library.`
+        : 'All songs were already in your library.';
+      toast({ title: `Imported "${setlist.name}"`, description });
     } catch {
-      alert('Failed to import setlist zip.');
+      toast({ title: 'Import failed', description: 'Could not read setlist zip.', variant: 'error' });
     }
   };
 
@@ -443,7 +444,6 @@ export default function App() {
           )}
         </DesktopLayout>
       )}
-      <Toaster />
     </Suspense>
   );
 }

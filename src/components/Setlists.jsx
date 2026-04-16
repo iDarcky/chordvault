@@ -166,19 +166,32 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
 
               {/* Empty State */}
               {filtered.length === 0 && (
-                <div className="py-24 text-center border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center gap-4">
-                  <p className="text-copy-14 text-[var(--ds-gray-700)]">
-                    {query
-                      ? 'No setlists matching your search.'
-                      : 'Organize your songs into setlists for rehearsals or live performances.'
-                    }
-                  </p>
-                  {!query && (
-                    <Button variant="brand" onClick={onNewSetlist}>
-                      Create Your First Setlist
-                    </Button>
-                  )}
-                </div>
+                query ? (
+                  <div className="py-16 text-center text-[var(--ds-gray-700)] text-copy-14">
+                    No setlists matching your search.
+                  </div>
+                ) : (
+                  <div className="py-24 border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center text-center">
+                    <div className="w-14 h-14 mb-4 rounded-full bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] flex items-center justify-center">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
+                        <line x1="8" y1="6" x2="21" y2="6" />
+                        <line x1="8" y1="12" x2="21" y2="12" />
+                        <line x1="8" y1="18" x2="21" y2="18" />
+                        <line x1="3" y1="6" x2="3.01" y2="6" />
+                        <line x1="3" y1="12" x2="3.01" y2="12" />
+                        <line x1="3" y1="18" x2="3.01" y2="18" />
+                      </svg>
+                    </div>
+                    <h2 className="text-heading-20 text-[var(--ds-gray-1000)] m-0 mb-1.5">No setlists yet</h2>
+                    <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-sm mb-5">
+                      Organize your songs into setlists for rehearsals or live performances.
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Button variant="brand" onClick={onNewSetlist}>Create setlist</Button>
+                      <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .zip</Button>
+                    </div>
+                  </div>
+                )
               )}
             </>
           )}

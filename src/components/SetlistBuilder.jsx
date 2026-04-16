@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { generateId } from '../parser';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
+import { toast } from './ui/use-toast';
 import SetlistMetaForm from './setlist/SetlistMetaForm';
 import SetlistItemRow from './setlist/SetlistItemRow';
 import SetlistSongPicker from './setlist/SetlistSongPicker';
@@ -89,7 +90,10 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   }, [handleDragEnd]);
 
   const handleSave = () => {
-    if (!name.trim()) { alert('Please enter a setlist name'); return; }
+    if (!name.trim()) {
+      toast({ title: 'Name required', description: 'Please enter a setlist name.', variant: 'error' });
+      return;
+    }
     onSave({
       id: setlist?.id || generateId(),
       name: name.trim(), date, time, location, tags, items,

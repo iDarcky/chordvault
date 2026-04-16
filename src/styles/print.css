@@ -1,0 +1,61 @@
+@media print {
+  /* Reset page to bright, printable defaults */
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Preserve chord/section colors (otherwise browsers strip them) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide chrome that doesn't belong on paper */
+  .no-print,
+  .material-header,
+  nav,
+  aside,
+  [data-print-hide="true"] {
+    display: none !important;
+  }
+
+  /* Restore the main content column to full width when sidebars are hidden */
+  .sm\:grid-cols-\[80px_1fr\],
+  .lg\:grid-cols-\[280px_1fr\] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Release overflow/height locks so native pagination can work */
+  .h-screen,
+  .overflow-y-auto,
+  .overflow-x-hidden {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Force single-column layout regardless of user selection */
+  [data-print-target="chart"] {
+    column-count: 1 !important;
+    display: block !important;
+    grid-template-columns: none !important;
+  }
+
+  /* Keep sections together when possible */
+  [id^="section-"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Tighter container on paper */
+  .a4-container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+  }
+
+  @page {
+    margin: 0.5in;
+  }
+}
