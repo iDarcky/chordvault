@@ -16,9 +16,56 @@ function pruneTombstones(t) {
   };
 }
 
+// Lightweight runtime schema check. Validates that a persisted payload looks
+// like the shape we expect; returns only the entries that pass. This guards
+// against corrupted IndexedDB payloads crashing the parser downstream.
+export function isValidSong(s) {
+  if (!s || typeof s !== 'object') return false;
+  if (typeof s.id !== 'string' || !s.id) return false;
+  if (typeof s.md !== 'string') return false;
+  return true;
+}
+
+export function isValidSetlist(sl) {
+  if (!sl || typeof sl !== 'object') return false;
+  if (typeof sl.id !== 'string' || !sl.id) return false;
+  if (typeof sl.name !== 'string') return false;
+  if (!Array.isArray(sl.items)) return false;
+  return true;
+}
+
+function sanitizeSongs(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  let dropped = 0;
+  for (const s of raw) {
+    if (isValidSong(s)) out.push(s);
+    else dropped++;
+  }
+  if (dropped > 0 && typeof console !== 'undefined') {
+    console.warn(`[storage] Dropped ${dropped} malformed song record(s) during load.`);
+  }
+  return out;
+}
+
+function sanitizeSetlists(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  let dropped = 0;
+  for (const sl of raw) {
+    if (isValidSetlist(sl)) out.push(sl);
+    else dropped++;
+  }
+  if (dropped > 0 && typeof console !== 'undefined') {
+    console.warn(`[storage] Dropped ${dropped} malformed setlist record(s) during load.`);
+  }
+  return out;
+}
+
 export async function loadSongs() {
   try {
-    return (await get(SONGS_KEY)) || [];
+    const raw = (await get(SONGS_KEY)) || [];
+    return sanitizeSongs(raw);
   } catch {
     return [];
   }
@@ -30,7 +77,8 @@ export async function saveSongs(songs) {
 
 export async function loadSetlists() {
   try {
-    return (await get(SETLISTS_KEY)) || [];
+    const raw = (await get(SETLISTS_KEY)) || [];
+    return sanitizeSetlists(raw);
   } catch {
     return [];
   }
