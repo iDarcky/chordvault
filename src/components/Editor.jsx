@@ -7,6 +7,7 @@ import MetadataPanel from './editor/MetadataPanel';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Tabs } from './ui/Tabs';
+import { toast } from './ui/use-toast';
 
 const TAB_LIST = [
   { id: 'write', label: 'Write' },
@@ -55,7 +56,11 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
       if (md.trim() && !confirm('Replace current content with clipboard?')) return;
       setMd(text);
     } catch {
-      alert('Could not read clipboard. Try pasting directly into the editor.');
+      toast({
+        title: 'Clipboard unavailable',
+        description: 'Try pasting directly into the editor.',
+        variant: 'error',
+      });
     }
   }, [md]);
 

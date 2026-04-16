@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ChordPicker from './ChordPicker';
 import TabGridEditor from './TabGridEditor';
 import { parseTabBlock, splitMd, parseFrontmatterFields } from '../../parser';
 import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
 
 const SECTION_TYPES = [
   'Intro', 'Verse', 'Pre Chorus', 'Chorus', 'Bridge',
@@ -22,6 +23,13 @@ export default function WriteTab({ md, onChange, textareaRef }) {
   const [popupAnchor, setPopupAnchor] = useState(null);
   const [cueText, setCueText] = useState('');
   const [noteText, setNoteText] = useState('');
+  const [showFind, setShowFind] = useState(false);
+  const [findText, setFindText] = useState('');
+  const [replaceText, setReplaceText] = useState('');
+  const [caseSensitive, setCaseSensitive] = useState(false);
+  const [matchIdx, setMatchIdx] = useState(0);
+  const [recentChords, setRecentChords] = useState([]);
+  const findInputRef = useRef(null);
 
   // ─── Textarea helpers ───
   const insertAtCursor = useCallback((text, opts = {}) => {
@@ -59,6 +67,34 @@ export default function WriteTab({ md, onChange, textareaRef }) {
     });
   }, [onChange, textareaRef]);
 
+  // Harvest chords currently in the song text (most recent first by appearance)
+  const songChords = useMemo(() => {
+    const seen = new Set();
+    const out = [];
+    const re = /\[([^\]]+)\]/g;
+    let m;
+    while ((m = re.exec(md)) !== null) {
+      const c = m[1].trim();
+      if (c && !seen.has(c)) { seen.add(c); out.push(c); }
+    }
+    return out;
+  }, [md]);
+
+  const effectiveRecent = useMemo(() => {
+    const merged = [...recentChords];
+    for (const c of songChords) {
+      if (!merged.includes(c)) merged.push(c);
+    }
+    return merged.slice(0, 10);
+  }, [recentChords, songChords]);
+
+  const addRecent = useCallback((chord) => {
+    setRecentChords(prev => {
+      const next = [chord, ...prev.filter(c => c !== chord)];
+      return next.slice(0, 10);
+    });
+  }, []);
+
   // ─── Chord insertion ───
   const handleChordSelect = useCallback((chord) => {
     const ta = textareaRef.current;
@@ -86,7 +122,8 @@ export default function WriteTab({ md, onChange, textareaRef }) {
       });
     }
     setShowChordPicker(false);
-  }, [onChange, textareaRef]);
+    addRecent(chord);
+  }, [onChange, textareaRef, addRecent]);
 
   // ─── Section insertion with auto-numbering ───
   const handleSectionInsert = useCallback((type) => {
@@ -178,6 +215,82 @@ export default function WriteTab({ md, onChange, textareaRef }) {
     return fields.time || '4/4';
   };
 
+  // ─── Find / Replace ───
+  const matches = useMemo(() => {
+    if (!showFind || !findText) return [];
+    const out = [];
+    const hay = caseSensitive ? md : md.toLowerCase();
+    const needle = caseSensitive ? findText : findText.toLowerCase();
+    if (!needle) return [];
+    let i = 0;
+    while (true) {
+      const pos = hay.indexOf(needle, i);
+      if (pos === -1) break;
+      out.push(pos);
+      i = pos + Math.max(needle.length, 1);
+    }
+    return out;
+  }, [showFind, findText, caseSensitive, md]);
+
+  useEffect(() => {
+    if (!showFind || matches.length === 0) return;
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = matches[matchIdx] ?? 0;
+    const end = start + findText.length;
+    ta.focus();
+    ta.setSelectionRange(start, end);
+    findInputRef.current?.focus();
+  }, [showFind, matches, matchIdx, findText, textareaRef]);
+
+  const closeFind = useCallback(() => {
+    setShowFind(false);
+    setFindText('');
+    setReplaceText('');
+    setMatchIdx(0);
+  }, []);
+
+  const gotoMatch = useCallback((dir) => {
+    if (matches.length === 0) return;
+    setMatchIdx((m) => (m + dir + matches.length) % matches.length);
+  }, [matches.length]);
+
+  const replaceCurrent = useCallback(() => {
+    if (matches.length === 0 || !findText) return;
+    const start = matches[matchIdx];
+    const end = start + findText.length;
+    const newVal = md.substring(0, start) + replaceText + md.substring(end);
+    onChange(newVal);
+    // stay near current match after replace
+    setMatchIdx((m) => Math.min(m, matches.length - 2 < 0 ? 0 : matches.length - 2));
+  }, [matches, matchIdx, findText, replaceText, md, onChange]);
+
+  const replaceAll = useCallback(() => {
+    if (matches.length === 0 || !findText) return;
+    let out = '';
+    let cursor = 0;
+    for (const pos of matches) {
+      out += md.substring(cursor, pos) + replaceText;
+      cursor = pos + findText.length;
+    }
+    out += md.substring(cursor);
+    onChange(out);
+    setMatchIdx(0);
+  }, [matches, findText, replaceText, md, onChange]);
+
+  // Cmd/Ctrl+F inside the textarea opens find
+  const handleTextareaKeyDown = useCallback((e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      const ta = textareaRef.current;
+      if (ta) {
+        const sel = ta.value.substring(ta.selectionStart, ta.selectionEnd);
+        if (sel && sel.length < 120) setFindText(sel);
+      }
+      setShowFind(true);
+    }
+  }, [textareaRef]);
+
   return (
     <div className="flex flex-col h-full">
       {/* ─── Toolbar ─── */}
@@ -188,13 +301,35 @@ export default function WriteTab({ md, onChange, textareaRef }) {
         <ToolBtn label="💬" title="Note" onClick={(e) => openPopup(setShowNoteInput, e)} />
         <ToolBtn label="↑" title="Modulate" onClick={(e) => openPopup(setShowModMenu, e)} />
         <ToolBtn label="┃" title="Tab" onClick={handleTabInsert} />
+        <ToolBtn label="🔍" title="Find" onClick={() => setShowFind(true)} />
       </div>
+
+      {/* ─── Find / Replace bar ─── */}
+      {showFind && (
+        <FindReplaceBar
+          findText={findText}
+          replaceText={replaceText}
+          caseSensitive={caseSensitive}
+          matchCount={matches.length}
+          matchIdx={matchIdx}
+          findInputRef={findInputRef}
+          onFindChange={(t) => { setFindText(t); setMatchIdx(0); }}
+          onReplaceChange={setReplaceText}
+          onToggleCase={() => { setCaseSensitive(v => !v); setMatchIdx(0); }}
+          onPrev={() => gotoMatch(-1)}
+          onNext={() => gotoMatch(1)}
+          onReplaceOne={replaceCurrent}
+          onReplaceAll={replaceAll}
+          onClose={closeFind}
+        />
+      )}
 
       {/* ─── Textarea ─── */}
       <textarea
         ref={textareaRef}
         value={md}
         onChange={e => onChange(e.target.value)}
+        onKeyDown={handleTextareaKeyDown}
         spellCheck={false}
         className="flex-1 w-full min-h-[50vh] bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-lg p-4 text-copy-13 leading-relaxed text-[var(--ds-gray-1000)] resize-y outline-none font-mono"
         style={{ caretColor: 'var(--chord)' }}
@@ -254,6 +389,7 @@ export default function WriteTab({ md, onChange, textareaRef }) {
           anchorRect={chordAnchor}
           onSelect={handleChordSelect}
           onClose={() => setShowChordPicker(false)}
+          recentChords={effectiveRecent}
         />
       )}
 
@@ -341,6 +477,79 @@ function ToolBtn({ label, title, onClick }) {
       <span className="text-[15px]">{label}</span>
       <span className="text-label-10 text-[var(--ds-gray-600)] font-mono">{title}</span>
     </button>
+  );
+}
+
+/* ─── Find / Replace bar ─── */
+function FindReplaceBar({
+  findText, replaceText, caseSensitive, matchCount, matchIdx,
+  findInputRef,
+  onFindChange, onReplaceChange, onToggleCase,
+  onPrev, onNext, onReplaceOne, onReplaceAll, onClose,
+}) {
+  useEffect(() => {
+    findInputRef.current?.focus();
+    findInputRef.current?.select();
+  }, [findInputRef]);
+
+  const handleFindKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (e.shiftKey) onPrev(); else onNext();
+    }
+  };
+
+  const handleReplaceKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (e.shiftKey || e.altKey) onReplaceAll(); else onReplaceOne();
+    }
+  };
+
+  const hasMatches = matchCount > 0;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mb-2 p-1.5 rounded-lg bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)]">
+      <input
+        ref={findInputRef}
+        value={findText}
+        onChange={e => onFindChange(e.target.value)}
+        onKeyDown={handleFindKey}
+        placeholder="Find"
+        className="flex-1 min-w-[120px] px-2 py-1 bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] rounded-md text-copy-12 text-[var(--ds-gray-1000)] outline-none font-mono"
+      />
+      <span
+        className="text-label-11-mono whitespace-nowrap px-1"
+        style={{ color: findText && !hasMatches ? 'var(--ds-red-900)' : 'var(--ds-gray-600)' }}
+      >
+        {findText ? (hasMatches ? `${matchIdx + 1} / ${matchCount}` : '0 / 0') : ''}
+      </span>
+      <IconButton variant="ghost" size="xs" onClick={onPrev} disabled={!hasMatches} aria-label="Previous match" title="Previous (Shift+Enter)">↑</IconButton>
+      <IconButton variant="ghost" size="xs" onClick={onNext} disabled={!hasMatches} aria-label="Next match" title="Next (Enter)">↓</IconButton>
+      <button
+        onClick={onToggleCase}
+        title="Case sensitive"
+        className={`rounded-md px-2 py-1 text-label-11 font-semibold font-mono border transition-colors ${
+          caseSensitive
+            ? 'bg-[var(--color-brand-soft)] text-[var(--color-brand-text)] border-[var(--color-brand-border)]'
+            : 'bg-[var(--ds-background-200)] text-[var(--ds-gray-600)] border-[var(--ds-gray-400)] hover:bg-[var(--ds-gray-200)]'
+        }`}
+      >
+        Aa
+      </button>
+      <input
+        value={replaceText}
+        onChange={e => onReplaceChange(e.target.value)}
+        onKeyDown={handleReplaceKey}
+        placeholder="Replace"
+        className="flex-1 min-w-[120px] px-2 py-1 bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] rounded-md text-copy-12 text-[var(--ds-gray-1000)] outline-none font-mono"
+      />
+      <Button variant="secondary" size="xs" onClick={onReplaceOne} disabled={!hasMatches}>Replace</Button>
+      <Button variant="secondary" size="xs" onClick={onReplaceAll} disabled={!hasMatches}>All</Button>
+      <IconButton variant="ghost" size="xs" onClick={onClose} aria-label="Close find" title="Close (Esc)">✕</IconButton>
+    </div>
   );
 }
 

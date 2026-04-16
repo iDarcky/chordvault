@@ -116,6 +116,7 @@ export default function ChordPalette({ activeChord, onSelect, onClear, songKey, 
           onSelect={handlePickerSelect}
           onClose={() => setShowPicker(false)}
           anchorRect={pickerAnchor}
+          recentChords={recentChords}
         />
       )}
     </div>

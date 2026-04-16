@@ -69,6 +69,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
   const [activeInput, setActiveInput] = useState(null);
   const [inputVal, setInputVal] = useState('');
   const [lastPlaced, setLastPlaced] = useState(null);
+  const [inputError, setInputError] = useState(false);
   const inputRef = useRef(null);
 
   const spm = slotsPerMeasure(timeSig);
@@ -121,6 +122,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
   const openInput = useCallback((si, pos) => {
     setActiveInput({ string: si, pos });
     setInputVal('');
+    setInputError(false);
     setCursor({ string: si, pos });
   }, []);
 
@@ -139,9 +141,14 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
           setCursor({ string: si, pos: nextPos });
         }
       }
+      setActiveInput(null);
+      setInputVal('');
+      setInputError(false);
+    } else {
+      // Out of range — keep the input open and flash red
+      setInputError(true);
+      setInputVal('');
     }
-    setActiveInput(null);
-    setInputVal('');
   }, [chordMode, durSlots, totalSlots]);
 
   const clearCell = useCallback((si, pos) => {
@@ -388,7 +395,11 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
                           if (inputVal) commitInput(si, pos, inputVal);
                           else setActiveInput(null);
                         }}
-                        className="text-center font-mono text-label-13 font-bold outline-none z-[1] relative bg-[var(--color-brand-soft)] border border-[var(--color-brand)] rounded-sm text-[var(--color-brand-text)]"
+                        className={`text-center font-mono text-label-13 font-bold outline-none z-[1] relative rounded-sm ${
+                          inputError
+                            ? 'bg-[var(--ds-red-100)] border border-[var(--ds-red-700)] text-[var(--ds-red-1000)]'
+                            : 'bg-[var(--color-brand-soft)] border border-[var(--color-brand)] text-[var(--color-brand-text)]'
+                        }`}
                         style={{
                           width: cellW - 4, height: cellH - 4,
                         }}
@@ -416,7 +427,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
 
         {/* Hint */}
         <div className="text-label-10-mono text-[var(--ds-gray-500)] mt-2 mb-3.5">
-          Click a cell to enter fret (0–24) · Enter/Tab to confirm · Right-click to clear · Arrow keys to navigate
+          Click a cell, type fret 0–24 (2 digits auto-commit) · Enter/Tab to confirm · Right-click to clear · Arrow keys to navigate
         </div>
 
         {/* Bottom bar */}

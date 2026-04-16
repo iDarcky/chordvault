@@ -90,6 +90,9 @@ function SkeletonRows() {
   );
 }
 
+const INITIAL_VISIBLE = 100;
+const VISIBLE_PAGE_SIZE = 100;
+
 export default function Library({ songs, loaded = true, onSelectSong, onNewSong, onImportSong }) {
   const [query, setQuery] = useState('');
   const [sortMode, setSortMode] = useState('title');
@@ -98,10 +101,12 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
   const [tagsOpen, setTagsOpen] = useState(false);
   const [tagQuery, setTagQuery] = useState('');
   const [fabOpen, setFabOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
 
   const tagsRef = useRef(null);
   const fabRef = useRef(null);
   const fileInputRef = useRef(null);
+  const sentinelRef = useRef(null);
 
   const allTags = useMemo(() => {
     const tagSet = new Set();
@@ -145,10 +150,36 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
     return result;
   }, [songs, query, selectedTags]);
 
-  const { groups, sortedKeys } = useMemo(
-    () => groupAndSort(filtered, sortMode, sortAsc),
-    [filtered, sortMode, sortAsc]
+  // Reset pagination when filter criteria change so the user doesn't stay
+  // scrolled into a stale reveal window.
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE);
+  }, [query, selectedTags, sortMode, sortAsc]);
+
+  const truncated = useMemo(
+    () => filtered.length > visibleCount ? filtered.slice(0, visibleCount) : filtered,
+    [filtered, visibleCount]
   );
+  const hasMore = filtered.length > truncated.length;
+
+  const { groups, sortedKeys } = useMemo(
+    () => groupAndSort(truncated, sortMode, sortAsc),
+    [truncated, sortMode, sortAsc]
+  );
+
+  // Lazy-reveal the next page when the sentinel enters the viewport.
+  useEffect(() => {
+    if (!hasMore) return;
+    const node = sentinelRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) {
+        setVisibleCount(c => c + VISIBLE_PAGE_SIZE);
+      }
+    }, { rootMargin: '400px 0px' });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
   const toggleTag = (tag) => {
     setSelectedTags(prev =>
@@ -350,12 +381,33 @@ export default function Library({ songs, loaded = true, onSelectSong, onNewSong,
                   </div>
                 </div>
               ))}
+              {hasMore && (
+                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--text-2)]">
+                  Loading more… ({truncated.length} of {filtered.length})
+                </div>
+              )}
+            </div>
+          ) : query || selectedTags.length > 0 ? (
+            <div className="py-16 text-center text-[var(--text-2)] text-copy-14">
+              No songs matching your filters.
             </div>
           ) : (
-            <div className="py-16 text-center text-[var(--text-2)] text-copy-14">
-              {query || selectedTags.length > 0
-                ? 'No songs matching your filters.'
-                : 'Your library is empty.'}
+            <div className="py-20 flex flex-col items-center text-center">
+              <div className="w-14 h-14 mb-4 rounded-full bg-[var(--bg-2)] border border-[var(--border-1)] flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-2)]">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              </div>
+              <h2 className="text-heading-20 text-[var(--text-1)] m-0 mb-1.5">Your library is empty</h2>
+              <p className="text-copy-14 text-[var(--text-2)] max-w-sm mb-5">
+                Create a new chord chart or import one from a .md file you already have.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button variant="primary" onClick={onNewSong}>New song</Button>
+                <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .md</Button>
+              </div>
             </div>
           )}
         </div>

@@ -4,10 +4,68 @@ const SONGS_KEY = 'chordvault:songs';
 const SETLISTS_KEY = 'chordvault:setlists';
 const SETTINGS_KEY = 'chordvault:settings';
 const SYNC_KEY = 'chordvault:sync';
+const TOMBSTONES_KEY = 'chordvault:tombstones';
+
+const TOMBSTONE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+function pruneTombstones(t) {
+  const cutoff = Date.now() - TOMBSTONE_TTL_MS;
+  return {
+    songs: (t?.songs || []).filter(e => e.deletedAt > cutoff),
+    setlists: (t?.setlists || []).filter(e => e.deletedAt > cutoff),
+  };
+}
+
+// Lightweight runtime schema check. Validates that a persisted payload looks
+// like the shape we expect; returns only the entries that pass. This guards
+// against corrupted IndexedDB payloads crashing the parser downstream.
+export function isValidSong(s) {
+  if (!s || typeof s !== 'object') return false;
+  if (typeof s.id !== 'string' || !s.id) return false;
+  if (typeof s.md !== 'string') return false;
+  return true;
+}
+
+export function isValidSetlist(sl) {
+  if (!sl || typeof sl !== 'object') return false;
+  if (typeof sl.id !== 'string' || !sl.id) return false;
+  if (typeof sl.name !== 'string') return false;
+  if (!Array.isArray(sl.items)) return false;
+  return true;
+}
+
+function sanitizeSongs(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  let dropped = 0;
+  for (const s of raw) {
+    if (isValidSong(s)) out.push(s);
+    else dropped++;
+  }
+  if (dropped > 0 && typeof console !== 'undefined') {
+    console.warn(`[storage] Dropped ${dropped} malformed song record(s) during load.`);
+  }
+  return out;
+}
+
+function sanitizeSetlists(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  let dropped = 0;
+  for (const sl of raw) {
+    if (isValidSetlist(sl)) out.push(sl);
+    else dropped++;
+  }
+  if (dropped > 0 && typeof console !== 'undefined') {
+    console.warn(`[storage] Dropped ${dropped} malformed setlist record(s) during load.`);
+  }
+  return out;
+}
 
 export async function loadSongs() {
   try {
-    return (await get(SONGS_KEY)) || [];
+    const raw = (await get(SONGS_KEY)) || [];
+    return sanitizeSongs(raw);
   } catch {
     return [];
   }
@@ -19,7 +77,8 @@ export async function saveSongs(songs) {
 
 export async function loadSetlists() {
   try {
-    return (await get(SETLISTS_KEY)) || [];
+    const raw = (await get(SETLISTS_KEY)) || [];
+    return sanitizeSetlists(raw);
   } catch {
     return [];
   }
@@ -69,9 +128,35 @@ export async function saveSyncState(state) {
   await set(SYNC_KEY, state);
 }
 
+// Returns null if the API is unavailable, otherwise { usage, quota, ratio }.
+// `ratio` is a number between 0 and 1 indicating how full storage is.
+export async function getStorageEstimate() {
+  try {
+    if (typeof navigator === 'undefined' || !navigator.storage?.estimate) return null;
+    const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+    if (!quota) return { usage, quota, ratio: 0 };
+    return { usage, quota, ratio: usage / quota };
+  } catch {
+    return null;
+  }
+}
+
+export async function loadTombstones() {
+  try {
+    return pruneTombstones(await get(TOMBSTONES_KEY));
+  } catch {
+    return { songs: [], setlists: [] };
+  }
+}
+
+export async function saveTombstones(tombstones) {
+  await set(TOMBSTONES_KEY, pruneTombstones(tombstones));
+}
+
 export async function clearAll() {
   await del(SONGS_KEY);
   await del(SETLISTS_KEY);
   await del(SETTINGS_KEY);
   await del(SYNC_KEY);
+  await del(TOMBSTONES_KEY);
 }
