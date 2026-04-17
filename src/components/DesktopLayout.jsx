@@ -25,10 +25,18 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
       */}
       <main
         ref={mainRef}
-        className="h-[100dvh] overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] flex flex-col relative w-full main-with-bottomnav"
+        className="h-[100dvh] overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] flex flex-col relative w-full"
       >
         {children}
+        {/* Mobile spacer: prevents the fixed bottom nav from hiding content.
+            Height = nav (64px) + safe area + breathing room. Hidden on sm+ where there's no bottom nav. */}
+        <div
+          className="shrink-0 sm:hidden"
+          style={{ height: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+          aria-hidden="true"
+        />
       </main>
     </div>
   );
 }
+
