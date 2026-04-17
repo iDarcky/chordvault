@@ -431,6 +431,10 @@ export default function App() {
               onPlaySetlist={goSetlistPlay}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
+              hasUnreadNotifications={hasUnreadNotifications}
+              notifications={settings?.notifications || []}
+              onMarkRead={handleMarkNotificationRead}
+              onNotificationAction={handleNotificationAction}
             />
           )}
           {view === 'library' && (

@@ -4,6 +4,22 @@ import SetlistCard from './SetlistCard';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Chip } from './ui/Chip';
+import PageHeader from './PageHeader';
+import NotificationTray from './NotificationTray';
+
+const SearchIconBtn = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);
+
+const BellIconBtn = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </svg>
+);
 
 export default function Dashboard({
   songs,
@@ -15,12 +31,17 @@ export default function Dashboard({
   onViewSetlist,
   onPlaySetlist,
   onGoLibrary,
-  onGoSetlists
+  onGoSetlists,
+  hasUnreadNotifications,
+  notifications,
+  onMarkRead,
+  onNotificationAction,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [notifTrayOpen, setNotifTrayOpen] = useState(false);
   const searchInputRef = useRef(null);
   const searchContainerRef = useRef(null);
   const fabRef = useRef(null);
@@ -112,6 +133,29 @@ export default function Dashboard({
 
   return (
     <div className="min-h-screen material-page pb-32">
+
+      {/* Mobile Page Header — matches Library/Setlists header style */}
+      <div className="sm:hidden">
+        <PageHeader title="Home">
+          <button
+            onClick={() => setMobileSearchOpen(true)}
+            className="w-10 h-10 rounded-xl flex items-center justify-center bg-transparent border border-[var(--ds-gray-300)] cursor-pointer text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] transition-colors"
+            aria-label="Search songs"
+          >
+            <SearchIconBtn />
+          </button>
+          <button
+            onClick={() => setNotifTrayOpen(true)}
+            className="w-10 h-10 rounded-xl flex items-center justify-center bg-transparent border border-[var(--ds-gray-300)] cursor-pointer text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] transition-colors relative"
+            aria-label="Notifications"
+          >
+            <BellIconBtn />
+            {hasUnreadNotifications && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
+            )}
+          </button>
+        </PageHeader>
+      </div>
 
       {/* Dashboard Header: Welcome + Search + Actions */}
       <div className="max-w-5xl mx-auto px-6 pt-10 pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -406,6 +450,17 @@ export default function Dashboard({
           </div>
         </div>
       )}
+      {/* Notification Tray Modal */}
+      <NotificationTray
+        open={notifTrayOpen}
+        onClose={() => setNotifTrayOpen(false)}
+        notifications={notifications || []}
+        onMarkRead={onMarkRead}
+        onAction={(action) => {
+          onNotificationAction?.(action);
+          setNotifTrayOpen(false);
+        }}
+      />
     </div>
   );
 }
