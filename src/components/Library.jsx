@@ -3,8 +3,16 @@ import PageHeader from './PageHeader';
 import SongCard from './SongCard';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
+import { Input } from './ui/Input';
 import { cn } from '../lib/utils';
 import { useIsDesktop } from '../lib/useMediaQuery';
+
+const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);
 
 const ChartView = lazy(() => import('./ChartView'));
 
@@ -238,30 +246,20 @@ export default function Library({
       >
       <PageHeader title="Song Library" />
 
-      <div className="a4-container flex flex-col gap-0">
+      <div className="flex flex-col gap-0">
 
-        {/* Sticky Search + Tags + Filters */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4 flex flex-col gap-4">
+        {/* Sticky Search + Tags + Filters — full-width bg */}
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
+          <div className="a4-container pt-6 pb-4 flex flex-col gap-4">
           {/* Search Bar + Tags */}
           <div className="flex gap-3 items-stretch">
-            <div className="flex-1 relative">
-              <svg
-                width="18" height="18" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor"
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-2)] pointer-events-none"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search…"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] text-copy-14 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none focus:border-[var(--border-3)] transition-colors"
-              />
-            </div>
+            <Input
+              className="flex-1"
+              placeholder="Search…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              prefix={<SearchIcon />}
+            />
 
             {/* Tags Dropdown */}
             {allTags.length > 0 && (
@@ -405,10 +403,11 @@ export default function Library({
               </IconButton>
             </div>
           </div>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="py-4">
+        <div className="a4-container py-4">
           {!loaded ? (
             <SkeletonRows />
           ) : sortedKeys.length > 0 ? (

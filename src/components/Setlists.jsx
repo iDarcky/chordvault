@@ -3,8 +3,16 @@ import PageHeader from './PageHeader';
 import SetlistCard from './SetlistCard';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
+import { Input } from './ui/Input';
 import { cn } from '../lib/utils';
 import { useIsDesktop } from '../lib/useMediaQuery';
+
+const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);
 
 const SetlistOverview = lazy(() => import('./SetlistOverview'));
 
@@ -121,49 +129,40 @@ export default function Setlists({
       >
       <PageHeader title="Setlists" />
 
-      <div className="a4-container flex flex-col gap-0">
+      <div className="flex flex-col gap-0">
 
-        {/* Sticky Search */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4 flex items-center gap-2">
-          <div className="relative flex-1">
-            <svg
-              width="18" height="18" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ds-gray-600)] pointer-events-none"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              type="text"
+        {/* Sticky Search — full-width bg, constrained inner content */}
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
+          <div className="a4-container pt-6 pb-4 flex items-center gap-2">
+            <Input
+              className="flex-1"
               placeholder="Search setlists…"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
+              prefix={<SearchIcon />}
             />
-          </div>
 
-          {/* Desktop-only quick actions (FAB is hidden on lg+) */}
-          <div className="hidden lg:flex items-center gap-1 shrink-0">
-            <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .zip" title="Import .zip">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-            </IconButton>
-            <IconButton variant="default" size="sm" onClick={onNewSetlist} aria-label="New setlist" title="New setlist">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            </IconButton>
+            {/* Desktop-only quick actions (FAB is hidden on lg+) */}
+            <div className="hidden lg:flex items-center gap-1 shrink-0">
+              <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .zip" title="Import .zip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </IconButton>
+              <IconButton variant="default" size="sm" onClick={onNewSetlist} aria-label="New setlist" title="New setlist">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </IconButton>
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="py-4 flex flex-col gap-10">
+        <div className="a4-container py-4 flex flex-col gap-10">
           {!loaded ? (
             <SkeletonCards />
           ) : (
