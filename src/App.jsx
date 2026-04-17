@@ -247,11 +247,20 @@ export default function App() {
   // Notification system
   const hasUnreadNotifications = settings?.notifications?.some(n => !n.read) ?? false;
 
-  const markNotificationsRead = useCallback(() => {
-    if (!settings?.notifications) return;
-    const updated = settings.notifications.map(n => ({ ...n, read: true }));
-    setSettings(prev => ({ ...prev, notifications: updated, helpPageSeen: true }));
-  }, [settings]);
+  const handleMarkNotificationRead = useCallback((notifId) => {
+    setSettings(prev => ({
+      ...prev,
+      notifications: (prev.notifications || []).map(n =>
+        n.id === notifId ? { ...n, read: true } : n
+      ),
+    }));
+  }, []);
+
+  const handleNotificationAction = useCallback((action) => {
+    if (action?.type === 'navigate') {
+      navigate(action.view);
+    }
+  }, [navigate]);
 
   // Navigation shortcuts
   const goLibrary = () => goToMainView('library');
@@ -409,7 +418,7 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view === 'help' ? 'help' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications}>
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction}>
           {view === 'home' && (
             <Dashboard
               songs={songs}
@@ -566,12 +575,15 @@ export default function App() {
               onHelp={() => navigate('help')}
             />
           )}
-          {['home', 'library', 'setlists', 'settings', 'setlist-view', 'help'].includes(view) && (
+          {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
             <BottomNav
               activeView={view === 'setlist-view' ? 'setlists' : view}
               onNavigate={goToMainView}
               hasUnreadNotifications={hasUnreadNotifications}
               userName={settings?.userName}
+              notifications={settings?.notifications || []}
+              onMarkRead={handleMarkNotificationRead}
+              onNotificationAction={handleNotificationAction}
             />
           )}
         </DesktopLayout>

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import NotificationTray from './NotificationTray';
 
 const HomeIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -69,7 +70,9 @@ const navButtonClass = (active) =>
       : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
   }`;
 
-export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications }) {
+export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications, notifications, onMarkRead, onNotificationAction }) {
+  const [trayOpen, setTrayOpen] = useState(false);
+
   const tabs = [
     { id: 'home', label: 'Dashboard', Icon: HomeIcon },
     { id: 'setlists', label: 'Setlists', Icon: SetlistsIcon },
@@ -77,72 +80,86 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
   ];
 
   return (
-    <aside className="h-[100dvh] hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
-      {/* Profile */}
-      <div className="flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0">
-        <div className="w-9 h-9 rounded-full bg-[var(--ds-gray-300)] flex items-center justify-center shrink-0">
-          <UserIcon />
+    <>
+      <aside className="h-[100dvh] hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
+        {/* Profile */}
+        <div className="flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0">
+          <div className="w-9 h-9 rounded-full bg-[var(--ds-gray-300)] flex items-center justify-center shrink-0">
+            <UserIcon />
+          </div>
+          <div className="hidden xl:block overflow-hidden">
+            <p className="text-label-14 font-semibold text-[var(--ds-gray-1000)] truncate">Guest</p>
+            <p className="text-label-12 text-[var(--ds-teal-800)] font-medium truncate uppercase tracking-widest text-[10px]">FREE TIER</p>
+          </div>
         </div>
-        <div className="hidden xl:block overflow-hidden">
-          <p className="text-label-14 font-semibold text-[var(--ds-gray-1000)] truncate">Guest</p>
-          <p className="text-label-12 text-[var(--ds-teal-800)] font-medium truncate uppercase tracking-widest text-[10px]">FREE TIER</p>
+
+        {/* Nav Menu */}
+        <nav className="flex-1 min-h-0 flex flex-col gap-1 overflow-hidden">
+          {tabs.map(({ id, label, Icon }) => {
+            const active = activeView === id;
+            return (
+              <button
+                key={id}
+                onClick={() => onNavigate(id)}
+                className={navButtonClass(active)}
+              >
+                <Icon />
+                <span className={`hidden xl:block text-label-14 text-left ${active ? 'font-bold' : 'font-medium'}`}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Secondary Nav */}
+        <div className="mt-auto flex flex-col gap-1 pt-6 mb-6 border-t border-[var(--ds-gray-200)] shrink-0">
+          <button
+            onClick={() => setTrayOpen(true)}
+            className={navButtonClass(false)}
+          >
+            <span className="relative flex items-center justify-center">
+              <BellIcon />
+              {hasUnreadNotifications && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
+              )}
+            </span>
+            <span className="hidden xl:block text-label-14 text-left font-medium">Notifications</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate('settings')}
+            className={navButtonClass(activeView === 'settings')}
+          >
+            <SettingsIcon />
+            <span className={`hidden xl:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Settings</span>
+          </button>
         </div>
-      </div>
 
-      {/* Nav Menu */}
-      <nav className="flex-1 min-h-0 flex flex-col gap-1 overflow-hidden">
-        {tabs.map(({ id, label, Icon }) => {
-          const active = activeView === id;
-          return (
-            <button
-              key={id}
-              onClick={() => onNavigate(id)}
-              className={navButtonClass(active)}
-            >
-              <Icon />
-              <span className={`hidden xl:block text-label-14 text-left ${active ? 'font-bold' : 'font-medium'}`}>
-                {label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Secondary Nav */}
-      <div className="mt-auto flex flex-col gap-1 pt-6 mb-6 border-t border-[var(--ds-gray-200)] shrink-0">
-        <button
-          onClick={() => onNavigate('help')}
-          className={navButtonClass(activeView === 'help')}
-        >
-          <span className="relative flex items-center justify-center">
-            <BellIcon />
-            {hasUnreadNotifications && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
-            )}
-          </span>
-          <span className={`hidden xl:block text-label-14 text-left ${activeView === 'help' ? 'font-bold' : 'font-medium'}`}>Notifications</span>
-        </button>
-
-        <button
-          onClick={() => onNavigate('settings')}
-          className={navButtonClass(activeView === 'settings')}
-        >
-          <SettingsIcon />
-          <span className={`hidden xl:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Settings</span>
-        </button>
-      </div>
-
-      {/* Sync Status Dummy — expanded only */}
-      <div className="hidden xl:flex flex-col gap-2 text-[var(--ds-gray-500)] text-label-12 uppercase font-semibold shrink-0">
-        <div className="flex items-center gap-2">
-          <CloudIcon />
-          <span>Cloud Synced</span>
+        {/* Sync Status Dummy — expanded only */}
+        <div className="hidden xl:flex flex-col gap-2 text-[var(--ds-gray-500)] text-label-12 uppercase font-semibold shrink-0">
+          <div className="flex items-center gap-2">
+            <CloudIcon />
+            <span>Cloud Synced</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircleIcon />
+            <span>Offline Ready</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <CheckCircleIcon />
-          <span>Offline Ready</span>
-        </div>
-      </div>
-    </aside>
+      </aside>
+
+      {/* Notification Tray Modal */}
+      <NotificationTray
+        open={trayOpen}
+        onClose={() => setTrayOpen(false)}
+        notifications={notifications || []}
+        onMarkRead={onMarkRead}
+        onAction={(action) => {
+          onNotificationAction?.(action);
+          setTrayOpen(false);
+        }}
+      />
+    </>
   );
 }

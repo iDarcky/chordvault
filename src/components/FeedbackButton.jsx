@@ -3,11 +3,31 @@ import { Button } from './ui/Button';
 
 const GITHUB_REPO = 'https://github.com/iDarcky/setlists-md';
 
-const FEEDBACK_TYPES = [
-  { key: 'bug', label: '🐛 Bug', ghLabel: 'bug' },
-  { key: 'feature', label: '✨ Feature', ghLabel: 'enhancement' },
-  { key: 'general', label: '💬 General', ghLabel: 'feedback' },
-];
+const BugIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m8 2 1.88 1.88" /><path d="M14.12 3.88 16 2" />
+    <path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" />
+    <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" />
+    <path d="M12 20v-9" /><path d="M6.53 9C4.6 8.8 3 7.1 3 5" />
+    <path d="M6 13H2" /><path d="M3 21c0-2.1 1.7-3.9 3.8-4" />
+    <path d="M20.97 5c0 2.1-1.6 3.8-3.5 4" /><path d="M22 13h-4" />
+    <path d="M17.2 17c2.1.1 3.8 1.9 3.8 4" />
+  </svg>
+);
+
+const SparklesIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+    <path d="M5 3v4" /><path d="M19 17v4" />
+    <path d="M3 5h4" /><path d="M17 19h4" />
+  </svg>
+);
+
+const MessageIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z" />
+  </svg>
+);
 
 const ChatIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -21,6 +41,12 @@ const CloseIcon = () => (
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
+
+const FEEDBACK_TYPES = [
+  { key: 'bug', label: 'Bug', ghLabel: 'bug', Icon: BugIcon },
+  { key: 'feature', label: 'Feature', ghLabel: 'enhancement', Icon: SparklesIcon },
+  { key: 'general', label: 'General', ghLabel: 'feedback', Icon: MessageIcon },
+];
 
 export default function FeedbackButton() {
   const [open, setOpen] = useState(false);
@@ -46,7 +72,6 @@ export default function FeedbackButton() {
         setOpen(false);
       }
     };
-    // Delay to avoid the triggering click
     const timer = setTimeout(() => {
       document.addEventListener('mousedown', handler);
     }, 100);
@@ -66,7 +91,7 @@ export default function FeedbackButton() {
         : `[Feedback] ${description.slice(0, 60)}`
     );
     const body = encodeURIComponent(
-      `## ${feedbackType.label.split(' ')[1]} Report\n\n${description}\n\n---\n*Submitted via in-app feedback button*\n*User-Agent: ${navigator.userAgent}*`
+      `## ${feedbackType.label} Report\n\n${description}\n\n---\n*Submitted via in-app feedback button*\n*User-Agent: ${navigator.userAgent}*`
     );
     const label = encodeURIComponent(feedbackType.ghLabel);
 
@@ -76,7 +101,6 @@ export default function FeedbackButton() {
       'noopener'
     );
 
-    // Reset form
     setDescription('');
     setType('bug');
     setOpen(false);
@@ -84,12 +108,11 @@ export default function FeedbackButton() {
 
   return (
     <>
-      {/* Floating trigger button */}
+      {/* Floating trigger button — right of sidebar on desktop, bottom-left on mobile */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed z-[90] w-12 h-12 rounded-full bg-[var(--ds-gray-200)] border border-[var(--ds-gray-400)] shadow-lg flex items-center justify-center cursor-pointer hover:bg-[var(--ds-gray-300)] hover:border-[var(--ds-gray-600)] transition-all duration-200 active:scale-95 text-[var(--ds-gray-900)]"
+        className="fixed z-[90] w-11 h-11 rounded-full bg-[var(--ds-gray-200)] border border-[var(--ds-gray-400)] shadow-lg flex items-center justify-center cursor-pointer hover:bg-[var(--ds-gray-300)] hover:border-[var(--ds-gray-600)] transition-all duration-200 active:scale-95 text-[var(--ds-gray-900)] sm:left-[90px] xl:left-[290px] left-4"
         style={{
-          left: '20px',
           bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
         }}
         aria-label="Send feedback"
@@ -129,12 +152,13 @@ export default function FeedbackButton() {
                   <button
                     key={t.key}
                     onClick={() => setType(t.key)}
-                    className={`flex-1 py-2 px-3 rounded-md text-label-13 font-medium border-none cursor-pointer transition-all duration-150 ${
+                    className={`flex-1 py-2 px-3 rounded-md text-label-13 font-medium border-none cursor-pointer transition-all duration-150 flex items-center justify-center gap-1.5 ${
                       type === t.key
                         ? 'bg-[var(--ds-background-100)] text-[var(--ds-gray-1000)] shadow-sm'
                         : 'bg-transparent text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)]'
                     }`}
                   >
+                    <t.Icon />
                     {t.label}
                   </button>
                 ))}
@@ -162,10 +186,7 @@ export default function FeedbackButton() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between px-5 py-4 border-t border-[var(--ds-gray-200)] bg-[var(--ds-background-200)]">
-              <p className="text-copy-13 text-[var(--ds-gray-600)] m-0">
-                Opens a GitHub issue
-              </p>
+            <div className="flex items-center justify-end px-5 py-4 border-t border-[var(--ds-gray-200)] bg-[var(--ds-background-200)]">
               <div className="flex gap-2">
                 <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>
                   Cancel
@@ -185,7 +206,6 @@ export default function FeedbackButton() {
         </div>
       )}
 
-      {/* Keyframe animation */}
       <style>{`
         @keyframes feedbackSlideUp {
           from { opacity: 0; transform: translateY(16px) scale(0.97); }

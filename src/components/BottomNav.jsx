@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import NotificationTray from './NotificationTray';
 
 const HomeIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -23,6 +24,13 @@ const SetlistsIcon = () => (
     <line x1="3" y1="6" x2="3.01" y2="6" />
     <line x1="3" y1="12" x2="3.01" y2="12" />
     <line x1="3" y1="18" x2="3.01" y2="18" />
+  </svg>
+);
+
+const BellIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
   </svg>
 );
 
@@ -51,54 +59,84 @@ function ProfileAvatar({ initial, active, hasNotification }) {
   );
 }
 
-export default function BottomNav({ activeView, onNavigate, hasUnreadNotifications, userName }) {
+export default function BottomNav({ activeView, onNavigate, hasUnreadNotifications, userName, notifications, onMarkRead, onNotificationAction }) {
+  const [trayOpen, setTrayOpen] = useState(false);
   const initial = (userName || 'G').charAt(0).toUpperCase();
   const profileActive = activeView === 'settings';
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)] border-t border-[var(--ds-gray-200)] sm:hidden"
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
-      }}
-    >
-      {tabs.map(({ id, label, Icon }) => {
-        const active = activeView === id;
-        return (
-          <button
-            key={id}
-            onClick={() => onNavigate(id)}
-            className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
-              active ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
-            }`}
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            <Icon />
-            <span className={`text-label-12 ${active ? 'font-semibold' : 'font-medium'}`}>
-              {label}
-            </span>
-          </button>
-        );
-      })}
-
-      {/* Profile tab (replaces Settings) */}
-      <button
-        onClick={() => onNavigate('settings')}
-        className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
-          profileActive ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
-        }`}
-        style={{ WebkitTapHighlightColor: 'transparent' }}
+    <>
+      <nav
+        className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)] border-t border-[var(--ds-gray-200)] sm:hidden"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+        }}
       >
-        <ProfileAvatar
-          initial={initial}
-          active={profileActive}
-          hasNotification={hasUnreadNotifications}
-        />
-        <span className={`text-label-12 ${profileActive ? 'font-semibold' : 'font-medium'}`}>
-          Profile
-        </span>
-      </button>
-    </nav>
+        {tabs.map(({ id, label, Icon }) => {
+          const active = activeView === id;
+          return (
+            <button
+              key={id}
+              onClick={() => onNavigate(id)}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
+                active ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
+              }`}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <Icon />
+              <span className={`text-label-12 ${active ? 'font-semibold' : 'font-medium'}`}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
+
+        {/* Notifications tab */}
+        <button
+          onClick={() => setTrayOpen(true)}
+          className="flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 text-[var(--ds-gray-600)]"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
+          <span className="relative inline-flex">
+            <BellIcon />
+            {hasUnreadNotifications && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
+            )}
+          </span>
+          <span className="text-label-12 font-medium">Alerts</span>
+        </button>
+
+        {/* Profile tab */}
+        <button
+          onClick={() => onNavigate('settings')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
+            profileActive ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
+          }`}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
+          <ProfileAvatar
+            initial={initial}
+            active={profileActive}
+            hasNotification={false}
+          />
+          <span className={`text-label-12 ${profileActive ? 'font-semibold' : 'font-medium'}`}>
+            Profile
+          </span>
+        </button>
+      </nav>
+
+      {/* Notification Tray Modal */}
+      <NotificationTray
+        open={trayOpen}
+        onClose={() => setTrayOpen(false)}
+        notifications={notifications || []}
+        onMarkRead={onMarkRead}
+        onAction={(action) => {
+          onNotificationAction?.(action);
+          setTrayOpen(false);
+        }}
+      />
+    </>
   );
 }
