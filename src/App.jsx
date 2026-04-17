@@ -51,6 +51,7 @@ const SetlistBuilder = lazy(() => import('./components/SetlistBuilder'));
 const SetlistPlayer = lazy(() => import('./components/SetlistPlayer'));
 const SetlistOverview = lazy(() => import('./components/SetlistOverview'));
 const DesignShowcase = lazy(() => import('./components/DesignShowcase'));
+const SmartImportDialog = lazy(() => import('./components/SmartImportDialog'));
 
 export default function App() {
   const [songs, setSongs] = useState([]);
@@ -62,6 +63,7 @@ export default function App() {
   const [settings, setSettings] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
+  const [showSmartImport, setShowSmartImport] = useState(false);
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
   const quotaWarnedRef = useRef(false);
@@ -277,6 +279,17 @@ export default function App() {
     }
   };
 
+  const handleSmartImport = (mdText) => {
+    try {
+      const song = { ...parseSongMd(mdText), id: generateId(), updatedAt: Date.now() };
+      setSongs(prev => [...prev, song]);
+      setShowSmartImport(false);
+      navigate('editor', { song });
+    } catch {
+      toast({ title: 'Import failed', description: 'Could not parse converted chord sheet.', variant: 'error' });
+    }
+  };
+
   // Setlist CRUD
   const handleSaveSetlist = (sl) => {
     setSetlists(prev => {
@@ -401,6 +414,7 @@ export default function App() {
               onSelectSong={goChart}
               onNewSong={() => goEditor()}
               onImportSong={handleImportSong}
+              onPasteImport={() => setShowSmartImport(true)}
             />
           )}
           {view === 'setlists' && (
@@ -500,6 +514,12 @@ export default function App() {
             <BottomNav activeView={view === 'setlist-view' ? 'setlists' : view} onNavigate={goToMainView} />
           )}
         </DesktopLayout>
+      )}
+      {showSmartImport && (
+        <SmartImportDialog
+          onClose={() => setShowSmartImport(false)}
+          onImport={handleSmartImport}
+        />
       )}
     </Suspense>
   );
