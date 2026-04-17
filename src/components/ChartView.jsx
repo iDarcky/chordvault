@@ -23,7 +23,8 @@ export default function ChartView({
   defaultColumns = 1, defaultFontSize = 16,
   showInlineNotes = true, inlineNoteStyle = 'dashes',
   displayRole = 'leader', duplicateSections = 'full',
-  chartLayout = 'columns'
+  chartLayout = 'columns',
+  isFullscreen = false, onToggleFullscreen,
 }) {
   const initialFontSize = FONT_SIZES[defaultFontSize] || (typeof defaultFontSize === 'number' ? defaultFontSize : 16);
 
@@ -160,6 +161,31 @@ export default function ChartView({
               <IconButton variant="default" size="sm" onClick={onEdit} aria-label="Edit chart">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
               </IconButton>
+              {onToggleFullscreen && (
+                <IconButton
+                  variant={isFullscreen ? 'active' : 'default'}
+                  size="sm"
+                  onClick={onToggleFullscreen}
+                  aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                  title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                >
+                  {isFullscreen ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 3v4a1 1 0 0 1-1 1H3" />
+                      <path d="M21 8h-4a1 1 0 0 1-1-1V3" />
+                      <path d="M3 16h4a1 1 0 0 1 1 1v4" />
+                      <path d="M16 21v-4a1 1 0 0 1 1-1h4" />
+                    </svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 8V3h5" />
+                      <path d="M21 8V3h-5" />
+                      <path d="M3 16v5h5" />
+                      <path d="M21 16v5h-5" />
+                    </svg>
+                  )}
+                </IconButton>
+              )}
               <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Close">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

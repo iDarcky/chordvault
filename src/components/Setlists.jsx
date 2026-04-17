@@ -308,87 +308,39 @@ export default function Setlists({
       </div>
 
       {/* Preview pane — desktop only */}
-      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)]">
-        <div className="flex items-center justify-between px-5 h-12 border-b border-[var(--ds-gray-200)] bg-[var(--ds-background-200)] shrink-0">
-          <div className="min-w-0 flex items-center gap-2">
-            <span className="text-label-12 uppercase tracking-wider text-[var(--ds-gray-700)] font-semibold">
-              Preview
-            </span>
-            {previewSetlist && (
-              <>
-                <span className="text-[var(--ds-gray-400)]">/</span>
-                <span className="text-label-14 text-[var(--ds-gray-1000)] font-medium truncate">
-                  {previewSetlist.name || 'Untitled setlist'}
-                </span>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            {previewSetlist && (
-              <IconButton variant="default" size="sm" onClick={() => onPlaySetlist(previewSetlist)} aria-label="Play live" title="Play live">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-              </IconButton>
-            )}
-            {onToggleFullscreen && (
-              <IconButton
-                variant={isFullscreen ? 'active' : 'default'}
-                size="sm"
-                onClick={onToggleFullscreen}
-                aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-              >
-                {isFullscreen ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M8 3v4a1 1 0 0 1-1 1H3" />
-                    <path d="M21 8h-4a1 1 0 0 1-1-1V3" />
-                    <path d="M3 16h4a1 1 0 0 1 1 1v4" />
-                    <path d="M16 21v-4a1 1 0 0 1 1-1h4" />
-                  </svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 8V3h5" />
-                    <path d="M21 8V3h-5" />
-                    <path d="M3 16v5h5" />
-                    <path d="M21 16v5h-5" />
-                  </svg>
-                )}
-              </IconButton>
-            )}
-          </div>
-        </div>
-
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {previewSetlist ? (
-            <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
-              <SetlistOverview
-                key={previewSetlist.id}
-                setlist={previewSetlist}
-                songs={songs}
-                onBack={() => onSelectPreview?.(null)}
-                onEdit={() => onEditSetlist?.(previewSetlist)}
-                onExport={() => onExportSetlist?.(previewSetlist)}
-                onPlay={() => onPlaySetlist(previewSetlist)}
-                onDelete={() => onDeleteSetlist?.(previewSetlist.id)}
-              />
-            </Suspense>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center gap-3 px-8 py-16">
-              <div className="w-14 h-14 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
-                  <line x1="8" y1="6" x2="21" y2="6" />
-                  <line x1="8" y1="12" x2="21" y2="12" />
-                  <line x1="8" y1="18" x2="21" y2="18" />
-                  <line x1="3" y1="6" x2="3.01" y2="6" />
-                  <line x1="3" y1="12" x2="3.01" y2="12" />
-                  <line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
-              </div>
-              <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-xs">
-                Select a setlist from the list to preview it here.
-              </p>
+      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)] lg:overflow-y-auto">
+        {previewSetlist ? (
+          <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
+            <SetlistOverview
+              key={previewSetlist.id}
+              setlist={previewSetlist}
+              songs={songs}
+              onBack={() => onSelectPreview?.(null)}
+              onEdit={() => onEditSetlist?.(previewSetlist)}
+              onExport={() => onExportSetlist?.(previewSetlist)}
+              onPlay={() => onPlaySetlist(previewSetlist)}
+              onDelete={() => onDeleteSetlist?.(previewSetlist.id)}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={onToggleFullscreen}
+            />
+          </Suspense>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center text-center gap-3 px-8 py-16">
+            <div className="w-14 h-14 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
             </div>
-          )}
-        </div>
+            <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-xs">
+              Select a setlist from the list to preview it here.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
