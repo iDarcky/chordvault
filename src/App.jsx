@@ -585,9 +585,6 @@ export default function App() {
               onNavigate={goToMainView}
               hasUnreadNotifications={hasUnreadNotifications}
               userName={settings?.userName}
-              notifications={settings?.notifications || []}
-              onMarkRead={handleMarkNotificationRead}
-              onNotificationAction={handleNotificationAction}
             />
           )}
         </DesktopLayout>

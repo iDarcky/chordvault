@@ -56,11 +56,47 @@ export default function NotificationTray({ open, onClose, notifications = [], on
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 sm:items-start sm:justify-start sm:px-0" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+    <>
+      {/*
+        Mobile: centered modal with dark scrim.
+        Desktop/tablet (sm+): popover anchored near the sidebar, no scrim.
+      */}
+
+      {/* Mobile backdrop */}
+      <div
+        className="fixed inset-0 z-[199] sm:hidden"
+        style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+        onClick={onClose}
+      />
+
+      {/* Desktop: transparent click-away layer (no visual scrim) */}
+      <div
+        className="fixed inset-0 z-[199] hidden sm:block"
+        onClick={onClose}
+      />
+
+      {/* The tray panel itself */}
       <div
         ref={trayRef}
-        className="w-full max-w-sm rounded-2xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-2xl flex flex-col overflow-hidden max-h-[70vh] sm:ml-[90px] xl:ml-[290px] sm:mt-4"
-        style={{ animation: 'notifSlideDown 0.2s ease-out' }}
+        className="
+          fixed z-[200] w-[calc(100%-2rem)] max-w-sm rounded-2xl
+          bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)]
+          shadow-2xl flex flex-col overflow-hidden max-h-[70vh]
+
+          /* Mobile: centered */
+          left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+
+          /* Desktop: dropdown near sidebar */
+          sm:left-auto sm:top-auto sm:bottom-20 sm:translate-x-0 sm:translate-y-0
+          sm:ml-3 xl:ml-4
+        "
+        style={{
+          animation: 'notifSlideDown 0.15s ease-out',
+          /* Desktop positioning: pin to left, above the bell */
+          ...(typeof window !== 'undefined' && window.innerWidth >= 640
+            ? { left: '80px' }
+            : {}),
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--ds-gray-200)] shrink-0">
@@ -156,6 +192,6 @@ export default function NotificationTray({ open, onClose, notifications = [], on
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
-    </div>
+    </>
   );
 }
