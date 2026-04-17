@@ -1,4 +1,4 @@
-# ChordVault Design System (Geist)
+# Setlists MD Design System (Geist)
 
 ## 1. Core UI Components
 
@@ -47,3 +47,4 @@ While the migration checklist is effectively largely completed, minor cleanups a
 1. **Section Colors Contrast Audit**: `src/music.js` continues to use hardcoded hex colors for song sections (Verse, Chorus, Bridge, etc). These should be audited regarding semantic contrast values against standard Geist background tones.
 2. **Leftover Custom Inline CSS**: Validate there’s no unnecessary `style={{ ... }}` layout declarations inside components that circumvent the Tailwind 4px/8px scalable grid. 
 3. **Advanced Modal Component**: Currently the application falls back heavily on system modals. A unified `Dialog`/`Modal` window inside `src/components/ui` will help standardise popover UI, avoiding the standard native browser `window.confirm`.
+

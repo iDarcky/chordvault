@@ -1,4 +1,4 @@
-# ChordVault — Product Specification
+# Setlists MD — Product Specification
 ### Worship Chord Chart PWA for Small-to-Medium Churches
 **Version:** Draft 1.2
 **Last updated:** April 2026
@@ -7,7 +7,7 @@
 
 ## 1. Product Vision
 
-ChordVault is a free, offline-first Progressive Web App that replaces
+Setlists MD is a free, offline-first Progressive Web App that replaces
 paper chord charts, PraiseCharts PDFs, and scattered Google Docs for
 worship teams at small-to-medium churches.
 
@@ -35,10 +35,10 @@ as `.md` files. No database, no API, no auth (until v3 Google Drive sync).
 
 ```
 IndexedDB keys:
-  chordvault:songs      → Song[]
-  chordvault:setlists   → Setlist[]
-  chordvault:settings   → UserSettings
-  chordvault:history    → PlayHistory[]
+  Setlists MD:songs      → Song[]
+  Setlists MD:setlists   → Setlist[]
+  Setlists MD:settings   → UserSettings
+  Setlists MD:history    → PlayHistory[]
 ```
 
 ### Responsive Breakpoints
@@ -240,7 +240,7 @@ Each type has a unique color, border, and circle label:
   // Role
   role: "leader" | "vocalist" | "acoustic" | "electric" | "bass" | "keys" | "drums",
   // Sync
-  syncProvider: "off" | "google-drive" | "dropbox" | "onedrive" | "webdav" | "chordvault",
+  syncProvider: "off" | "google-drive" | "dropbox" | "onedrive" | "webdav" | "Setlists MD",
   syncToken: string,    // OAuth token or auth credential (encrypted)
   syncFolderId: string, // Provider-specific folder reference
   lastSyncedAt: number, // Timestamp of last successful sync
@@ -448,7 +448,7 @@ Two sub-modes:
 
 | Priority | Format | Extension | Source | Difficulty |
 |----------|--------|-----------|--------|:----------:|
-| 1 | **ChordVault native** | `.md` | ChordVault | Trivial — direct parse |
+| 1 | **Setlists MD native** | `.md` | Setlists MD | Trivial — direct parse |
 | 2 | **ChordPro** | `.cho`, `.chordpro`, `.chopro` | OnSong, SongBook, iReal Pro, many apps | Easy — near-1:1 mapping to our format |
 | 3 | **SongSelect** | `.usr` | CCLI SongSelect downloads | Easy — structured text, worship-specific |
 | 4 | **OnSong** | `.onsong` | OnSong app export | Easy — ChordPro variant with extensions |
@@ -458,12 +458,12 @@ Two sub-modes:
 | 8 | **PDF** | `.pdf` | PraiseCharts, printed charts | Hard — best-effort text extraction via pdf.js |
 | 9 | **Clipboard paste** | N/A | Any source | Medium — auto-detect format from pasted text |
 
-#### ChordPro → ChordVault Conversion
+#### ChordPro → Setlists MD Conversion
 ChordPro is the most widely used chord chart format. Conversion is
 nearly 1:1:
 
 ```
-ChordPro                          ChordVault .md
+ChordPro                          Setlists MD .md
 ─────────                         ──────────────
 {title: Build My Life}        →   title: Build My Life (in YAML)
 {artist: Worship Central}     →   artist: Worship Central
@@ -521,7 +521,7 @@ For each pair of adjacent lines:
 1. User selects file(s) or pastes text
 2. App auto-detects format from extension / content analysis
 3. Shows conversion preview: "We found 1 song — here's how it will
-   look in ChordVault" with the rendered chart preview
+   look in Setlists MD" with the rendered chart preview
 4. User can edit before confirming
 5. On confirm: song added to library
 6. For batch import: show list of detected songs with checkboxes
@@ -650,13 +650,13 @@ Clean lyric sheet with section colors and structure:
 ## 5.10 Onboarding & First Launch
 
 ### Flow
-1. **Welcome screen**: "ChordVault — Your songs, your way." with
+1. **Welcome screen**: "Setlists MD — Your songs, your way." with
    app logo and a "Get Started" button.
 2. **Role selection**: "What do you play?" — grid of role icons
    (Worship Leader, Vocalist, Guitar, Bass, Keys, Drums). Tap to
    select. Can change later in Settings.
 3. **Import prompt**: "Bring your songs"
-   - "Import .md files" (for existing ChordVault users)
+   - "Import .md files" (for existing Setlists MD users)
    - "Import from ChordPro / OnSong / SongSelect"
    - "Start with demo songs" (loads 3 example songs)
    - "Start empty"
@@ -688,7 +688,7 @@ songs?" This replaces steps 2-3 with a sync-and-restore flow.
 - **Font scaling**: Respect system-level font size preferences
 
 ### Privacy & Trust
-ChordVault's privacy stance is a competitive advantage for churches:
+Setlists MD's privacy stance is a competitive advantage for churches:
 - **No analytics tracking** — no Google Analytics, no Mixpanel,
   no telemetry. Optional: privacy-respecting analytics like Plausible
   (aggregate only, no individual tracking) if needed for product
@@ -836,7 +836,7 @@ Toggle between Standard / Nashville in chart header or settings.
 1. Serialize setlist + embedded songs to JSON
 2. Compress with lz-string (tiny library)
 3. Base64url encode
-4. Append to URL: `chordvault.app/share?d=<encoded>`
+4. Append to URL: `Setlists MD.app/share?d=<encoded>`
 
 Recipient opens the link:
 1. App decodes and decompresses
@@ -866,7 +866,7 @@ to avoid duplicates.
 
 ### Design Philosophy
 1. **User owns their files** — songs are `.md`, setlists are `.json`,
-   stored in the user's own cloud storage. ChordVault never hosts content.
+   stored in the user's own cloud storage. Setlists MD never hosts content.
 2. **Legal safety** — CCLI licenses cover churches, not software providers.
    By never storing lyrics on our servers, we avoid being a distributor
    of copyrighted material.
@@ -879,7 +879,7 @@ to avoid duplicates.
 
 ### Cloud File Layout
 ```
-ChordVault/                        ← root folder in user's cloud
+Setlists MD/                        ← root folder in user's cloud
 ├── songs/
 │   ├── build-my-life.md           ← one .md file per song
 │   ├── shelter-of-the-most-high.md
@@ -916,7 +916,7 @@ class SyncAdapter {
 | 2 | **Dropbox** | OAuth 2.0 | REST API | 2GB free. Good API, widely used. |
 | 2 | **OneDrive** | OAuth 2.0 (MSAL) | Microsoft Graph | 5GB free. Every Windows/Office user has it. |
 | 3 | **WebDAV** | Basic/token auth | Open protocol | Nextcloud, Synology, ownCloud self-hosters. |
-| 4 | **ChordVault Sync** (optional) | Email + password | Custom API | Encrypted relay — client-side AES-256, server stores blobs only. Zero-knowledge. Seamless UX, no third-party OAuth. Potential paid tier ($4-8/mo). |
+| 4 | **Setlists MD Sync** (optional) | Email + password | Custom API | Encrypted relay — client-side AES-256, server stores blobs only. Zero-knowledge. Seamless UX, no third-party OAuth. Potential paid tier ($4-8/mo). |
 
 ### Sync Engine
 The sync engine is provider-agnostic. It calls the adapter and handles:
@@ -965,8 +965,8 @@ async function sync(adapter) {
 Team collaboration works through cloud storage's native sharing:
 
 1. **Worship leader** connects Google Drive (or Dropbox, etc.)
-2. **Shares the `ChordVault/` folder** with band members via Drive/Dropbox
-3. **Band members** connect their ChordVault to the same shared folder
+2. **Shares the `Setlists MD/` folder** with band members via Drive/Dropbox
+3. **Band members** connect their Setlists MD to the same shared folder
 4. Everyone sees the same songs and setlists, synced via the cloud
 5. Any member can add/edit songs — changes propagate to all via sync
 
@@ -1170,7 +1170,7 @@ SYNC
 - [x] Google Drive sync (OAuth + folder-based .md read/write)
 - [x] Sync engine: timestamp comparison, conflict handling, deletion sync
 - [x] Sync UI: SyncSettings panel, SyncStatus pill, connect/disconnect
-- [x] Songs + setlists sync (individual files in ChordVault/Songs/ and ChordVault/Setlists/)
+- [x] Songs + setlists sync (individual files in Setlists MD/Songs/ and Setlists MD/Setlists/)
 - [x] Startup sync + visibility-change sync + debounced push on save
 - [ ] Settings sync across devices
 - [x] Dropbox sync adapter (implemented, needs client ID to activate)
@@ -1194,7 +1194,7 @@ SYNC
 - [ ] Push notifications for setlist updates
 - [ ] Offline-first with native SQLite (faster than IndexedDB)
 - [ ] App Store / Google Play distribution
-- [ ] Optional: ChordVault Sync — encrypted relay service
+- [ ] Optional: Setlists MD Sync — encrypted relay service
       (client-side AES-256, server stores blobs only, zero-knowledge,
       seamless UX, potential paid tier $4-8/mo)
 
@@ -1202,7 +1202,7 @@ SYNC
 
 ## 13. Competitive Positioning
 
-| Feature | ChordVault | OnSong | Music Stand (PCO) | Charts (WorshipTools) |
+| Feature | Setlists MD | OnSong | Music Stand (PCO) | Charts (WorshipTools) |
 |---------|-----------|--------|-------------------|----------------------|
 | Price | Free | $29.99 | Free (with PCO) | Free |
 | Offline | Full | Full | Partial | Partial |
@@ -1221,7 +1221,7 @@ SYNC
 | Backing tracks | No | Yes | No | Via Loop Community |
 | Multilingual UI | 10+ languages (v2) | English only | Limited | Limited |
 
-### ChordVault's Unique Advantages
+### Setlists MD's Unique Advantages
 1. **Data portability** — songs are .md plain text, not locked in
 2. **Zero cost, zero infrastructure** — no subscriptions, no accounts
 3. **Works everywhere** — PWA runs on any device with a browser
@@ -1264,7 +1264,7 @@ Flat key-value JSON with dot-notation grouping:
 
 ```json
 {
-  "app.name": "ChordVault",
+  "app.name": "Setlists MD",
   "library.title": "Library",
   "library.songs": "Songs",
   "library.setlists": "Setlists",
@@ -1335,7 +1335,7 @@ Flat key-value JSON with dot-notation grouping:
 
   "common.cancel": "Cancel",
   "common.confirm": "Confirm",
-  "common.loading": "Loading ChordVault..."
+  "common.loading": "Loading Setlists MD..."
 }
 ```
 
@@ -1440,3 +1440,4 @@ time: 4/4             > Full band
 tags: [slow, modern]  [D]Chorus [A]here
 ---
 ```
+

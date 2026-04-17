@@ -37,7 +37,7 @@ export default function Welcome({ onGetStarted, onImport }) {
 
       {/* Title */}
       <h1 className="text-heading-32 text-[var(--ds-gray-1000)] text-center m-0">
-        ChordVault
+        Setlists MD
       </h1>
 
       {/* Tagline */}
@@ -81,3 +81,4 @@ export default function Welcome({ onGetStarted, onImport }) {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-# ChordVault Audit Report & Improvement Plan
+# Setlists MD Audit Report & Improvement Plan
 
 **Date:** April 2026 (Projected)
 **Status:** Pre-Alpha Review
@@ -8,7 +8,7 @@
 ## 1. Product Manager POV
 *Focus: Roadmap, Retention, and Market Fit*
 
-1.  **Competitive Advantage (vs. PCO):** Focus on **Data Ownership** and **Dynamic Formatting**. PCO is for admins; ChordVault is for musicians. See **[docs/competitive-analysis.md](./docs/competitive-analysis.md)**.
+1.  **Competitive Advantage (vs. PCO):** Focus on **Data Ownership** and **Dynamic Formatting**. PCO is for admins; Setlists MD is for musicians. See **[docs/competitive-analysis.md](./docs/competitive-analysis.md)**.
 2.  **Prioritize "Smart Import" (v2):** User acquisition is hindered by manual entry. High-quality ChordPro and ".txt with chords-above-lyrics" detection is the #1 growth lever.
 3.  **Accelerate "Nashville Number System" (v1.5):** This is a professional-grade differentiator. Moving this from v1.5 to "Core" adds immediate credibility with serious worship teams.
 4.  **Local Usage History:** Implement "Last Played" tracking now (locally). It helps users rotate their repertoire and provides immediate value without needing cloud sync.
@@ -50,7 +50,7 @@
 6.  **Structure Ribbon Interaction:** Make the ribbon pills "Jump Points." Tapping "Bridge" should scroll the view directly to the Bridge section.
 7.  **Visual Hierarchy:** The Song Title in `ChartView` is great, but the "Key/BPM" info could be more prominent in a dedicated "Header Bar" that doesn't scroll away.
 8.  **Haptic Feedback:** Add subtle haptics (on supported devices) when a user switches songs or taps a chord in the editor.
-9.  **Loading States:** The "Loading ChordVault..." screen is basic. Use a skeleton screen that mirrors the Library layout for a faster "perceived" load time.
+9.  **Loading States:** The "Loading Setlists MD..." screen is basic. Use a skeleton screen that mirrors the Library layout for a faster "perceived" load time.
 10. **Responsive "Auto" Column Logic:** Ensure the 2-column layout uses `gap` and `padding` that accounts for iPad Pro's larger bezels.
 
 ---
@@ -107,4 +107,5 @@
 ---
 
 ## Final Recommendation
-ChordVault is in a strong "Pre-Alpha" state with a robust technical foundation (SyncEngine + .md format). To move to "Alpha/Beta," focus on **TypeScript**, **Tailwind**, and **Smart Import**.
+Setlists MD is in a strong "Pre-Alpha" state with a robust technical foundation (SyncEngine + .md format). To move to "Alpha/Beta," focus on **TypeScript**, **Tailwind**, and **Smart Import**.
+

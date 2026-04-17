@@ -9,10 +9,10 @@ import { Card } from './ui/Card';
 import { Separator } from './ui/Separator';
 import PageHeader from './PageHeader';
 
-export default function DesignShowcase({ onBack }) {
+export default function LydianShowcase({ onBack }) {
   return (
     <div className="min-h-screen bg-[var(--ds-background-200)] pb-8">
-      <PageHeader title="Geist UI Design System">
+      <PageHeader title="Lydian Design System">
         <Button variant="secondary" size="sm" onClick={onBack}>Back to Settings</Button>
       </PageHeader>
 

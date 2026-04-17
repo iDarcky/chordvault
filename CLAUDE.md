@@ -1,4 +1,4 @@
-# ChordVault
+# Setlists MD
 
 A Progressive Web App for worship chord charts. Install on iPad/Android tablet, use full-screen, works offline.
 
@@ -160,3 +160,4 @@ We utilize standard Vercel Geist design tokens mapped via Tailwind CSS configura
 - svguitar renders imperatively into a DOM ref — use `useRef` + `useEffect`, copy ref to local var in cleanup
 - TabGridEditor uses `key` prop for remount when editing different tabs — do not add deps to the `initialTab` useEffect
 - ChartView computes `sectionModOffsets` via `useMemo` — uses `acc` object instead of `let` variable to satisfy React compiler immutability rules
+

@@ -1,4 +1,4 @@
-# ChordVault Monetization & Cost Analysis
+# Setlists MD Monetization & Cost Analysis
 
 This document breaks down the financial model for a "Private Sync" tier, inspired by the Obsidian Sync model.
 
@@ -6,7 +6,7 @@ This document breaks down the financial model for a "Private Sync" tier, inspire
 
 ## 1. Hosting Costs (Estimated for 5,000 Users)
 
-Because ChordVault uses a **Zero-Knowledge Architecture**, your server only stores "encrypted blobs" (text). This keeps infrastructure costs incredibly low compared to image or video-heavy apps.
+Because Setlists MD uses a **Zero-Knowledge Architecture**, your server only stores "encrypted blobs" (text). This keeps infrastructure costs incredibly low compared to image or video-heavy apps.
 
 | Service | Provider | Usage Tier | Estimated Cost |
 | :--- | :--- | :--- | :--- |
@@ -23,7 +23,7 @@ Because ChordVault uses a **Zero-Knowledge Architecture**, your server only stor
 
 ## 2. Revenue Model: "Private Sync" Tier
 
-We recommend a **$4.99 / Month** (or $49.99 / Year) subscription for "ChordVault Sync."
+We recommend a **$4.99 / Month** (or $49.99 / Year) subscription for "Setlists MD Sync."
 
 ### Transaction Costs (Stripe)
 *   **Stripe Fee:** 2.9% + $0.30 per transaction.
@@ -53,7 +53,7 @@ Small-to-medium churches often have a set budget for worship tools.
 ## 4. Why This Works (The Obsidian Model)
 
 1.  **Trust over Features:** By providing **End-to-End Encryption (E2EE)**, you are selling **Privacy**. Users know you can't see their data, which is a massive trust builder.
-2.  **Low Friction:** You keep the Google Drive/Dropbox sync **free**. This acts as your "Marketing Lead." Once a user is hooked but wants a "one-click" experience, they upgrade to ChordVault Sync.
+2.  **Low Friction:** You keep the Google Drive/Dropbox sync **free**. This acts as your "Marketing Lead." Once a user is hooked but wants a "one-click" experience, they upgrade to Setlists MD Sync.
 3.  **Low Risk:** If a user stops paying, they don't lose their data—they just lose the *sync service*. They can still export their `.md` files or switch back to the free Google Drive provider.
 
 ---
@@ -61,3 +61,4 @@ Small-to-medium churches often have a set budget for worship tools.
 ## 5. Technical Requirements for Monetization
 *   **Phase 6 Roadmap:** Integrate **Stripe Billing** + **Web Crypto API** (for client-side encryption).
 *   **Vault Storage:** Implement a generic "Blob Storage" adapter in `src/sync/` that calls your Supabase/S3 endpoint.
+

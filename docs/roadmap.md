@@ -1,4 +1,4 @@
-# ChordVault Roadmap
+# Setlists MD Roadmap
 
 This document consolidates earlier specifications (`product-spec.md`) and design migrations into a single trackable feature roadmap. 
 
@@ -53,3 +53,4 @@ This document consolidates earlier specifications (`product-spec.md`) and design
 - [ ] Underlying SQLite data conversions (instead of IndexedDB mapping).
 - [ ] Native Bluetooth driver mapping (overriding Web Bluetooth hooks).
 - [ ] Application-level Background Sync & Push Notifications.
+

@@ -1,10 +1,42 @@
 import { get, set, del } from 'idb-keyval';
 
-const SONGS_KEY = 'chordvault:songs';
-const SETLISTS_KEY = 'chordvault:setlists';
-const SETTINGS_KEY = 'chordvault:settings';
-const SYNC_KEY = 'chordvault:sync';
-const TOMBSTONES_KEY = 'chordvault:tombstones';
+const OLD_PREFIX = 'Setlists MD:';
+const NEW_PREFIX = 'setlists-md:';
+
+const SONGS_KEY = `${NEW_PREFIX}songs`;
+const SETLISTS_KEY = `${NEW_PREFIX}setlists`;
+const SETTINGS_KEY = `${NEW_PREFIX}settings`;
+const SYNC_KEY = `${NEW_PREFIX}sync`;
+const TOMBSTONES_KEY = `${NEW_PREFIX}tombstones`;
+
+/**
+ * Migrates data from legacy 'Setlists MD:' keys to new 'setlists-md:' keys.
+ * This is a one-time operation per key.
+ */
+async function migrateLegacyKeys() {
+  const keys = ['songs', 'setlists', 'settings', 'sync', 'tombstones'];
+  for (const k of keys) {
+    const oldKey = `${OLD_PREFIX}${k}`;
+    const newKey = `${NEW_PREFIX}${k}`;
+    try {
+      const oldData = await get(oldKey);
+      if (oldData !== undefined) {
+        const newData = await get(newKey);
+        // Only migrate if new key is empty
+        if (newData === undefined) {
+          await set(newKey, oldData);
+          await del(oldKey);
+          console.log(`[storage] Migrated legacy key: ${oldKey} -> ${newKey}`);
+        }
+      }
+    } catch (err) {
+      console.error(`[storage] Failed to migrate legacy key ${oldKey}:`, err);
+    }
+  }
+}
+
+// Trigger migration on module load
+migrateLegacyKeys();
 
 const TOMBSTONE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -175,3 +207,4 @@ export async function clearAll() {
   await del(SYNC_KEY);
   await del(TOMBSTONES_KEY);
 }
+

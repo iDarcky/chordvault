@@ -1,6 +1,6 @@
 # Design System Rules
 
-This document serves as the official source of truth for the Chordvault Design System functional mapping.
+This document serves as the official source of truth for the Setlists MD Design System functional mapping.
 
 ## 1. Functional Color Scale (1–10)
 All color scales (Gray, Blue, Red, Amber, Green, Teal, Purple, Pink) follow this numeric logic. The values correspond to the `--ds-*-[100-1000]` scale.
@@ -34,3 +34,4 @@ Page canvases must use the specific background tokens to ensure depth consistenc
 - Prefer global semantic aliases (`--bg-1`, `--border-1`, etc.) over direct scale variables (`--ds-gray-100`) for generic UI components.
 - Direct scale variables can still be used for status-specific elements (e.g., `var(--ds-red-100)` for an error card BG).
 - No hardcoded hex values in component files.
+

@@ -1,13 +1,13 @@
-# ChordVault Documentation Master Summary
+# Setlists MD Documentation Master Summary
 
 This document provides a comprehensive, high-detail consolidation of all documentation in the `docs/docs sumarise/` directory. It is intended to serve as a single source of truth for the project's vision, architecture, and development status.
 
 ---
 
 ## 1. Project Identity & Vision
-**Source:** [README(1).md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/README(1).md) & [pitch.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/pitch.md)
+**Source:** [README(1).md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/README(1).md) & [pitch.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/pitch.md)
 
-ChordVault (formerly Setlists MD) is a **free, offline-first Progressive Web App (PWA)** designed specifically for worship leaders and musicians. It aims to liberate teams from the "PDF problem" and proprietary "walled gardens."
+Setlists MD (formerly Setlists MD) is a **free, offline-first Progressive Web App (PWA)** designed specifically for worship leaders and musicians. It aims to liberate teams from the "PDF problem" and proprietary "walled gardens."
 
 - **The Problem:** Static PDFs are hard to transpose; proprietary apps (OnSong, Planning Center) lock data behind subscriptions and internet connections.
 - **The Solution:** A portable, dynamic chart renderer that uses **Markdown (`.md`)** as its native format.
@@ -20,9 +20,9 @@ ChordVault (formerly Setlists MD) is a **free, offline-first Progressive Web App
 ---
 
 ## 2. Technical Architecture
-**Source:** [architecture.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/architecture.md) & [product-spec.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/product-spec.md)
+**Source:** [architecture.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/architecture.md) & [product-spec.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/product-spec.md)
 
-ChordVault's architecture is built for reliability in environments with poor connectivity (like church basements).
+Setlists MD's architecture is built for reliability in environments with poor connectivity (like church basements).
 
 - **The Stack:**
     - **Frontend:** React + Vite (Static SPA). No backend server is required for core functionality.
@@ -34,15 +34,15 @@ ChordVault's architecture is built for reliability in environments with poor con
     - **Music Logic (`music.js`):** Contains logic for transposing chords, calculating Capo shapes, and converting to Nashville Numbers. It uses regex to dissect chords (e.g., `F#m7/C#`) and transpose components individually.
     - **Sync Engine (`sync/`):** Manages optional Cloud Sync by comparing local `updatedAt` timestamps against remote file dates (Last-Write-Wins strategy).
 - **Data Collections (IndexedDB Keys):**
-    - `chordvault:songs`: Array of JSON song objects.
-    - `chordvault:setlists`: Array of JSON setlist objects.
-    - `chordvault:settings`: User preferences (language, theme, pedal mapping, etc.).
-    - `chordvault:history`: Track play history for repertoire rotation.
+    - `Setlists MD:songs`: Array of JSON song objects.
+    - `Setlists MD:setlists`: Array of JSON setlist objects.
+    - `Setlists MD:settings`: User preferences (language, theme, pedal mapping, etc.).
+    - `Setlists MD:history`: Track play history for repertoire rotation.
 
 ---
 
 ## 3. Product Specifications (Deep Dive)
-**Source:** [product-spec.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/product-spec.md)
+**Source:** [product-spec.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/product-spec.md)
 
 ### Detailed Song Format (v2)
 - **Syntax Rules:**
@@ -61,12 +61,12 @@ ChordVault's architecture is built for reliability in environments with poor con
     - **Acoustic Guitar:** Focuses on Capo shapes.
     - **Electric Guitar:** Highlights tab blocks.
     - **Drums:** Minimalist view showing only dynamics, section headers, and bar counts.
-- **Smart Import (v2):** Prioritized detection for ChordPro, SongSelect (`.usr`), OnSong, and plain text. The "chord-above-lyrics" detector automates the conversion from legacy formats to ChordVault Markdown.
+- **Smart Import (v2):** Prioritized detection for ChordPro, SongSelect (`.usr`), OnSong, and plain text. The "chord-above-lyrics" detector automates the conversion from legacy formats to Setlists MD Markdown.
 
 ---
 
 ## 4. Roadmaps & Milestones
-**Source:** [roadmap.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/roadmap.md) & [product-spec.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/product-spec.md)
+**Source:** [roadmap.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/roadmap.md) & [product-spec.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/product-spec.md)
 
 - **v1.5 (Essential Performance):** Settings persistence, Bluetooth pedal support, Capo calculator, .zip setlist export, and phone-optimized layouts.
 - **v2 (Professional Workflow):** Instrument role profiles, high-contrast "Stage Mode" themes, and "Smart Import" for multiple formats.
@@ -78,7 +78,7 @@ ChordVault's architecture is built for reliability in environments with poor con
 ---
 
 ## 5. User & Troubleshooting Guide
-**Source:** [how-to-guide.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/how-to-guide.md) & [faq.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/faq.md)
+**Source:** [how-to-guide.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/how-to-guide.md) & [faq.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/faq.md)
 
 - **Workflow:** 
     1. **Library**: Manage repertoire.
@@ -93,19 +93,19 @@ ChordVault's architecture is built for reliability in environments with poor con
 ---
 
 ## 6. Competitive Analysis & Strategy
-**Source:** [competitive-analysis.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/competitive-analysis.md) & [vs-planning-center.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/vs-planning-center.md)
+**Source:** [competitive-analysis.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/competitive-analysis.md) & [vs-planning-center.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/vs-planning-center.md)
 
-### Why Choose ChordVault over Planning Center (PCO)?
-- **Data Ownership:** PCO is a "walled garden"; ChordVault songs are portable `.md` files in your own drive.
-- **Dynamic Content:** PCO relies on static PDFs; ChordVault charts are dynamic text that can transpose or modulate instantly.
+### Why Choose Setlists MD over Planning Center (PCO)?
+- **Data Ownership:** PCO is a "walled garden"; Setlists MD songs are portable `.md` files in your own drive.
+- **Dynamic Content:** PCO relies on static PDFs; Setlists MD charts are dynamic text that can transpose or modulate instantly.
 - **Offline Reliability:** PWA architecture allows 100% functionality without internet, unlike PCO's cloud-heavy dependency.
 - **Guest Access:** Zero friction for guests — just scan a QR code. No PCO account or invites needed.
-- **Marketing Angle:** "Planning Center is for the administrative office. ChordVault is for the performing stage."
+- **Marketing Angle:** "Planning Center is for the administrative office. Setlists MD is for the performing stage."
 
 ---
 
 ## 7. Monetization & Business Strategy
-**Source:** [monetization.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/monetization.md) & [monetization2.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/monetization2.md)
+**Source:** [monetization.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/monetization.md) & [monetization2.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/monetization2.md)
 
 Inspired by the **Obsidian** "Sync" model.
 
@@ -119,7 +119,7 @@ Inspired by the **Obsidian** "Sync" model.
 ---
 
 ## 8. Quality, Design & Audits
-**Source:** [AUDIT.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/AUDIT.md), [audit_report_v.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/audit_report_v.md), & [inspiration.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/inspiration.md)
+**Source:** [AUDIT.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/AUDIT.md), [audit_report_v.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/audit_report_v.md), & [inspiration.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/inspiration.md)
 
 ### Multi-POV Audit Highlights
 - **PM Recommendation:** Prioritize "Nashville Numbers" and "Smart Import" to add immediate professional credibility.
@@ -133,7 +133,7 @@ Inspired by the **Obsidian** "Sync" model.
 ---
 
 ## 9. Legal, Privacy & Deployment
-**Source:** [deployment.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/deployment.md), [privacy-policy(1).md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/privacy-policy(1).md), & [terms.md](file:///d:/github/Chordvault/chordvault/docs/docs%20sumarise/terms.md)
+**Source:** [deployment.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/deployment.md), [privacy-policy(1).md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/privacy-policy(1).md), & [terms.md](file:///d:/github/Setlists MD/Setlists MD/docs/docs%20sumarise/terms.md)
 
 - **Deployment:** Guided Vercel hosting setup, environment variable configuration (Client IDs for Google Drive OAuth), and Supabase schema scripts.
 - **Privacy Policy:** Explicit "Short Version": We do not collect, store, or sell your data. No cookies or tracking.
@@ -148,7 +148,7 @@ The following table contains 50 ideas for the project's evolution, ranging from 
 | Idea | Description | Component/Location | Status | Priority | Estimated Effort | Target Release | Value / Impact |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Glassmorphism Header** | Implement a truly translucent header that blurs song content as it scrolls behind. | `PageHeader.jsx` | Backlog | Medium | Low | v2.0 | High (Aesthetics) |
-| **AI Smart Import** | Use an LLM to automatically convert messy `.txt` song copies into clean ChordVault Markdown. | `parser.js` / `Import` | Backlog | High | Medium | v2.5 | Very High (Acquisition) |
+| **AI Smart Import** | Use an LLM to automatically convert messy `.txt` song copies into clean Setlists MD Markdown. | `parser.js` / `Import` | Backlog | High | Medium | v2.5 | Very High (Acquisition) |
 | **Visual Metronome** | A subtle pulsing border or dot in the header to help the band stay on tempo. | `ChartView.jsx` | Backlog | Medium | Low | v2.0 | Medium (Utility) |
 | **Section Loop Mode** | Allow a musician to tap a section (e.g., Bridge) to highlight and loop it during rehearsal. | `ChartView.jsx` | Backlog | Medium | Low | v1.5 | High (Rehearsal) |
 | **Interactive Fretboard** | Visual representation of where to put fingers for the current chord at the top of the chart. | `ChordDiagram.jsx` | Backlog | High | Medium | v2.0 | High (Educational) |
@@ -188,7 +188,7 @@ The following table contains 50 ideas for the project's evolution, ranging from 
 | **Split-Screen Editor** | Desktop view where Editor is on the left and Live Preview is on the right. | `Editor.jsx` | Backlog | High | Medium | v1.5 | Essential (DX) |
 | **Export as Image** | Convert a chart to a high-res PNG for sharing on social media or church slides. | `ExportEngine` | Backlog | Low | Medium | v3.5 | Low (UI) |
 | **Duplicate Song Detector** | Alert the user when they try to import a song that already exists in their library. | `ImportEngine` | Backlog | Medium | Low | v2.0 | Medium (Org) |
-| **Custom App Icons** | Allow users to choose different ChordVault app icons for their home screen. | `Settings` | Backlog | Low | Low | v4.0 | Low (Polished) |
+| **Custom App Icons** | Allow users to choose different Setlists MD app icons for their home screen. | `Settings` | Backlog | Low | Low | v4.0 | Low (Polished) |
 | **Modulation Banners** | Large visual banners in the chart view indicating when the key is changing. | `SectionBlock` | Backlog | High | Low | v1.5 | High (Live) |
 | **Tempo Tap Button** | Tap a button to set the tempo of a song manually in the editor. | `MetadataForm` | Backlog | Medium | Low | v2.0 | High (Leader) |
 | **CCLI Auto-Fill** | Connect to CCLI (if API allowed) to pull metadata automatically by song number. | `ImportEngine` | Backlog | Low | High | v4.0 | High (Utility) |
@@ -197,3 +197,4 @@ The following table contains 50 ideas for the project's evolution, ranging from 
 | **Auto-Save History** | Local version history that saves every 30 seconds while editing. | `Editor.jsx` | Backlog | High | Medium | v2.0 | High (Reliability) |
 | **Dynamic Sprawling Logic** | Optimize 2-column layout to put page breaks only between sections. | `ChartView` | Backlog | Medium | High | v2.5 | High (Live) |
 | **"Stage Mode" Animation** | Smooth fade-to-black when entering Live Mode to look professional on stage. | `SetlistPlayer` | Backlog | Low | Low | v2.0 | Low (UX) |
+

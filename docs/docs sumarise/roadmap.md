@@ -1,4 +1,4 @@
-# ChordVault Strategic Roadmap (v1.5 to v3.0)
+# Setlists MD Strategic Roadmap (v1.5 to v3.0)
 
 This roadmap synthesizes goals from the Product Spec, Audit, and Technical Debt reviews. Items are prioritized by user impact and grouped into **1-week execution phases**.
 
@@ -53,7 +53,7 @@ This roadmap synthesizes goals from the Product Spec, Audit, and Technical Debt 
 ## Phase 6: Monetization & Private Cloud (Week 6+)
 *Focus: Sustainability and v3.0 launch.*
 
-1.  **ChordVault Private Sync (E2EE):** Build a zero-knowledge encrypted sync provider using Supabase/S3.
+1.  **Setlists MD Private Sync (E2EE):** Build a zero-knowledge encrypted sync provider using Supabase/S3.
 2.  **Stripe Integration:** Add subscription management for the Private Sync tier.
 3.  **Premium Themes UI:** Add a "Supporter" section for one-time theme unlocks.
 4.  **Verified Song Library:** Partner-ready architecture for "Official" chart imports (revenue share).
@@ -67,3 +67,4 @@ This roadmap synthesizes goals from the Product Spec, Audit, and Technical Debt 
 - 🔴 **Critical:** Phase 1 & 2 (Stability & Adoption)
 - 🟡 **Important:** Phase 3 & 4 (Professional Use)
 - 🔵 **Enhancement:** Phase 5 & 6 (Scaling & Monetization)
+

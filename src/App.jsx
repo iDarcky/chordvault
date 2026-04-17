@@ -51,7 +51,7 @@ const Editor = lazy(() => import('./components/Editor'));
 const SetlistBuilder = lazy(() => import('./components/SetlistBuilder'));
 const SetlistPlayer = lazy(() => import('./components/SetlistPlayer'));
 const SetlistOverview = lazy(() => import('./components/SetlistOverview'));
-const DesignShowcase = lazy(() => import('./components/DesignShowcase'));
+const LydianShowcase = lazy(() => import('./components/LydianShowcase'));
 const SmartImportDialog = lazy(() => import('./components/SmartImportDialog'));
 const HelpPage = lazy(() => import('./components/HelpPage'));
 
@@ -376,7 +376,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
         <div className="text-copy-14 text-[var(--text-2)]">
-          Loading ChordVault...
+          Loading Setlists MD...
         </div>
       </div>
     );
@@ -542,7 +542,7 @@ export default function App() {
             />
           )}
           {view === "design" && (
-            <DesignShowcase onBack={() => setView("settings")} />
+            <LydianShowcase onBack={() => setView("settings")} />
           )}
           {view === "help" && (
             <HelpPage
@@ -599,3 +599,4 @@ export default function App() {
     </Suspense>
   );
 }
+

@@ -100,5 +100,6 @@ Different musicians need different views.
 Setlists MD runs completely offline using your browser's local storage. To ensure you never lose your data, and to sync across devices:
 1. Go to **Settings**.
 2. Under Data/Sync, connect your Google Drive, Dropbox, or OneDrive.
-3. The app will create a `ChordVault/` folder in your cloud and sync your `.md` files automatically.
+3. The app will create a `Setlists MD/` folder in your cloud and sync your `.md` files automatically.
 4. **Collaboration:** Share that cloud folder with your bandmates, and everyone stays in sync automatically!
+
