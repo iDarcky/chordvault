@@ -315,7 +315,10 @@ export default function Setlists({
               key={previewSetlist.id}
               setlist={previewSetlist}
               songs={songs}
-              onBack={() => onSelectPreview?.(null)}
+              onBack={() => {
+                if (isFullscreen) onToggleFullscreen?.();
+                onSelectPreview?.(null);
+              }}
               onEdit={() => onEditSetlist?.(previewSetlist)}
               onExport={() => onExportSetlist?.(previewSetlist)}
               onPlay={() => onPlaySetlist(previewSetlist)}

@@ -532,7 +532,10 @@ export default function Library({
             <ChartView
               key={previewSong.id}
               song={previewSong}
-              onBack={() => onSelectPreview?.(null)}
+              onBack={() => {
+                if (isFullscreen) onToggleFullscreen?.();
+                onSelectPreview?.(null);
+              }}
               onEdit={() => onEditSong?.(previewSong)}
               isFullscreen={isFullscreen}
               onToggleFullscreen={onToggleFullscreen}
