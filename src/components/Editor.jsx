@@ -8,6 +8,7 @@ import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Tabs } from './ui/Tabs';
 import { toast } from './ui/use-toast';
+import { useConfirm } from './ui/use-confirm';
 
 const TAB_LIST = [
   { id: 'write', label: 'Write' },
@@ -34,6 +35,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
   const [preview, setPreview] = useState(null);
   const [metaPanelOpen, setMetaPanelOpen] = useState(!song);
   const textareaRef = useRef(null);
+  const [confirm, confirmElement] = useConfirm();
 
   // Parse md → preview with debounce
   useEffect(() => {
@@ -53,7 +55,14 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
     try {
       const text = await navigator.clipboard.readText();
       if (!text.trim()) return;
-      if (md.trim() && !confirm('Replace current content with clipboard?')) return;
+      if (md.trim()) {
+        const ok = await confirm({
+          title: 'Replace current content?',
+          description: 'Pasting from the clipboard will overwrite what you\u2019ve written so far.',
+          confirmLabel: 'Replace',
+        });
+        if (!ok) return;
+      }
       setMd(text);
     } catch {
       toast({
@@ -62,7 +71,18 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
         variant: 'error',
       });
     }
-  }, [md]);
+  }, [md, confirm]);
+
+  const handleDelete = useCallback(async () => {
+    if (!song || !onDelete) return;
+    const ok = await confirm({
+      title: 'Delete this song?',
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'error',
+    });
+    if (ok) onDelete(song.id);
+  }, [song, onDelete, confirm]);
 
   const handleUndo = useCallback(() => {
     textareaRef.current?.focus();
@@ -100,6 +120,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
 
   return (
     <div className="h-screen bg-[var(--ds-background-200)] flex flex-col">
+      {confirmElement}
       {/* ─── Sticky Header ─── */}
       <div className="material-header border-b border-[var(--ds-gray-200)] pb-1">
         <div className="a4-container pt-2 flex flex-col gap-1">
@@ -134,7 +155,7 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
             </select>
 
             {song && onDelete && (
-              <Button variant="error" size="xs" onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }}>
+              <Button variant="error" size="xs" onClick={handleDelete}>
                 Delete
               </Button>
             )}

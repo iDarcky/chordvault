@@ -3,6 +3,7 @@ import { generateId } from '../parser';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { toast } from './ui/use-toast';
+import { useConfirm } from './ui/use-confirm';
 
 const UNDO_STACK_LIMIT = 50;
 import SetlistMetaForm from './setlist/SetlistMetaForm';
@@ -22,6 +23,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   });
   const [items, setItems] = useState(setlist?.items || []);
   const undoStackRef = useRef([]);
+  const [confirm, confirmElement] = useConfirm();
 
   // Wraps setItems for structural mutations (add/remove/reorder) that
   // should be undoable via Cmd/Ctrl+Z. Pushes the previous state onto the
@@ -139,14 +141,19 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     });
   };
 
-  const handleDelete = () => {
-    if (confirm('Delete this setlist? This cannot be undone.')) {
-      onDelete(setlist.id);
-    }
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: 'Delete this setlist?',
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'error',
+    });
+    if (ok) onDelete(setlist.id);
   };
 
   return (
     <div className="min-h-screen material-page pb-8">
+      {confirmElement}
 
       {/* ── Sticky header ── */}
       <div className="material-header">

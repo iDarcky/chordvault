@@ -18,10 +18,11 @@
 }
 
 @theme {
-  --color-brand: hsl(164, 19%, 40%);
-  --color-brand-soft: hsla(164, 19%, 40%, 0.15);
-  --color-brand-text: hsl(164, 19%, 40%);
-  --color-brand-border: hsla(164, 19%, 40%, 0.3);
+  /* Brand — canonical hex from BRAND_BOOK.md §3 (#53796F). Do not redefine. */
+  --color-brand: #53796F;
+  --color-brand-soft: rgba(83, 121, 111, 0.15);
+  --color-brand-text: #53796F;
+  --color-brand-border: rgba(83, 121, 111, 0.3);
 
   --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
@@ -94,7 +95,7 @@
   --ds-teal-600-value: 172, 85%, 32%;
   --ds-teal-700-value: 173, 80%, 36%;
   --ds-teal-800-value: 173, 83%, 30%;
-  --ds-teal-900-value: 164, 19%, 40%;
+  --ds-teal-900-value: 172, 70%, 45%;
   --ds-teal-1000-value: 166, 71%, 93%;
 
   --ds-purple-100-value: 283, 30%, 12%;
@@ -266,6 +267,63 @@
   --header-bg-blur: rgba(0, 0, 0, 0.65);
   --fm: var(--font-mono);
 
+  /* Selected-row state (promoted from direct --ds-teal-100 usage) */
+  --selected-bg: var(--ds-teal-100);
+  --selected-border: var(--ds-teal-400);
+
+  /* Section type palette (Dark). Keys: bg / fg / border per type. */
+  --section-verse-bg:      var(--ds-green-100);
+  --section-verse-fg:      var(--ds-green-1000);
+  --section-verse-border:  var(--ds-green-400);
+
+  --section-intro-bg:      var(--ds-blue-100);
+  --section-intro-fg:      var(--ds-blue-1000);
+  --section-intro-border:  var(--ds-blue-400);
+
+  --section-pre-chorus-bg:     var(--ds-amber-100);
+  --section-pre-chorus-fg:     var(--ds-amber-1000);
+  --section-pre-chorus-border: var(--ds-amber-400);
+
+  --section-chorus-bg:     var(--ds-pink-100);
+  --section-chorus-fg:     var(--ds-pink-1000);
+  --section-chorus-border: var(--ds-pink-400);
+
+  --section-bridge-bg:     var(--ds-teal-100);
+  --section-bridge-fg:     var(--ds-teal-1000);
+  --section-bridge-border: var(--ds-teal-400);
+
+  --section-interlude-bg:     var(--ds-purple-100);
+  --section-interlude-fg:     var(--ds-purple-1000);
+  --section-interlude-border: var(--ds-purple-400);
+
+  --section-refrain-bg:       var(--ds-purple-100);
+  --section-refrain-fg:       var(--ds-purple-1000);
+  --section-refrain-border:   var(--ds-purple-400);
+
+  --section-tag-bg:        var(--ds-blue-100);
+  --section-tag-fg:        var(--ds-blue-1000);
+  --section-tag-border:    var(--ds-blue-400);
+
+  --section-vamp-bg:       var(--ds-amber-100);
+  --section-vamp-fg:       var(--ds-amber-1000);
+  --section-vamp-border:   var(--ds-amber-400);
+
+  --section-instrumental-bg:     var(--ds-amber-100);
+  --section-instrumental-fg:     var(--ds-amber-1000);
+  --section-instrumental-border: var(--ds-amber-400);
+
+  --section-ending-bg:     var(--ds-red-100);
+  --section-ending-fg:     var(--ds-red-1000);
+  --section-ending-border: var(--ds-red-400);
+
+  --section-outro-bg:      var(--ds-red-100);
+  --section-outro-fg:      var(--ds-red-1000);
+  --section-outro-border:  var(--ds-red-400);
+
+  --section-default-bg:     var(--ds-gray-100);
+  --section-default-fg:     var(--ds-gray-1000);
+  --section-default-border: var(--ds-gray-400);
+
   /* Shared Dashboard Surfaces (Dark Default) */
   --dashboard-hero-bg: hsl(0, 0%, 4%);
   --dashboard-hero-hover: hsl(0, 0%, 6%);
@@ -288,7 +346,7 @@
     --ds-gray-100-value: 0, 0%, 95%;
     --ds-gray-200-value: 0, 0%, 92%;
     --ds-gray-300-value: 0, 0%, 90%;
-    --ds-gray-400-value: 0, 0%, 92%;
+    --ds-gray-400-value: 0, 0%, 88%;
     --ds-gray-500-value: 0, 0%, 79%;
     --ds-gray-600-value: 0, 0%, 66%;
     --ds-gray-700-value: 0, 0%, 56%;
@@ -348,7 +406,7 @@
     --ds-teal-600-value: 170, 70%, 57%;
     --ds-teal-700-value: 173, 80%, 36%;
     --ds-teal-800-value: 173, 83%, 30%;
-    --ds-teal-900-value: 164, 19%, 40%;
+    --ds-teal-900-value: 172, 80%, 22%;
     --ds-teal-1000-value: 171, 80%, 13%;
 
     --ds-purple-100-value: 276, 100%, 97%;

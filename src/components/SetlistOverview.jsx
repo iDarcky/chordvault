@@ -2,8 +2,10 @@ import { useMemo, useState, useEffect } from 'react';
 import { transposeKey } from '../music';
 import { Chip } from './ui/Chip';
 import { IconButton } from './ui/IconButton';
+import { useConfirm } from './ui/use-confirm';
 
 export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay, onDelete, isFullscreen = false, onToggleFullscreen }) {
+  const [confirm, confirmElement] = useConfirm();
   const getSong = (id) => songs.find(s => s.id === id);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -27,10 +29,14 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
   });
   const timeStr = setlist.time ? new Date(`1970-01-01T${setlist.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' }) : '';
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this setlist? This cannot be undone.')) {
-      onDelete?.();
-    }
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: 'Delete this setlist?',
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'error',
+    });
+    if (ok) onDelete?.();
   };
 
   const actionIcons = (
@@ -80,6 +86,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
 
   return (
     <div className="min-h-screen material-page pb-8">
+      {confirmElement}
 
       {/* ── Sticky header ── */}
       <div className="material-header transition-all duration-200">

@@ -64,9 +64,9 @@ const CheckCircleIcon = () => (
 // Button shell shared by every nav row. Collapsed (< xl) centers a single
 // 44×44 icon hit-area; expanded (xl+) becomes a padded row with label.
 const navButtonClass = (active) =>
-  `group flex items-center justify-center xl:justify-start xl:gap-3 h-11 w-11 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] ${
+  `group flex items-center justify-center xl:justify-start xl:gap-3 h-11 w-11 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] ${
     active
-      ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]'
+      ? 'bg-[var(--selected-bg)] text-[var(--color-brand)]'
       : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
   }`;
 

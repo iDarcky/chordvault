@@ -4,6 +4,7 @@ import PageHeader from './PageHeader';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { Separator } from './ui/Separator';
+import { useConfirm } from './ui/use-confirm';
 
 const Section = ({ title, children }) => (
   <section className="flex flex-col gap-4">
@@ -42,8 +43,19 @@ export default function Settings({
   onHelp
 }) {
   const [detectingKey, setDetectingKey] = useState(null);
+  const [confirm, confirmElement] = useConfirm();
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
+
+  const handleClearAll = async () => {
+    const ok = await confirm({
+      title: 'Delete ALL data?',
+      description: 'This permanently removes every song and setlist from this device.',
+      confirmLabel: 'Delete everything',
+      variant: 'error',
+    });
+    if (ok) onClearAll();
+  };
 
   const handleDetectKey = (field) => {
     setDetectingKey(field);
@@ -58,6 +70,7 @@ export default function Settings({
 
   return (
     <div className="min-h-screen material-page pb-8">
+      {confirmElement}
       <PageHeader title="Settings" />
 
       <div className="a4-container py-10 flex flex-col gap-12">
@@ -168,7 +181,7 @@ export default function Settings({
           <Row label="Data Management" description={`${songCount} songs, ${setlistCount} setlists saved.`}>
             <div className="flex gap-2">
               <Button size="sm" variant="secondary" onClick={onDownloadSongs}>Download All</Button>
-              <Button size="sm" variant="error" onClick={() => { if (confirm('Delete ALL data?')) onClearAll(); }}>
+              <Button size="sm" variant="error" onClick={handleClearAll}>
                 Clear All
               </Button>
             </div>

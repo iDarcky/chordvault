@@ -55,33 +55,53 @@ export function semitonesBetween(fromKey, toKey) {
   return (ti - fi + 12) % 12;
 }
 
-// Section type → colors, label, pre-computed bg/border
-// b = base color, d = display/text color, l = compact label
-// bg = low-opacity background, br = semi-transparent border
-const SECTION_COLORS = {
-  Intro:        { b: 'var(--ds-blue-700)',  d: 'var(--ds-blue-1000)',  l: 'I',  bg: 'var(--ds-blue-100)',  br: 'var(--ds-blue-400)', c: 'blue' },
-  Refrain:      { b: 'var(--ds-purple-700)',d: 'var(--ds-purple-1000)',l: 'Rf', bg: 'var(--ds-purple-100)',br: 'var(--ds-purple-400)',c: 'purple' },
-  Verse:        { b: 'var(--ds-green-700)', d: 'var(--ds-green-1000)', l: 'V',  bg: 'var(--ds-green-100)', br: 'var(--ds-green-400)', c: 'green' },
-  'Pre Chorus': { b: 'var(--ds-amber-700)', d: 'var(--ds-amber-1000)', l: 'Pc', bg: 'var(--ds-amber-100)', br: 'var(--ds-amber-400)', c: 'amber' },
-  Chorus:       { b: 'var(--ds-pink-700)',  d: 'var(--ds-pink-1000)',  l: 'C',  bg: 'var(--ds-pink-100)',  br: 'var(--ds-pink-400)', c: 'pink' },
-  Bridge:       { b: 'var(--ds-teal-700)',  d: 'var(--ds-teal-1000)',  l: 'B',  bg: 'var(--ds-teal-100)',  br: 'var(--ds-teal-400)', c: 'teal' },
-  Instrumental: { b: 'var(--ds-amber-700)', d: 'var(--ds-amber-1000)', l: 'It', bg: 'var(--ds-amber-100)', br: 'var(--ds-amber-400)', c: 'amber' },
-  Ending:       { b: 'var(--ds-red-700)',   d: 'var(--ds-red-1000)',   l: 'E',  bg: 'var(--ds-red-100)',   br: 'var(--ds-red-400)',  c: 'red' },
-  Tag:          { b: 'var(--ds-blue-700)',  d: 'var(--ds-blue-1000)',  l: 'T',  bg: 'var(--ds-blue-100)',  br: 'var(--ds-blue-400)', c: 'blue' },
-  Interlude:    { b: 'var(--ds-purple-700)',d: 'var(--ds-purple-1000)',l: 'Il', bg: 'var(--ds-purple-100)',br: 'var(--ds-purple-400)',c: 'purple' },
-  Vamp:         { b: 'var(--ds-amber-700)', d: 'var(--ds-amber-1000)', l: 'Vm', bg: 'var(--ds-amber-100)', br: 'var(--ds-amber-400)', c: 'amber' },
-  Outro:        { b: 'var(--ds-red-700)',   d: 'var(--ds-red-1000)',   l: 'O',  bg: 'var(--ds-red-100)',   br: 'var(--ds-red-400)',  c: 'red' },
+// Section type → semantic CSS var keys + compact label.
+// Colors are resolved by CSS custom properties defined in styles/index.css
+// (--section-<slug>-{bg,fg,border}), so this map contains zero `--ds-*` refs.
+const SECTION_STYLES = {
+  Intro:        { slug: 'intro',       l: 'I' },
+  Refrain:      { slug: 'refrain',     l: 'Rf' },
+  Verse:        { slug: 'verse',       l: 'V' },
+  'Pre Chorus': { slug: 'pre-chorus',  l: 'Pc' },
+  Chorus:       { slug: 'chorus',      l: 'C' },
+  Bridge:       { slug: 'bridge',      l: 'B' },
+  Instrumental: { slug: 'instrumental',l: 'It' },
+  Ending:       { slug: 'ending',      l: 'E' },
+  Tag:          { slug: 'tag',         l: 'T' },
+  Interlude:    { slug: 'interlude',   l: 'Il' },
+  Vamp:         { slug: 'vamp',        l: 'Vm' },
+  Outro:        { slug: 'outro',       l: 'O' },
 };
 
-const DEFAULT_STYLE = { b: 'var(--ds-gray-700)', d: 'var(--ds-gray-1000)', l: '?', bg: 'var(--ds-gray-100)', br: 'var(--ds-gray-400)', c: 'gray' };
+const DEFAULT_STYLE = { slug: 'default', l: '?' };
 
-// Get colors for a section type (e.g. "Verse 1" → Verse colors)
+function styleFor(entry) {
+  const bgVar = `var(--section-${entry.slug}-bg)`;
+  const fgVar = `var(--section-${entry.slug}-fg)`;
+  const borderVar = `var(--section-${entry.slug}-border)`;
+  return {
+    bgVar,
+    fgVar,
+    borderVar,
+    label: entry.l,
+    // Legacy keys preserved as aliases into the same semantic tokens so
+    // existing consumers (b, d, bg, br) render without touching every file:
+    //   b/d → fgVar (strong foreground), bg → bgVar, br → borderVar
+    b: fgVar,
+    d: fgVar,
+    bg: bgVar,
+    br: borderVar,
+    l: entry.l,
+  };
+}
+
+// Get style tokens for a section type (e.g. "Verse 1" → Verse style)
 export function sectionStyle(type) {
   const base = type.replace(/\s*\d+$/, '');
-  const key = Object.keys(SECTION_COLORS).find(
+  const key = Object.keys(SECTION_STYLES).find(
     k => base.toLowerCase().startsWith(k.toLowerCase())
   );
-  return SECTION_COLORS[key] || DEFAULT_STYLE;
+  return styleFor(SECTION_STYLES[key] || DEFAULT_STYLE);
 }
 
 // Compact label for live mode (e.g. "Chorus 1" → "C1", "Pre Chorus" → "Pc")
