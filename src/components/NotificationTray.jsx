@@ -86,16 +86,13 @@ export default function NotificationTray({ open, onClose, notifications = [], on
           /* Mobile: centered */
           left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
 
-          /* Desktop: dropdown near sidebar */
-          sm:left-auto sm:top-auto sm:bottom-20 sm:translate-x-0 sm:translate-y-0
-          sm:ml-3 xl:ml-4
+          /* Desktop: responsive positioning based on sidebar width */
+          sm:left-[80px] xl:left-[280px]
+          sm:top-auto sm:bottom-20 sm:-translate-y-0
+          sm:translate-x-3 xl:translate-x-4
         "
         style={{
-          animation: 'notifSlideDown 0.15s ease-out',
-          /* Desktop positioning: pin to left, above the bell */
-          ...(typeof window !== 'undefined' && window.innerWidth >= 640
-            ? { left: '80px' }
-            : {}),
+          animation: 'notifSlideDown 0.15s ease-out'
         }}
       >
         {/* Header */}
