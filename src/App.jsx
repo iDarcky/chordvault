@@ -14,6 +14,7 @@ import Settings from './components/Settings';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
 import DesktopLayout from './components/DesktopLayout';
+import FeedbackButton from './components/FeedbackButton';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
 const QUOTA_WARN_THRESHOLD = 0.8;
@@ -52,6 +53,7 @@ const SetlistPlayer = lazy(() => import('./components/SetlistPlayer'));
 const SetlistOverview = lazy(() => import('./components/SetlistOverview'));
 const DesignShowcase = lazy(() => import('./components/DesignShowcase'));
 const SmartImportDialog = lazy(() => import('./components/SmartImportDialog'));
+const HelpPage = lazy(() => import('./components/HelpPage'));
 
 export default function App() {
   const [songs, setSongs] = useState([]);
@@ -242,6 +244,15 @@ export default function App() {
 
   const toggleFullscreen = useCallback(() => setIsFullscreen(f => !f), []);
 
+  // Notification system
+  const hasUnreadNotifications = settings?.notifications?.some(n => !n.read) ?? false;
+
+  const markNotificationsRead = useCallback(() => {
+    if (!settings?.notifications) return;
+    const updated = settings.notifications.map(n => ({ ...n, read: true }));
+    setSettings(prev => ({ ...prev, notifications: updated, helpPageSeen: true }));
+  }, [settings]);
+
   // Navigation shortcuts
   const goLibrary = () => goToMainView('library');
   const goSetlists = () => goToMainView('setlists');
@@ -398,7 +409,7 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')}>
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view === 'help' ? 'help' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications}>
           {view === 'home' && (
             <Dashboard
               songs={songs}
@@ -520,6 +531,16 @@ export default function App() {
           {view === "design" && (
             <DesignShowcase onBack={() => setView("settings")} />
           )}
+          {view === "help" && (
+            <HelpPage
+              onBack={goBack}
+              onMarkSeen={() => {
+                if (!settings?.notifications) return;
+                const updated = settings.notifications.map(n => ({ ...n, read: true }));
+                setSettings(prev => ({ ...prev, notifications: updated, helpPageSeen: true }));
+              }}
+            />
+          )}
           {view === "settings" && settings && (
             <Settings
               settings={settings}
@@ -542,10 +563,16 @@ export default function App() {
               syncState={syncState}
               onSyncStateChange={setSyncState}
               onSyncNow={triggerSync} onDesign={() => setView("design")}
+              onHelp={() => navigate('help')}
             />
           )}
-          {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
-            <BottomNav activeView={view === 'setlist-view' ? 'setlists' : view} onNavigate={goToMainView} />
+          {['home', 'library', 'setlists', 'settings', 'setlist-view', 'help'].includes(view) && (
+            <BottomNav
+              activeView={view === 'setlist-view' ? 'setlists' : view}
+              onNavigate={goToMainView}
+              hasUnreadNotifications={hasUnreadNotifications}
+              userName={settings?.userName}
+            />
           )}
         </DesktopLayout>
       )}
@@ -555,6 +582,7 @@ export default function App() {
           onImport={handleSmartImport}
         />
       )}
+      {!['welcome', 'onboarding'].includes(view) && <FeedbackButton />}
     </Suspense>
   );
 }

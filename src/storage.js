@@ -105,6 +105,17 @@ export const DEFAULT_SETTINGS = {
   displayRole: 'leader',
   duplicateSections: 'full',
   chartLayout: 'columns',
+  helpPageSeen: false,
+  notifications: [
+    {
+      id: 'welcome-help',
+      title: 'Welcome to Setlists MD!',
+      message: 'Learn how to use the app — tap to read the getting started guide.',
+      read: false,
+      action: { type: 'navigate', view: 'help' },
+      createdAt: Date.now(),
+    },
+  ],
 };
 
 export async function loadSettings() {

@@ -69,7 +69,7 @@ const navButtonClass = (active) =>
       : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
   }`;
 
-export default function Sidebar({ activeView, onNavigate }) {
+export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications }) {
   const tabs = [
     { id: 'home', label: 'Dashboard', Icon: HomeIcon },
     { id: 'setlists', label: 'Setlists', Icon: SetlistsIcon },
@@ -110,12 +110,17 @@ export default function Sidebar({ activeView, onNavigate }) {
 
       {/* Secondary Nav */}
       <div className="mt-auto flex flex-col gap-1 pt-6 mb-6 border-t border-[var(--ds-gray-200)] shrink-0">
-        <button className={navButtonClass(false)}>
+        <button
+          onClick={() => onNavigate('help')}
+          className={navButtonClass(activeView === 'help')}
+        >
           <span className="relative flex items-center justify-center">
             <BellIcon />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
+            {hasUnreadNotifications && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
+            )}
           </span>
-          <span className="hidden xl:block text-label-14 text-left font-medium">Notifications</span>
+          <span className={`hidden xl:block text-label-14 text-left ${activeView === 'help' ? 'font-bold' : 'font-medium'}`}>Notifications</span>
         </button>
 
         <button
