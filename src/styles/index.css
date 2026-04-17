@@ -614,6 +614,11 @@
   button {
     min-height: 44px;
   }
+
+  /* Extra bottom padding on mobile to prevent the fixed bottom nav from hiding page content */
+  .main-with-bottomnav {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Geist Typography Utilities */

@@ -23,7 +23,10 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
         to the viewport so iPad can't drag it. h-[100dvh] tracks iOS Safari's
         dynamic viewport so the layout never extends under the address bar.
       */}
-      <main ref={mainRef} className="h-[100dvh] overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] flex flex-col relative w-full">
+      <main
+        ref={mainRef}
+        className="h-[100dvh] overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] flex flex-col relative w-full main-with-bottomnav"
+      >
         {children}
       </main>
     </div>

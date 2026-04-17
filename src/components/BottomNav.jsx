@@ -32,7 +32,7 @@ const tabs = [
   { id: 'setlists', label: 'Setlists', Icon: SetlistsIcon },
 ];
 
-function ProfileAvatar({ initial, active, hasNotification }) {
+function ProfileAvatar({ initial, active }) {
   return (
     <span className="relative inline-flex">
       <span
@@ -44,14 +44,11 @@ function ProfileAvatar({ initial, active, hasNotification }) {
       >
         {initial}
       </span>
-      {hasNotification && (
-        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[var(--ds-red-600)] border-2 border-[var(--ds-background-200)]" />
-      )}
     </span>
   );
 }
 
-export default function BottomNav({ activeView, onNavigate, hasUnreadNotifications, userName }) {
+export default function BottomNav({ activeView, onNavigate, userName }) {
   const initial = (userName || 'G').charAt(0).toUpperCase();
   const profileActive = activeView === 'settings';
 
@@ -93,7 +90,6 @@ export default function BottomNav({ activeView, onNavigate, hasUnreadNotificatio
         <ProfileAvatar
           initial={initial}
           active={profileActive}
-          hasNotification={hasUnreadNotifications}
         />
         <span className={`text-label-12 ${profileActive ? 'font-semibold' : 'font-medium'}`}>
           Profile
