@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { isValidSong, isValidSetlist } from '../storage';
 
 describe('isValidSong', () => {
-  it('accepts a minimal valid song', () => {
-    expect(isValidSong({ id: 'abc', md: '---\ntitle: T\n---\n' })).toBe(true);
+  it('accepts a minimal valid song (parsed shape)', () => {
+    expect(isValidSong({ id: 'abc', title: 'T', sections: [] })).toBe(true);
   });
 
   it('rejects null / non-objects', () => {
@@ -14,15 +14,16 @@ describe('isValidSong', () => {
   });
 
   it('rejects missing or non-string id', () => {
-    expect(isValidSong({ md: 'x' })).toBe(false);
-    expect(isValidSong({ id: '', md: 'x' })).toBe(false);
-    expect(isValidSong({ id: 123, md: 'x' })).toBe(false);
+    expect(isValidSong({ title: 'T', sections: [] })).toBe(false);
+    expect(isValidSong({ id: '', title: 'T', sections: [] })).toBe(false);
+    expect(isValidSong({ id: 123, title: 'T', sections: [] })).toBe(false);
   });
 
-  it('rejects missing or non-string md', () => {
+  it('rejects missing title or sections', () => {
     expect(isValidSong({ id: 'a' })).toBe(false);
-    expect(isValidSong({ id: 'a', md: null })).toBe(false);
-    expect(isValidSong({ id: 'a', md: 42 })).toBe(false);
+    expect(isValidSong({ id: 'a', title: 'T' })).toBe(false);
+    expect(isValidSong({ id: 'a', sections: [] })).toBe(false);
+    expect(isValidSong({ id: 'a', title: 'T', sections: 'nope' })).toBe(false);
   });
 });
 

@@ -59,7 +59,7 @@ export default function SetlistCard({ setlist, onPlay, onView, selected = false 
         </div>
 
         {/* Setlist Name */}
-        <h3 className="text-heading-24 md:text-[32px] md:leading-[36px] font-bold text-[var(--text-1)] m-0 mb-3 tracking-tight truncate">
+        <h3 className="text-heading-20 md:text-heading-24 font-bold text-[var(--text-1)] m-0 mb-3 tracking-tight truncate">
           {setlist.name || 'Untitled Setlist'}
         </h3>
 
