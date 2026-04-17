@@ -61,23 +61,23 @@ export default function Sidebar({ activeView, onNavigate }) {
   ];
 
   return (
-    <aside className="sticky top-0 h-screen hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] lg:w-[280px] py-6 px-4">
+    <aside className="sticky top-0 h-screen hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-4 overflow-hidden">
       {/* Guest Profile Dummy */}
-      <div className="flex items-center gap-3 mb-8 lg:px-2">
+      <div className="flex items-center gap-3 mb-8 xl:px-2 shrink-0">
         <div className="min-w-[36px] h-[36px] rounded-full bg-[var(--ds-gray-300)] overflow-hidden shrink-0">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--ds-gray-600)] mt-2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
         </div>
-        <div className="hidden lg:block overflow-hidden">
+        <div className="hidden xl:block overflow-hidden">
           <p className="text-label-14 font-semibold text-[var(--ds-gray-1000)] truncate">Guest</p>
           <p className="text-label-12 text-[var(--ds-teal-800)] font-medium truncate uppercase tracking-widest text-[10px]">FREE TIER</p>
         </div>
       </div>
 
       {/* Nav Menu */}
-      <nav className="flex-1 flex flex-col gap-2">
+      <nav className="flex-1 min-h-0 flex flex-col gap-2 overflow-hidden">
         {tabs.map(({ id, label, Icon }) => {
           const active = activeView === id;
           return (
@@ -85,15 +85,15 @@ export default function Sidebar({ activeView, onNavigate }) {
               key={id}
               onClick={() => onNavigate(id)}
               className={`flex items-center gap-4 h-[44px] rounded-lg cursor-pointer transition-colors duration-200 px-3 w-full border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)]
-                ${active 
-                  ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]' 
+                ${active
+                  ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]'
                   : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
                 }`}
             >
               <div className="flex-none flex items-center justify-center w-[28px]">
                 <Icon />
               </div>
-              <span className={`hidden lg:block text-label-14 text-left ${active ? 'font-bold' : 'font-medium'}`}>
+              <span className={`hidden xl:block text-label-14 text-left ${active ? 'font-bold' : 'font-medium'}`}>
                 {label}
               </span>
             </button>
@@ -102,7 +102,7 @@ export default function Sidebar({ activeView, onNavigate }) {
       </nav>
 
       {/* Secondary Nav */}
-      <div className="mt-auto flex flex-col gap-2 pt-6 mb-6 border-t border-[var(--ds-gray-200)] lg:-mx-2 lg:px-2">
+      <div className="mt-auto flex flex-col gap-2 pt-6 mb-6 border-t border-[var(--ds-gray-200)] xl:-mx-2 xl:px-2 shrink-0">
         <button
           className="flex items-center gap-4 h-[44px] rounded-lg cursor-pointer transition-colors duration-200 px-3 w-full border-none bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)] relative"
         >
@@ -110,26 +110,26 @@ export default function Sidebar({ activeView, onNavigate }) {
             <BellIcon />
             <span className="absolute left-[26px] top-[14px] w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
           </div>
-          <span className="hidden lg:block text-label-14 text-left font-medium">Notifications</span>
+          <span className="hidden xl:block text-label-14 text-left font-medium">Notifications</span>
         </button>
 
         <button
           onClick={() => onNavigate('settings')}
-          className={`flex items-center gap-4 h-[44px] rounded-lg cursor-pointer transition-colors duration-200 px-3 w-full border-none 
-            ${activeView === 'settings' 
-              ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]' 
+          className={`flex items-center gap-4 h-[44px] rounded-lg cursor-pointer transition-colors duration-200 px-3 w-full border-none
+            ${activeView === 'settings'
+              ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]'
               : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
             }`}
         >
           <div className="flex-none flex items-center justify-center w-[28px]">
             <SettingsIcon />
           </div>
-          <span className={`hidden lg:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Settings</span>
+          <span className={`hidden xl:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Settings</span>
         </button>
       </div>
 
       {/* Sync Status Dummy */}
-      <div className="hidden lg:flex flex-col gap-2 text-[var(--ds-gray-500)] text-label-12 uppercase font-semibold">
+      <div className="hidden xl:flex flex-col gap-2 text-[var(--ds-gray-500)] text-label-12 uppercase font-semibold shrink-0">
         <div className="flex items-center gap-2">
           <CloudIcon />
           <span>Cloud Synced</span>
