@@ -57,7 +57,7 @@ export default function Settings({
   };
 
   return (
-    <div className="min-h-screen material-page pb-32">
+    <div className="min-h-screen material-page pb-8">
       <PageHeader title="Settings" />
 
       <div className="a4-container py-10 flex flex-col gap-12">

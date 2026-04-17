@@ -41,7 +41,7 @@ export default function HelpPage({ onBack, onMarkSeen }) {
   }, []);
 
   return (
-    <div className="min-h-screen material-page pb-32">
+    <div className="min-h-screen material-page pb-8">
       {/* Header */}
       <div className="pt-6 pb-4 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
         <div className="a4-container flex items-center gap-3">

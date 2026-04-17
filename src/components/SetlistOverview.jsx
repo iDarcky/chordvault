@@ -79,7 +79,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
   );
 
   return (
-    <div className="min-h-screen material-page pb-32">
+    <div className="min-h-screen material-page pb-8">
 
       {/* ── Sticky header ── */}
       <div className="material-header transition-all duration-200">

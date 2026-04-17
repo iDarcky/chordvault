@@ -146,7 +146,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   };
 
   return (
-    <div className="min-h-screen material-page pb-32">
+    <div className="min-h-screen material-page pb-8">
 
       {/* ── Sticky header ── */}
       <div className="material-header">

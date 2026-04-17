@@ -615,8 +615,6 @@
     min-height: 44px;
   }
 }
-
-/* Geist Typography Utilities */
 @utility text-heading-72 { font-size: 80px; line-height: 88px; letter-spacing: -0.05em; font-weight: 600; }
 @utility text-heading-64 { font-size: 72px; line-height: 80px; letter-spacing: -0.05em; font-weight: 600; }
 @utility text-heading-56 { font-size: 64px; line-height: 72px; letter-spacing: -0.04em; font-weight: 600; }

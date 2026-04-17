@@ -121,7 +121,7 @@ export default function Setlists({
     <div className="flex flex-col lg:flex-row lg:h-screen">
       <div
         className={cn(
-          "relative min-w-0 material-page pb-32",
+          "relative min-w-0 material-page pb-8",
           "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--ds-gray-200)]",
           "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
           isFullscreen && "lg:hidden",

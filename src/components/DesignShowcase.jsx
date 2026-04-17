@@ -11,7 +11,7 @@ import PageHeader from './PageHeader';
 
 export default function DesignShowcase({ onBack }) {
   return (
-    <div className="min-h-screen bg-[var(--ds-background-200)] pb-32">
+    <div className="min-h-screen bg-[var(--ds-background-200)] pb-8">
       <PageHeader title="Geist UI Design System">
         <Button variant="secondary" size="sm" onClick={onBack}>Back to Settings</Button>
       </PageHeader>

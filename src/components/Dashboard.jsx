@@ -132,7 +132,7 @@ export default function Dashboard({
   };
 
   return (
-    <div className="min-h-screen material-page pb-32">
+    <div className="min-h-screen material-page pb-8">
 
       {/* Mobile Page Header — matches Library/Setlists header style */}
       <div className="sm:hidden">
