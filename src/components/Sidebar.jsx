@@ -61,7 +61,7 @@ export default function Sidebar({ activeView, onNavigate }) {
   ];
 
   return (
-    <aside className="sticky top-0 h-screen hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-4 overflow-hidden">
+    <aside className="h-screen hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-4 overflow-hidden overscroll-contain">
       {/* Guest Profile Dummy */}
       <div className="flex items-center gap-3 mb-8 xl:px-2 shrink-0">
         <div className="min-w-[36px] h-[36px] rounded-full bg-[var(--ds-gray-300)] overflow-hidden shrink-0">
