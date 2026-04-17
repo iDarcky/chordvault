@@ -132,6 +132,7 @@ export default function Library({
       onSelectSong(song);
     }
   };
+export default function Library({ songs, loaded = true, onSelectSong, onNewSong, onImportSong, onPasteImport }) {
   const [query, setQuery] = useState('');
   const [sortMode, setSortMode] = useState('title');
   const [sortAsc, setSortAsc] = useState(true);
@@ -461,6 +462,9 @@ export default function Library({
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 <Button variant="primary" onClick={onNewSong}>New song</Button>
+                {onPasteImport && (
+                  <Button variant="secondary" onClick={onPasteImport}>Paste chord sheet</Button>
+                )}
                 <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .md</Button>
               </div>
             </div>
@@ -482,11 +486,19 @@ export default function Library({
             >
               New Song
             </button>
+            {onPasteImport && (
+              <button
+                onClick={() => { setFabOpen(false); onPasteImport(); }}
+                className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
+              >
+                Paste chord sheet
+              </button>
+            )}
             <button
               onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
               className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
             >
-              Import
+              Import .md
             </button>
           </div>
         )}
