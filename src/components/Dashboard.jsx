@@ -211,7 +211,7 @@ export default function Dashboard({
           
           <div className="flex items-center gap-2 mt-2 sm:mt-0 hidden sm:flex">
             <Button variant="secondary" onClick={onNewSong}>New Song</Button>
-            <Button variant="brand" className="font-bold" onClick={onNewSetlist}>New Setlist</Button>
+            <Button variant="brand" onClick={onNewSetlist}>New Setlist</Button>
           </div>
         </div>
       </div>
@@ -282,7 +282,7 @@ export default function Dashboard({
                   <div className="flex items-center gap-6 mt-auto">
                     <Button
                       variant="brand"
-                      className="border-none text-white shadow-sm px-6 font-bold"
+                      className="px-6"
                       onClick={(e) => { e.stopPropagation(); onPlaySetlist(upcomingSetlists[0]); }}
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M8 5v14l11-7z"/></svg> 

@@ -173,7 +173,7 @@ export default function Settings({
         {/* Tools */}
         <Section title="Tools">
           <Row label="Help & Getting Started" description="Learn how to use Setlists MD.">
-            <Button size="sm" variant="brand" className="font-bold" onClick={onHelp}>Open Guide</Button>
+            <Button size="sm" variant="brand" onClick={onHelp}>Open Guide</Button>
           </Row>
           <Row label="Design System" description="Preview application UI components.">
             <Button size="sm" onClick={onDesign}>Open Showcase</Button>
