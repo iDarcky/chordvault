@@ -1,7 +1,12 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import PageHeader from './PageHeader';
 import SetlistCard from './SetlistCard';
 import { Button } from './ui/Button';
+import { IconButton } from './ui/IconButton';
+import { cn } from '../lib/utils';
+import { useIsDesktop } from '../lib/useMediaQuery';
+
+const SetlistOverview = lazy(() => import('./SetlistOverview'));
 
 function SkeletonCards() {
   return (
@@ -31,7 +36,32 @@ function SkeletonCards() {
   );
 }
 
-export default function Setlists({ songs, setlists, loaded = true, onViewSetlist, onPlaySetlist, onNewSetlist, onImportSetlist }) {
+export default function Setlists({
+  songs,
+  setlists,
+  loaded = true,
+  onViewSetlist,
+  onPlaySetlist,
+  onNewSetlist,
+  onImportSetlist,
+  previewSetlistId = null,
+  onSelectPreview,
+  isFullscreen = false,
+  onToggleFullscreen,
+  onEditSetlist,
+  onExportSetlist,
+  onDeleteSetlist,
+}) {
+  const isDesktop = useIsDesktop();
+  const previewSetlist = useMemo(
+    () => setlists.find(s => s.id === previewSetlistId) || null,
+    [setlists, previewSetlistId],
+  );
+
+  const handleView = (sl) => {
+    if (isDesktop && onSelectPreview) onSelectPreview(sl.id);
+    else onViewSetlist(sl);
+  };
   const [query, setQuery] = useState('');
   const [fabOpen, setFabOpen] = useState(false);
   const fabRef = useRef(null);
@@ -83,14 +113,22 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
   }, [filtered]);
 
   return (
-    <div className="min-h-screen material-page pb-32">
+    <div className="flex flex-col lg:flex-row lg:h-screen">
+      <div
+        className={cn(
+          "relative min-w-0 material-page pb-32",
+          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--ds-gray-200)]",
+          "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
+          isFullscreen && "lg:hidden",
+        )}
+      >
       <PageHeader title="Setlists" />
 
       <div className="a4-container flex flex-col gap-0">
 
         {/* Sticky Search */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4">
-          <div className="relative">
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4 flex items-center gap-2">
+          <div className="relative flex-1">
             <svg
               width="18" height="18" viewBox="0 0 24 24"
               fill="none" stroke="currentColor"
@@ -107,6 +145,23 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
               onChange={e => setQuery(e.target.value)}
               className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
             />
+          </div>
+
+          {/* Desktop-only quick actions (FAB is hidden on lg+) */}
+          <div className="hidden lg:flex items-center gap-1 shrink-0">
+            <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .zip" title="Import .zip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </IconButton>
+            <IconButton variant="default" size="sm" onClick={onNewSetlist} aria-label="New setlist" title="New setlist">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </IconButton>
           </div>
         </div>
 
@@ -127,13 +182,14 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
                       {upcoming.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
                     {upcoming.map(sl => (
                       <SetlistCard
                         key={sl.id}
                         setlist={sl}
+                        selected={isDesktop && sl.id === previewSetlistId}
                         onPlay={() => onPlaySetlist(sl)}
-                        onView={() => onViewSetlist(sl)}
+                        onView={() => handleView(sl)}
                       />
                     ))}
                   </div>
@@ -151,13 +207,14 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
                       {past.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
                     {past.map(sl => (
                       <SetlistCard
                         key={sl.id}
                         setlist={sl}
+                        selected={isDesktop && sl.id === previewSetlistId}
                         onPlay={() => onPlaySetlist(sl)}
-                        onView={() => onViewSetlist(sl)}
+                        onView={() => handleView(sl)}
                       />
                     ))}
                   </div>
@@ -198,10 +255,10 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
         </div>
       </div>
 
-      {/* FAB Cluster */}
+      {/* FAB Cluster — mobile/tablet only */}
       <div
         ref={fabRef}
-        className="fixed right-6 z-[150]"
+        className="fixed right-6 z-[150] lg:hidden"
         style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
       >
         {fabOpen && (
@@ -248,6 +305,91 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
         }}
         className="hidden"
       />
+      </div>
+
+      {/* Preview pane — desktop only */}
+      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)]">
+        <div className="flex items-center justify-between px-5 h-12 border-b border-[var(--ds-gray-200)] bg-[var(--ds-background-200)] shrink-0">
+          <div className="min-w-0 flex items-center gap-2">
+            <span className="text-label-12 uppercase tracking-wider text-[var(--ds-gray-700)] font-semibold">
+              Preview
+            </span>
+            {previewSetlist && (
+              <>
+                <span className="text-[var(--ds-gray-400)]">/</span>
+                <span className="text-label-14 text-[var(--ds-gray-1000)] font-medium truncate">
+                  {previewSetlist.name || 'Untitled setlist'}
+                </span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            {previewSetlist && (
+              <IconButton variant="default" size="sm" onClick={() => onPlaySetlist(previewSetlist)} aria-label="Play live" title="Play live">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+              </IconButton>
+            )}
+            {onToggleFullscreen && (
+              <IconButton
+                variant={isFullscreen ? 'active' : 'default'}
+                size="sm"
+                onClick={onToggleFullscreen}
+                aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+              >
+                {isFullscreen ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M8 3v4a1 1 0 0 1-1 1H3" />
+                    <path d="M21 8h-4a1 1 0 0 1-1-1V3" />
+                    <path d="M3 16h4a1 1 0 0 1 1 1v4" />
+                    <path d="M16 21v-4a1 1 0 0 1 1-1h4" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 8V3h5" />
+                    <path d="M21 8V3h-5" />
+                    <path d="M3 16v5h5" />
+                    <path d="M21 16v5h-5" />
+                  </svg>
+                )}
+              </IconButton>
+            )}
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {previewSetlist ? (
+            <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
+              <SetlistOverview
+                key={previewSetlist.id}
+                setlist={previewSetlist}
+                songs={songs}
+                onBack={() => onSelectPreview?.(null)}
+                onEdit={() => onEditSetlist?.(previewSetlist)}
+                onExport={() => onExportSetlist?.(previewSetlist)}
+                onPlay={() => onPlaySetlist(previewSetlist)}
+                onDelete={() => onDeleteSetlist?.(previewSetlist.id)}
+              />
+            </Suspense>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-center gap-3 px-8 py-16">
+              <div className="w-14 h-14 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+              </div>
+              <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-xs">
+                Select a setlist from the list to preview it here.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

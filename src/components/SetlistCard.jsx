@@ -2,8 +2,9 @@ import React from 'react';
 import { Card } from './ui/Card';
 import { Chip } from './ui/Chip';
 import { Button } from './ui/Button';
+import { cn } from '../lib/utils';
 
-export default function SetlistCard({ setlist, onPlay, onView }) {
+export default function SetlistCard({ setlist, onPlay, onView, selected = false }) {
   const dateStr = new Date(setlist.date + 'T12:00:00').toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
   }).toUpperCase();
@@ -18,7 +19,13 @@ export default function SetlistCard({ setlist, onPlay, onView }) {
       : [];
 
   return (
-    <Card onClick={onView} className="flex flex-col gap-6 cursor-pointer">
+    <Card
+      onClick={onView}
+      className={cn(
+        "flex flex-col gap-6 cursor-pointer",
+        selected && "ring-2 ring-[var(--ds-teal-700)] border-[var(--ds-teal-700)]",
+      )}
+    >
       <div className="flex justify-between items-start">
         <div className="text-label-12-mono text-[var(--text-2)] tracking-widest uppercase">
           {dateStr}
