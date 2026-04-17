@@ -112,6 +112,7 @@ export default function Library({
   onSelectSong,
   onNewSong,
   onImportSong,
+  onPasteImport,
   previewSongId = null,
   onSelectPreview,
   isFullscreen = false,
@@ -132,7 +133,7 @@ export default function Library({
       onSelectSong(song);
     }
   };
-export default function Library({ songs, loaded = true, onSelectSong, onNewSong, onImportSong, onPasteImport }) {
+
   const [query, setQuery] = useState('');
   const [sortMode, setSortMode] = useState('title');
   const [sortAsc, setSortAsc] = useState(true);
