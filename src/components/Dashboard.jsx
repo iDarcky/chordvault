@@ -280,9 +280,9 @@ export default function Dashboard({
 
                   {/* Actions */}
                   <div className="flex items-center gap-6 mt-auto">
-                    <Button 
-                      variant="brand" 
-                      className="border-none text-white shadow-sm px-6 font-bold" 
+                    <Button
+                      variant="brand"
+                      className="px-6 font-bold"
                       onClick={(e) => { e.stopPropagation(); onPlaySetlist(upcomingSetlists[0]); }}
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M8 5v14l11-7z"/></svg> 
