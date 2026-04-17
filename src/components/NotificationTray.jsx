@@ -62,16 +62,9 @@ export default function NotificationTray({ open, onClose, notifications = [], on
         Desktop/tablet (sm+): popover anchored near the sidebar, no scrim.
       */}
 
-      {/* Mobile backdrop */}
+      {/* Transparent click-away layer (for both mobile and desktop) */}
       <div
-        className="fixed inset-0 z-[199] sm:hidden"
-        style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-        onClick={onClose}
-      />
-
-      {/* Desktop: transparent click-away layer (no visual scrim) */}
-      <div
-        className="fixed inset-0 z-[199] hidden sm:block"
+        className="fixed inset-0 z-[199]"
         onClick={onClose}
       />
 
@@ -83,13 +76,12 @@ export default function NotificationTray({ open, onClose, notifications = [], on
           bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)]
           shadow-2xl flex flex-col overflow-hidden max-h-[70vh]
 
-          /* Mobile: centered */
-          left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+          /* Mobile: top-right popover near the bell icon */
+          top-[72px] right-4 left-auto translate-x-0 translate-y-0
 
           /* Desktop: responsive positioning based on sidebar width */
-          sm:left-[80px] xl:left-[280px]
-          sm:top-auto sm:bottom-20 sm:-translate-y-0
-          sm:translate-x-3 xl:translate-x-4
+          sm:left-[80px] sm:right-auto sm:top-auto sm:bottom-20
+          sm:translate-x-3 xl:left-[280px] xl:translate-x-4
         "
         style={{
           animation: 'notifSlideDown 0.15s ease-out'
