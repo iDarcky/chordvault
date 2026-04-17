@@ -14,18 +14,15 @@ function SkeletonCards() {
       {[1, 2].map(section => (
         <div key={section} className="flex flex-col gap-4">
           <div className="h-5 w-28 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-4">
             {[1, 2].map(c => (
-              <div key={c} className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] p-6 flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-4 w-24 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                  <div className="h-4 w-16 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                </div>
-                <div className="h-6 w-40 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                <div className="h-4 w-20 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                <div className="flex gap-3 mt-2">
-                  <div className="h-10 flex-1 bg-[var(--ds-gray-200)] rounded-md animate-pulse" />
-                  <div className="h-10 flex-1 bg-[var(--ds-gray-200)] rounded-md animate-pulse" />
+              <div key={c} className="flex flex-col md:flex-row rounded-2xl border border-[var(--border-1)] bg-[var(--ds-background-100)] h-auto md:h-64 overflow-hidden">
+                <div className="w-full md:w-1/3 h-32 md:h-full bg-[var(--ds-gray-200)] animate-pulse" />
+                <div className="flex-1 p-8 flex flex-col gap-3">
+                  <div className="h-5 w-20 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-8 w-56 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-4 w-40 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-10 w-32 bg-[var(--ds-gray-200)] rounded-md animate-pulse mt-auto" />
                 </div>
               </div>
             ))}
@@ -182,7 +179,7 @@ export default function Setlists({
                       {upcoming.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-4">
                     {upcoming.map(sl => (
                       <SetlistCard
                         key={sl.id}
@@ -207,7 +204,7 @@ export default function Setlists({
                       {past.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-4">
                     {past.map(sl => (
                       <SetlistCard
                         key={sl.id}
