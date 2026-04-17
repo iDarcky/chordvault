@@ -1,7 +1,20 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import PageHeader from './PageHeader';
 import SetlistCard from './SetlistCard';
 import { Button } from './ui/Button';
+import { IconButton } from './ui/IconButton';
+import { Input } from './ui/Input';
+import { cn } from '../lib/utils';
+import { useIsDesktop } from '../lib/useMediaQuery';
+
+const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);
+
+const SetlistOverview = lazy(() => import('./SetlistOverview'));
 
 function SkeletonCards() {
   return (
@@ -9,18 +22,15 @@ function SkeletonCards() {
       {[1, 2].map(section => (
         <div key={section} className="flex flex-col gap-4">
           <div className="h-5 w-28 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-4">
             {[1, 2].map(c => (
-              <div key={c} className="rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] p-6 flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-4 w-24 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                  <div className="h-4 w-16 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                </div>
-                <div className="h-6 w-40 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                <div className="h-4 w-20 bg-[var(--ds-gray-200)] rounded animate-pulse" />
-                <div className="flex gap-3 mt-2">
-                  <div className="h-10 flex-1 bg-[var(--ds-gray-200)] rounded-md animate-pulse" />
-                  <div className="h-10 flex-1 bg-[var(--ds-gray-200)] rounded-md animate-pulse" />
+              <div key={c} className="flex flex-col md:flex-row rounded-2xl border border-[var(--border-1)] bg-[var(--ds-background-100)] h-auto md:h-64 overflow-hidden">
+                <div className="w-full md:w-1/3 h-32 md:h-full bg-[var(--ds-gray-200)] animate-pulse" />
+                <div className="flex-1 p-8 flex flex-col gap-3">
+                  <div className="h-5 w-20 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-8 w-56 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-4 w-40 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-10 w-32 bg-[var(--ds-gray-200)] rounded-md animate-pulse mt-auto" />
                 </div>
               </div>
             ))}
@@ -31,7 +41,32 @@ function SkeletonCards() {
   );
 }
 
-export default function Setlists({ songs, setlists, loaded = true, onViewSetlist, onPlaySetlist, onNewSetlist, onImportSetlist }) {
+export default function Setlists({
+  songs,
+  setlists,
+  loaded = true,
+  onViewSetlist,
+  onPlaySetlist,
+  onNewSetlist,
+  onImportSetlist,
+  previewSetlistId = null,
+  onSelectPreview,
+  isFullscreen = false,
+  onToggleFullscreen,
+  onEditSetlist,
+  onExportSetlist,
+  onDeleteSetlist,
+}) {
+  const isDesktop = useIsDesktop();
+  const previewSetlist = useMemo(
+    () => setlists.find(s => s.id === previewSetlistId) || null,
+    [setlists, previewSetlistId],
+  );
+
+  const handleView = (sl) => {
+    if (isDesktop && onSelectPreview) onSelectPreview(sl.id);
+    else onViewSetlist(sl);
+  };
   const [query, setQuery] = useState('');
   const [fabOpen, setFabOpen] = useState(false);
   const fabRef = useRef(null);
@@ -83,35 +118,51 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
   }, [filtered]);
 
   return (
-    <div className="min-h-screen material-page pb-32">
+    <div className="flex flex-col lg:flex-row lg:h-screen">
+      <div
+        className={cn(
+          "relative min-w-0 material-page pb-32",
+          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--ds-gray-200)]",
+          "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
+          isFullscreen && "lg:hidden",
+        )}
+      >
       <PageHeader title="Setlists" />
 
-      <div className="a4-container flex flex-col gap-0">
+      <div className="flex flex-col gap-0">
 
-        {/* Sticky Search */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] pt-6 pb-4">
-          <div className="relative">
-            <svg
-              width="18" height="18" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--ds-gray-600)] pointer-events-none"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              type="text"
+        {/* Sticky Search — full-width bg, constrained inner content */}
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
+          <div className="a4-container pt-6 pb-4 flex items-center gap-2">
+            <Input
+              className="flex-1"
               placeholder="Search setlists…"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              className="w-full h-11 pl-11 pr-4 rounded-xl border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
+              prefix={<SearchIcon />}
             />
+
+            {/* Desktop-only quick actions (FAB is hidden on lg+) */}
+            <div className="hidden lg:flex items-center gap-1 shrink-0">
+              <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .zip" title="Import .zip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </IconButton>
+              <IconButton variant="default" size="sm" onClick={onNewSetlist} aria-label="New setlist" title="New setlist">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </IconButton>
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="py-4 flex flex-col gap-10">
+        <div className="a4-container py-4 flex flex-col gap-10">
           {!loaded ? (
             <SkeletonCards />
           ) : (
@@ -127,13 +178,14 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
                       {upcoming.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-4">
                     {upcoming.map(sl => (
                       <SetlistCard
                         key={sl.id}
                         setlist={sl}
+                        selected={isDesktop && sl.id === previewSetlistId}
                         onPlay={() => onPlaySetlist(sl)}
-                        onView={() => onViewSetlist(sl)}
+                        onView={() => handleView(sl)}
                       />
                     ))}
                   </div>
@@ -151,13 +203,14 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
                       {past.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-4">
                     {past.map(sl => (
                       <SetlistCard
                         key={sl.id}
                         setlist={sl}
+                        selected={isDesktop && sl.id === previewSetlistId}
                         onPlay={() => onPlaySetlist(sl)}
-                        onView={() => onViewSetlist(sl)}
+                        onView={() => handleView(sl)}
                       />
                     ))}
                   </div>
@@ -198,10 +251,10 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
         </div>
       </div>
 
-      {/* FAB Cluster */}
+      {/* FAB Cluster — mobile/tablet only */}
       <div
         ref={fabRef}
-        className="fixed right-6 z-[150]"
+        className="fixed right-6 z-[150] lg:hidden"
         style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
       >
         {fabOpen && (
@@ -248,6 +301,46 @@ export default function Setlists({ songs, setlists, loaded = true, onViewSetlist
         }}
         className="hidden"
       />
+      </div>
+
+      {/* Preview pane — desktop only */}
+      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)] lg:overflow-y-auto">
+        {previewSetlist ? (
+          <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
+            <SetlistOverview
+              key={previewSetlist.id}
+              setlist={previewSetlist}
+              songs={songs}
+              onBack={() => {
+                if (isFullscreen) onToggleFullscreen?.();
+                onSelectPreview?.(null);
+              }}
+              onEdit={() => onEditSetlist?.(previewSetlist)}
+              onExport={() => onExportSetlist?.(previewSetlist)}
+              onPlay={() => onPlaySetlist(previewSetlist)}
+              onDelete={() => onDeleteSetlist?.(previewSetlist.id)}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={onToggleFullscreen}
+            />
+          </Suspense>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center text-center gap-3 px-8 py-16">
+            <div className="w-14 h-14 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </div>
+            <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-xs">
+              Select a setlist from the list to preview it here.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

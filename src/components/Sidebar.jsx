@@ -1,14 +1,14 @@
 import React from 'react';
 
 const HomeIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
     <polyline points="9 22 9 12 15 12 15 22" />
   </svg>
 );
 
 const LibraryIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18V5l12-2v13" />
     <circle cx="6" cy="18" r="3" />
     <circle cx="18" cy="16" r="3" />
@@ -16,7 +16,7 @@ const LibraryIcon = () => (
 );
 
 const SetlistsIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="8" y1="6" x2="21" y2="6" />
     <line x1="8" y1="12" x2="21" y2="12" />
     <line x1="8" y1="18" x2="21" y2="18" />
@@ -27,16 +27,23 @@ const SetlistsIcon = () => (
 );
 
 const SettingsIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
 
 const BellIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
     <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </svg>
+);
+
+const UserIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
   </svg>
 );
 
@@ -53,6 +60,15 @@ const CheckCircleIcon = () => (
   </svg>
 );
 
+// Button shell shared by every nav row. Collapsed (< xl) centers a single
+// 44×44 icon hit-area; expanded (xl+) becomes a padded row with label.
+const navButtonClass = (active) =>
+  `group flex items-center justify-center xl:justify-start xl:gap-3 h-11 w-11 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] ${
+    active
+      ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]'
+      : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
+  }`;
+
 export default function Sidebar({ activeView, onNavigate }) {
   const tabs = [
     { id: 'home', label: 'Dashboard', Icon: HomeIcon },
@@ -61,39 +77,30 @@ export default function Sidebar({ activeView, onNavigate }) {
   ];
 
   return (
-    <aside className="sticky top-0 h-screen hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] lg:w-[280px] py-6 px-4">
-      {/* Guest Profile Dummy */}
-      <div className="flex items-center gap-3 mb-8 lg:px-2">
-        <div className="min-w-[36px] h-[36px] rounded-full bg-[var(--ds-gray-300)] overflow-hidden shrink-0">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--ds-gray-600)] mt-2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+    <aside className="h-[100dvh] hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
+      {/* Profile */}
+      <div className="flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0">
+        <div className="w-9 h-9 rounded-full bg-[var(--ds-gray-300)] flex items-center justify-center shrink-0">
+          <UserIcon />
         </div>
-        <div className="hidden lg:block overflow-hidden">
+        <div className="hidden xl:block overflow-hidden">
           <p className="text-label-14 font-semibold text-[var(--ds-gray-1000)] truncate">Guest</p>
           <p className="text-label-12 text-[var(--ds-teal-800)] font-medium truncate uppercase tracking-widest text-[10px]">FREE TIER</p>
         </div>
       </div>
 
       {/* Nav Menu */}
-      <nav className="flex-1 flex flex-col gap-2">
+      <nav className="flex-1 min-h-0 flex flex-col gap-1 overflow-hidden">
         {tabs.map(({ id, label, Icon }) => {
           const active = activeView === id;
           return (
             <button
               key={id}
               onClick={() => onNavigate(id)}
-              className={`flex items-center gap-4 h-[44px] rounded-lg cursor-pointer transition-colors duration-200 px-3 w-full border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)]
-                ${active 
-                  ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]' 
-                  : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
-                }`}
+              className={navButtonClass(active)}
             >
-              <div className="flex-none flex items-center justify-center w-[28px]">
-                <Icon />
-              </div>
-              <span className={`hidden lg:block text-label-14 text-left ${active ? 'font-bold' : 'font-medium'}`}>
+              <Icon />
+              <span className={`hidden xl:block text-label-14 text-left ${active ? 'font-bold' : 'font-medium'}`}>
                 {label}
               </span>
             </button>
@@ -102,34 +109,26 @@ export default function Sidebar({ activeView, onNavigate }) {
       </nav>
 
       {/* Secondary Nav */}
-      <div className="mt-auto flex flex-col gap-2 pt-6 mb-6 border-t border-[var(--ds-gray-200)] lg:-mx-2 lg:px-2">
-        <button
-          className="flex items-center gap-4 h-[44px] rounded-lg cursor-pointer transition-colors duration-200 px-3 w-full border-none bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)] relative"
-        >
-          <div className="flex-none flex items-center justify-center w-[28px]">
+      <div className="mt-auto flex flex-col gap-1 pt-6 mb-6 border-t border-[var(--ds-gray-200)] shrink-0">
+        <button className={navButtonClass(false)}>
+          <span className="relative flex items-center justify-center">
             <BellIcon />
-            <span className="absolute left-[26px] top-[14px] w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
-          </div>
-          <span className="hidden lg:block text-label-14 text-left font-medium">Notifications</span>
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
+          </span>
+          <span className="hidden xl:block text-label-14 text-left font-medium">Notifications</span>
         </button>
 
         <button
           onClick={() => onNavigate('settings')}
-          className={`flex items-center gap-4 h-[44px] rounded-lg cursor-pointer transition-colors duration-200 px-3 w-full border-none 
-            ${activeView === 'settings' 
-              ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]' 
-              : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
-            }`}
+          className={navButtonClass(activeView === 'settings')}
         >
-          <div className="flex-none flex items-center justify-center w-[28px]">
-            <SettingsIcon />
-          </div>
-          <span className={`hidden lg:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Settings</span>
+          <SettingsIcon />
+          <span className={`hidden xl:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Settings</span>
         </button>
       </div>
 
-      {/* Sync Status Dummy */}
-      <div className="hidden lg:flex flex-col gap-2 text-[var(--ds-gray-500)] text-label-12 uppercase font-semibold">
+      {/* Sync Status Dummy — expanded only */}
+      <div className="hidden xl:flex flex-col gap-2 text-[var(--ds-gray-500)] text-label-12 uppercase font-semibold shrink-0">
         <div className="flex items-center gap-2">
           <CloudIcon />
           <span>Cloud Synced</span>

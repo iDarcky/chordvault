@@ -3,7 +3,7 @@ import { transposeKey } from '../music';
 import { Chip } from './ui/Chip';
 import { IconButton } from './ui/IconButton';
 
-export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay, onDelete }) {
+export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay, onDelete, isFullscreen = false, onToggleFullscreen }) {
   const getSong = (id) => songs.find(s => s.id === id);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -45,6 +45,31 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </IconButton>
+      {onToggleFullscreen && (
+        <IconButton
+          variant={isFullscreen ? 'active' : 'ghost'}
+          size="sm"
+          onClick={onToggleFullscreen}
+          aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+        >
+          {isFullscreen ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3v4a1 1 0 0 1-1 1H3" />
+              <path d="M21 8h-4a1 1 0 0 1-1-1V3" />
+              <path d="M3 16h4a1 1 0 0 1 1 1v4" />
+              <path d="M16 21v-4a1 1 0 0 1 1-1h4" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 8V3h5" />
+              <path d="M21 8V3h-5" />
+              <path d="M3 16v5h5" />
+              <path d="M21 16v5h-5" />
+            </svg>
+          )}
+        </IconButton>
+      )}
       <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Close">
         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

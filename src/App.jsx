@@ -63,6 +63,9 @@ export default function App() {
   const [settings, setSettings] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
+  const [previewSongId, setPreviewSongId] = useState(null);
+  const [previewSetlistId, setPreviewSetlistId] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSmartImport, setShowSmartImport] = useState(false);
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
@@ -234,7 +237,10 @@ export default function App() {
     setView(viewName);
     setCurrentSong(null);
     setCurrentSetlist(null);
+    setIsFullscreen(false);
   };
+
+  const toggleFullscreen = useCallback(() => setIsFullscreen(f => !f), []);
 
   // Navigation shortcuts
   const goLibrary = () => goToMainView('library');
@@ -392,7 +398,7 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView}>
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')}>
           {view === 'home' && (
             <Dashboard
               songs={songs}
@@ -414,6 +420,20 @@ export default function App() {
               onSelectSong={goChart}
               onNewSong={() => goEditor()}
               onImportSong={handleImportSong}
+              previewSongId={previewSongId}
+              onSelectPreview={setPreviewSongId}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={toggleFullscreen}
+              onEditSong={(s) => goEditor(s)}
+              chartDefaults={{
+                defaultColumns: settings?.defaultColumns,
+                defaultFontSize: settings?.defaultFontSize,
+                showInlineNotes: settings?.showInlineNotes !== false,
+                inlineNoteStyle: settings?.inlineNoteStyle || 'dashes',
+                displayRole: settings?.displayRole || 'leader',
+                duplicateSections: settings?.duplicateSections || 'full',
+                chartLayout: settings?.chartLayout || 'columns',
+              }}
               onPasteImport={() => setShowSmartImport(true)}
             />
           )}
@@ -426,6 +446,20 @@ export default function App() {
               onPlaySetlist={goSetlistPlay}
               onNewSetlist={() => goSetlistBuild()}
               onImportSetlist={handleImportSetlist}
+              previewSetlistId={previewSetlistId}
+              onSelectPreview={setPreviewSetlistId}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={toggleFullscreen}
+              onEditSetlist={(sl) => goSetlistBuild(sl)}
+              onExportSetlist={handleExportSetlist}
+              onDeleteSetlist={(id) => {
+                setSetlists(prev => prev.filter(s => s.id !== id));
+                setTombstones(prev => ({
+                  ...prev,
+                  setlists: [...prev.setlists.filter(t => t.id !== id), { id, deletedAt: Date.now() }],
+                }));
+                setPreviewSetlistId(null);
+              }}
             />
           )}
           {view === 'chart' && currentSong && (

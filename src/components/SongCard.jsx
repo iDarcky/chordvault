@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card } from './ui/Card';
+import { cn } from '../lib/utils';
 
 function formatRelativeTime(ts) {
   if (!ts) return null;
@@ -14,12 +15,15 @@ function formatRelativeTime(ts) {
   return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function SongCard({ song, onClick, variant = 'card', showTags = false }) {
+export default function SongCard({ song, onClick, variant = 'card', showTags = false, selected = false }) {
   if (variant === 'row') {
     return (
       <div
         onClick={onClick}
-        className="flex items-center justify-between px-5 py-4 cursor-pointer transition-colors duration-150 hover:bg-[var(--bg-2)]"
+        className={cn(
+          "flex items-center justify-between px-5 py-4 cursor-pointer transition-colors duration-150 hover:bg-[var(--bg-2)]",
+          selected && "bg-[var(--ds-teal-100)] hover:bg-[var(--ds-teal-100)]",
+        )}
       >
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <span className="text-heading-16 text-[var(--text-1)] truncate">
