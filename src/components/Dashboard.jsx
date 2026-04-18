@@ -179,8 +179,9 @@ export default function Dashboard({
           <div>
             {upcomingSetlists.length > 0 ? (
               <div
-                className="modes-card-strong flex flex-col md:flex-row w-full overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35)] h-auto md:h-64 cursor-pointer group"
+                className="modes-card-strong flex flex-col md:flex-row w-full overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35)] h-auto md:h-64 cursor-pointer group transition-transform duration-150 active:scale-[0.99]"
                 onClick={() => onViewSetlist(upcomingSetlists[0])}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 {/* Left part (Branded Gradient) */}
                 <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#3a1a3b] h-28 md:h-full relative overflow-hidden">

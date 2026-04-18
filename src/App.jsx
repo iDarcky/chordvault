@@ -249,12 +249,62 @@ export default function App() {
     return () => window.removeEventListener('popstate', handler);
   }, [goBack]);
 
+  // Left-edge swipe opens the mobile drawer (main tabs only, mobile viewport only)
+  useEffect(() => {
+    const isMainView = ['home', 'library', 'setlists'].includes(view);
+    if (!isMainView) return;
+    let startX = null;
+    let startY = null;
+    let tracking = false;
+
+    const onStart = (e) => {
+      if (drawerOpen) return;
+      if (window.innerWidth >= 640) return;
+      const t = e.touches?.[0];
+      if (!t) return;
+      if (t.clientX > 24) return;
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+    };
+    const onMove = (e) => {
+      if (!tracking) return;
+      const t = e.touches?.[0];
+      if (!t) return;
+      const dx = t.clientX - startX;
+      const dy = Math.abs(t.clientY - startY);
+      if (dx > 60 && dy < 40) {
+        tracking = false;
+        setDrawerOpen(true);
+      }
+    };
+    const onEnd = () => { tracking = false; startX = null; startY = null; };
+
+    document.addEventListener('touchstart', onStart, { passive: true });
+    document.addEventListener('touchmove', onMove, { passive: true });
+    document.addEventListener('touchend', onEnd);
+    document.addEventListener('touchcancel', onEnd);
+    return () => {
+      document.removeEventListener('touchstart', onStart);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+    };
+  }, [view, drawerOpen]);
+
   // Navigate between main pages (no history push)
   const goToMainView = (viewName) => {
-    setView(viewName);
-    setCurrentSong(null);
-    setCurrentSetlist(null);
-    setIsFullscreen(false);
+    const apply = () => {
+      setView(viewName);
+      setCurrentSong(null);
+      setCurrentSetlist(null);
+      setIsFullscreen(false);
+    };
+    if (typeof document !== 'undefined' && typeof document.startViewTransition === 'function') {
+      document.startViewTransition(apply);
+    } else {
+      apply();
+    }
   };
 
   const toggleFullscreen = useCallback(() => setIsFullscreen(f => !f), []);

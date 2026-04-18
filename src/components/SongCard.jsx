@@ -21,9 +21,10 @@ export default function SongCard({ song, onClick, variant = 'card', showTags = f
       <div
         onClick={onClick}
         className={cn(
-          "flex items-center justify-between px-5 py-4 cursor-pointer transition-colors duration-150 hover:bg-[var(--bg-2)]",
+          "flex items-center justify-between px-5 py-4 cursor-pointer transition-[background-color,transform] duration-150 hover:bg-[var(--bg-2)] active:scale-[0.99]",
           selected && "bg-[var(--ds-teal-100)] hover:bg-[var(--ds-teal-100)]",
         )}
+        style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <span className="text-heading-16 text-[var(--text-1)] truncate">
