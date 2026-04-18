@@ -31,10 +31,11 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
       */}
       <main
         ref={mainRef}
-        className="h-[100dvh] overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] relative w-full transition-transform duration-300 ease-out will-change-transform"
+        className="h-[100dvh] overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] relative w-full transition-transform duration-300 ease-out"
         style={{
           transform: applyDrawerTransform ? 'translateX(72%) scale(0.92)' : undefined,
           transformOrigin: 'left center',
+          willChange: applyDrawerTransform ? 'transform' : undefined,
           borderRadius: applyDrawerTransform ? '24px' : undefined,
           boxShadow: applyDrawerTransform ? '0 30px 60px rgba(0,0,0,0.45)' : undefined,
         }}

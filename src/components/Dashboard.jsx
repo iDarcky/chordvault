@@ -92,15 +92,15 @@ export default function Dashboard({
   };
 
   return (
-    <div className="min-h-screen material-page pb-8">
+    <div className="min-h-screen pb-8" data-theme-variant="modes">
 
       {/* Dashboard Header: Welcome + Search + Actions */}
       <div className="max-w-5xl mx-auto px-6 pt-8 sm:pt-10 pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-heading-40 text-[var(--text-1)] m-0">
-            Welcome, {userName}
+          <h1 className="text-heading-40 text-white m-0">
+            Welcome, <span className="italic font-serif text-white">{userName}</span>
           </h1>
-          <p className="text-copy-16 text-[var(--text-2)] mt-1">
+          <p className="text-copy-16 text-white/60 mt-1">
             {dateStr}
           </p>
         </div>
@@ -122,10 +122,10 @@ export default function Dashboard({
               }
             />
             {searchFocused && searchQuery.trim().length > 0 && (
-              <div className="absolute top-full right-0 left-0 sm:left-auto sm:w-80 mt-2 rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-xl z-50 overflow-hidden divide-y divide-[var(--border-1)] max-h-[400px] overflow-y-auto">
+              <div className="absolute top-full right-0 left-0 sm:left-auto sm:w-80 mt-2 rounded-xl border border-white/10 bg-[rgba(20,16,28,0.95)] backdrop-blur-md shadow-xl z-50 overflow-hidden divide-y divide-white/10 max-h-[400px] overflow-y-auto">
                 {searchResults.length > 0 ? (
                   searchResults.map(song => (
-                    <div key={song.id} className="hover:bg-[var(--bg-2)] cursor-pointer">
+                    <div key={song.id} className="hover:bg-white/5 cursor-pointer">
                       <SongCard
                         song={song}
                         variant="row"
@@ -138,14 +138,14 @@ export default function Dashboard({
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-6 text-center text-copy-14 text-[var(--text-2)]">
+                  <div className="px-4 py-6 text-center text-copy-14 text-white/60">
                     No songs found.
                   </div>
                 )}
               </div>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2 mt-2 sm:mt-0 hidden sm:flex">
             <Button variant="secondary" onClick={onNewSong}>New Song</Button>
             <Button variant="brand" onClick={onNewSetlist}>New Setlist</Button>
@@ -155,19 +155,19 @@ export default function Dashboard({
 
 
 
-      <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex flex-col gap-8">
 
         {/* Upcoming Setlists */}
-        <section className="flex flex-col gap-5">
+        <section className="flex flex-col gap-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-heading-20 font-bold text-[var(--text-1)]">
+            <h2 className="text-heading-20 font-bold text-white">
               Upcoming Setlists
             </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onGoSetlists}
-              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-white/5"
             >
               View All
             </Button>
@@ -175,14 +175,17 @@ export default function Dashboard({
 
           <div>
             {upcomingSetlists.length > 0 ? (
-              <div className="flex flex-col md:flex-row w-full rounded-xl overflow-hidden border border-[var(--border-1)] bg-[var(--dashboard-hero-bg)] shadow-[0_4px_24px_rgba(0,0,0,0.04)] h-auto md:h-64 cursor-pointer group" onClick={() => onViewSetlist(upcomingSetlists[0])}>
+              <div
+                className="modes-card-strong flex flex-col md:flex-row w-full overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35)] h-auto md:h-64 cursor-pointer group"
+                onClick={() => onViewSetlist(upcomingSetlists[0])}
+              >
                 {/* Left part (Branded Gradient) */}
-                <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#004f5e] h-32 md:h-full relative overflow-hidden">
+                <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#3a1a3b] h-28 md:h-full relative overflow-hidden">
                    <div className="absolute inset-0 bg-black/10"></div>
                 </div>
-                
+
                 {/* Right part (Details) */}
-                <div className="flex-1 p-6 md:p-8 flex flex-col justify-center bg-[var(--dashboard-hero-bg)] group-hover:bg-[var(--dashboard-hero-hover)] transition-colors">
+                <div className="flex-1 p-5 md:p-8 flex flex-col justify-center group-hover:bg-white/[0.02] transition-colors">
                   {/* Tags */}
                   <div className="flex items-center gap-2 mb-3">
                     {upcomingSetlists[0].tags && upcomingSetlists[0].tags.length > 0 ? (
@@ -199,12 +202,12 @@ export default function Dashboard({
                   </div>
 
                   {/* Setlist Name */}
-                  <h3 className="text-heading-24 md:text-[32px] md:leading-[36px] font-bold text-[var(--text-1)] m-0 mb-3 tracking-tight">
+                  <h3 className="text-heading-24 md:text-[32px] md:leading-[36px] font-bold text-white m-0 mb-3 tracking-tight">
                     {upcomingSetlists[0].name || "Untitled Setlist"}
                   </h3>
 
                   {/* Time & Location */}
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-[var(--ds-gray-700)] mb-6 font-medium">
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-white/65 mb-6 font-medium">
                     <div className="flex items-center gap-2">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                       {formatDateFriendly(upcomingSetlists[0].date)} • {formatTimeFriendly(upcomingSetlists[0].time)}
@@ -217,23 +220,23 @@ export default function Dashboard({
 
                   {/* Actions */}
                   <div className="flex items-center gap-6 mt-auto">
-                    <Button 
-                      variant="brand" 
-                      className="border-none text-white shadow-sm px-6 font-bold" 
+                    <Button
+                      variant="brand"
+                      className="border-none text-white shadow-sm px-6 font-bold"
                       onClick={(e) => { e.stopPropagation(); onPlaySetlist(upcomingSetlists[0]); }}
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M8 5v14l11-7z"/></svg> 
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M8 5v14l11-7z"/></svg>
                       Play Live
                     </Button>
-                    <div className="text-label-13 text-[var(--text-2)] font-medium">
+                    <div className="text-label-13 text-white/55 font-medium">
                       {upcomingSetlists[0].items.length} Songs • 1h 45m
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="py-14 text-center border-2 border-dashed border-[var(--border-1)] rounded-xl flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--text-2)] font-medium">
+              <div className="modes-card py-14 text-center flex flex-col items-center gap-3 border-dashed">
+                <p className="text-copy-14 text-white/60 font-medium">
                   No upcoming setlists.
                 </p>
               </div>
@@ -242,22 +245,22 @@ export default function Dashboard({
         </section>
 
         {/* Recently Edited */}
-        <section className="flex flex-col gap-5 mt-4">
+        <section className="flex flex-col gap-4 mt-2">
           <div className="flex justify-between items-center text-left">
-            <h2 className="text-heading-20 font-bold text-[var(--text-1)]">
+            <h2 className="text-heading-20 font-bold text-white">
               Recently Edited
             </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onGoLibrary}
-              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-white/5"
             >
               Full Library
             </Button>
           </div>
 
-          <div className="rounded-xl border border-[var(--border-2)] overflow-hidden divide-y divide-[var(--border-1)] shadow-sm [&>*:nth-child(even)]:bg-[var(--dashboard-row-even-bg)] [&>*:nth-child(odd)]:bg-[var(--dashboard-row-odd-bg)]">
+          <div className="modes-card overflow-hidden divide-y divide-white/8">
             {latestSongs.map(song => (
               <SongCard
                 key={song.id}
@@ -268,7 +271,7 @@ export default function Dashboard({
             ))}
             {latestSongs.length === 0 && (
               <div className="py-14 text-center flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--text-2)] font-medium">
+                <p className="text-copy-14 text-white/60 font-medium">
                   Your library is empty.
                 </p>
                 <Button variant="brand" size="sm" onClick={onNewSong}>

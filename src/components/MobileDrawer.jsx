@@ -183,15 +183,17 @@ export default function MobileDrawer({
         </div>
 
         {/* Account */}
-        <div className="px-5">
-          <div className="text-label-11 uppercase tracking-[0.15em] text-white/50 mb-1.5">
-            Your Account
+        {isSignedIn && (
+          <div className="px-5">
+            <div className="text-label-11 uppercase tracking-[0.15em] text-white/50 mb-1.5">
+              Your Account
+            </div>
+            <div className="text-copy-16 text-white truncate">{displayEmail}</div>
           </div>
-          <div className="text-copy-16 text-white truncate">{displayEmail}</div>
-        </div>
+        )}
 
         {/* Plan */}
-        <div className="px-5 mt-5">
+        <div className={`px-5 ${isSignedIn ? 'mt-5' : ''}`}>
           <div className="text-label-11 uppercase tracking-[0.15em] text-white/50 mb-1.5">
             Your Plan
           </div>

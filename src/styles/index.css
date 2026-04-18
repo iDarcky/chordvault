@@ -659,3 +659,43 @@
   .strong { font-weight: 600 !important; }
   .subtle { color: var(--ds-gray-900) !important; }
 }
+
+/*
+ * Theme: "modes" — dark, card-centric surface that matches the mobile drawer.
+ * Applied via `data-theme-variant="modes"` on a page root (currently the Dashboard).
+ * The page becomes a soft card sitting on a teal/plum radial gradient, with all
+ * interior surfaces reading as translucent cards against that wash.
+ */
+[data-theme-variant="modes"] {
+  --modes-surface: rgba(255, 255, 255, 0.04);
+  --modes-surface-strong: rgba(255, 255, 255, 0.07);
+  --modes-border: rgba(255, 255, 255, 0.09);
+  --modes-text: #ffffff;
+  --modes-text-muted: rgba(255, 255, 255, 0.6);
+  --modes-text-dim: rgba(255, 255, 255, 0.45);
+
+  background:
+    radial-gradient(130% 70% at 8% 0%, rgba(92, 138, 128, 0.45) 0%, rgba(22, 18, 32, 0.92) 38%, #0b0910 100%),
+    radial-gradient(90% 60% at 100% 100%, rgba(130, 50, 90, 0.32) 0%, rgba(11, 9, 16, 0) 60%);
+  background-blend-mode: screen, normal;
+  color: var(--modes-text);
+}
+
+[data-theme-variant="modes"] .modes-card {
+  background: var(--modes-surface);
+  border: 1px solid var(--modes-border);
+  border-radius: 1rem;
+}
+
+[data-theme-variant="modes"] .modes-card-strong {
+  background: var(--modes-surface-strong);
+  border: 1px solid var(--modes-border);
+  border-radius: 1.25rem;
+}
+
+[data-theme-variant="modes"] .modes-label {
+  color: var(--modes-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
