@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import PageHeader from './PageHeader';
 import SetlistCard from './SetlistCard';
+import GlobalInputBar from './GlobalInputBar';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Input } from './ui/Input';
@@ -68,25 +69,7 @@ export default function Setlists({
     else onViewSetlist(sl);
   };
   const [query, setQuery] = useState('');
-  const [fabOpen, setFabOpen] = useState(false);
-  const fabRef = useRef(null);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (fabRef.current && !fabRef.current.contains(e.target)) setFabOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') setFabOpen(false);
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, []);
 
   const filtered = useMemo(() => {
     if (!query) return setlists;
@@ -133,38 +116,21 @@ export default function Setlists({
 
       <div className="flex flex-col gap-0">
 
-        {/* Sticky Search — hidden on mobile (global top-bar covers it) */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)] hidden sm:block">
-          <div className="a4-container pt-6 pb-4 flex items-center gap-2">
-            <Input
-              className="flex-1"
-              placeholder="Search setlists…"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              prefix={<SearchIcon />}
+        {/* Global Input Bar — hidden on mobile (global top-bar covers it) */}
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-100)] hidden sm:block">
+          <div className="a4-container py-4 flex items-center justify-center">
+            <GlobalInputBar
+              onSearch={setQuery}
+              onNewSong={(title) => {
+                if (window.appNavigation) window.appNavigation('library');
+              }}
+              onNewSetlist={(title) => { onNewSetlist(title); }}
             />
-
-            {/* Desktop-only quick actions (FAB is hidden on lg+) */}
-            <div className="hidden lg:flex items-center gap-1 shrink-0">
-              <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .zip" title="Import .zip">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </IconButton>
-              <IconButton variant="default" size="sm" onClick={onNewSetlist} aria-label="New setlist" title="New setlist">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              </IconButton>
-            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="a4-container py-4 flex flex-col gap-10">
+        <div className="a4-container py-8 flex flex-col gap-10">
           {!loaded ? (
             <SkeletonCards />
           ) : (
@@ -172,15 +138,15 @@ export default function Setlists({
               {/* Upcoming Section */}
               {upcoming.length > 0 && (
                 <section className="flex flex-col gap-4">
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="text-heading-18 text-[var(--ds-gray-1000)] uppercase tracking-wider">
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <h2 className="text-heading-20 font-serif text-[var(--text-1)] opacity-80">
                       Upcoming
                     </h2>
-                    <span className="text-label-12 text-[var(--ds-gray-600)]">
+                    <span className="text-label-12 text-[var(--text-2)] opacity-60">
                       {upcoming.length}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {upcoming.map(sl => (
                       <SetlistCard
                         key={sl.id}
@@ -196,16 +162,16 @@ export default function Setlists({
 
               {/* Past Section */}
               {past.length > 0 && (
-                <section className="flex flex-col gap-4">
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="text-heading-18 text-[var(--ds-gray-1000)] uppercase tracking-wider">
+                <section className="flex flex-col gap-4 mt-8">
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <h2 className="text-heading-20 font-serif text-[var(--text-1)] opacity-80">
                       Past
                     </h2>
-                    <span className="text-label-12 text-[var(--ds-gray-600)]">
+                    <span className="text-label-12 text-[var(--text-2)] opacity-60">
                       {past.length}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {past.map(sl => (
                       <SetlistCard
                         key={sl.id}
@@ -251,45 +217,6 @@ export default function Setlists({
             </>
           )}
         </div>
-      </div>
-
-      {/* FAB Cluster — tablet only; mobile uses top-bar +, desktop uses header button */}
-      <div
-        ref={fabRef}
-        className="fixed right-6 z-[150] hidden sm:block lg:hidden"
-        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
-      >
-        {fabOpen && (
-          <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
-            <button
-              onClick={() => { setFabOpen(false); onNewSetlist(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
-            >
-              Create Setlist
-            </button>
-            <button
-              onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
-            >
-              Import Setlist
-            </button>
-          </div>
-        )}
-
-        <button
-          onClick={() => setFabOpen(!fabOpen)}
-          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
-        >
-          <svg
-            width="24" height="24" viewBox="0 0 24 24"
-            fill="none" stroke="white" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
-            className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
       </div>
 
       <input

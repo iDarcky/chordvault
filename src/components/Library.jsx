@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import PageHeader from './PageHeader';
 import SongCard from './SongCard';
+import GlobalInputBar from './GlobalInputBar';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Input } from './ui/Input';
@@ -140,11 +141,9 @@ export default function Library({
   const [selectedTags, setSelectedTags] = useState([]);
   const [tagsOpen, setTagsOpen] = useState(false);
   const [tagQuery, setTagQuery] = useState('');
-  const [fabOpen, setFabOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
 
   const tagsRef = useRef(null);
-  const fabRef = useRef(null);
   const fileInputRef = useRef(null);
   const sentinelRef = useRef(null);
 
@@ -157,7 +156,6 @@ export default function Library({
   useEffect(() => {
     const handler = (e) => {
       if (tagsRef.current && !tagsRef.current.contains(e.target)) setTagsOpen(false);
-      if (fabRef.current && !fabRef.current.contains(e.target)) setFabOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -165,7 +163,7 @@ export default function Library({
 
   useEffect(() => {
     const handler = (e) => {
-      if (e.key === 'Escape') { setTagsOpen(false); setFabOpen(false); }
+      if (e.key === 'Escape') { setTagsOpen(false); }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
@@ -252,187 +250,170 @@ export default function Library({
 
       <div className="flex flex-col gap-0">
 
-        {/* Sticky Search + Tags + Filters — full-width bg */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
-          <div className="a4-container pt-4 sm:pt-6 pb-4 flex flex-col gap-4">
-          {/* Search Bar + Tags */}
-          <div className="flex gap-3 items-stretch">
-            {/* Desktop text search — mobile uses the global top bar */}
-            <Input
-              className="flex-1 hidden sm:block"
-              placeholder="Search…"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              prefix={<SearchIcon />}
-            />
-
-            {/* Tags Dropdown */}
-            {allTags.length > 0 && (
-              <div ref={tagsRef} className="relative">
-                <button
-                  onClick={() => setTagsOpen(!tagsOpen)}
-                  className={`
-                    h-11 px-4 rounded-xl border cursor-pointer
-                    flex items-center gap-2
-                    text-label-14 transition-all duration-150
-                    ${selectedTags.length > 0
-                      ? 'border-[var(--color-brand)] text-[var(--color-brand)] bg-[var(--bg-1)]'
-                      : 'border-[var(--border-1)] text-[var(--text-1)] bg-[var(--bg-1)] hover:border-[var(--border-3)]'
-                    }
-                  `}
-                >
-                  {selectedTags.length > 0 && (
-                    <span className="w-2 h-2 rounded-full bg-[var(--color-brand)]" />
-                  )}
-                  Tags{selectedTags.length > 0 ? ` (${selectedTags.length})` : ''}
-                  <svg
-                    width="14" height="14" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor"
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                    className={`transition-transform duration-150 ${tagsOpen ? 'rotate-180' : ''}`}
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-
-                {tagsOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-lg z-50 overflow-hidden">
-                    {allTags.length > 5 && (
-                      <div className="px-3 pt-3 pb-2">
-                        <input
-                          type="text"
-                          placeholder="Search tags…"
-                          value={tagQuery}
-                          onChange={e => setTagQuery(e.target.value)}
-                          onClick={e => e.stopPropagation()}
-                          className="w-full h-8 px-3 rounded-lg border border-[var(--border-1)] bg-[var(--bg-2)] text-copy-13 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none focus:border-[var(--border-3)] transition-colors"
-                        />
-                      </div>
-                    )}
-                    <div className="flex flex-col py-1 max-h-[320px] overflow-y-auto">
-                      {(() => {
-                        const tq = tagQuery.toLowerCase();
-                        const filteredTags = allTags.filter(t => t.toLowerCase().includes(tq));
-                        const selected = filteredTags.filter(t => selectedTags.includes(t));
-                        const unselected = filteredTags.filter(t => !selectedTags.includes(t)).slice(0, 10 - selected.length);
-                        const visible = [...selected, ...unselected];
-                        const hasMore = filteredTags.length > visible.length;
-                        return (
-                          <>
-                            {visible.map(tag => (
-                              <label
-                                key={tag}
-                                className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-[var(--bg-2)] transition-colors"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={selectedTags.includes(tag)}
-                                  onChange={() => toggleTag(tag)}
-                                  className="w-4 h-4 rounded accent-[var(--color-brand)] cursor-pointer"
-                                />
-                                <span className="text-copy-14 text-[var(--text-1)]">{tag}</span>
-                              </label>
-                            ))}
-                            {visible.length === 0 && (
-                              <div className="px-4 py-3 text-copy-13 text-[var(--text-2)]">No tags found</div>
-                            )}
-                            {hasMore && (
-                              <div className="px-4 py-2 text-copy-12 text-[var(--ds-gray-600)]">
-                                {filteredTags.length - visible.length} more — refine search
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
-                    {selectedTags.length > 0 && (
-                      <>
-                        <div className="border-t border-[var(--border-1)]" />
-                        <button
-                          onClick={() => { setSelectedTags([]); setTagQuery(''); }}
-                          className="w-full px-4 py-2.5 text-copy-14 text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--ds-gray-alpha-100)] transition-colors cursor-pointer bg-transparent border-none text-center"
-                        >
-                          Clear all
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Sort Pills with direction toggle */}
-          <div className="flex items-center gap-2">
-            {SORT_MODES.map(mode => (
-              <button
-                key={mode.key}
-                onClick={() => handleSortClick(mode.key)}
-                className={`
-                  px-4 py-2 rounded-full text-label-14 font-semibold cursor-pointer
-                  transition-all duration-150 border-none flex items-center gap-1.5
-                  ${sortMode === mode.key
-                    ? 'bg-[var(--text-1)] text-[var(--bg-1)]'
-                    : 'bg-transparent text-[var(--text-1)] hover:bg-[var(--ds-gray-alpha-100)]'
-                  }
-                `}
-              >
-                {mode.label.toUpperCase()}
-                {sortMode === mode.key && (
-                  <svg
-                    width="12" height="12" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" strokeWidth="2.5"
-                    strokeLinecap="round" strokeLinejoin="round"
-                    className={`transition-transform duration-200 ${sortAsc ? '' : 'rotate-180'}`}
-                  >
-                    <path d="m18 15-6-6-6 6" />
-                  </svg>
-                )}
-              </button>
-            ))}
-
-            {/* Desktop-only quick actions (FAB is hidden on lg+) */}
-            <div className="hidden lg:flex ml-auto items-center gap-1">
-              <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .md" title="Import .md">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </IconButton>
-              <IconButton variant="default" size="sm" onClick={onNewSong} aria-label="New song" title="New song">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              </IconButton>
+        {/* Sticky Search + Global Input Bar */}
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-100)] hidden sm:block">
+          <div className="a4-container py-4 flex flex-col gap-4">
+            <div className="flex items-center justify-center">
+              <GlobalInputBar
+                onSearch={setQuery}
+                onNewSong={(title) => onNewSong(title)}
+                onNewSetlist={(title) => {
+                   if (window.appNavigation) window.appNavigation('setlists');
+                }}
+              />
             </div>
-          </div>
+
+            <div className="flex items-center gap-3">
+              {/* Tags Dropdown */}
+              {allTags.length > 0 && (
+                <div ref={tagsRef} className="relative">
+                  <button
+                    onClick={() => setTagsOpen(!tagsOpen)}
+                    className={`
+                      h-9 px-3 rounded-full border cursor-pointer
+                      flex items-center gap-1.5
+                      text-label-13 transition-all duration-150
+                      ${selectedTags.length > 0
+                        ? 'border-[var(--color-brand)] text-[var(--color-brand)] bg-[var(--color-brand-soft)]'
+                        : 'border-[var(--border-1)] text-[var(--text-1)] bg-transparent hover:border-[var(--border-3)]'
+                      }
+                    `}
+                  >
+                    {selectedTags.length > 0 && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]" />
+                    )}
+                    Tags{selectedTags.length > 0 ? ` (${selectedTags.length})` : ''}
+                    <svg
+                      width="14" height="14" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor"
+                      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                      className={`transition-transform duration-150 ${tagsOpen ? 'rotate-180' : ''}`}
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+
+                  {tagsOpen && (
+                    <div className="absolute left-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-lg z-50 overflow-hidden">
+                      {allTags.length > 5 && (
+                        <div className="px-3 pt-3 pb-2">
+                          <input
+                            type="text"
+                            placeholder="Search tags…"
+                            value={tagQuery}
+                            onChange={e => setTagQuery(e.target.value)}
+                            onClick={e => e.stopPropagation()}
+                            className="w-full h-8 px-3 rounded-lg border border-[var(--border-1)] bg-[var(--bg-2)] text-copy-13 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none focus:border-[var(--border-3)] transition-colors"
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-col py-1 max-h-[320px] overflow-y-auto">
+                        {(() => {
+                          const tq = tagQuery.toLowerCase();
+                          const filteredTags = allTags.filter(t => t.toLowerCase().includes(tq));
+                          const selected = filteredTags.filter(t => selectedTags.includes(t));
+                          const unselected = filteredTags.filter(t => !selectedTags.includes(t)).slice(0, 10 - selected.length);
+                          const visible = [...selected, ...unselected];
+                          const hasMore = filteredTags.length > visible.length;
+                          return (
+                            <>
+                              {visible.map(tag => (
+                                <label
+                                  key={tag}
+                                  className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-[var(--bg-2)] transition-colors"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedTags.includes(tag)}
+                                    onChange={() => toggleTag(tag)}
+                                    className="w-4 h-4 rounded accent-[var(--color-brand)] cursor-pointer"
+                                  />
+                                  <span className="text-copy-14 text-[var(--text-1)]">{tag}</span>
+                                </label>
+                              ))}
+                              {visible.length === 0 && (
+                                <div className="px-4 py-3 text-copy-13 text-[var(--text-2)]">No tags found</div>
+                              )}
+                              {hasMore && (
+                                <div className="px-4 py-2 text-copy-12 text-[var(--ds-gray-600)]">
+                                  {filteredTags.length - visible.length} more — refine search
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                      {selectedTags.length > 0 && (
+                        <>
+                          <div className="border-t border-[var(--border-1)]" />
+                          <button
+                            onClick={() => { setSelectedTags([]); setTagQuery(''); }}
+                            className="w-full px-4 py-2.5 text-copy-14 text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--ds-gray-alpha-100)] transition-colors cursor-pointer bg-transparent border-none text-center"
+                          >
+                            Clear all
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sort Pills */}
+              <div className="flex items-center gap-1.5 ml-auto">
+                {SORT_MODES.map(mode => (
+                  <button
+                    key={mode.key}
+                    onClick={() => handleSortClick(mode.key)}
+                    className={`
+                      px-3 py-1.5 rounded-full text-label-12 font-semibold cursor-pointer
+                      transition-all duration-150 border border-transparent flex items-center gap-1
+                      ${sortMode === mode.key
+                        ? 'bg-[var(--text-1)] text-[var(--bg-1)]'
+                        : 'bg-transparent text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--bg-2)] border-[var(--border-1)]'
+                      }
+                    `}
+                  >
+                    {mode.label.toUpperCase()}
+                    {sortMode === mode.key && (
+                      <svg
+                        width="10" height="10" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" strokeWidth="2.5"
+                        strokeLinecap="round" strokeLinejoin="round"
+                        className={`transition-transform duration-200 ${sortAsc ? '' : 'rotate-180'}`}
+                      >
+                        <path d="m18 15-6-6-6 6" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="a4-container py-4">
+        <div className="a4-container py-8">
           {!loaded ? (
             <SkeletonRows />
           ) : sortedKeys.length > 0 ? (
             <div className="flex flex-col gap-10">
               {sortedKeys.map(groupKey => (
                 <div key={groupKey} className="flex flex-col gap-3">
-                  <div className="flex items-baseline gap-2 px-1">
-                    <h3 className="text-heading-16 text-[var(--text-1)]">
+                  <div className="flex items-baseline gap-2 px-1 mb-2">
+                    <h3 className="text-heading-20 font-serif text-[var(--text-1)] opacity-80">
                       {groupKey}
                     </h3>
-                    <span className="text-label-12 text-[var(--text-2)]">
+                    <span className="text-label-12 text-[var(--text-2)] opacity-60">
                       {groups[groupKey].length}
                     </span>
                   </div>
-                  <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {groups[groupKey].map(song => (
                       <SongCard
                         key={song.id}
                         song={song}
-                        variant="row"
+                        variant="card"
                         showTags={true}
                         selected={isDesktop && song.id === previewSongId}
                         onClick={() => handleRowClick(song)}
@@ -474,53 +455,6 @@ export default function Library({
             </div>
           )}
         </div>
-      </div>
-
-      {/* FAB — tablet only; mobile uses the top-bar +, desktop uses header button */}
-      <div
-        ref={fabRef}
-        className="fixed right-6 z-[150] hidden sm:block lg:hidden"
-        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
-      >
-        {fabOpen && (
-          <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
-            <button
-              onClick={() => { setFabOpen(false); onNewSong(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-            >
-              New Song
-            </button>
-            {onPasteImport && (
-              <button
-                onClick={() => { setFabOpen(false); onPasteImport(); }}
-                className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-              >
-                Paste chord sheet
-              </button>
-            )}
-            <button
-              onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-            >
-              Import .md
-            </button>
-          </div>
-        )}
-
-        <button
-          onClick={() => setFabOpen(!fabOpen)}
-          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
-        >
-          <svg
-            width="24" height="24" viewBox="0 0 24 24"
-            fill="none" stroke="white" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
-            className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
       </div>
 
       <input

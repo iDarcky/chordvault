@@ -3,6 +3,7 @@ import SongCard from './SongCard';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Chip } from './ui/Chip';
+import GlobalInputBar from './GlobalInputBar';
 
 export default function Dashboard({
   songs,
@@ -17,9 +18,6 @@ export default function Dashboard({
   onGoSetlists,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchFocused, setSearchFocused] = useState(false);
-  const searchInputRef = useRef(null);
-  const searchContainerRef = useRef(null);
 
   // Recently edited songs (latest first)
   const latestSongs = [...songs].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 5);
@@ -54,25 +52,6 @@ export default function Dashboard({
       ).slice(0, 8)
     : [];
 
-  // Close search results when clicking outside
-  useEffect(() => {
-    const handler = (e) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
-        setSearchFocused(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') setSearchFocused(false);
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, []);
-
   const formatDateFriendly = (dateStr) => {
     if (!dateStr) return 'Tonight';
     const date = new Date(dateStr + 'T12:00:00');
@@ -95,61 +74,29 @@ export default function Dashboard({
     <div className="min-h-screen material-page pb-8">
 
       {/* Dashboard Header: Welcome + Search + Actions */}
-      <div className="max-w-5xl mx-auto px-6 pt-8 sm:pt-10 pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="max-w-5xl mx-auto px-6 pt-12 pb-6 flex flex-col gap-8">
         <div>
-          <h1 className="text-heading-40 text-[var(--text-1)] m-0">
+          <h1 className="text-heading-40 text-[var(--text-1)] m-0 tracking-tight">
             Welcome, {userName}
           </h1>
-          <p className="text-copy-16 text-[var(--text-2)] mt-1">
+          <p className="text-copy-16 text-[var(--text-2)] mt-1 font-serif italic opacity-80">
             {dateStr}
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          {/* Search Bar - hidden on mobile header, we'll put it in content below */}
-          <div className="relative w-full sm:w-64 hidden sm:block" ref={searchContainerRef}>
-            <Input
-              ref={searchInputRef}
-              placeholder="Search songs…"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              prefix={
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
-              }
-            />
-            {searchFocused && searchQuery.trim().length > 0 && (
-              <div className="absolute top-full right-0 left-0 sm:left-auto sm:w-80 mt-2 rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-xl z-50 overflow-hidden divide-y divide-[var(--border-1)] max-h-[400px] overflow-y-auto">
-                {searchResults.length > 0 ? (
-                  searchResults.map(song => (
-                    <div key={song.id} className="hover:bg-[var(--bg-2)] cursor-pointer">
-                      <SongCard
-                        song={song}
-                        variant="row"
-                        onClick={() => {
-                          setSearchFocused(false);
-                          setSearchQuery('');
-                          onSelectSong(song);
-                        }}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-4 py-6 text-center text-copy-14 text-[var(--text-2)]">
-                    No songs found.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2 mt-2 sm:mt-0 hidden sm:flex">
-            <Button variant="secondary" onClick={onNewSong}>New Song</Button>
-            <Button variant="brand" onClick={onNewSetlist}>New Setlist</Button>
-          </div>
+        <div className="hidden sm:block w-full z-50">
+          <GlobalInputBar
+            onSearch={setSearchQuery}
+            onNewSong={(title) => {
+               onNewSong(title);
+            }}
+            onNewSetlist={(title) => {
+               onNewSetlist(title);
+            }}
+          />
+          {/* We remove the standalone local search matches dropdown because GlobalInputBar already implements a dropdown,
+              and rendering both causes z-index/overlap issues preventing clicks. If we wanted both we'd merge them into GlobalInputBar.
+              The task specifies GlobalInputBar handles "Create X with 'title'" via dropdown. */}
         </div>
       </div>
 
@@ -157,127 +104,122 @@ export default function Dashboard({
 
       <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-10">
 
-        {/* Upcoming Setlists */}
-        <section className="flex flex-col gap-5">
-          <div className="flex justify-between items-center">
-            <h2 className="text-heading-20 font-bold text-[var(--text-1)]">
-              Upcoming Setlists
-            </h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onGoSetlists}
-              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
-            >
-              View All
-            </Button>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          {/* Upcoming Setlists */}
+          <section className="flex flex-col gap-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-heading-24 font-serif text-[var(--text-1)]">
+                Upcoming Show
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onGoSetlists}
+                className="text-[var(--text-2)] hover:text-[var(--text-1)] opacity-60 hover:opacity-100 transition-opacity"
+              >
+                View All
+              </Button>
+            </div>
 
-          <div>
-            {upcomingSetlists.length > 0 ? (
-              <div className="flex flex-col md:flex-row w-full rounded-xl overflow-hidden border border-[var(--border-1)] bg-[var(--dashboard-hero-bg)] shadow-[0_4px_24px_rgba(0,0,0,0.04)] h-auto md:h-64 cursor-pointer group" onClick={() => onViewSetlist(upcomingSetlists[0])}>
-                {/* Left part (Branded Gradient) */}
-                <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#004f5e] h-32 md:h-full relative overflow-hidden">
-                   <div className="absolute inset-0 bg-black/10"></div>
-                </div>
-                
-                {/* Right part (Details) */}
-                <div className="flex-1 p-6 md:p-8 flex flex-col justify-center bg-[var(--dashboard-hero-bg)] group-hover:bg-[var(--dashboard-hero-hover)] transition-colors">
-                  {/* Tags */}
-                  <div className="flex items-center gap-2 mb-3">
-                    {upcomingSetlists[0].tags && upcomingSetlists[0].tags.length > 0 ? (
-                      upcomingSetlists[0].tags.slice(0,2).map(tag => (
-                        <Chip key={tag} variant="success" size="sm">
-                          {tag}
-                        </Chip>
-                      ))
-                    ) : (
-                      <Chip variant="success" size="sm">
-                        Live Show
-                      </Chip>
-                    )}
+            <div>
+              {upcomingSetlists.length > 0 ? (
+                <div className="flex flex-col w-full rounded-[32px] overflow-hidden bg-[var(--ds-background-200)] cursor-pointer group transition-all duration-300 hover:shadow-2xl border-none" onClick={() => onViewSetlist(upcomingSetlists[0])}>
+                  <div className="w-full bg-gradient-to-br from-[var(--color-brand)] to-[#004f5e] h-40 relative overflow-hidden">
+                     <div className="absolute inset-0 bg-black/10"></div>
+                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <Button
+                          variant="brand"
+                          className="border-none text-white shadow-xl px-8 py-6 rounded-full font-bold text-copy-16"
+                          onClick={(e) => { e.stopPropagation(); onPlaySetlist(upcomingSetlists[0]); }}
+                        >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="mr-3"><path d="M8 5v14l11-7z"/></svg>
+                          Play Live
+                        </Button>
+                     </div>
                   </div>
 
-                  {/* Setlist Name */}
-                  <h3 className="text-heading-24 md:text-[32px] md:leading-[36px] font-bold text-[var(--text-1)] m-0 mb-3 tracking-tight">
-                    {upcomingSetlists[0].name || "Untitled Setlist"}
-                  </h3>
-
-                  {/* Time & Location */}
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-[var(--ds-gray-700)] mb-6 font-medium">
-                    <div className="flex items-center gap-2">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                      {formatDateFriendly(upcomingSetlists[0].date)} • {formatTimeFriendly(upcomingSetlists[0].time)}
+                  <div className="flex-1 p-8 md:p-10 flex flex-col justify-center bg-[var(--ds-background-200)] group-hover:bg-[var(--ds-gray-200)] transition-colors">
+                    <div className="flex items-center gap-2 mb-4">
+                      {upcomingSetlists[0].tags && upcomingSetlists[0].tags.length > 0 ? (
+                        upcomingSetlists[0].tags.slice(0,2).map(tag => (
+                          <span key={tag} className="text-label-11 text-[var(--color-brand)] uppercase tracking-widest font-semibold">#{tag}</span>
+                        ))
+                      ) : (
+                        <span className="text-label-11 text-[var(--color-brand)] uppercase tracking-widest font-semibold">#LIVE</span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                      {upcomingSetlists[0].location || "No Location Set"}
-                    </div>
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-6 mt-auto">
-                    <Button 
-                      variant="brand" 
-                      className="border-none text-white shadow-sm px-6 font-bold" 
-                      onClick={(e) => { e.stopPropagation(); onPlaySetlist(upcomingSetlists[0]); }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M8 5v14l11-7z"/></svg> 
-                      Play Live
-                    </Button>
-                    <div className="text-label-13 text-[var(--text-2)] font-medium">
+                    <h3 className="text-heading-32 font-serif text-[var(--text-1)] m-0 mb-4 tracking-tight leading-none">
+                      {upcomingSetlists[0].name || "Untitled Setlist"}
+                    </h3>
+
+                    <div className="flex flex-col gap-3 text-copy-16 text-[var(--text-2)] font-serif italic opacity-80 mb-6">
+                      <div className="flex items-center gap-3">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        {formatDateFriendly(upcomingSetlists[0].date)} • {formatTimeFriendly(upcomingSetlists[0].time)}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        {upcomingSetlists[0].location || "No Location Set"}
+                      </div>
+                    </div>
+
+                    <div className="text-label-14 text-[var(--text-2)] opacity-60 font-semibold mt-auto pt-4 border-t border-[var(--border-1)]">
                       {upcomingSetlists[0].items.length} Songs • 1h 45m
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="py-14 text-center border-2 border-dashed border-[var(--border-1)] rounded-xl flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--text-2)] font-medium">
-                  No upcoming setlists.
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
+              ) : (
+                <div className="py-20 px-8 text-center bg-[var(--ds-background-200)] rounded-[32px] flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-[var(--ds-background-100)] flex items-center justify-center">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </div>
+                  <p className="text-copy-16 text-[var(--text-2)] opacity-80 font-serif italic">
+                    No upcoming setlists.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
 
-        {/* Recently Edited */}
-        <section className="flex flex-col gap-5 mt-4">
-          <div className="flex justify-between items-center text-left">
-            <h2 className="text-heading-20 font-bold text-[var(--text-1)]">
-              Recently Edited
-            </h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onGoLibrary}
-              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
-            >
-              Full Library
-            </Button>
-          </div>
+          {/* Recently Edited */}
+          <section className="flex flex-col gap-6">
+            <div className="flex justify-between items-center text-left">
+              <h2 className="text-heading-24 font-serif text-[var(--text-1)]">
+                Recently Edited
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onGoLibrary}
+                className="text-[var(--text-2)] hover:text-[var(--text-1)] opacity-60 hover:opacity-100 transition-opacity"
+              >
+                Library
+              </Button>
+            </div>
 
-          <div className="rounded-xl border border-[var(--border-2)] overflow-hidden divide-y divide-[var(--border-1)] shadow-sm [&>*:nth-child(even)]:bg-[var(--dashboard-row-even-bg)] [&>*:nth-child(odd)]:bg-[var(--dashboard-row-odd-bg)]">
-            {latestSongs.map(song => (
-              <SongCard
-                key={song.id}
-                song={song}
-                variant="row"
-                onClick={() => onSelectSong(song)}
-              />
-            ))}
-            {latestSongs.length === 0 && (
-              <div className="py-14 text-center flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--text-2)] font-medium">
-                  Your library is empty.
-                </p>
-                <Button variant="brand" size="sm" onClick={onNewSong}>
-                  Add Your First Song
-                </Button>
-              </div>
-            )}
-          </div>
-        </section>
+            <div className="flex flex-col gap-4">
+              {latestSongs.map(song => (
+                <SongCard
+                  key={song.id}
+                  song={song}
+                  variant="card"
+                  onClick={() => onSelectSong(song)}
+                />
+              ))}
+              {latestSongs.length === 0 && (
+                <div className="py-20 px-8 text-center bg-[var(--ds-background-200)] rounded-[32px] flex flex-col items-center gap-6">
+                  <p className="text-copy-16 text-[var(--text-2)] opacity-80 font-serif italic">
+                    Your library is empty.
+                  </p>
+                  <Button variant="brand" size="lg" onClick={onNewSong} className="rounded-full px-8">
+                    Add Your First Song
+                  </Button>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
 
       </div>
     </div>

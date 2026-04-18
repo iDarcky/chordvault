@@ -1,30 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import SongCard from './SongCard';
+import GlobalInputBar from './GlobalInputBar';
 
 const HamburgerIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="3" y1="7" x2="21" y2="7" />
     <line x1="3" y1="12" x2="21" y2="12" />
     <line x1="3" y1="17" x2="21" y2="17" />
-  </svg>
-);
-
-const SearchIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const PlusIcon = ({ open = false }) => (
-  <svg
-    width="26" height="26" viewBox="0 0 24 24"
-    fill="none" stroke="white" strokeWidth="2.5"
-    strokeLinecap="round" strokeLinejoin="round"
-    className={`transition-transform duration-200 ${open ? 'rotate-45' : ''}`}
-  >
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
 
@@ -45,10 +27,6 @@ export default function MobileTopBar({
   onNewSetlist,
 }) {
   const [query, setQuery] = useState('');
-  const [focused, setFocused] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
-  const inputRef = useRef(null);
-  const addRef = useRef(null);
   const containerRef = useRef(null);
 
   const q = query.trim().toLowerCase();
@@ -74,51 +52,18 @@ export default function MobileTopBar({
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setFocused(false);
-      }
-      if (addRef.current && !addRef.current.contains(e.target)) {
-        setAddOpen(false);
+        setQuery('');
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') {
-        setFocused(false);
-        setAddOpen(false);
-        inputRef.current?.blur();
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, []);
-
-  const placeholder =
-    view === 'setlists' ? 'Search setlists & songs…'
-    : view === 'library' ? 'Search songs & setlists…'
-    : 'Search my library…';
-
-  const handlePlus = () => {
-    if (view === 'library') {
-      onNewSong?.();
-    } else if (view === 'setlists') {
-      onNewSetlist?.();
-    } else {
-      // Dashboard → toggle the mini menu
-      setAddOpen(o => !o);
-    }
-  };
-
   const closeSearch = () => {
     setQuery('');
-    setFocused(false);
-    inputRef.current?.blur();
   };
 
-  const showResults = focused && q.length > 0;
+  const showResults = q.length > 0;
   const hasAnyResults = results.songs.length > 0 || results.setlists.length > 0;
 
   return (
@@ -127,83 +72,28 @@ export default function MobileTopBar({
       className="sticky top-0 z-40 sm:hidden"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div className="bg-[var(--ds-background-200)]/90 backdrop-blur-md border-b border-[var(--ds-gray-200)]">
-        <div className="flex items-center gap-2 px-3 py-3">
-          {/* Search card — hamburger lives inside on the left */}
-          <div className="flex-1 flex items-stretch h-14 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
-            {/* Hamburger as an embedded card */}
-            <button
-              onClick={onOpenDrawer}
-              aria-label="Open menu"
-              className="shrink-0 w-12 flex items-center justify-center bg-[rgba(255,255,255,0.04)] border-r border-[var(--ds-gray-300)] text-[var(--text-1)] cursor-pointer active:bg-[rgba(255,255,255,0.08)] transition-colors border-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <HamburgerIcon />
-            </button>
-            {/* Search input */}
-            <div className="relative flex-1 min-w-0 flex items-center">
-              <span className="absolute left-3 text-[var(--text-2)] pointer-events-none">
-                <SearchIcon />
-              </span>
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onFocus={() => setFocused(true)}
-                placeholder={placeholder}
-                className="w-full h-full pl-10 pr-3 bg-transparent border-none text-copy-15 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none"
-              />
-            </div>
-          </div>
+      <div className="bg-[var(--ds-background-100)]">
+        <div className="flex items-center gap-3 px-3 py-3">
+          <button
+            onClick={onOpenDrawer}
+            aria-label="Open menu"
+            className="shrink-0 w-10 h-10 flex items-center justify-center rounded-full text-[var(--text-1)] cursor-pointer active:bg-[rgba(0,0,0,0.05)] transition-colors border-none bg-transparent"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+          >
+            <HamburgerIcon />
+          </button>
 
-          {/* Brand + button */}
-          <div ref={addRef} className="relative shrink-0">
-            <button
-              onClick={handlePlus}
-              aria-label={view === 'library' ? 'New song' : view === 'setlists' ? 'New setlist' : 'New'}
-              className="w-14 h-14 rounded-xl flex items-center justify-center bg-[var(--color-brand)] shadow-[0_1px_2px_rgba(0,0,0,0.2)] cursor-pointer active:scale-95 transition-transform border-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <PlusIcon open={addOpen} />
-            </button>
-            {addOpen && (
-              <div className="absolute top-full right-0 mt-2 w-52 rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-xl overflow-hidden z-50 animate-[fadeIn_120ms_ease-out]">
-                <button
-                  onClick={() => { setAddOpen(false); onNewSong?.(); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-none text-left text-copy-14 text-[var(--text-1)] cursor-pointer hover:bg-[var(--bg-2)]"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18V5l12-2v13" />
-                    <circle cx="6" cy="18" r="3" />
-                    <circle cx="18" cy="16" r="3" />
-                  </svg>
-                  New Song
-                </button>
-                <div className="h-px bg-[var(--border-1)]" />
-                <button
-                  onClick={() => { setAddOpen(false); onNewSetlist?.(); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-none text-left text-copy-14 text-[var(--text-1)] cursor-pointer hover:bg-[var(--bg-2)]"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="8" y1="6" x2="21" y2="6" />
-                    <line x1="8" y1="12" x2="21" y2="12" />
-                    <line x1="8" y1="18" x2="21" y2="18" />
-                    <line x1="3" y1="6" x2="3.01" y2="6" />
-                    <line x1="3" y1="12" x2="3.01" y2="12" />
-                    <line x1="3" y1="18" x2="3.01" y2="18" />
-                  </svg>
-                  New Setlist
-                </button>
-              </div>
-            )}
-          </div>
+          <GlobalInputBar
+            onSearch={setQuery}
+            onNewSong={onNewSong}
+            onNewSetlist={onNewSetlist}
+          />
         </div>
       </div>
 
       {/* Search results dropdown */}
       {showResults && (
-        <div className="absolute left-0 right-0 top-full bg-[var(--ds-background-100)] border-b border-[var(--ds-gray-200)] shadow-lg max-h-[70vh] overflow-y-auto">
+        <div className="absolute left-0 right-0 top-full bg-[var(--ds-background-100)] border-b border-[var(--ds-gray-200)] shadow-lg max-h-[70vh] overflow-y-auto z-50">
           {hasAnyResults ? (
             <div className="divide-y divide-[var(--border-1)]">
               {results.songs.length > 0 && (
