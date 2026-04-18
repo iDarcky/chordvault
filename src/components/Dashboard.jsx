@@ -84,7 +84,7 @@ export default function Dashboard({
           </p>
         </div>
 
-        <div className="hidden sm:block w-full z-50">
+        <div className="hidden sm:block w-full z-40 relative">
           <GlobalInputBar
             onSearch={setSearchQuery}
             onNewSong={(title) => {
@@ -94,9 +94,33 @@ export default function Dashboard({
                onNewSetlist(title);
             }}
           />
-          {/* We remove the standalone local search matches dropdown because GlobalInputBar already implements a dropdown,
-              and rendering both causes z-index/overlap issues preventing clicks. If we wanted both we'd merge them into GlobalInputBar.
-              The task specifies GlobalInputBar handles "Create X with 'title'" via dropdown. */}
+          {searchQuery.trim().length > 0 && (
+            <div className="absolute top-0 left-0 right-0 mt-14 w-full max-w-xl mx-auto z-40 pointer-events-none">
+              <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-xl overflow-hidden divide-y divide-[var(--border-1)] max-h-[400px] overflow-y-auto pointer-events-auto">
+                <div className="px-4 py-2 text-label-12 text-[var(--text-2)] font-semibold uppercase tracking-wider bg-[var(--ds-background-200)]">
+                  Library Matches
+                </div>
+                {searchResults.length > 0 ? (
+                  searchResults.map(song => (
+                    <div key={song.id} className="hover:bg-[var(--bg-2)] cursor-pointer">
+                      <SongCard
+                        song={song}
+                        variant="row"
+                        onClick={() => {
+                          setSearchQuery('');
+                          onSelectSong(song);
+                        }}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-6 text-center text-copy-14 text-[var(--text-2)]">
+                    No songs found matching "{searchQuery}".
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

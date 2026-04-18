@@ -36,9 +36,9 @@ export default function GlobalInputBar({ onSearch, onNewSong, onNewSetlist }) {
   };
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-xl mx-auto flex-1">
+    <div ref={containerRef} className="relative w-full max-w-xl mx-auto flex-1 z-50">
       <div className={cn(
-        "flex items-center w-full h-12 bg-[var(--ds-background-100)] rounded-full px-4 transition-shadow",
+        "flex items-center w-full h-12 bg-[var(--ds-background-100)] rounded-full px-4 transition-shadow relative z-50",
         "border border-[var(--border-1)]",
         focused ? "shadow-md border-[var(--border-2)]" : "shadow-sm hover:border-[var(--border-2)]"
       )}>
@@ -67,7 +67,7 @@ export default function GlobalInputBar({ onSearch, onNewSong, onNewSetlist }) {
       </div>
 
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--ds-background-100)] border border-[var(--border-1)] rounded-xl shadow-lg z-50 overflow-hidden animate-[fadeIn_150ms_ease-out]">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--ds-background-100)] border border-[var(--border-1)] rounded-xl shadow-lg z-[60] overflow-hidden animate-[fadeIn_150ms_ease-out]">
           <div className="py-2 flex flex-col">
             <button
               onClick={handleCreateSong}
