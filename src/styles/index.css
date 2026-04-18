@@ -27,8 +27,8 @@
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
 
   /* Page Backgrounds (Dark Mode fallback) */
-  --ds-background-100: #0a0a0a;
-  --ds-background-200: #000000;
+  --ds-background-100: #14161e;
+  --ds-background-200: #0e1017;
 
     /* Geist Gray Scale (Dark Mode) */
   --ds-gray-100-value: 0, 0%, 10%;
@@ -674,10 +674,7 @@
   --modes-text-muted: rgba(255, 255, 255, 0.6);
   --modes-text-dim: rgba(255, 255, 255, 0.45);
 
-  background:
-    radial-gradient(130% 70% at 8% 0%, rgba(92, 138, 128, 0.45) 0%, rgba(22, 18, 32, 0.92) 38%, #0b0910 100%),
-    radial-gradient(90% 60% at 100% 100%, rgba(130, 50, 90, 0.32) 0%, rgba(11, 9, 16, 0) 60%);
-  background-blend-mode: screen, normal;
+  background: #14161e;
   color: var(--modes-text);
 }
 

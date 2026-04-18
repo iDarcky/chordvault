@@ -125,7 +125,7 @@ export default function MobileTopBar({
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
-      <div className="backdrop-blur-md">
+      <div>
         <div className="flex items-center gap-2 px-3 py-3">
           {/* Search card — hamburger lives inside on the left */}
           <div className="flex-1 flex items-stretch h-14 rounded-xl bg-[var(--ds-gray-100)] overflow-hidden">
