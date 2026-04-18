@@ -14,6 +14,9 @@ import Settings from './components/Settings';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
 import DesktopLayout from './components/DesktopLayout';
+import MobileTopBar from './components/MobileTopBar';
+import MobileDrawer from './components/MobileDrawer';
+import NotificationTray from './components/NotificationTray';
 import FeedbackButton from './components/FeedbackButton';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
@@ -69,6 +72,8 @@ export default function App() {
   const [previewSetlistId, setPreviewSetlistId] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSmartImport, setShowSmartImport] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [notifTrayOpen, setNotifTrayOpen] = useState(false);
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
   const quotaWarnedRef = useRef(false);
@@ -418,7 +423,20 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction}>
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen}>
+          {['home', 'library', 'setlists'].includes(view) && (
+            <MobileTopBar
+              key={view}
+              view={view}
+              songs={songs}
+              setlists={setlists}
+              onOpenDrawer={() => setDrawerOpen(true)}
+              onSelectSong={goChart}
+              onSelectSetlist={goSetlistView}
+              onNewSong={() => goEditor()}
+              onNewSetlist={() => goSetlistBuild()}
+            />
+          )}
           {view === 'home' && (
             <Dashboard
               songs={songs}
@@ -431,10 +449,6 @@ export default function App() {
               onPlaySetlist={goSetlistPlay}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
-              hasUnreadNotifications={hasUnreadNotifications}
-              notifications={settings?.notifications || []}
-              onMarkRead={handleMarkNotificationRead}
-              onNotificationAction={handleNotificationAction}
             />
           )}
           {view === 'library' && (
@@ -583,11 +597,41 @@ export default function App() {
             <BottomNav
               activeView={view === 'setlist-view' ? 'setlists' : view}
               onNavigate={goToMainView}
-              hasUnreadNotifications={hasUnreadNotifications}
-              userName={settings?.userName}
             />
           )}
         </DesktopLayout>
+      )}
+      {!['welcome', 'onboarding'].includes(view) && (
+        <MobileDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          userName={settings?.userName}
+          email={settings?.accountEmail}
+          plan="Free"
+          songCount={songs.length}
+          setlistCount={setlists.length}
+          hasUnreadNotifications={hasUnreadNotifications}
+          onOpenSettings={() => { setDrawerOpen(false); goToMainView('settings'); }}
+          onOpenNotifications={() => { setDrawerOpen(false); setNotifTrayOpen(true); }}
+          onOpenHelp={() => { setDrawerOpen(false); navigate('help'); }}
+          onOpenDesign={() => { setDrawerOpen(false); setView('design'); }}
+          onUpgrade={() => {
+            setDrawerOpen(false);
+            toast({ title: 'Setlists MD Pro', description: 'Coming soon — thanks for your interest!' });
+          }}
+        />
+      )}
+      {!['welcome', 'onboarding'].includes(view) && (
+        <NotificationTray
+          open={notifTrayOpen}
+          onClose={() => setNotifTrayOpen(false)}
+          notifications={settings?.notifications || []}
+          onMarkRead={handleMarkNotificationRead}
+          onAction={(action) => {
+            setNotifTrayOpen(false);
+            handleNotificationAction?.(action);
+          }}
+        />
       )}
       {showSmartImport && (
         <SmartImportDialog

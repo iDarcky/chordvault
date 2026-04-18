@@ -1,25 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SongCard from './SongCard';
-import SetlistCard from './SetlistCard';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Chip } from './ui/Chip';
-import PageHeader from './PageHeader';
-import NotificationTray from './NotificationTray';
-
-const SearchIconBtn = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const BellIconBtn = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-  </svg>
-);
 
 export default function Dashboard({
   songs,
@@ -32,20 +15,11 @@ export default function Dashboard({
   onPlaySetlist,
   onGoLibrary,
   onGoSetlists,
-  hasUnreadNotifications,
-  notifications,
-  onMarkRead,
-  onNotificationAction,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
-  const [fabOpen, setFabOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const [notifTrayOpen, setNotifTrayOpen] = useState(false);
   const searchInputRef = useRef(null);
   const searchContainerRef = useRef(null);
-  const fabRef = useRef(null);
-  const mobileSearchInputRef = useRef(null);
 
   // Recently edited songs (latest first)
   const latestSongs = [...songs].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 5);
@@ -86,9 +60,6 @@ export default function Dashboard({
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
         setSearchFocused(false);
       }
-      if (fabRef.current && !fabRef.current.contains(e.target)) {
-        setFabOpen(false);
-      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -96,22 +67,11 @@ export default function Dashboard({
 
   useEffect(() => {
     const handler = (e) => {
-      if (e.key === 'Escape') {
-        setSearchFocused(false);
-        setFabOpen(false);
-        setMobileSearchOpen(false);
-      }
+      if (e.key === 'Escape') setSearchFocused(false);
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, []);
-
-  // Auto-focus mobile search input when opened
-  useEffect(() => {
-    if (mobileSearchOpen) {
-      setTimeout(() => mobileSearchInputRef.current?.focus(), 50);
-    }
-  }, [mobileSearchOpen]);
 
   const formatDateFriendly = (dateStr) => {
     if (!dateStr) return 'Tonight';
@@ -134,31 +94,8 @@ export default function Dashboard({
   return (
     <div className="min-h-screen material-page pb-8">
 
-      {/* Mobile Page Header — matches Library/Setlists header style */}
-      <div className="sm:hidden">
-        <PageHeader title="Home">
-          <button
-            onClick={() => setMobileSearchOpen(true)}
-            className="w-10 h-10 rounded-xl flex items-center justify-center bg-transparent border border-[var(--ds-gray-300)] cursor-pointer text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] transition-colors"
-            aria-label="Search songs"
-          >
-            <SearchIconBtn />
-          </button>
-          <button
-            onClick={() => setNotifTrayOpen(true)}
-            className="w-10 h-10 rounded-xl flex items-center justify-center bg-transparent border border-[var(--ds-gray-300)] cursor-pointer text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] transition-colors relative"
-            aria-label="Notifications"
-          >
-            <BellIconBtn />
-            {hasUnreadNotifications && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
-            )}
-          </button>
-        </PageHeader>
-      </div>
-
       {/* Dashboard Header: Welcome + Search + Actions */}
-      <div className="max-w-5xl mx-auto px-6 pt-10 pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="max-w-5xl mx-auto px-6 pt-8 sm:pt-10 pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
           <h1 className="text-heading-40 text-[var(--text-1)] m-0">
             Welcome, {userName}
@@ -343,124 +280,6 @@ export default function Dashboard({
         </section>
 
       </div>
-      {/* FAB - Mobile Only Restoration */}
-      <div
-        ref={fabRef}
-        className="fixed right-6 z-[150] sm:hidden flex flex-col items-center gap-3"
-        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
-      >
-        {/* Search button above FAB */}
-        <button
-          onClick={() => setMobileSearchOpen(true)}
-          className="w-11 h-11 rounded-full bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg flex items-center justify-center cursor-pointer hover:bg-[var(--bg-2)] transition-all duration-150 active:scale-95"
-          aria-label="Search"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-1)]">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-        </button>
-
-        <div className="relative">
-          {fabOpen && (
-            <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
-              <button
-                onClick={() => { setFabOpen(false); onNewSong(); }}
-                className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-              >
-                New Song
-              </button>
-              <button
-                onClick={() => { setFabOpen(false); onNewSetlist(); }}
-                className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-              >
-                New Setlist
-              </button>
-            </div>
-          )}
-
-          <button
-            onClick={() => setFabOpen(!fabOpen)}
-            className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
-            aria-label="Add new"
-          >
-            <svg
-              width="24" height="24" viewBox="0 0 24 24"
-              fill="none" stroke="white" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round"
-              className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      {/* Mobile Search Overlay */}
-      {mobileSearchOpen && (
-        <div className="fixed inset-0 z-[1000] bg-[var(--bg-1)] flex flex-col p-4">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 relative">
-              <Input
-                ref={mobileSearchInputRef}
-                placeholder="Search songs…"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                prefix={
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.3-4.3" />
-                  </svg>
-                }
-              />
-            </div>
-            <Button variant="ghost" onClick={() => { setMobileSearchOpen(false); setSearchQuery(''); }}>
-              Cancel
-            </Button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto -mx-4">
-            <div className="divide-y divide-[var(--border-1)] border-t border-[var(--border-1)]">
-              {searchQuery.trim().length > 0 ? (
-                searchResults.length > 0 ? (
-                  searchResults.map(song => (
-                    <div key={song.id} className="hover:bg-[var(--bg-2)] cursor-pointer">
-                      <SongCard
-                        song={song}
-                        variant="row"
-                        onClick={() => {
-                          setMobileSearchOpen(false);
-                          setSearchQuery('');
-                          onSelectSong(song);
-                        }}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-6 py-12 text-center text-copy-16 text-[var(--text-2)]">
-                    No songs found for "<strong>{searchQuery}</strong>".
-                  </div>
-                )
-              ) : (
-                <div className="px-6 py-12 text-center text-copy-14 text-[var(--text-2)] italic">
-                  Search by song title or artist…
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Notification Tray Modal */}
-      <NotificationTray
-        open={notifTrayOpen}
-        onClose={() => setNotifTrayOpen(false)}
-        notifications={notifications || []}
-        onMarkRead={onMarkRead}
-        onAction={(action) => {
-          onNotificationAction?.(action);
-          setNotifTrayOpen(false);
-        }}
-      />
     </div>
   );
 }

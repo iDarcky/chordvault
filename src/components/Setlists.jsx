@@ -127,12 +127,14 @@ export default function Setlists({
           isFullscreen && "lg:hidden",
         )}
       >
-      <PageHeader title="Setlists" />
+      <div className="hidden sm:block">
+        <PageHeader title="Setlists" />
+      </div>
 
       <div className="flex flex-col gap-0">
 
-        {/* Sticky Search — full-width bg, constrained inner content */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
+        {/* Sticky Search — hidden on mobile (global top-bar covers it) */}
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)] hidden sm:block">
           <div className="a4-container pt-6 pb-4 flex items-center gap-2">
             <Input
               className="flex-1"
@@ -251,10 +253,10 @@ export default function Setlists({
         </div>
       </div>
 
-      {/* FAB Cluster — mobile/tablet only */}
+      {/* FAB Cluster — tablet only; mobile uses top-bar +, desktop uses header button */}
       <div
         ref={fabRef}
-        className="fixed right-6 z-[150] lg:hidden"
+        className="fixed right-6 z-[150] hidden sm:block lg:hidden"
         style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
       >
         {fabOpen && (

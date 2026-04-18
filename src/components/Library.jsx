@@ -246,17 +246,20 @@ export default function Library({
           isFullscreen && "lg:hidden",
         )}
       >
-      <PageHeader title="Song Library" />
+      <div className="hidden sm:block">
+        <PageHeader title="Song Library" />
+      </div>
 
       <div className="flex flex-col gap-0">
 
         {/* Sticky Search + Tags + Filters — full-width bg */}
         <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
-          <div className="a4-container pt-6 pb-4 flex flex-col gap-4">
+          <div className="a4-container pt-4 sm:pt-6 pb-4 flex flex-col gap-4">
           {/* Search Bar + Tags */}
           <div className="flex gap-3 items-stretch">
+            {/* Desktop text search — mobile uses the global top bar */}
             <Input
-              className="flex-1"
+              className="flex-1 hidden sm:block"
               placeholder="Search…"
               value={query}
               onChange={e => setQuery(e.target.value)}
@@ -473,10 +476,10 @@ export default function Library({
         </div>
       </div>
 
-      {/* FAB — mobile/tablet only; desktop uses header button */}
+      {/* FAB — tablet only; mobile uses the top-bar +, desktop uses header button */}
       <div
         ref={fabRef}
-        className="fixed right-6 z-[150] lg:hidden"
+        className="fixed right-6 z-[150] hidden sm:block lg:hidden"
         style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
       >
         {fabOpen && (
