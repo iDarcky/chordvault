@@ -92,10 +92,13 @@ export default function Dashboard({
   };
 
   return (
-    <div className="min-h-screen pb-8" data-theme-variant="modes">
+    <div
+      className="flex-1 min-h-0 sm:min-h-screen sm:flex-none flex flex-col overflow-hidden sm:overflow-visible sm:pb-8"
+      data-theme-variant="modes"
+    >
 
       {/* Dashboard Header: Welcome + Search + Actions */}
-      <div className="max-w-5xl mx-auto px-6 pt-8 sm:pt-10 pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 pt-4 sm:pt-10 pb-3 sm:pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
           <h1 className="text-heading-40 text-white m-0">
             Welcome, <span className="italic font-serif text-white">{userName}</span>
@@ -155,10 +158,10 @@ export default function Dashboard({
 
 
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex flex-col gap-8">
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-2 sm:py-8 flex flex-col gap-4 sm:gap-8 flex-1 min-h-0 sm:flex-none sm:min-h-0">
 
         {/* Upcoming Setlists */}
-        <section className="flex flex-col gap-4">
+        <section className="flex flex-col gap-3 sm:gap-4 shrink-0">
           <div className="flex justify-between items-center">
             <h2 className="text-heading-20 font-bold text-white">
               Upcoming Setlists
@@ -245,8 +248,8 @@ export default function Dashboard({
         </section>
 
         {/* Recently Edited */}
-        <section className="flex flex-col gap-4 mt-2">
-          <div className="flex justify-between items-center text-left">
+        <section className="flex flex-col gap-3 sm:gap-4 sm:mt-2 flex-1 min-h-0">
+          <div className="flex justify-between items-center text-left shrink-0">
             <h2 className="text-heading-20 font-bold text-white">
               Recently Edited
             </h2>
@@ -260,7 +263,7 @@ export default function Dashboard({
             </Button>
           </div>
 
-          <div className="modes-card overflow-hidden divide-y divide-white/8">
+          <div className="modes-card overflow-hidden divide-y divide-white/8 flex-1 min-h-0 overflow-y-auto sm:flex-none sm:min-h-0 sm:overflow-visible">
             {latestSongs.map(song => (
               <SongCard
                 key={song.id}

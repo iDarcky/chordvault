@@ -125,15 +125,15 @@ export default function MobileTopBar({
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
-      <div className="bg-[var(--ds-background-200)]/90 backdrop-blur-md border-b border-[var(--ds-gray-200)]">
+      <div className="backdrop-blur-md">
         <div className="flex items-center gap-2 px-3 py-3">
           {/* Search card — hamburger lives inside on the left */}
-          <div className="flex-1 flex items-stretch h-14 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+          <div className="flex-1 flex items-stretch h-14 rounded-xl bg-[var(--ds-gray-100)] overflow-hidden">
             {/* Hamburger as an embedded card */}
             <button
               onClick={onOpenDrawer}
               aria-label="Open menu"
-              className="shrink-0 w-12 flex items-center justify-center bg-[rgba(255,255,255,0.04)] border-r border-[var(--ds-gray-300)] text-[var(--text-1)] cursor-pointer active:bg-[rgba(255,255,255,0.08)] transition-colors border-none"
+              className="shrink-0 w-12 flex items-center justify-center bg-transparent text-[var(--text-1)] cursor-pointer active:bg-[var(--ds-gray-200)] transition-colors border-none"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <HamburgerIcon />

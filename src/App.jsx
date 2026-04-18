@@ -197,10 +197,20 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [loaded, triggerSync]);
 
-  // Apply theme to document
+  // Apply theme to document — 'default' follows system preference
   useEffect(() => {
     if (!settings) return;
-    document.documentElement.setAttribute('data-theme', settings.theme);
+    const theme = settings.theme;
+    if (theme === 'default') {
+      const mq = window.matchMedia('(prefers-color-scheme: light)');
+      const apply = () => {
+        document.documentElement.setAttribute('data-theme', mq.matches ? 'light' : 'dark');
+      };
+      apply();
+      mq.addEventListener('change', apply);
+      return () => mq.removeEventListener('change', apply);
+    }
+    document.documentElement.setAttribute('data-theme', theme);
   }, [settings?.theme]);
 
   // Navigation with history stack

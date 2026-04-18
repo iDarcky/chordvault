@@ -37,10 +37,12 @@ const tabs = [
 export default function BottomNav({ activeView, onNavigate }) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)]/95 backdrop-blur-md border-t border-[var(--ds-gray-200)] sm:hidden"
+      className="fixed bottom-0 left-0 right-0 z-[100] grid grid-cols-3 gap-2 sm:hidden"
       style={{
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
+        paddingLeft: '12px',
+        paddingRight: '12px',
+        paddingTop: '10px',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 10px)',
       }}
     >
       {tabs.map(({ id, label, Icon }) => {
@@ -49,8 +51,10 @@ export default function BottomNav({ activeView, onNavigate }) {
           <button
             key={id}
             onClick={() => onNavigate(id)}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 h-[60px] bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
-              active ? 'text-[var(--color-brand)]' : 'text-[var(--ds-gray-600)]'
+            className={`flex flex-col items-center justify-center gap-1 h-14 rounded-xl border-none cursor-pointer p-0 transition-colors duration-200 ${
+              active
+                ? 'text-[var(--color-brand)] bg-[var(--ds-gray-100)]'
+                : 'text-[var(--ds-gray-700)] bg-transparent active:bg-[var(--ds-gray-100)]'
             }`}
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >

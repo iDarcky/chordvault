@@ -77,17 +77,21 @@ export default function Settings({
 
         {/* Appearance */}
         <Section title="Appearance">
-          <Row label="Theme" description="Switch between light and dark mode.">
+          <Row label="Theme" description="System follows your device preference.">
             <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
-              {['dark', 'light'].map(t => (
+              {[
+                { key: 'default', label: 'System' },
+                { key: 'light', label: 'Light' },
+                { key: 'dark', label: 'Dark' },
+              ].map(({ key, label }) => (
                 <Button
-                  key={t}
+                  key={key}
                   size="sm"
-                  variant={settings.theme === t ? 'secondary' : 'ghost'}
-                  onClick={() => update('theme', t)}
-                  className={settings.theme === t ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+                  variant={settings.theme === key ? 'secondary' : 'ghost'}
+                  onClick={() => update('theme', key)}
+                  className={settings.theme === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
                 >
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                  {label}
                 </Button>
               ))}
             </div>
