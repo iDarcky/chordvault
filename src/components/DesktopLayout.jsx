@@ -33,9 +33,11 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
       )}
 
       {!isFullscreen && (
-        <div className="hidden sm:flex items-center justify-between px-8 py-4 bg-[var(--ds-background-100)] z-50">
-          <div className="text-heading-20 font-serif font-bold text-[var(--text-1)] cursor-pointer" onClick={() => onNavigate('dashboard')}>
-            Setlists<span className="text-[var(--color-brand)]">MD</span>
+        <div className="hidden sm:flex items-center justify-between px-10 py-6 bg-[var(--ds-background-100)] z-50">
+          <div className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80" onClick={() => onNavigate('dashboard')}>
+            <span className="text-heading-20 font-serif font-bold text-[var(--text-1)] tracking-tight">
+              Setlists<span className="text-[var(--color-brand)] ml-0.5">MD</span>
+            </span>
           </div>
 
           <div className="flex items-center gap-8 text-label-14 font-semibold text-[var(--text-2)]">

@@ -121,7 +121,7 @@ export default function Setlists({
           <div className="a4-container py-4 flex items-center justify-center">
             <GlobalInputBar
               onSearch={setQuery}
-              onNewSong={(title) => {
+              onNewSong={() => {
                 if (window.appNavigation) window.appNavigation('library');
               }}
               onNewSetlist={(title) => { onNewSetlist(title); }}
@@ -137,12 +137,12 @@ export default function Setlists({
             <>
               {/* Upcoming Section */}
               {upcoming.length > 0 && (
-                <section className="flex flex-col gap-4">
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <h2 className="text-heading-20 font-serif text-[var(--text-1)] opacity-80">
+                <section className="flex flex-col gap-8">
+                  <div className="flex items-end gap-3 border-b border-[var(--border-1)] pb-4">
+                    <h2 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
                       Upcoming
                     </h2>
-                    <span className="text-label-12 text-[var(--text-2)] opacity-60">
+                    <span className="text-label-14 font-serif italic text-[var(--text-2)] opacity-60 mb-1">
                       {upcoming.length}
                     </span>
                   </div>
@@ -162,12 +162,12 @@ export default function Setlists({
 
               {/* Past Section */}
               {past.length > 0 && (
-                <section className="flex flex-col gap-4 mt-8">
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <h2 className="text-heading-20 font-serif text-[var(--text-1)] opacity-80">
+                <section className="flex flex-col gap-8 mt-12">
+                  <div className="flex items-end gap-3 border-b border-[var(--border-1)] pb-4">
+                    <h2 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
                       Past
                     </h2>
-                    <span className="text-label-12 text-[var(--text-2)] opacity-60">
+                    <span className="text-label-14 font-serif italic text-[var(--text-2)] opacity-60 mb-1">
                       {past.length}
                     </span>
                   </div>
@@ -188,28 +188,19 @@ export default function Setlists({
               {/* Empty State */}
               {filtered.length === 0 && (
                 query ? (
-                  <div className="py-16 text-center text-[var(--ds-gray-700)] text-copy-14">
-                    No setlists matching your search.
+                  <div className="py-24 text-center text-[var(--text-2)] font-serif italic text-heading-20 opacity-50">
+                    No setlists matching "{query}".
                   </div>
                 ) : (
-                  <div className="py-24 border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center text-center">
-                    <div className="w-14 h-14 mb-4 rounded-full bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] flex items-center justify-center">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
-                        <line x1="8" y1="6" x2="21" y2="6" />
-                        <line x1="8" y1="12" x2="21" y2="12" />
-                        <line x1="8" y1="18" x2="21" y2="18" />
-                        <line x1="3" y1="6" x2="3.01" y2="6" />
-                        <line x1="3" y1="12" x2="3.01" y2="12" />
-                        <line x1="3" y1="18" x2="3.01" y2="18" />
-                      </svg>
-                    </div>
-                    <h2 className="text-heading-20 text-[var(--ds-gray-1000)] m-0 mb-1.5">No setlists yet</h2>
-                    <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-sm mb-5">
-                      Organize your songs into setlists for rehearsals or live performances.
+                  <div className="py-32 flex flex-col items-center text-center">
+                    <h2 className="text-heading-24 font-serif text-[var(--text-2)] opacity-50 m-0 italic">No shows yet</h2>
+                    <p className="text-copy-16 text-[var(--text-2)] opacity-50 max-w-sm mt-4">
+                      Create your first setlist by searching above, or import a .zip file.
                     </p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      <Button variant="brand" onClick={onNewSetlist}>Create setlist</Button>
-                      <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .zip</Button>
+                    <div className="mt-8">
+                      <button onClick={() => fileInputRef.current?.click()} className="text-label-13 uppercase tracking-widest font-semibold text-[var(--text-2)] bg-transparent border-none cursor-pointer hover:text-[var(--text-1)] transition-colors opacity-60 hover:opacity-100">
+                        Import .zip
+                      </button>
                     </div>
                   </div>
                 )

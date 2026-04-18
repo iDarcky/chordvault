@@ -71,20 +71,20 @@ export default function Dashboard({
   };
 
   return (
-    <div className="min-h-screen material-page pb-8">
+    <div className="min-h-screen material-page pb-16">
 
       {/* Dashboard Header: Welcome + Search + Actions */}
-      <div className="max-w-5xl mx-auto px-6 pt-12 pb-6 flex flex-col gap-8">
-        <div>
-          <h1 className="text-heading-40 text-[var(--text-1)] m-0 tracking-tight">
-            Welcome, {userName}
-          </h1>
-          <p className="text-copy-16 text-[var(--text-2)] mt-1 font-serif italic opacity-80">
+      <div className="max-w-5xl mx-auto px-6 pt-16 pb-12 flex flex-col gap-12 text-center items-center">
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-copy-16 text-[var(--text-2)] font-serif italic opacity-60 m-0">
             {dateStr}
           </p>
+          <h1 className="text-heading-48 text-[var(--text-1)] m-0 tracking-tight">
+            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {userName}
+          </h1>
         </div>
 
-        <div className="hidden sm:block w-full z-40 relative">
+        <div className="hidden sm:block w-full z-40 relative mt-4">
           <GlobalInputBar
             onSearch={setSearchQuery}
             onNewSong={(title) => {
@@ -128,21 +128,19 @@ export default function Dashboard({
 
       <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-10">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mt-8">
           {/* Upcoming Setlists */}
-          <section className="flex flex-col gap-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-heading-24 font-serif text-[var(--text-1)]">
+          <section className="flex flex-col gap-8">
+            <div className="flex justify-between items-end border-b border-[var(--border-1)] pb-4">
+              <h2 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
                 Upcoming Show
               </h2>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={onGoSetlists}
-                className="text-[var(--text-2)] hover:text-[var(--text-1)] opacity-60 hover:opacity-100 transition-opacity"
+                className="text-label-13 uppercase tracking-widest font-semibold text-[var(--text-2)] bg-transparent border-none cursor-pointer hover:text-[var(--text-1)] transition-colors opacity-60 hover:opacity-100"
               >
                 View All
-              </Button>
+              </button>
             </div>
 
             <div>
@@ -194,12 +192,9 @@ export default function Dashboard({
                   </div>
                 </div>
               ) : (
-                <div className="py-20 px-8 text-center bg-[var(--ds-background-200)] rounded-[32px] flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-[var(--ds-background-100)] flex items-center justify-center">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  </div>
-                  <p className="text-copy-16 text-[var(--text-2)] opacity-80 font-serif italic">
-                    No upcoming setlists.
+                <div className="py-24 text-center flex flex-col items-center gap-4">
+                  <p className="text-heading-20 text-[var(--text-2)] opacity-50 font-serif italic m-0">
+                    No upcoming shows.
                   </p>
                 </div>
               )}
@@ -207,19 +202,17 @@ export default function Dashboard({
           </section>
 
           {/* Recently Edited */}
-          <section className="flex flex-col gap-6">
-            <div className="flex justify-between items-center text-left">
-              <h2 className="text-heading-24 font-serif text-[var(--text-1)]">
+          <section className="flex flex-col gap-8">
+            <div className="flex justify-between items-end border-b border-[var(--border-1)] pb-4">
+              <h2 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
                 Recently Edited
               </h2>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={onGoLibrary}
-                className="text-[var(--text-2)] hover:text-[var(--text-1)] opacity-60 hover:opacity-100 transition-opacity"
+                className="text-label-13 uppercase tracking-widest font-semibold text-[var(--text-2)] bg-transparent border-none cursor-pointer hover:text-[var(--text-1)] transition-colors opacity-60 hover:opacity-100"
               >
                 Library
-              </Button>
+              </button>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -232,13 +225,13 @@ export default function Dashboard({
                 />
               ))}
               {latestSongs.length === 0 && (
-                <div className="py-20 px-8 text-center bg-[var(--ds-background-200)] rounded-[32px] flex flex-col items-center gap-6">
-                  <p className="text-copy-16 text-[var(--text-2)] opacity-80 font-serif italic">
+                <div className="py-24 text-center flex flex-col items-center gap-6">
+                  <p className="text-heading-20 text-[var(--text-2)] opacity-50 font-serif italic m-0">
                     Your library is empty.
                   </p>
-                  <Button variant="brand" size="lg" onClick={onNewSong} className="rounded-full px-8">
-                    Add Your First Song
-                  </Button>
+                  <p className="text-copy-16 text-[var(--text-2)] opacity-50 max-w-sm mt-0">
+                    Start typing in the bar above to create your first song or setlist.
+                  </p>
                 </div>
               )}
             </div>

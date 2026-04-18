@@ -257,7 +257,7 @@ export default function Library({
               <GlobalInputBar
                 onSearch={setQuery}
                 onNewSong={(title) => onNewSong(title)}
-                onNewSetlist={(title) => {
+                onNewSetlist={() => {
                    if (window.appNavigation) window.appNavigation('setlists');
                 }}
               />
@@ -399,12 +399,12 @@ export default function Library({
           ) : sortedKeys.length > 0 ? (
             <div className="flex flex-col gap-10">
               {sortedKeys.map(groupKey => (
-                <div key={groupKey} className="flex flex-col gap-3">
-                  <div className="flex items-baseline gap-2 px-1 mb-2">
-                    <h3 className="text-heading-20 font-serif text-[var(--text-1)] opacity-80">
+                <div key={groupKey} className="flex flex-col gap-8">
+                  <div className="flex items-end gap-3 border-b border-[var(--border-1)] pb-4 mt-6">
+                    <h3 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
                       {groupKey}
                     </h3>
-                    <span className="text-label-12 text-[var(--text-2)] opacity-60">
+                    <span className="text-label-14 font-serif italic text-[var(--text-2)] opacity-60 mb-1">
                       {groups[groupKey].length}
                     </span>
                   </div>
@@ -423,34 +423,30 @@ export default function Library({
                 </div>
               ))}
               {hasMore && (
-                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--text-2)]">
+                <div ref={sentinelRef} className="py-12 text-center text-copy-14 font-serif italic text-[var(--text-2)] opacity-50">
                   Loading more… ({truncated.length} of {filtered.length})
                 </div>
               )}
             </div>
           ) : query || selectedTags.length > 0 ? (
-            <div className="py-16 text-center text-[var(--text-2)] text-copy-14">
-              No songs matching your filters.
+            <div className="py-24 text-center text-[var(--text-2)] font-serif italic text-heading-20 opacity-50">
+              No songs matching "{query}".
             </div>
           ) : (
-            <div className="py-20 flex flex-col items-center text-center">
-              <div className="w-14 h-14 mb-4 rounded-full bg-[var(--bg-2)] border border-[var(--border-1)] flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-2)]">
-                  <path d="M9 18V5l12-2v13" />
-                  <circle cx="6" cy="18" r="3" />
-                  <circle cx="18" cy="16" r="3" />
-                </svg>
-              </div>
-              <h2 className="text-heading-20 text-[var(--text-1)] m-0 mb-1.5">Your library is empty</h2>
-              <p className="text-copy-14 text-[var(--text-2)] max-w-sm mb-5">
-                Create a new chord chart or import one from a .md file you already have.
+            <div className="py-32 flex flex-col items-center text-center">
+              <h2 className="text-heading-24 font-serif text-[var(--text-2)] opacity-50 m-0 italic">Your library is empty</h2>
+              <p className="text-copy-16 text-[var(--text-2)] opacity-50 max-w-sm mt-4">
+                Start typing in the bar above to create a new song, or use the options below to import.
               </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button variant="primary" onClick={onNewSong}>New song</Button>
+              <div className="flex flex-wrap justify-center gap-6 mt-8">
                 {onPasteImport && (
-                  <Button variant="secondary" onClick={onPasteImport}>Paste chord sheet</Button>
+                  <button onClick={onPasteImport} className="text-label-13 uppercase tracking-widest font-semibold text-[var(--text-2)] bg-transparent border-none cursor-pointer hover:text-[var(--text-1)] transition-colors opacity-60 hover:opacity-100">
+                    Paste text
+                  </button>
                 )}
-                <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .md</Button>
+                <button onClick={() => fileInputRef.current?.click()} className="text-label-13 uppercase tracking-widest font-semibold text-[var(--text-2)] bg-transparent border-none cursor-pointer hover:text-[var(--text-1)] transition-colors opacity-60 hover:opacity-100">
+                  Import .md
+                </button>
               </div>
             </div>
           )}
