@@ -50,7 +50,7 @@ function Row({ icon: Icon, label, onClick, accessory }) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] cursor-pointer active:scale-[0.98] transition-all duration-150 text-left"
+      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] cursor-pointer active:scale-[0.98] transition-all duration-150 text-left"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
       <span className="text-white/80"><Icon /></span>
@@ -66,6 +66,7 @@ export default function MobileDrawer({
   userName,
   email,
   plan = 'Free',
+  isSignedIn = false,
   songCount = 0,
   setlistCount = 0,
   hasUnreadNotifications = false,
@@ -74,6 +75,7 @@ export default function MobileDrawer({
   onOpenHelp,
   onOpenDesign,
   onUpgrade,
+  onCreateAccount,
 }) {
   const panelRef = useRef(null);
   const [dragX, setDragX] = useState(0);
@@ -153,7 +155,8 @@ export default function MobileDrawer({
           transform: `translateX(${translateX})`,
           transition: dragging ? 'none' : 'transform 300ms cubic-bezier(0.32, 0.72, 0, 1)',
           background:
-            'radial-gradient(120% 80% at 10% 0%, rgba(45, 120, 140, 0.55) 0%, rgba(15, 23, 42, 0.95) 40%, #0a0f1c 100%)',
+            'radial-gradient(130% 70% at 8% 0%, rgba(92, 138, 128, 0.55) 0%, rgba(22, 18, 32, 0.92) 38%, #0b0910 100%), radial-gradient(90% 60% at 100% 100%, rgba(130, 50, 90, 0.35) 0%, rgba(11, 9, 16, 0) 60%)',
+          backgroundBlendMode: 'screen, normal',
           paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
         }}
@@ -199,7 +202,7 @@ export default function MobileDrawer({
         <div className="px-5 mt-6">
           <button
             onClick={onUpgrade}
-            className="w-full h-12 rounded-full flex items-center justify-center gap-2 cursor-pointer border-none relative overflow-hidden"
+            className="w-full h-12 rounded-xl flex items-center justify-center gap-2 cursor-pointer border-none relative overflow-hidden"
             style={{
               background:
                 'linear-gradient(110deg, #fef3c7 0%, #f5d0fe 35%, #a5f3fc 70%, #fef3c7 100%)',
@@ -208,20 +211,30 @@ export default function MobileDrawer({
               WebkitTapHighlightColor: 'transparent',
             }}
           >
+            <span className="text-fuchsia-700"><SparkleIcon /></span>
             <span className="text-copy-15 font-semibold bg-gradient-to-r from-amber-700 via-fuchsia-700 to-cyan-700 bg-clip-text text-transparent">
               Upgrade to Pro
             </span>
             <span className="text-fuchsia-700"><SparkleIcon /></span>
           </button>
+          {!isSignedIn && (
+            <button
+              onClick={onCreateAccount}
+              className="mt-2 w-full h-11 rounded-xl flex items-center justify-center gap-2 cursor-pointer bg-transparent border border-white/15 text-white/85 hover:bg-white/5 active:scale-[0.98] transition-all duration-150"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <span className="text-copy-14 font-medium">Create account</span>
+            </button>
+          )}
         </div>
 
         {/* Library stats */}
         <div className="px-5 mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-4">
             <div className="text-label-11 uppercase tracking-[0.15em] text-white/50">Songs</div>
             <div className="text-heading-24 text-white font-semibold mt-1">{songCount}</div>
           </div>
-          <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+          <div className="rounded-xl bg-white/5 border border-white/10 p-4">
             <div className="text-label-11 uppercase tracking-[0.15em] text-white/50">Setlists</div>
             <div className="text-heading-24 text-white font-semibold mt-1">{setlistCount}</div>
           </div>

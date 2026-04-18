@@ -129,30 +129,32 @@ export default function MobileTopBar({
     >
       <div className="bg-[var(--ds-background-200)]/90 backdrop-blur-md border-b border-[var(--ds-gray-200)]">
         <div className="flex items-center gap-2 px-3 py-3">
-          {/* Hamburger */}
-          <button
-            onClick={onOpenDrawer}
-            aria-label="Open menu"
-            className="w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] text-[var(--text-1)] cursor-pointer active:scale-95 transition-transform"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            <HamburgerIcon />
-          </button>
-
-          {/* Search */}
-          <div className="relative flex-1 min-w-0">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-2)] pointer-events-none">
-              <SearchIcon />
+          {/* Search card — hamburger lives inside on the left */}
+          <div className="flex-1 flex items-stretch h-14 rounded-xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+            {/* Hamburger as an embedded card */}
+            <button
+              onClick={onOpenDrawer}
+              aria-label="Open menu"
+              className="shrink-0 w-12 flex items-center justify-center bg-[rgba(255,255,255,0.04)] border-r border-[var(--ds-gray-300)] text-[var(--text-1)] cursor-pointer active:bg-[rgba(255,255,255,0.08)] transition-colors border-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <HamburgerIcon />
+            </button>
+            {/* Search input */}
+            <div className="relative flex-1 min-w-0 flex items-center">
+              <span className="absolute left-3 text-[var(--text-2)] pointer-events-none">
+                <SearchIcon />
+              </span>
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onFocus={() => setFocused(true)}
+                placeholder={placeholder}
+                className="w-full h-full pl-10 pr-3 bg-transparent border-none text-copy-15 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none"
+              />
             </div>
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onFocus={() => setFocused(true)}
-              placeholder={placeholder}
-              className="w-full h-11 pl-10 pr-4 rounded-2xl bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] text-copy-14 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none focus:border-[var(--ds-gray-500)] transition-colors"
-            />
           </div>
 
           {/* Brand + button */}
@@ -160,13 +162,13 @@ export default function MobileTopBar({
             <button
               onClick={handlePlus}
               aria-label={view === 'library' ? 'New song' : view === 'setlists' ? 'New setlist' : 'New'}
-              className="w-11 h-11 rounded-2xl flex items-center justify-center bg-[var(--color-brand)] shadow-sm cursor-pointer active:scale-95 transition-transform border-none"
+              className="w-14 h-14 rounded-xl flex items-center justify-center bg-[var(--color-brand)] shadow-[0_1px_2px_rgba(0,0,0,0.2)] cursor-pointer active:scale-95 transition-transform border-none"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <PlusIcon open={addOpen} />
             </button>
             {addOpen && (
-              <div className="absolute top-full right-0 mt-2 w-52 rounded-2xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-xl overflow-hidden z-50 animate-[fadeIn_120ms_ease-out]">
+              <div className="absolute top-full right-0 mt-2 w-52 rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-xl overflow-hidden z-50 animate-[fadeIn_120ms_ease-out]">
                 <button
                   onClick={() => { setAddOpen(false); onNewSong?.(); }}
                   className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-none text-left text-copy-14 text-[var(--text-1)] cursor-pointer hover:bg-[var(--bg-2)]"

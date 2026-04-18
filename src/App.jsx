@@ -608,6 +608,7 @@ export default function App() {
           userName={settings?.userName}
           email={settings?.accountEmail}
           plan="Free"
+          isSignedIn={false}
           songCount={songs.length}
           setlistCount={setlists.length}
           hasUnreadNotifications={hasUnreadNotifications}
@@ -618,6 +619,10 @@ export default function App() {
           onUpgrade={() => {
             setDrawerOpen(false);
             toast({ title: 'Setlists MD Pro', description: 'Coming soon — thanks for your interest!' });
+          }}
+          onCreateAccount={() => {
+            setDrawerOpen(false);
+            toast({ title: 'Create account', description: 'Coming soon — sign-in is on the way.' });
           }}
         />
       )}

@@ -175,7 +175,7 @@ export default function Dashboard({
 
           <div>
             {upcomingSetlists.length > 0 ? (
-              <div className="flex flex-col md:flex-row w-full rounded-2xl overflow-hidden border border-[var(--border-1)] bg-[var(--dashboard-hero-bg)] shadow-[0_4px_24px_rgba(0,0,0,0.04)] h-auto md:h-64 cursor-pointer group" onClick={() => onViewSetlist(upcomingSetlists[0])}>
+              <div className="flex flex-col md:flex-row w-full rounded-xl overflow-hidden border border-[var(--border-1)] bg-[var(--dashboard-hero-bg)] shadow-[0_4px_24px_rgba(0,0,0,0.04)] h-auto md:h-64 cursor-pointer group" onClick={() => onViewSetlist(upcomingSetlists[0])}>
                 {/* Left part (Branded Gradient) */}
                 <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#004f5e] h-32 md:h-full relative overflow-hidden">
                    <div className="absolute inset-0 bg-black/10"></div>
