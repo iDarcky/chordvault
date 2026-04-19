@@ -3,7 +3,7 @@ import Sidebar from './Sidebar';
 import { cn } from '../lib/utils';
 import { useMediaQuery } from '../lib/useMediaQuery';
 
-export default function DesktopLayout({ children, mobileHeader, activeView, onNavigate, isFullscreen = false, hasUnreadNotifications, onNotificationClick, notifications, onMarkRead, onNotificationAction, drawerOpen = false }) {
+export default function DesktopLayout({ children, mobileHeader, bottomNav, activeView, onNavigate, isFullscreen = false, hasUnreadNotifications, onNotificationClick, notifications, onMarkRead, onNotificationAction, drawerOpen = false }) {
   const mainRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 639.98px)');
   const applyDrawerTransform = drawerOpen && isMobile;
@@ -96,6 +96,9 @@ export default function DesktopLayout({ children, mobileHeader, activeView, onNa
             aria-hidden="true"
           />
         </main>
+      </div>
+      <div className="z-[200]">
+        {bottomNav}
       </div>
     </div>
   );

@@ -57,6 +57,7 @@ export default function Setlists({
   onEditSetlist,
   onExportSetlist,
   onDeleteSetlist,
+  globalSearchQuery,
 }) {
   const isDesktop = useIsDesktop();
   const previewSetlist = useMemo(
@@ -73,7 +74,7 @@ export default function Setlists({
   const fileInputRef = useRef(null);
 
   const filtered = useMemo(() => {
-    if (!query) return setlists;
+    if (!activeQuery) return setlists;
     const q = activeQuery.toLowerCase();
     return setlists.filter(sl =>
       (sl.name || '').toLowerCase().includes(q) ||

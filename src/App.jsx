@@ -427,6 +427,9 @@ export default function App() {
         <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen}
 mobileHeader={['home', 'library', 'setlists'].includes(view) ? (
 <MobileTopBar key={view} view={view} songs={songs} setlists={setlists} onOpenDrawer={() => setDrawerOpen(true)} onSelectSong={goChart} onSelectSetlist={goSetlistView} onNewSong={(title) => goEditor({ title })} onNewSetlist={(title) => goSetlistBuild({ name: title })} setGlobalSearchQuery={setGlobalSearchQuery} />
+) : null}
+bottomNav={['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) ? (
+<BottomNav activeView={view === 'setlist-view' ? 'setlists' : view} onNavigate={goToMainView} />
 ) : null}>
 
           {view === 'home' && (
@@ -586,12 +589,7 @@ mobileHeader={['home', 'library', 'setlists'].includes(view) ? (
               onHelp={() => navigate('help')}
             />
           )}
-          {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
-            <BottomNav
-              activeView={view === 'setlist-view' ? 'setlists' : view}
-              onNavigate={goToMainView}
-            />
-          )}
+
         </DesktopLayout>
       )}
       {!['welcome', 'onboarding'].includes(view) && (

@@ -120,6 +120,7 @@ export default function Library({
   onToggleFullscreen,
   onEditSong,
   chartDefaults = {},
+  globalSearchQuery,
 }) {
   const isDesktop = useIsDesktop();
   const previewSong = useMemo(
