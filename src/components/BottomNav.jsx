@@ -34,36 +34,39 @@ const tabs = [
   { id: 'library', label: 'Songs', Icon: SongsIcon },
 ];
 
+const INDICATOR_SIZE = 36;
+const RIPPLE_SIZE = 64;
+
 export default function BottomNav({ activeView, onNavigate }) {
   const containerRef = useRef(null);
-  const tileRefs = useRef({});
-  const [pill, setPill] = useState(null); // { left, width }
+  const iconRefs = useRef({});
+  const [pill, setPill] = useState(null); // { x, y }
   const [mounted, setMounted] = useState(false);
-  const [ripples, setRipples] = useState([]); // [{ id, tileId, x, y, size }]
+  const [ripples, setRipples] = useState([]); // [{ id, tileId }]
   const nextRippleId = useRef(0);
 
   const activeId = tabs.some(t => t.id === activeView) ? activeView : 'home';
 
-  useLayoutEffect(() => {
+  const measurePill = () => {
     const container = containerRef.current;
-    const el = tileRefs.current[activeId];
-    if (!container || !el) return;
+    const iconEl = iconRefs.current[activeId];
+    if (!container || !iconEl) return;
     const cRect = container.getBoundingClientRect();
-    const eRect = el.getBoundingClientRect();
-    setPill({ left: eRect.left - cRect.left, width: eRect.width });
+    const iRect = iconEl.getBoundingClientRect();
+    const centerX = iRect.left - cRect.left + iRect.width / 2;
+    const centerY = iRect.top - cRect.top + iRect.height / 2;
+    setPill({ x: centerX - INDICATOR_SIZE / 2, y: centerY - INDICATOR_SIZE / 2 });
+  };
+
+  useLayoutEffect(() => {
+    measurePill();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
   useLayoutEffect(() => {
-    const update = () => {
-      const container = containerRef.current;
-      const el = tileRefs.current[activeId];
-      if (!container || !el) return;
-      const cRect = container.getBoundingClientRect();
-      const eRect = el.getBoundingClientRect();
-      setPill({ left: eRect.left - cRect.left, width: eRect.width });
-    };
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    window.addEventListener('resize', measurePill);
+    return () => window.removeEventListener('resize', measurePill);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
   useEffect(() => {
@@ -71,20 +74,10 @@ export default function BottomNav({ activeView, onNavigate }) {
     return () => cancelAnimationFrame(t);
   }, []);
 
-  const handleTileClick = (e, id) => {
-    const el = tileRefs.current[id];
-    if (el) {
-      const eRect = el.getBoundingClientRect();
-      // Diameter large enough to cover the whole tile from any click origin
-      const size = Math.hypot(eRect.width, eRect.height) * 2;
-      // Origin relative to the tile (fallback to tile center if no pointer)
-      const hasPointer = typeof e?.clientX === 'number' && typeof e?.clientY === 'number' && (e.clientX !== 0 || e.clientY !== 0);
-      const localX = hasPointer ? e.clientX - eRect.left : eRect.width / 2;
-      const localY = hasPointer ? e.clientY - eRect.top : eRect.height / 2;
-      const rid = nextRippleId.current++;
-      setRipples(rs => [...rs, { id: rid, tileId: id, x: localX - size / 2, y: localY - size / 2, size }]);
-      setTimeout(() => setRipples(rs => rs.filter(r => r.id !== rid)), 600);
-    }
+  const handleTileClick = (id) => {
+    const rid = nextRippleId.current++;
+    setRipples(rs => [...rs, { id: rid, tileId: id }]);
+    setTimeout(() => setRipples(rs => rs.filter(r => r.id !== rid)), 600);
     onNavigate(id);
   };
 
@@ -111,17 +104,19 @@ export default function BottomNav({ activeView, onNavigate }) {
         }}
       >
         <div className="relative grid grid-cols-3 gap-2">
-          {/* Sliding active indicator pill */}
+          {/* Circular active indicator — slides between icon centers */}
           {pill && (
             <span
               aria-hidden="true"
-              className="absolute top-0 h-14 rounded-xl pointer-events-none"
+              className="absolute pointer-events-none rounded-full"
               style={{
                 left: 0,
-                width: pill.width,
-                transform: `translateX(${pill.left}px)`,
+                top: 0,
+                width: INDICATOR_SIZE,
+                height: INDICATOR_SIZE,
+                transform: `translate(${pill.x}px, ${pill.y}px)`,
                 background: 'var(--ds-gray-100)',
-                transition: mounted ? 'transform 320ms cubic-bezier(0.32, 0.72, 0, 1), width 320ms cubic-bezier(0.32, 0.72, 0, 1)' : 'none',
+                transition: mounted ? 'transform 320ms cubic-bezier(0.32, 0.72, 0, 1)' : 'none',
               }}
             />
           )}
@@ -132,29 +127,34 @@ export default function BottomNav({ activeView, onNavigate }) {
             return (
               <button
                 key={id}
-                ref={el => { tileRefs.current[id] = el; }}
-                onClick={(e) => handleTileClick(e, id)}
-                className={`relative z-[1] overflow-hidden flex flex-col items-center justify-center gap-1 h-14 rounded-xl border-none cursor-pointer p-0 transition-[color,transform] duration-200 active:scale-[0.97] bg-transparent ${
+                onClick={() => handleTileClick(id)}
+                className={`relative z-[1] flex flex-col items-center justify-center gap-1 h-14 border-none cursor-pointer p-0 bg-transparent transition-[color,transform] duration-200 active:scale-[0.97] ${
                   active ? 'text-[var(--color-brand)]' : 'text-[var(--ds-gray-700)]'
                 }`}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                {tileRipples.map(r => (
-                  <span
-                    key={r.id}
-                    aria-hidden="true"
-                    className="absolute rounded-full pointer-events-none"
-                    style={{
-                      left: r.x,
-                      top: r.y,
-                      width: r.size,
-                      height: r.size,
-                      background: 'var(--color-brand)',
-                      animation: 'nav-tile-ripple 550ms cubic-bezier(0.25, 0.8, 0.25, 1) forwards',
-                    }}
-                  />
-                ))}
-                <span className="relative"><Icon /></span>
+                <span
+                  ref={el => { iconRefs.current[id] = el; }}
+                  className="relative flex items-center justify-center"
+                  style={{ width: INDICATOR_SIZE, height: INDICATOR_SIZE }}
+                >
+                  {tileRipples.map(r => (
+                    <span
+                      key={r.id}
+                      aria-hidden="true"
+                      className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
+                      style={{
+                        width: RIPPLE_SIZE,
+                        height: RIPPLE_SIZE,
+                        marginLeft: -RIPPLE_SIZE / 2,
+                        marginTop: -RIPPLE_SIZE / 2,
+                        background: 'var(--color-brand)',
+                        animation: 'nav-tile-ripple 550ms cubic-bezier(0.25, 0.8, 0.25, 1) forwards',
+                      }}
+                    />
+                  ))}
+                  <span className="relative"><Icon /></span>
+                </span>
                 <span className={`relative text-[11px] leading-tight ${active ? 'font-semibold' : 'font-medium'}`}>
                   {label}
                 </span>
