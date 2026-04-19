@@ -36,17 +36,18 @@ export default function SetlistCard({ setlist, onPlay, onView, selected = false 
     <div
       onClick={onView}
       className={cn(
-        "flex flex-col md:flex-row w-full rounded-2xl overflow-hidden border border-[var(--border-1)] bg-[var(--dashboard-hero-bg)] shadow-[0_4px_24px_rgba(0,0,0,0.04)] h-auto md:h-64 cursor-pointer group transition-all",
-        selected && "ring-2 ring-[var(--ds-teal-700)] border-[var(--ds-teal-700)]",
+        "modes-card-strong flex flex-col md:flex-row w-full overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35)] h-auto md:h-64 cursor-pointer group transition-transform duration-150 active:scale-[0.99]",
+        selected && "ring-2 ring-[var(--color-brand)]",
       )}
+      style={{ WebkitTapHighlightColor: 'transparent' }}
     >
       {/* Left gradient panel */}
-      <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#004f5e] h-32 md:h-full relative overflow-hidden shrink-0">
+      <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#3a1a3b] h-28 md:h-full relative overflow-hidden shrink-0">
         <div className="absolute inset-0 bg-black/10"></div>
       </div>
 
       {/* Right details */}
-      <div className="flex-1 min-w-0 p-6 md:p-8 flex flex-col justify-center bg-[var(--dashboard-hero-bg)] group-hover:bg-[var(--dashboard-hero-hover)] transition-colors">
+      <div className="flex-1 min-w-0 p-6 md:p-8 flex flex-col justify-center group-hover:bg-white/[0.02] transition-colors">
         {/* Tags */}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           {displayTags.length > 0 ? (
@@ -59,12 +60,12 @@ export default function SetlistCard({ setlist, onPlay, onView, selected = false 
         </div>
 
         {/* Setlist Name */}
-        <h3 className="text-heading-20 md:text-heading-24 font-bold text-[var(--text-1)] m-0 mb-3 tracking-tight truncate">
+        <h3 className="text-heading-20 md:text-heading-24 font-bold text-[var(--modes-text)] m-0 mb-3 tracking-tight truncate">
           {setlist.name || 'Untitled Setlist'}
         </h3>
 
         {/* Date & Location */}
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-[var(--ds-gray-700)] mb-6 font-medium">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-[var(--modes-text-muted)] mb-6 font-medium">
           <div className="flex items-center gap-2 min-w-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             <span className="truncate">{dateLabel}</span>
@@ -85,7 +86,7 @@ export default function SetlistCard({ setlist, onPlay, onView, selected = false 
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M8 5v14l11-7z"/></svg>
             Play Live
           </Button>
-          <div className="text-label-13 text-[var(--text-2)] font-medium">
+          <div className="text-label-13 text-[var(--modes-text-dim)] font-medium">
             {songCount} Song{songCount !== 1 ? 's' : ''}
           </div>
         </div>

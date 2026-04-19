@@ -1,12 +1,7 @@
 import { useEffect } from 'react';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
-
-const BackIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m15 18-6-6 6-6" />
-  </svg>
-);
+import ScreenHeader from './ui/ScreenHeader';
 
 const Section = ({ icon, title, children }) => (
   <Card className="flex flex-col gap-0 p-0 overflow-hidden border-[var(--ds-gray-400)]">
@@ -42,21 +37,7 @@ export default function HelpPage({ onBack, onMarkSeen }) {
 
   return (
     <div className="min-h-screen material-page pb-8">
-      {/* Header */}
-      <div className="pt-6 pb-4 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
-        <div className="a4-container flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="w-9 h-9 rounded-lg flex items-center justify-center bg-transparent border border-[var(--ds-gray-400)] cursor-pointer text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)] transition-colors"
-            aria-label="Go back"
-          >
-            <BackIcon />
-          </button>
-          <h1 className="text-heading-24 text-[var(--ds-gray-1000)] m-0">
-            Welcome to Setlists MD
-          </h1>
-        </div>
-      </div>
+      <ScreenHeader onBack={onBack} title="Welcome to Setlists MD" />
 
       <div className="a4-container py-8 flex flex-col gap-6">
 

@@ -3,6 +3,7 @@ import { generateId } from '../parser';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { toast } from './ui/use-toast';
+import ScreenHeader from './ui/ScreenHeader';
 
 const UNDO_STACK_LIMIT = 50;
 import SetlistMetaForm from './setlist/SetlistMetaForm';
@@ -149,12 +150,11 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     <div className="min-h-screen material-page pb-8">
 
       {/* ── Sticky header ── */}
-      <div className="material-header">
-        <div className="max-w-5xl mx-auto px-5 flex items-center justify-between py-3">
-          <h1 className="text-heading-18 text-[var(--ds-gray-1000)] m-0">
-            {setlist ? 'Edit Setlist' : 'New Setlist'}
-          </h1>
-          <div className="flex items-center gap-2">
+      <ScreenHeader
+        onBack={onBack}
+        title={setlist ? 'Edit Setlist' : 'New Setlist'}
+        actions={
+          <>
             {setlist && onDelete && (
               <IconButton variant="error" size="sm" onClick={handleDelete} aria-label="Delete setlist">
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -162,11 +162,10 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                 </svg>
               </IconButton>
             )}
-            <Button variant="ghost" size="sm" onClick={onBack}>Cancel</Button>
             <Button variant="brand" size="sm" onClick={handleSave}>Save</Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* ── Content: responsive two-column layout ── */}
       <div className="max-w-5xl mx-auto px-5 pt-6">

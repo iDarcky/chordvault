@@ -82,17 +82,17 @@ function SkeletonRows() {
     <div className="flex flex-col gap-8">
       {[1, 2, 3].map(g => (
         <div key={g} className="flex flex-col gap-3">
-          <div className="h-5 w-8 bg-[var(--bg-2)] rounded animate-pulse mx-1" />
-          <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)]">
+          <div className="h-5 w-8 bg-[var(--modes-surface-strong)] rounded animate-pulse mx-1" />
+          <div className="modes-card overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
             {[1, 2, 3].map(r => (
               <div key={r} className="flex items-center justify-between px-5 py-4">
                 <div className="flex flex-col gap-2 flex-1">
-                  <div className="h-4 w-40 bg-[var(--bg-2)] rounded animate-pulse" />
-                  <div className="h-3 w-24 bg-[var(--bg-2)] rounded animate-pulse" />
+                  <div className="h-4 w-40 bg-[var(--modes-surface-strong)] rounded animate-pulse" />
+                  <div className="h-3 w-24 bg-[var(--modes-surface-strong)] rounded animate-pulse" />
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <div className="h-3 w-6 bg-[var(--bg-2)] rounded animate-pulse" />
-                  <div className="h-3 w-14 bg-[var(--bg-2)] rounded animate-pulse" />
+                  <div className="h-3 w-6 bg-[var(--modes-surface-strong)] rounded animate-pulse" />
+                  <div className="h-3 w-14 bg-[var(--modes-surface-strong)] rounded animate-pulse" />
                 </div>
               </div>
             ))}
@@ -239,9 +239,10 @@ export default function Library({
   return (
     <div className="flex flex-col lg:flex-row lg:h-screen">
       <div
+        data-theme-variant="modes"
         className={cn(
-          "relative min-w-0 material-page pb-8",
-          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--ds-gray-200)]",
+          "relative min-w-0 pb-8",
+          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--modes-border)]",
           "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
           isFullscreen && "lg:hidden",
         )}
@@ -253,7 +254,7 @@ export default function Library({
       <div className="flex flex-col gap-0">
 
         {/* Sticky Search + Tags + Filters — full-width bg */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)]">
+        <div className="sticky top-0 z-20 backdrop-blur-md bg-[color-mix(in_srgb,var(--ds-background-100)_80%,transparent)] border-b border-[var(--modes-border)]">
           <div className="a4-container pt-4 sm:pt-6 pb-4 flex flex-col gap-4">
           {/* Search Bar + Tags */}
           <div className="flex gap-3 items-stretch">
@@ -276,8 +277,8 @@ export default function Library({
                     flex items-center gap-2
                     text-label-14 transition-all duration-150
                     ${selectedTags.length > 0
-                      ? 'border-[var(--color-brand)] text-[var(--color-brand)] bg-[var(--bg-1)]'
-                      : 'border-[var(--border-1)] text-[var(--text-1)] bg-[var(--bg-1)] hover:border-[var(--border-3)]'
+                      ? 'border-[var(--color-brand)] text-[var(--color-brand)] bg-[var(--modes-surface)]'
+                      : 'border-[var(--modes-border)] text-[var(--modes-text)] bg-[var(--modes-surface)] hover:bg-[var(--modes-surface-strong)]'
                     }
                   `}
                 >
@@ -296,7 +297,7 @@ export default function Library({
                 </button>
 
                 {tagsOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-lg z-50 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--modes-border)] bg-[var(--ds-background-100)] shadow-lg z-50 overflow-hidden">
                     {allTags.length > 5 && (
                       <div className="px-3 pt-3 pb-2">
                         <input
@@ -372,8 +373,8 @@ export default function Library({
                   px-4 py-2 rounded-full text-label-14 font-semibold cursor-pointer
                   transition-all duration-150 border-none flex items-center gap-1.5
                   ${sortMode === mode.key
-                    ? 'bg-[var(--text-1)] text-[var(--bg-1)]'
-                    : 'bg-transparent text-[var(--text-1)] hover:bg-[var(--ds-gray-alpha-100)]'
+                    ? 'bg-[var(--ds-gray-100)] text-[var(--color-brand)]'
+                    : 'bg-transparent text-[var(--modes-text-muted)] hover:bg-[var(--modes-surface)]'
                   }
                 `}
               >
@@ -420,14 +421,14 @@ export default function Library({
               {sortedKeys.map(groupKey => (
                 <div key={groupKey} className="flex flex-col gap-3">
                   <div className="flex items-baseline gap-2 px-1">
-                    <h3 className="text-heading-16 text-[var(--text-1)]">
+                    <h3 className="text-heading-20 font-bold text-[var(--modes-text)] m-0">
                       {groupKey}
                     </h3>
-                    <span className="text-label-12 text-[var(--text-2)]">
+                    <span className="text-label-12 text-[var(--modes-text-dim)]">
                       {groups[groupKey].length}
                     </span>
                   </div>
-                  <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] overflow-hidden divide-y divide-[var(--border-1)]">
+                  <div className="modes-card overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
                     {groups[groupKey].map(song => (
                       <SongCard
                         key={song.id}
@@ -442,26 +443,28 @@ export default function Library({
                 </div>
               ))}
               {hasMore && (
-                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--text-2)]">
+                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--modes-text-dim)]">
                   Loading more… ({truncated.length} of {filtered.length})
                 </div>
               )}
             </div>
           ) : query || selectedTags.length > 0 ? (
-            <div className="py-16 text-center text-[var(--text-2)] text-copy-14">
-              No songs matching your filters.
+            <div className="modes-card py-14 text-center flex flex-col items-center gap-3 border-dashed">
+              <p className="text-copy-14 text-[var(--modes-text-muted)] font-medium">
+                No songs matching your filters.
+              </p>
             </div>
           ) : (
-            <div className="py-20 flex flex-col items-center text-center">
-              <div className="w-14 h-14 mb-4 rounded-full bg-[var(--bg-2)] border border-[var(--border-1)] flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-2)]">
+            <div className="modes-card py-16 px-6 flex flex-col items-center text-center border-dashed">
+              <div className="w-14 h-14 mb-4 rounded-full bg-[var(--modes-surface-strong)] border border-[var(--modes-border)] flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--modes-text-muted)]">
                   <path d="M9 18V5l12-2v13" />
                   <circle cx="6" cy="18" r="3" />
                   <circle cx="18" cy="16" r="3" />
                 </svg>
               </div>
-              <h2 className="text-heading-20 text-[var(--text-1)] m-0 mb-1.5">Your library is empty</h2>
-              <p className="text-copy-14 text-[var(--text-2)] max-w-sm mb-5">
+              <h2 className="text-heading-20 text-[var(--modes-text)] m-0 mb-1.5">Your library is empty</h2>
+              <p className="text-copy-14 text-[var(--modes-text-muted)] max-w-sm mb-5">
                 Create a new chord chart or import one from a .md file you already have.
               </p>
               <div className="flex flex-wrap justify-center gap-2">
@@ -509,11 +512,11 @@ export default function Library({
 
         <button
           onClick={() => setFabOpen(!fabOpen)}
-          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
+          className="w-14 h-14 rounded-full bg-[var(--color-brand)] text-white shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
         >
           <svg
             width="24" height="24" viewBox="0 0 24 24"
-            fill="none" stroke="white" strokeWidth="2"
+            fill="none" stroke="currentColor" strokeWidth="2"
             strokeLinecap="round" strokeLinejoin="round"
             className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
           >

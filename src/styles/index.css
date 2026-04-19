@@ -554,13 +554,16 @@
     border-color: var(--ds-gray-600);
   }
 
-  /* Frosted glass sticky header — solid fallback, blur when supported */
+  /* Frosted glass sticky header — solid fallback, blur when supported.
+   * Also provides iOS safe-area-top padding so standalone PWAs don't render
+   * under the status bar / dynamic island. */
   .material-header {
     position: sticky;
     top: 0;
     z-index: 10;
     background: var(--header-bg);
     border-bottom: 1px solid var(--ds-gray-200);
+    padding-top: env(safe-area-inset-top, 0px);
   }
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
     .material-header {
