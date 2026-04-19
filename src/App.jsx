@@ -197,20 +197,39 @@ export default function App() {
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [loaded, triggerSync]);
 
-  // Apply theme to document — 'default' follows system preference
+  // Apply theme to document — 'default' follows system preference.
+  // Also keeps the active <meta name="theme-color"> in sync so Android's system
+  // bars (status bar + navigation pill) tint to match the current theme.
   useEffect(() => {
     if (!settings) return;
     const theme = settings.theme;
+
+    const setThemeColor = (mode) => {
+      const color = mode === 'light' ? '#ffffff' : '#14161e';
+      // Remove the media-scoped tags so the single active tag wins everywhere.
+      document.querySelectorAll('meta[name="theme-color"][media]').forEach(m => m.remove());
+      let tag = document.querySelector('meta[name="theme-color"]:not([media])');
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('name', 'theme-color');
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', color);
+    };
+
     if (theme === 'default') {
       const mq = window.matchMedia('(prefers-color-scheme: light)');
       const apply = () => {
-        document.documentElement.setAttribute('data-theme', mq.matches ? 'light' : 'dark');
+        const mode = mq.matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', mode);
+        setThemeColor(mode);
       };
       apply();
       mq.addEventListener('change', apply);
       return () => mq.removeEventListener('change', apply);
     }
     document.documentElement.setAttribute('data-theme', theme);
+    setThemeColor(theme);
   }, [settings?.theme]);
 
   // Navigation with history stack
@@ -248,49 +267,6 @@ export default function App() {
     window.addEventListener('popstate', handler);
     return () => window.removeEventListener('popstate', handler);
   }, [goBack]);
-
-  // Left-edge swipe opens the mobile drawer (main tabs only, mobile viewport only)
-  useEffect(() => {
-    const isMainView = ['home', 'library', 'setlists'].includes(view);
-    if (!isMainView) return;
-    let startX = null;
-    let startY = null;
-    let tracking = false;
-
-    const onStart = (e) => {
-      if (drawerOpen) return;
-      if (window.innerWidth >= 640) return;
-      const t = e.touches?.[0];
-      if (!t) return;
-      if (t.clientX > 24) return;
-      startX = t.clientX;
-      startY = t.clientY;
-      tracking = true;
-    };
-    const onMove = (e) => {
-      if (!tracking) return;
-      const t = e.touches?.[0];
-      if (!t) return;
-      const dx = t.clientX - startX;
-      const dy = Math.abs(t.clientY - startY);
-      if (dx > 60 && dy < 40) {
-        tracking = false;
-        setDrawerOpen(true);
-      }
-    };
-    const onEnd = () => { tracking = false; startX = null; startY = null; };
-
-    document.addEventListener('touchstart', onStart, { passive: true });
-    document.addEventListener('touchmove', onMove, { passive: true });
-    document.addEventListener('touchend', onEnd);
-    document.addEventListener('touchcancel', onEnd);
-    return () => {
-      document.removeEventListener('touchstart', onStart);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend', onEnd);
-      document.removeEventListener('touchcancel', onEnd);
-    };
-  }, [view, drawerOpen]);
 
   // Navigate between main pages (no history push)
   const goToMainView = (viewName) => {
@@ -661,6 +637,9 @@ export default function App() {
           )}
         </DesktopLayout>
       )}
+      {!['welcome', 'onboarding'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
+        <EdgeSwipeHotspot onOpen={() => setDrawerOpen(true)} />
+      )}
       {!['welcome', 'onboarding'].includes(view) && (
         <MobileDrawer
           open={drawerOpen}
@@ -706,6 +685,50 @@ export default function App() {
       )}
       {!['welcome', 'onboarding'].includes(view) && <FeedbackButton />}
     </Suspense>
+  );
+}
+
+// Fixed strip on the left edge of mobile viewport — captures a swipe-right
+// gesture to open the drawer. Rendered only on main tabs while drawer is closed.
+function EdgeSwipeHotspot({ onOpen }) {
+  const startRef = useRef(null);
+  const firedRef = useRef(false);
+
+  const onTouchStart = (e) => {
+    const t = e.touches?.[0];
+    if (!t) return;
+    startRef.current = { x: t.clientX, y: t.clientY };
+    firedRef.current = false;
+  };
+  const onTouchMove = (e) => {
+    if (firedRef.current || !startRef.current) return;
+    const t = e.touches?.[0];
+    if (!t) return;
+    const dx = t.clientX - startRef.current.x;
+    const dy = Math.abs(t.clientY - startRef.current.y);
+    if (dx > 40 && dy < 30) {
+      firedRef.current = true;
+      onOpen();
+    }
+  };
+  const reset = () => { startRef.current = null; };
+
+  return (
+    <div
+      aria-hidden="true"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={reset}
+      onTouchCancel={reset}
+      className="fixed top-0 left-0 z-[150] sm:hidden"
+      style={{
+        width: '24px',
+        height: '100dvh',
+        // Keep the strip transparent but touch-reachable
+        background: 'transparent',
+        touchAction: 'pan-y',
+      }}
+    />
   );
 }
 

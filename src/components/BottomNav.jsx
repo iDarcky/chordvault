@@ -39,7 +39,7 @@ export default function BottomNav({ activeView, onNavigate }) {
   const tileRefs = useRef({});
   const [pill, setPill] = useState(null); // { left, width }
   const [mounted, setMounted] = useState(false);
-  const [ripples, setRipples] = useState([]); // [{ id, left, width }]
+  const [ripples, setRipples] = useState([]); // [{ id, tileId, x, y, size }]
   const nextRippleId = useRef(0);
 
   const activeId = tabs.some(t => t.id === activeView) ? activeView : 'home';
@@ -71,15 +71,19 @@ export default function BottomNav({ activeView, onNavigate }) {
     return () => cancelAnimationFrame(t);
   }, []);
 
-  const handleTileClick = (id) => {
+  const handleTileClick = (e, id) => {
     const el = tileRefs.current[id];
-    const container = containerRef.current;
-    if (el && container) {
-      const cRect = container.getBoundingClientRect();
+    if (el) {
       const eRect = el.getBoundingClientRect();
+      // Diameter large enough to cover the whole tile from any click origin
+      const size = Math.hypot(eRect.width, eRect.height) * 2;
+      // Origin relative to the tile (fallback to tile center if no pointer)
+      const hasPointer = typeof e?.clientX === 'number' && typeof e?.clientY === 'number' && (e.clientX !== 0 || e.clientY !== 0);
+      const localX = hasPointer ? e.clientX - eRect.left : eRect.width / 2;
+      const localY = hasPointer ? e.clientY - eRect.top : eRect.height / 2;
       const rid = nextRippleId.current++;
-      setRipples(rs => [...rs, { id: rid, left: eRect.left - cRect.left, width: eRect.width }]);
-      setTimeout(() => setRipples(rs => rs.filter(r => r.id !== rid)), 500);
+      setRipples(rs => [...rs, { id: rid, tileId: id, x: localX - size / 2, y: localY - size / 2, size }]);
+      setTimeout(() => setRipples(rs => rs.filter(r => r.id !== rid)), 600);
     }
     onNavigate(id);
   };
@@ -92,14 +96,14 @@ export default function BottomNav({ activeView, onNavigate }) {
         className="fixed left-0 right-0 z-[99] h-10 pointer-events-none sm:hidden"
         style={{
           bottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)',
-          background: 'linear-gradient(to top, #14161e 0%, rgba(20, 22, 30, 0) 100%)',
+          background: 'linear-gradient(to top, var(--ds-background-100) 0%, transparent 100%)',
         }}
       />
       <nav
         ref={containerRef}
         className="fixed bottom-0 left-0 right-0 z-[100] sm:hidden"
         style={{
-          background: '#14161e',
+          background: 'var(--ds-background-100)',
           paddingLeft: '12px',
           paddingRight: '12px',
           paddingTop: '10px',
@@ -122,39 +126,36 @@ export default function BottomNav({ activeView, onNavigate }) {
             />
           )}
 
-          {/* Ripples (rendered in container so they pick up each tile's bounds) */}
-          {ripples.map(r => (
-            <span
-              key={r.id}
-              aria-hidden="true"
-              className="absolute top-0 h-14 pointer-events-none overflow-hidden"
-              style={{ left: r.left, width: r.width }}
-            >
-              <span
-                className="absolute inset-0 rounded-xl"
-                style={{
-                  background: 'var(--color-brand)',
-                  animation: 'nav-tile-ripple 450ms ease-out forwards',
-                  transformOrigin: 'center',
-                }}
-              />
-            </span>
-          ))}
-
           {tabs.map(({ id, label, Icon }) => {
             const active = id === activeId;
+            const tileRipples = ripples.filter(r => r.tileId === id);
             return (
               <button
                 key={id}
                 ref={el => { tileRefs.current[id] = el; }}
-                onClick={() => handleTileClick(id)}
-                className={`relative z-[1] flex flex-col items-center justify-center gap-1 h-14 rounded-xl border-none cursor-pointer p-0 transition-[color,transform] duration-200 active:scale-[0.97] bg-transparent ${
+                onClick={(e) => handleTileClick(e, id)}
+                className={`relative z-[1] overflow-hidden flex flex-col items-center justify-center gap-1 h-14 rounded-xl border-none cursor-pointer p-0 transition-[color,transform] duration-200 active:scale-[0.97] bg-transparent ${
                   active ? 'text-[var(--color-brand)]' : 'text-[var(--ds-gray-700)]'
                 }`}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                <Icon />
-                <span className={`text-[11px] leading-tight ${active ? 'font-semibold' : 'font-medium'}`}>
+                {tileRipples.map(r => (
+                  <span
+                    key={r.id}
+                    aria-hidden="true"
+                    className="absolute rounded-full pointer-events-none"
+                    style={{
+                      left: r.x,
+                      top: r.y,
+                      width: r.size,
+                      height: r.size,
+                      background: 'var(--color-brand)',
+                      animation: 'nav-tile-ripple 550ms cubic-bezier(0.25, 0.8, 0.25, 1) forwards',
+                    }}
+                  />
+                ))}
+                <span className="relative"><Icon /></span>
+                <span className={`relative text-[11px] leading-tight ${active ? 'font-semibold' : 'font-medium'}`}>
                   {label}
                 </span>
               </button>
@@ -165,9 +166,9 @@ export default function BottomNav({ activeView, onNavigate }) {
 
       <style>{`
         @keyframes nav-tile-ripple {
-          0% { transform: scale(0.3); opacity: 0.35; }
-          60% { opacity: 0.2; }
-          100% { transform: scale(1.05); opacity: 0; }
+          0% { transform: scale(0); opacity: 0.38; }
+          60% { opacity: 0.22; }
+          100% { transform: scale(1); opacity: 0; }
         }
       `}</style>
     </>

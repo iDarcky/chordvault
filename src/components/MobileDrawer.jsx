@@ -50,11 +50,11 @@ function Row({ icon: Icon, label, onClick, accessory }) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] cursor-pointer active:scale-[0.98] transition-all duration-150 text-left"
+      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[var(--drawer-surface)] hover:bg-[var(--drawer-surface-hover)] border border-[var(--drawer-border)] cursor-pointer active:scale-[0.98] transition-all duration-150 text-left"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
-      <span className="text-white/80"><Icon /></span>
-      <span className="flex-1 text-copy-15 text-white font-medium">{label}</span>
+      <span className="text-[var(--drawer-text-muted)]"><Icon /></span>
+      <span className="flex-1 text-copy-15 text-[var(--drawer-text)] font-medium">{label}</span>
       {accessory}
     </button>
   );
@@ -150,13 +150,10 @@ export default function MobileDrawer({
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        className="fixed top-0 left-0 bottom-0 z-[210] sm:hidden w-[85vw] max-w-[360px] flex flex-col overflow-y-auto overscroll-contain text-white"
+        className="drawer-panel fixed top-0 left-0 bottom-0 z-[210] sm:hidden w-[85vw] max-w-[360px] flex flex-col overflow-y-auto overscroll-contain"
         style={{
           transform: `translateX(${translateX})`,
           transition: dragging ? 'none' : 'transform 300ms cubic-bezier(0.32, 0.72, 0, 1)',
-          background:
-            'radial-gradient(130% 70% at 8% 0%, rgba(92, 138, 128, 0.55) 0%, rgba(22, 18, 32, 0.92) 38%, #0b0910 100%), radial-gradient(90% 60% at 100% 100%, rgba(130, 50, 90, 0.35) 0%, rgba(11, 9, 16, 0) 60%)',
-          backgroundBlendMode: 'screen, normal',
           paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
         }}
@@ -166,7 +163,7 @@ export default function MobileDrawer({
           <button
             onClick={onClose}
             aria-label="Close menu"
-            className="w-9 h-9 rounded-full flex items-center justify-center bg-white/10 text-white/80 hover:bg-white/15 cursor-pointer border-none"
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-[var(--drawer-close-bg)] text-[var(--drawer-text-muted)] hover:bg-[var(--drawer-close-bg-hover)] cursor-pointer border-none"
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <CloseIcon />
@@ -175,7 +172,7 @@ export default function MobileDrawer({
 
         {/* Greeting */}
         <div className="px-5 pt-4 pb-6">
-          <h1 className="text-[34px] leading-[40px] font-serif text-white m-0 tracking-tight">
+          <h1 className="text-[34px] leading-[40px] font-serif text-[var(--drawer-text)] m-0 tracking-tight">
             You have a beautiful{' '}
             <span className="italic">library</span>,{' '}
             <span className="whitespace-nowrap">{displayName}</span>
@@ -185,19 +182,19 @@ export default function MobileDrawer({
         {/* Account */}
         {isSignedIn && (
           <div className="px-5">
-            <div className="text-label-11 uppercase tracking-[0.15em] text-white/50 mb-1.5">
+            <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)] mb-1.5">
               Your Account
             </div>
-            <div className="text-copy-16 text-white truncate">{displayEmail}</div>
+            <div className="text-copy-16 text-[var(--drawer-text)] truncate">{displayEmail}</div>
           </div>
         )}
 
         {/* Plan */}
         <div className={`px-5 ${isSignedIn ? 'mt-5' : ''}`}>
-          <div className="text-label-11 uppercase tracking-[0.15em] text-white/50 mb-1.5">
+          <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)] mb-1.5">
             Your Plan
           </div>
-          <div className="text-copy-16 text-white">{plan} Plan</div>
+          <div className="text-copy-16 text-[var(--drawer-text)]">{plan} Plan</div>
         </div>
 
         {/* Upgrade pill */}
@@ -222,7 +219,7 @@ export default function MobileDrawer({
           {!isSignedIn && (
             <button
               onClick={onCreateAccount}
-              className="mt-2 w-full h-11 rounded-xl flex items-center justify-center gap-2 cursor-pointer bg-transparent border border-white/15 text-white/85 hover:bg-white/5 active:scale-[0.98] transition-all duration-150"
+              className="mt-2 w-full h-11 rounded-xl flex items-center justify-center gap-2 cursor-pointer bg-transparent border border-[var(--drawer-border)] text-[var(--drawer-text-muted)] hover:bg-[var(--drawer-surface)] active:scale-[0.98] transition-all duration-150"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <span className="text-copy-14 font-medium">Create account</span>
@@ -232,13 +229,13 @@ export default function MobileDrawer({
 
         {/* Library stats */}
         <div className="px-5 mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-white/5 border border-white/10 p-4">
-            <div className="text-label-11 uppercase tracking-[0.15em] text-white/50">Songs</div>
-            <div className="text-heading-24 text-white font-semibold mt-1">{songCount}</div>
+          <div className="rounded-xl bg-[var(--drawer-surface)] border border-[var(--drawer-border)] p-4">
+            <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)]">Songs</div>
+            <div className="text-heading-24 text-[var(--drawer-text)] font-semibold mt-1">{songCount}</div>
           </div>
-          <div className="rounded-xl bg-white/5 border border-white/10 p-4">
-            <div className="text-label-11 uppercase tracking-[0.15em] text-white/50">Setlists</div>
-            <div className="text-heading-24 text-white font-semibold mt-1">{setlistCount}</div>
+          <div className="rounded-xl bg-[var(--drawer-surface)] border border-[var(--drawer-border)] p-4">
+            <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)]">Setlists</div>
+            <div className="text-heading-24 text-[var(--drawer-text)] font-semibold mt-1">{setlistCount}</div>
           </div>
         </div>
 
@@ -259,7 +256,7 @@ export default function MobileDrawer({
 
         {/* Footer */}
         <div className="mt-auto px-5 pt-8 text-center">
-          <div className="text-label-11 text-white/40">Setlists MD</div>
+          <div className="text-label-11 text-[var(--drawer-text-faint)]">Setlists MD</div>
         </div>
       </aside>
 

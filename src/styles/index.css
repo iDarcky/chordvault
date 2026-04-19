@@ -696,3 +696,49 @@
   letter-spacing: 0.15em;
 }
 
+/* Light-mode override for modes variant */
+[data-theme="light"] [data-theme-variant="modes"] {
+  --modes-surface: rgba(0, 0, 0, 0.035);
+  --modes-surface-strong: rgba(0, 0, 0, 0.05);
+  --modes-border: rgba(0, 0, 0, 0.08);
+  --modes-text: var(--ds-gray-1000);
+  --modes-text-muted: var(--ds-gray-900);
+  --modes-text-dim: var(--ds-gray-700);
+
+  background: var(--ds-background-100);
+  color: var(--modes-text);
+}
+
+/* MobileDrawer — surface + text vars (dark default, light override) */
+.drawer-panel {
+  background:
+    radial-gradient(130% 70% at 8% 0%, rgba(92, 138, 128, 0.55) 0%, rgba(22, 18, 32, 0.92) 38%, #0b0910 100%),
+    radial-gradient(90% 60% at 100% 100%, rgba(130, 50, 90, 0.35) 0%, rgba(11, 9, 16, 0) 60%);
+  background-blend-mode: screen, normal;
+  color: #ffffff;
+  --drawer-surface: rgba(255, 255, 255, 0.05);
+  --drawer-surface-hover: rgba(255, 255, 255, 0.09);
+  --drawer-border: rgba(255, 255, 255, 0.10);
+  --drawer-close-bg: rgba(255, 255, 255, 0.10);
+  --drawer-close-bg-hover: rgba(255, 255, 255, 0.15);
+  --drawer-text: #ffffff;
+  --drawer-text-muted: rgba(255, 255, 255, 0.80);
+  --drawer-text-dim: rgba(255, 255, 255, 0.50);
+  --drawer-text-faint: rgba(255, 255, 255, 0.40);
+}
+[data-theme="light"] .drawer-panel {
+  background:
+    radial-gradient(130% 70% at 8% 0%, rgba(162, 208, 198, 0.70) 0%, rgba(250, 248, 254, 0.95) 38%, #ffffff 100%),
+    radial-gradient(90% 60% at 100% 100%, rgba(230, 180, 210, 0.50) 0%, rgba(255, 255, 255, 0) 60%);
+  color: var(--ds-gray-1000);
+  --drawer-surface: rgba(0, 0, 0, 0.035);
+  --drawer-surface-hover: rgba(0, 0, 0, 0.06);
+  --drawer-border: rgba(0, 0, 0, 0.08);
+  --drawer-close-bg: rgba(0, 0, 0, 0.06);
+  --drawer-close-bg-hover: rgba(0, 0, 0, 0.10);
+  --drawer-text: var(--ds-gray-1000);
+  --drawer-text-muted: var(--ds-gray-900);
+  --drawer-text-dim: var(--ds-gray-700);
+  --drawer-text-faint: var(--ds-gray-600);
+}
+
