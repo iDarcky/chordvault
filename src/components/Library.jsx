@@ -136,6 +136,7 @@ export default function Library({
   };
 
   const [query, setQuery] = useState('');
+  const activeQuery = globalSearchQuery !== undefined ? (globalSearchQuery || query) : query;
   const [sortMode, setSortMode] = useState('title');
   const [sortAsc, setSortAsc] = useState(true);
   const [selectedTags, setSelectedTags] = useState([]);
@@ -172,7 +173,7 @@ export default function Library({
   const filtered = useMemo(() => {
     let result = songs;
     if (query) {
-      const q = query.toLowerCase();
+      const q = activeQuery.toLowerCase();
       result = result.filter(s =>
         s.title.toLowerCase().includes(q) ||
         s.artist?.toLowerCase().includes(q) ||
@@ -430,7 +431,7 @@ export default function Library({
             </div>
           ) : query || selectedTags.length > 0 ? (
             <div className="py-24 text-center text-[var(--text-2)] font-serif italic text-heading-20 opacity-50">
-              No songs matching "{query}".
+              No songs matching "{activeQuery}".
             </div>
           ) : (
             <div className="py-32 flex flex-col items-center text-center">

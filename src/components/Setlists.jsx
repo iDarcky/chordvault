@@ -69,11 +69,12 @@ export default function Setlists({
     else onViewSetlist(sl);
   };
   const [query, setQuery] = useState('');
+  const activeQuery = globalSearchQuery !== undefined ? (globalSearchQuery || query) : query;
   const fileInputRef = useRef(null);
 
   const filtered = useMemo(() => {
     if (!query) return setlists;
-    const q = query.toLowerCase();
+    const q = activeQuery.toLowerCase();
     return setlists.filter(sl =>
       (sl.name || '').toLowerCase().includes(q) ||
       (sl.service || '').toLowerCase().includes(q) ||
@@ -189,7 +190,7 @@ export default function Setlists({
               {filtered.length === 0 && (
                 query ? (
                   <div className="py-24 text-center text-[var(--text-2)] font-serif italic text-heading-20 opacity-50">
-                    No setlists matching "{query}".
+                    No setlists matching "{activeQuery}".
                   </div>
                 ) : (
                   <div className="py-32 flex flex-col items-center text-center">

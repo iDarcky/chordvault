@@ -13,8 +13,10 @@ export default function Dashboard({
   onPlaySetlist,
   onGoLibrary,
   onGoSetlists,
+  globalSearchQuery,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const activeQuery = globalSearchQuery !== undefined ? (globalSearchQuery || searchQuery) : searchQuery;
 
   // Recently edited songs (latest first)
   const latestSongs = [...songs].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 5);
@@ -42,10 +44,10 @@ export default function Dashboard({
   const userName = settings?.userName || 'Guest';
 
   // Search results
-  const searchResults = searchQuery.trim()
+  const searchResults = activeQuery.trim()
     ? songs.filter(s =>
-        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.artist?.toLowerCase().includes(searchQuery.toLowerCase())
+        s.title.toLowerCase().includes(activeQuery.toLowerCase()) ||
+        s.artist?.toLowerCase().includes(activeQuery.toLowerCase())
       ).slice(0, 8)
     : [];
 
@@ -81,7 +83,7 @@ export default function Dashboard({
           </h1>
         </div>
 
-        <div className="hidden sm:block w-full z-40 relative mt-4">
+        <div className="hidden sm:block w-full z-[110] relative mt-4">
           <GlobalInputBar
             onSearch={setSearchQuery}
             onNewSong={(title) => {
@@ -97,7 +99,7 @@ export default function Dashboard({
 
 
       <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-10">
-        {searchQuery.trim().length > 0 ? (
+        {activeQuery.trim().length > 0 ? (
           <div className="flex flex-col gap-8 mt-8">
             <div className="flex justify-between items-end border-b border-[var(--border-1)] pb-4">
               <h2 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
@@ -125,7 +127,7 @@ export default function Dashboard({
             ) : (
               <div className="py-24 text-center flex flex-col items-center gap-4">
                 <p className="text-heading-20 text-[var(--text-2)] opacity-50 font-serif italic m-0">
-                  No songs found matching "{searchQuery}".
+                  No songs found matching "{activeQuery}".
                 </p>
                 <p className="text-copy-16 text-[var(--text-2)] opacity-50 max-w-sm mt-0">
                   Press enter to create a new song or setlist with this name.

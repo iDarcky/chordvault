@@ -66,6 +66,7 @@ export default function App() {
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
   const [previewSongId, setPreviewSongId] = useState(null);
@@ -433,8 +434,9 @@ export default function App() {
               onOpenDrawer={() => setDrawerOpen(true)}
               onSelectSong={goChart}
               onSelectSetlist={goSetlistView}
-              onNewSong={() => goEditor()}
-              onNewSetlist={() => goSetlistBuild()}
+              onNewSong={(title) => goEditor({ title })}
+              onNewSetlist={(title) => goSetlistBuild({ name: title })}
+              setGlobalSearchQuery={setGlobalSearchQuery}
             />
           )}
           {view === 'home' && (
@@ -443,12 +445,13 @@ export default function App() {
               setlists={setlists}
               settings={settings}
               onSelectSong={goChart}
-              onNewSong={() => goEditor()}
-              onNewSetlist={() => goSetlistBuild()}
+              onNewSong={(title) => goEditor({ title })}
+              onNewSetlist={(title) => goSetlistBuild({ name: title })}
               onViewSetlist={goSetlistView}
               onPlaySetlist={goSetlistPlay}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
+              globalSearchQuery={globalSearchQuery}
             />
           )}
           {view === 'library' && (
@@ -456,7 +459,7 @@ export default function App() {
               songs={songs}
               loaded={loaded}
               onSelectSong={goChart}
-              onNewSong={() => goEditor()}
+              onNewSong={(title) => goEditor({ title })}
               onImportSong={handleImportSong}
               previewSongId={previewSongId}
               onSelectPreview={setPreviewSongId}
@@ -482,7 +485,7 @@ export default function App() {
               loaded={loaded}
               onViewSetlist={goSetlistView}
               onPlaySetlist={goSetlistPlay}
-              onNewSetlist={() => goSetlistBuild()}
+              onNewSetlist={(title) => goSetlistBuild({ name: title })}
               onImportSetlist={handleImportSetlist}
               previewSetlistId={previewSetlistId}
               onSelectPreview={setPreviewSetlistId}
