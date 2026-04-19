@@ -424,21 +424,11 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen}>
-          {['home', 'library', 'setlists'].includes(view) && (
-            <MobileTopBar
-              key={view}
-              view={view}
-              songs={songs}
-              setlists={setlists}
-              onOpenDrawer={() => setDrawerOpen(true)}
-              onSelectSong={goChart}
-              onSelectSetlist={goSetlistView}
-              onNewSong={(title) => goEditor({ title })}
-              onNewSetlist={(title) => goSetlistBuild({ name: title })}
-              setGlobalSearchQuery={setGlobalSearchQuery}
-            />
-          )}
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen}
+mobileHeader={['home', 'library', 'setlists'].includes(view) ? (
+<MobileTopBar key={view} view={view} songs={songs} setlists={setlists} onOpenDrawer={() => setDrawerOpen(true)} onSelectSong={goChart} onSelectSetlist={goSetlistView} onNewSong={(title) => goEditor({ title })} onNewSetlist={(title) => goSetlistBuild({ name: title })} setGlobalSearchQuery={setGlobalSearchQuery} />
+) : null}>
+
           {view === 'home' && (
             <Dashboard
               songs={songs}

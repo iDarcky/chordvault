@@ -17,7 +17,7 @@ export default function MobileTopBar({
 }) {
   return (
     <div
-      className="sticky top-0 z-[110] sm:hidden bg-[var(--ds-background-100)] border-b border-[var(--ds-gray-200)]"
+      className="shrink-0 z-[110] sm:hidden bg-[var(--ds-background-100)] border-b border-[var(--ds-gray-200)]"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       <div className="flex items-center gap-3 px-3 py-3">

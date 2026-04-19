@@ -3,7 +3,7 @@ import Sidebar from './Sidebar';
 import { cn } from '../lib/utils';
 import { useMediaQuery } from '../lib/useMediaQuery';
 
-export default function DesktopLayout({ children, activeView, onNavigate, isFullscreen = false, hasUnreadNotifications, onNotificationClick, notifications, onMarkRead, onNotificationAction, drawerOpen = false }) {
+export default function DesktopLayout({ children, mobileHeader, activeView, onNavigate, isFullscreen = false, hasUnreadNotifications, onNotificationClick, notifications, onMarkRead, onNotificationAction, drawerOpen = false }) {
   const mainRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 639.98px)');
   const applyDrawerTransform = drawerOpen && isMobile;
@@ -74,9 +74,8 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
         </div>
       )}
 
-      <main
-        ref={mainRef}
-        className="flex-1 overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] relative w-full transition-transform duration-300 ease-out will-change-transform"
+      <div
+        className="flex-1 flex flex-col relative w-full transition-transform duration-300 ease-out will-change-transform overflow-hidden"
         style={{
           transform: applyDrawerTransform ? 'translateX(72%) scale(0.92)' : undefined,
           transformOrigin: 'left center',
@@ -84,14 +83,20 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
           boxShadow: applyDrawerTransform ? '0 30px 60px rgba(0,0,0,0.45)' : undefined,
         }}
       >
-        {children}
-        {/* Mobile Spacer */}
-        <div
-          className="shrink-0 sm:hidden"
-          style={{ height: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}
-          aria-hidden="true"
-        />
-      </main>
+        {mobileHeader}
+        <main
+          ref={mainRef}
+          className="flex-1 overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] w-full"
+        >
+          {children}
+          {/* Mobile Spacer */}
+          <div
+            className="shrink-0 sm:hidden"
+            style={{ height: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}
+            aria-hidden="true"
+          />
+        </main>
+      </div>
     </div>
   );
 }
