@@ -24,11 +24,13 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
   }, [onNavigate]);
 
   return (
-    <div className="w-full h-[100dvh] bg-[var(--ds-background-100)] overflow-hidden flex flex-col sm:grid sm:grid-cols-1">
+    <div className="w-full h-[100dvh] bg-[var(--ds-background-100)] overflow-hidden flex flex-col relative">
       {/* We MUST keep the Sidebar for mobile Drawer functionality! We just hide it visually on Desktop (sm:hidden) */}
       {!isFullscreen && (
-        <div className="sm:hidden absolute inset-0 z-0">
-          <Sidebar activeView={activeView} onNavigate={onNavigate} hasUnreadNotifications={hasUnreadNotifications} onNotificationClick={onNotificationClick} notifications={notifications} onMarkRead={onMarkRead} onNotificationAction={onNotificationAction} />
+        <div className="sm:hidden absolute inset-0 z-0 pointer-events-none">
+          <div className="pointer-events-auto h-full">
+            <Sidebar activeView={activeView} onNavigate={onNavigate} hasUnreadNotifications={hasUnreadNotifications} onNotificationClick={onNotificationClick} notifications={notifications} onMarkRead={onMarkRead} onNotificationAction={onNotificationAction} />
+          </div>
         </div>
       )}
 

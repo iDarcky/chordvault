@@ -1,8 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import SongCard from './SongCard';
-import { Button } from './ui/Button';
-import { Input } from './ui/Input';
-import { Chip } from './ui/Chip';
 import GlobalInputBar from './GlobalInputBar';
 
 export default function Dashboard({
@@ -94,41 +91,50 @@ export default function Dashboard({
                onNewSetlist(title);
             }}
           />
-          {searchQuery.trim().length > 0 && (
-            <div className="absolute top-0 left-0 right-0 mt-14 w-full max-w-xl mx-auto z-40 pointer-events-none">
-              <div className="rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-xl overflow-hidden divide-y divide-[var(--border-1)] max-h-[400px] overflow-y-auto pointer-events-auto">
-                <div className="px-4 py-2 text-label-12 text-[var(--text-2)] font-semibold uppercase tracking-wider bg-[var(--ds-background-200)]">
-                  Library Matches
-                </div>
-                {searchResults.length > 0 ? (
-                  searchResults.map(song => (
-                    <div key={song.id} className="hover:bg-[var(--bg-2)] cursor-pointer">
-                      <SongCard
-                        song={song}
-                        variant="row"
-                        onClick={() => {
-                          setSearchQuery('');
-                          onSelectSong(song);
-                        }}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-4 py-6 text-center text-copy-14 text-[var(--text-2)]">
-                    No songs found matching "{searchQuery}".
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
 
 
       <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-10">
+        {searchQuery.trim().length > 0 ? (
+          <div className="flex flex-col gap-8 mt-8">
+            <div className="flex justify-between items-end border-b border-[var(--border-1)] pb-4">
+              <h2 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
+                Search Results
+              </h2>
+              <span className="text-label-14 font-serif italic text-[var(--text-2)] opacity-60 mb-1">
+                {searchResults.length}
+              </span>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mt-8">
+            {searchResults.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {searchResults.map(song => (
+                  <SongCard
+                    key={song.id}
+                    song={song}
+                    variant="card"
+                    onClick={() => {
+                      setSearchQuery('');
+                      onSelectSong(song);
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="py-24 text-center flex flex-col items-center gap-4">
+                <p className="text-heading-20 text-[var(--text-2)] opacity-50 font-serif italic m-0">
+                  No songs found matching "{searchQuery}".
+                </p>
+                <p className="text-copy-16 text-[var(--text-2)] opacity-50 max-w-sm mt-0">
+                  Press enter to create a new song or setlist with this name.
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mt-8 animate-[fadeIn_300ms_ease-out]">
           {/* Upcoming Setlists */}
           <section className="flex flex-col gap-8">
             <div className="flex justify-between items-end border-b border-[var(--border-1)] pb-4">
@@ -149,14 +155,13 @@ export default function Dashboard({
                   <div className="w-full bg-gradient-to-br from-[var(--color-brand)] to-[#004f5e] h-40 relative overflow-hidden">
                      <div className="absolute inset-0 bg-black/10"></div>
                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <Button
-                          variant="brand"
-                          className="border-none text-white shadow-xl px-8 py-6 rounded-full font-bold text-copy-16"
+                        <button
+                          className="bg-[var(--color-brand)] border-none text-white shadow-xl px-8 py-4 rounded-full font-bold text-copy-16 flex items-center cursor-pointer transition-transform hover:scale-105"
                           onClick={(e) => { e.stopPropagation(); onPlaySetlist(upcomingSetlists[0]); }}
                         >
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="mr-3"><path d="M8 5v14l11-7z"/></svg>
                           Play Live
-                        </Button>
+                        </button>
                      </div>
                   </div>
 
@@ -237,6 +242,7 @@ export default function Dashboard({
             </div>
           </section>
         </div>
+        )}
 
       </div>
     </div>
