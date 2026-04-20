@@ -11,15 +11,15 @@ const Button = React.forwardRef(({
   children,
   ...props
 }, ref) => {
-  const baseStyles = "inline-flex items-center justify-center rounded-md font-medium cursor-pointer transition-all duration-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
+  const baseStyles = "inline-flex items-center justify-center rounded-xl font-medium cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent)] disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97]";
 
   const variants = {
-    primary: "bg-[var(--text-1)] text-[var(--bg-1)] hover:bg-[var(--text-2)] focus:ring-[var(--text-2)]",
-    secondary: "bg-[var(--bg-1)] text-[var(--text-1)] border border-[var(--border-1)] hover:bg-[var(--bg-2)] hover:border-[var(--border-2)] focus:ring-[var(--border-1)]",
-    ghost: "bg-transparent text-[var(--text-1)] hover:bg-[var(--bg-2)] focus:ring-[var(--bg-2)]",
-    error: "bg-[var(--ds-red-100)] text-[var(--ds-red-1000)] border border-[var(--ds-red-400)] hover:bg-[var(--ds-red-200)] focus:ring-[var(--ds-red-400)]",
-    warning: "bg-[var(--ds-amber-100)] text-[var(--ds-amber-1000)] border border-[var(--ds-amber-400)] hover:bg-[var(--ds-amber-200)] focus:ring-[var(--ds-amber-400)]",
-    brand: "bg-[var(--ds-teal-900)] text-white hover:opacity-90 focus:ring-[var(--ds-teal-900)]",
+    primary: "bg-[var(--text-primary)] text-[var(--bg-1)] hover:bg-[var(--text-secondary)]",
+    secondary: "bg-[var(--bg-2)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--border)] hover:border-[var(--text-secondary)]",
+    ghost: "bg-transparent text-[var(--text-primary)] hover:bg-[var(--bg-2)] hover:text-[var(--text-primary)]",
+    error: "bg-red-500/10 text-red-600 border border-red-500/20 hover:bg-red-500/20",
+    warning: "bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500/20",
+    brand: "bg-[var(--accent)] text-white hover:opacity-90",
   };
 
   const sizes = {

@@ -49,8 +49,8 @@ export default function GlobalInputBar({
   };
 
   return (
-    <div className={`relative flex items-center w-full max-w-2xl mx-auto transition-all duration-300 ${isFocused ? 'scale-[1.02]' : 'scale-100'}`}>
-      <div className="absolute left-4 text-[var(--ds-gray-400)] pointer-events-none">
+    <div className={`relative flex items-center w-full max-w-2xl mx-auto transition-all duration-300 ${isFocused ? 'scale-[1.01] shadow-md' : 'scale-100 shadow-sm'}`}>
+      <div className="absolute left-5 text-[var(--text-secondary)] pointer-events-none">
         <Search size={20} strokeWidth={1.5} />
       </div>
       <input
@@ -64,8 +64,8 @@ export default function GlobalInputBar({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         onKeyDown={handleKeyDownInput}
-        placeholder="Just save it..."
-        className="w-full h-14 pl-12 pr-24 bg-[var(--ds-background-200)] text-[var(--text-1)] text-copy-16 italic placeholder:not-italic placeholder:text-[var(--ds-gray-400)] rounded-full border-none outline-none ring-1 ring-[var(--ds-gray-200)] focus:ring-2 focus:ring-[var(--ds-teal-500)] transition-shadow"
+        placeholder="Search everything..."
+        className="w-full h-14 pl-14 pr-24 bg-[var(--bg-1)] text-[var(--text-primary)] text-base placeholder:text-[var(--text-secondary)] rounded-2xl border-none outline-none ring-1 ring-[var(--border)] focus:ring-2 focus:ring-[var(--accent)] transition-all font-sans"
       />
       {query.trim() && (
         <div className="absolute right-2 flex gap-2">
@@ -73,9 +73,9 @@ export default function GlobalInputBar({
             size="sm"
             variant="ghost"
             onClick={handleAction}
-            className="rounded-full px-4 bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)] hover:bg-[var(--ds-teal-200)]"
+            className="rounded-xl px-4 bg-[var(--accent)]/10 text-[var(--accent)] hover:bg-[var(--accent)]/20 font-medium"
           >
-            Save
+            Create
           </Button>
         </div>
       )}

@@ -37,31 +37,32 @@ const tabs = [
 
 export default function BottomNav({ activeView, onNavigate }) {
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)]/95 backdrop-blur-md border-t border-[var(--ds-gray-200)] sm:hidden"
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
-      }}
-    >
-      {tabs.map(({ id, label, Icon }) => {
-        const active = activeView === id;
-        return (
-          <button
-            key={id}
-            onClick={() => onNavigate(id)}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 h-[60px] bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
-              active ? 'text-[var(--color-brand)]' : 'text-[var(--ds-gray-600)]'
-            }`}
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            <Icon />
-            <span className={`text-[11px] leading-tight ${active ? 'font-semibold' : 'font-medium'}`}>
-              {label}
-            </span>
-          </button>
-        );
-      })}
-    </nav>
+    <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:hidden pointer-events-none">
+      <nav
+        className="flex w-full max-w-sm mx-auto bg-[var(--bg-1)]/80 backdrop-blur-xl border border-[var(--border)]/50 shadow-md rounded-2xl overflow-hidden pointer-events-auto"
+        style={{ height: '60px' }}
+      >
+        {tabs.map(({ id, label, Icon }) => {
+          const active = activeView === id;
+          return (
+            <button
+              key={id}
+              onClick={() => onNavigate(id)}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 bg-transparent border-none cursor-pointer p-0 transition-all duration-200 ${
+                active ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <div className={`transition-transform duration-200 ${active ? 'scale-110' : 'scale-100'}`}>
+                <Icon />
+              </div>
+              <span className={`text-[10px] tracking-wide ${active ? 'font-medium' : 'font-normal opacity-80'}`}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 }

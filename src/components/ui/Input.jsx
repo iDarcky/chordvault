@@ -12,8 +12,8 @@ const Input = React.forwardRef(({
   ...props
 }, ref) => {
   const variantStyles = {
-    default: "bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] focus-within:ring-2 focus-within:ring-[var(--ds-gray-400)] focus-within:border-[var(--ds-gray-600)]",
-    ghost: "bg-transparent border border-[var(--ds-gray-300)] focus-within:ring-1 focus-within:ring-[var(--ds-gray-400)] focus-within:border-[var(--ds-gray-400)]",
+    default: "bg-[var(--bg-1)] border-none ring-1 ring-[var(--border)] focus-within:ring-2 focus-within:ring-[var(--accent)] shadow-sm",
+    ghost: "bg-transparent border-none ring-1 ring-transparent focus-within:ring-2 focus-within:ring-[var(--border)]",
   };
 
   const sizeStyles = {
@@ -28,20 +28,20 @@ const Input = React.forwardRef(({
 
   return (
     <div className={cn(
-      "flex items-center w-full rounded-md transition-all duration-100",
+      "flex items-center w-full rounded-xl transition-all duration-200 overflow-hidden",
       variantStyles[variant],
       disabled && "opacity-50 pointer-events-none",
       className
     )}>
       {prefix && (
-        <div className={cn("flex items-center justify-center text-[var(--ds-gray-900)]", size === 'sm' ? "pl-2" : "pl-3")}>
+        <div className={cn("flex items-center justify-center text-[var(--text-secondary)]", size === 'sm' ? "pl-3" : "pl-4")}>
           {prefix}
         </div>
       )}
       <input
         type={type}
         className={cn(
-          "w-full bg-transparent border-none outline-none placeholder:text-[var(--ds-gray-700)] text-[var(--ds-gray-1000)]",
+          "w-full bg-transparent border-none outline-none placeholder:text-[var(--text-secondary)] text-[var(--text-primary)] transition-colors",
           inputPadding[size],
           sizeStyles[size],
           prefix && "pl-2",
@@ -52,7 +52,7 @@ const Input = React.forwardRef(({
         {...props}
       />
       {suffix && (
-        <div className={cn("flex items-center justify-center text-[var(--ds-gray-900)]", size === 'sm' ? "pr-2" : "pr-3")}>
+        <div className={cn("flex items-center justify-center text-[var(--text-secondary)]", size === 'sm' ? "pr-3" : "pr-4")}>
           {suffix}
         </div>
       )}

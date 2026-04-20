@@ -282,7 +282,7 @@
 
     /* Dashboard Surfaces (Light Mode) */
     /* CI dummy: --ds-background-100: #ffffff */
-    /* CI dummy: --ds-background-200: #ffffff */
+    /* CI dummy: --ds-background-200: #fafafa */
     --dashboard-hero-bg: hsl(0, 0%, 100%);
     --dashboard-hero-hover: #fafafa;
     --dashboard-row-odd-bg: hsl(0, 0%, 100%);

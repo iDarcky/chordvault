@@ -21,24 +21,24 @@ export default function SongCard({ song, onClick, variant = 'card', showTags = f
       <div
         onClick={onClick}
         className={cn(
-          "flex items-center justify-between px-5 py-4 cursor-pointer transition-colors duration-150 hover:bg-[var(--bg-2)]",
+          "group relative flex items-center justify-between px-5 py-4 cursor-pointer transition-all duration-200 border-b border-transparent hover:bg-[var(--bg-2)]",
           selected && "bg-[var(--ds-teal-100)] hover:bg-[var(--ds-teal-100)]",
         )}
       >
         <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <span className="text-heading-16 text-[var(--text-1)] truncate">
+          <span className="text-lg font-serif tracking-tight text-[var(--text-1)] truncate">
             {song.title}
           </span>
           <div className="flex items-center gap-1.5 flex-wrap">
             {song.artist && (
-              <span className="text-copy-14 text-[var(--color-brand)] truncate">
+              <span className="text-sm font-serif italic text-[var(--color-brand)] truncate">
                 {song.artist}
               </span>
             )}
             {showTags && song.tags?.length > 0 && song.tags.map(tag => (
               <span
                 key={tag}
-                className="text-label-11 text-[var(--text-2)] px-2 py-0.5 rounded-md border border-[var(--border-1)] bg-[var(--bg-1)]"
+                className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-2)] px-2 py-0.5 rounded-full bg-[var(--bg-2)]"
               >
                 {tag}
               </span>
