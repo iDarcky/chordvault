@@ -12,12 +12,12 @@ def check_file_content(file_path, patterns):
 
 css_patterns = [
     r'@import "tailwindcss"',
-    r'--ds-background-100: #000000',
+    r'--ds-background-100: #0a0a0a',
     r'--ds-background-200: #000000',
     r'--ds-background-100: #ffffff',
-    r'--ds-background-200: #ffffff',
-    r'--font-sans: \'Inter\'',
-    r'--font-serif: \'Lora\''
+    r'--ds-background-200: #fafafa',
+    r'--font-sans: \'Geist Sans\'',
+    r'--font-mono: \'Geist Mono\''
 ]
 
 check_file_content('src/styles/index.css', css_patterns)

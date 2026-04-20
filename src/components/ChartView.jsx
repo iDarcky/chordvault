@@ -1,13 +1,24 @@
+
 import { useState, useMemo, useRef, useEffect } from 'react';
+
 import { transposeChord, ALL_KEYS, semitonesBetween } from '../music';
+
 import SectionBlock from './SectionBlock';
+
 import ChordDiagram from './ChordDiagram';
+
 import { Button } from './ui/Button';
+
 import { IconButton } from './ui/IconButton';
+
 import { Card } from './ui/Card';
+
 import { SegmentedControl } from './ui/SegmentedControl';
+
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/Select';
+
 import { cn } from '../lib/utils';
+/* eslint-disable no-unused-vars */
 import { StructureRibbon } from './StructureRibbon';
 
 const FONT_SIZES = { S: 14, M: 18, L: 22 };

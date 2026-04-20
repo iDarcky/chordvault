@@ -1,4 +1,6 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
+
 import { splitMd, replaceFrontmatter, parseFrontmatterFields, serializeFrontmatterFields } from '../../parser';
 
 const FIELDS = [
@@ -23,6 +25,7 @@ export default function MetadataPanel({ md, onChange, isOpen, onToggle }) {
       isInternalUpdate.current = false;
       return;
     }
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
     setFields(parseFrontmatterFields(splitMd(md).frontmatter));
   }, [md]);
 

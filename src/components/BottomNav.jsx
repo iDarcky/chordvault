@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 
 const DashboardIcon = () => (
@@ -37,7 +38,7 @@ const tabs = [
 export default function BottomNav({ activeView, onNavigate }) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 flex z-[200] bg-[var(--ds-background-200)]/95 backdrop-blur-md border-t border-[var(--ds-gray-200)] sm:hidden"
+      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)]/95 backdrop-blur-md border-t border-[var(--ds-gray-200)] sm:hidden"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         height: 'calc(60px + env(safe-area-inset-bottom, 0px))',

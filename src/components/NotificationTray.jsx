@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from 'react';
+
 import { Button } from './ui/Button';
 
 const CloseIcon = () => (

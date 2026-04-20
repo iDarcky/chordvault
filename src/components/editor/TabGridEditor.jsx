@@ -1,5 +1,8 @@
+
 import { useState, useCallback, useEffect, useRef } from 'react';
+
 import { Button } from '../ui/Button';
+/* eslint-disable no-unused-vars, react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 import { IconButton } from '../ui/IconButton';
 
 const STRING_NAMES = ['e', 'B', 'G', 'D', 'A', 'E'];
@@ -115,7 +118,7 @@ export default function TabGridEditor({ initialTab, time, onSave, onClose }) {
       }
     });
     setGrid(newGrid);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const durSlots = DURATIONS.find(d => d.id === duration)?.slots || 4;
 

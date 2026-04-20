@@ -1,12 +1,20 @@
+
 import { useState, useRef, useCallback, useEffect } from 'react';
+
 import { generateId } from '../parser';
+
 import { Button } from './ui/Button';
+
 import { IconButton } from './ui/IconButton';
+
 import { toast } from './ui/use-toast';
 
 const UNDO_STACK_LIMIT = 50;
+
 import SetlistMetaForm from './setlist/SetlistMetaForm';
+
 import SetlistItemRow from './setlist/SetlistItemRow';
+/* eslint-disable no-unused-vars */
 import SetlistSongPicker from './setlist/SetlistSongPicker';
 
 export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete }) {

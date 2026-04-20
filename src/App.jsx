@@ -66,7 +66,6 @@ export default function App() {
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
-  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [syncState, setSyncState] = useState({ state: 'idle', lastSync: null, provider: null });
   const [previewSongId, setPreviewSongId] = useState(null);
@@ -424,27 +423,32 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen}
-mobileHeader={['home', 'library', 'setlists'].includes(view) ? (
-<MobileTopBar key={view} view={view} songs={songs} setlists={setlists} onOpenDrawer={() => setDrawerOpen(true)} onSelectSong={goChart} onSelectSetlist={goSetlistView} onNewSong={(title) => goEditor({ title })} onNewSetlist={(title) => goSetlistBuild({ name: title })} setGlobalSearchQuery={setGlobalSearchQuery} />
-) : null}
-bottomNav={['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) ? (
-<BottomNav activeView={view === 'setlist-view' ? 'setlists' : view} onNavigate={goToMainView} />
-) : null}>
-
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen}>
+          {['home', 'library', 'setlists'].includes(view) && (
+            <MobileTopBar
+              key={view}
+              view={view}
+              songs={songs}
+              setlists={setlists}
+              onOpenDrawer={() => setDrawerOpen(true)}
+              onSelectSong={goChart}
+              onSelectSetlist={goSetlistView}
+              onNewSong={() => goEditor()}
+              onNewSetlist={() => goSetlistBuild()}
+            />
+          )}
           {view === 'home' && (
             <Dashboard
               songs={songs}
               setlists={setlists}
               settings={settings}
               onSelectSong={goChart}
-              onNewSong={(title) => goEditor({ title })}
-              onNewSetlist={(title) => goSetlistBuild({ name: title })}
+              onNewSong={() => goEditor()}
+              onNewSetlist={() => goSetlistBuild()}
               onViewSetlist={goSetlistView}
               onPlaySetlist={goSetlistPlay}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
-              globalSearchQuery={globalSearchQuery}
             />
           )}
           {view === 'library' && (
@@ -452,7 +456,7 @@ bottomNav={['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(
               songs={songs}
               loaded={loaded}
               onSelectSong={goChart}
-              onNewSong={(title) => goEditor({ title })}
+              onNewSong={() => goEditor()}
               onImportSong={handleImportSong}
               previewSongId={previewSongId}
               onSelectPreview={setPreviewSongId}
@@ -478,7 +482,7 @@ bottomNav={['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(
               loaded={loaded}
               onViewSetlist={goSetlistView}
               onPlaySetlist={goSetlistPlay}
-              onNewSetlist={(title) => goSetlistBuild({ name: title })}
+              onNewSetlist={() => goSetlistBuild()}
               onImportSetlist={handleImportSetlist}
               previewSetlistId={previewSetlistId}
               onSelectPreview={setPreviewSetlistId}
@@ -589,7 +593,12 @@ bottomNav={['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(
               onHelp={() => navigate('help')}
             />
           )}
-
+          {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
+            <BottomNav
+              activeView={view === 'setlist-view' ? 'setlists' : view}
+              onNavigate={goToMainView}
+            />
+          )}
         </DesktopLayout>
       )}
       {!['welcome', 'onboarding'].includes(view) && (

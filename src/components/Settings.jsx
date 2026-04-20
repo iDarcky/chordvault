@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 import SyncSettings from './settings/SyncSettings';
 import PageHeader from './PageHeader';
 import { Button } from './ui/Button';
@@ -10,7 +10,7 @@ const Section = ({ title, children }) => (
     <h2 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold px-2">
       {title}
     </h2>
-    <Card className="flex flex-col p-0 overflow-hidden divide-y divide-[var(--ds-gray-400)] border-[var(--ds-gray-400)]">
+    <Card className="flex flex-col p-0 overflow-hidden divide-y divide-[var(--ds-gray-200)] border-none">
       {children}
     </Card>
   </section>
@@ -41,20 +41,11 @@ export default function Settings({
   onDesign,
   onHelp
 }) {
-  const [detectingKey, setDetectingKey] = useState(null);
+
 
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
 
-  const handleDetectKey = (field) => {
-    setDetectingKey(field);
-    const handler = (e) => {
-      e.preventDefault();
-      update(field, e.code);
-      setDetectingKey(null);
-      window.removeEventListener('keydown', handler);
-    };
-    window.addEventListener('keydown', handler);
-  };
+
 
   return (
     <div className="min-h-screen material-page pb-8">
@@ -70,7 +61,7 @@ export default function Settings({
               value={settings.userName || ''}
               onChange={e => update('userName', e.target.value)}
               placeholder="Guest"
-              className="h-8 px-3 rounded-lg border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors w-40"
+              className="h-8 px-3 rounded-lg border border-none bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors w-40"
             />
           </Row>
         </Section>

@@ -1,11 +1,18 @@
+
 import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
+
 import PageHeader from './PageHeader';
+
 import SetlistCard from './SetlistCard';
-import GlobalInputBar from './GlobalInputBar';
+
 import { Button } from './ui/Button';
+
 import { IconButton } from './ui/IconButton';
+
 import { Input } from './ui/Input';
+
 import { cn } from '../lib/utils';
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useIsDesktop } from '../lib/useMediaQuery';
 
 const SearchIcon = () => (
@@ -57,7 +64,6 @@ export default function Setlists({
   onEditSetlist,
   onExportSetlist,
   onDeleteSetlist,
-  globalSearchQuery,
 }) {
   const isDesktop = useIsDesktop();
   const previewSetlist = useMemo(
@@ -70,12 +76,29 @@ export default function Setlists({
     else onViewSetlist(sl);
   };
   const [query, setQuery] = useState('');
-  const activeQuery = globalSearchQuery !== undefined ? (globalSearchQuery || query) : query;
+  const [fabOpen, setFabOpen] = useState(false);
+  const fabRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    const handler = (e) => {
+      if (fabRef.current && !fabRef.current.contains(e.target)) setFabOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'Escape') setFabOpen(false);
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
   const filtered = useMemo(() => {
-    if (!activeQuery) return setlists;
-    const q = activeQuery.toLowerCase();
+    if (!query) return setlists;
+    const q = query.toLowerCase();
     return setlists.filter(sl =>
       (sl.name || '').toLowerCase().includes(q) ||
       (sl.service || '').toLowerCase().includes(q) ||
@@ -118,37 +141,54 @@ export default function Setlists({
 
       <div className="flex flex-col gap-0">
 
-        {/* Global Input Bar — hidden on mobile (global top-bar covers it) */}
-        <div className="sticky top-0 z-20 bg-[var(--ds-background-100)] hidden sm:block">
-          <div className="a4-container py-4 flex items-center justify-center">
-            <GlobalInputBar
-              onSearch={setQuery}
-              onNewSong={() => {
-                if (window.appNavigation) window.appNavigation('library');
-              }}
-              onNewSetlist={(title) => { onNewSetlist(title); }}
+        {/* Sticky Search — hidden on mobile (global top-bar covers it) */}
+        <div className="sticky top-0 z-20 bg-[var(--ds-background-200)] border-b border-[var(--ds-gray-200)] hidden sm:block">
+          <div className="a4-container pt-6 pb-4 flex items-center gap-2">
+            <Input
+              className="flex-1"
+              placeholder="Search setlists…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              prefix={<SearchIcon />}
             />
+
+            {/* Desktop-only quick actions (FAB is hidden on lg+) */}
+            <div className="hidden lg:flex items-center gap-1 shrink-0">
+              <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .zip" title="Import .zip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </IconButton>
+              <IconButton variant="default" size="sm" onClick={onNewSetlist} aria-label="New setlist" title="New setlist">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </IconButton>
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="a4-container py-8 flex flex-col gap-10">
+        <div className="a4-container py-4 flex flex-col gap-10">
           {!loaded ? (
             <SkeletonCards />
           ) : (
             <>
               {/* Upcoming Section */}
               {upcoming.length > 0 && (
-                <section className="flex flex-col gap-8">
-                  <div className="flex items-end gap-3 border-b border-[var(--border-1)] pb-4">
-                    <h2 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
+                <section className="flex flex-col gap-4">
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-heading-18 text-[var(--ds-gray-1000)] uppercase tracking-wider">
                       Upcoming
                     </h2>
-                    <span className="text-label-14 font-serif italic text-[var(--text-2)] opacity-60 mb-1">
+                    <span className="text-label-12 text-[var(--ds-gray-600)]">
                       {upcoming.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  <div className="flex flex-col gap-4">
                     {upcoming.map(sl => (
                       <SetlistCard
                         key={sl.id}
@@ -164,16 +204,16 @@ export default function Setlists({
 
               {/* Past Section */}
               {past.length > 0 && (
-                <section className="flex flex-col gap-8 mt-12">
-                  <div className="flex items-end gap-3 border-b border-[var(--border-1)] pb-4">
-                    <h2 className="text-heading-24 font-serif text-[var(--text-1)] opacity-90 m-0">
+                <section className="flex flex-col gap-4">
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-heading-18 text-[var(--ds-gray-1000)] uppercase tracking-wider">
                       Past
                     </h2>
-                    <span className="text-label-14 font-serif italic text-[var(--text-2)] opacity-60 mb-1">
+                    <span className="text-label-12 text-[var(--ds-gray-600)]">
                       {past.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  <div className="flex flex-col gap-4">
                     {past.map(sl => (
                       <SetlistCard
                         key={sl.id}
@@ -190,19 +230,28 @@ export default function Setlists({
               {/* Empty State */}
               {filtered.length === 0 && (
                 query ? (
-                  <div className="py-24 text-center text-[var(--text-2)] font-serif italic text-heading-20 opacity-50">
-                    No setlists matching "{activeQuery}".
+                  <div className="py-16 text-center text-[var(--ds-gray-700)] text-copy-14">
+                    No setlists matching your search.
                   </div>
                 ) : (
-                  <div className="py-32 flex flex-col items-center text-center">
-                    <h2 className="text-heading-24 font-serif text-[var(--text-2)] opacity-50 m-0 italic">No shows yet</h2>
-                    <p className="text-copy-16 text-[var(--text-2)] opacity-50 max-w-sm mt-4">
-                      Create your first setlist by searching above, or import a .zip file.
+                  <div className="py-24 border-2 border-dashed border-[var(--ds-gray-400)] rounded-2xl flex flex-col items-center text-center">
+                    <div className="w-14 h-14 mb-4 rounded-full bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] flex items-center justify-center">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
+                        <line x1="8" y1="6" x2="21" y2="6" />
+                        <line x1="8" y1="12" x2="21" y2="12" />
+                        <line x1="8" y1="18" x2="21" y2="18" />
+                        <line x1="3" y1="6" x2="3.01" y2="6" />
+                        <line x1="3" y1="12" x2="3.01" y2="12" />
+                        <line x1="3" y1="18" x2="3.01" y2="18" />
+                      </svg>
+                    </div>
+                    <h2 className="text-heading-20 text-[var(--ds-gray-1000)] m-0 mb-1.5">No setlists yet</h2>
+                    <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-sm mb-5">
+                      Organize your songs into setlists for rehearsals or live performances.
                     </p>
-                    <div className="mt-8">
-                      <button onClick={() => fileInputRef.current?.click()} className="text-label-13 uppercase tracking-widest font-semibold text-[var(--text-2)] bg-transparent border-none cursor-pointer hover:text-[var(--text-1)] transition-colors opacity-60 hover:opacity-100">
-                        Import .zip
-                      </button>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Button variant="brand" onClick={onNewSetlist}>Create setlist</Button>
+                      <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .zip</Button>
                     </div>
                   </div>
                 )
@@ -210,6 +259,45 @@ export default function Setlists({
             </>
           )}
         </div>
+      </div>
+
+      {/* FAB Cluster — tablet only; mobile uses top-bar +, desktop uses header button */}
+      <div
+        ref={fabRef}
+        className="fixed right-6 z-[150] hidden sm:block lg:hidden"
+        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+      >
+        {fabOpen && (
+          <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
+            <button
+              onClick={() => { setFabOpen(false); onNewSetlist(); }}
+              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+            >
+              Create Setlist
+            </button>
+            <button
+              onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
+              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--ds-gray-1000)] text-left"
+            >
+              Import Setlist
+            </button>
+          </div>
+        )}
+
+        <button
+          onClick={() => setFabOpen(!fabOpen)}
+          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
+        >
+          <svg
+            width="24" height="24" viewBox="0 0 24 24"
+            fill="none" stroke="white" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round"
+            className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
       </div>
 
       <input

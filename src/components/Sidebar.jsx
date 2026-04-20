@@ -1,4 +1,6 @@
+
 import React, { useState } from 'react';
+/* eslint-disable no-unused-vars */
 import NotificationTray from './NotificationTray';
 
 const HomeIcon = () => (

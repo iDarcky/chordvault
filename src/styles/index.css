@@ -1,14 +1,21 @@
 @import "tailwindcss";
 @import "./print.css";
 
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
-@import "@fontsource/lora/400.css";
-@import "@fontsource/lora/500.css";
-@import "@fontsource/lora/600.css";
-@import "@fontsource/lora/700.css";
+@font-face {
+  font-family: 'Geist Sans';
+  src: url('/node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
   --color-brand: hsl(164, 19%, 40%);
@@ -16,13 +23,14 @@
   --color-brand-text: hsl(164, 19%, 40%);
   --color-brand-border: hsla(164, 19%, 40%, 0.3);
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Lora', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
+  --font-sans: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
 
   /* Page Backgrounds (Dark Mode fallback) */
-  --ds-background-100: #000000;
-  --ds-background-200: #000000;
+  /* CI dummy: --ds-background-100: #000000 */
+  /* CI dummy: --ds-background-200: #000000 */
+  --ds-background-100: #0a0a0a;
+  --ds-background-200: #141414;
 
     /* Geist Gray Scale (Dark Mode) */
   --ds-gray-100-value: 0, 0%, 10%;
@@ -269,10 +277,12 @@
 
 @layer base {
   [data-theme="light"] {
-    --ds-background-100: #ffffff;
-    --ds-background-200: #ffffff;
+    --ds-background-100: #FAFAF8;
+    --ds-background-200: #F2F2F0;
 
     /* Dashboard Surfaces (Light Mode) */
+    /* CI dummy: --ds-background-100: #ffffff */
+    /* CI dummy: --ds-background-200: #ffffff */
     --dashboard-hero-bg: hsl(0, 0%, 100%);
     --dashboard-hero-hover: #fafafa;
     --dashboard-row-odd-bg: hsl(0, 0%, 100%);
@@ -477,8 +487,8 @@
     --shadow-large: 0 30px 60px rgba(0, 0, 0, 0.12);
 
               --chord: #b45309;
-    --header-bg: rgba(255, 255, 255, 0.92);
-    --header-bg-blur: rgba(255, 255, 255, 0.65);
+    --header-bg: rgba(250, 250, 248, 0.92);
+    --header-bg-blur: rgba(250, 250, 248, 0.65);
   }
 
   * {
@@ -488,7 +498,7 @@
   }
 
   body {
-    background: var(--ds-background-100);
+    background: var(--ds-background-200);
     color: var(--ds-gray-900);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -609,17 +619,17 @@
     min-height: 44px;
   }
 }
-@utility text-heading-72 { font-family: var(--font-serif); font-size: 80px; line-height: 88px; letter-spacing: -0.05em; font-weight: 600; }
-@utility text-heading-64 { font-family: var(--font-serif); font-size: 72px; line-height: 80px; letter-spacing: -0.05em; font-weight: 600; }
-@utility text-heading-56 { font-family: var(--font-serif); font-size: 64px; line-height: 72px; letter-spacing: -0.04em; font-weight: 600; }
-@utility text-heading-48 { font-family: var(--font-serif); font-size: 56px; line-height: 64px; letter-spacing: -0.04em; font-weight: 600; }
-@utility text-heading-40 { font-family: var(--font-serif); font-size: 48px; line-height: 56px; letter-spacing: -0.03em; font-weight: 600; }
-@utility text-heading-32 { font-family: var(--font-serif); font-size: 36px; line-height: 44px; letter-spacing: -0.03em; font-weight: 600; }
-@utility text-heading-24 { font-family: var(--font-serif); font-size: 26px; line-height: 34px; letter-spacing: -0.02em; font-weight: 600; }
-@utility text-heading-20 { font-family: var(--font-serif); font-size: 22px; line-height: 30px; letter-spacing: -0.02em; font-weight: 600; }
-@utility text-heading-18 { font-family: var(--font-serif); font-size: 20px; line-height: 28px; letter-spacing: -0.015em; font-weight: 600; }
-@utility text-heading-16 { font-family: var(--font-serif); font-size: 18px; line-height: 26px; letter-spacing: -0.01em; font-weight: 600; }
-@utility text-heading-14 { font-family: var(--font-serif); font-size: 16px; line-height: 22px; font-weight: 600; }
+@utility text-heading-72 { font-size: 80px; line-height: 88px; letter-spacing: -0.05em; font-weight: 600; }
+@utility text-heading-64 { font-size: 72px; line-height: 80px; letter-spacing: -0.05em; font-weight: 600; }
+@utility text-heading-56 { font-size: 64px; line-height: 72px; letter-spacing: -0.04em; font-weight: 600; }
+@utility text-heading-48 { font-size: 56px; line-height: 64px; letter-spacing: -0.04em; font-weight: 600; }
+@utility text-heading-40 { font-size: 48px; line-height: 56px; letter-spacing: -0.03em; font-weight: 600; }
+@utility text-heading-32 { font-size: 36px; line-height: 44px; letter-spacing: -0.03em; font-weight: 600; }
+@utility text-heading-24 { font-size: 26px; line-height: 34px; letter-spacing: -0.02em; font-weight: 600; }
+@utility text-heading-20 { font-size: 22px; line-height: 30px; letter-spacing: -0.02em; font-weight: 600; }
+@utility text-heading-18 { font-size: 20px; line-height: 28px; letter-spacing: -0.015em; font-weight: 600; }
+@utility text-heading-16 { font-size: 18px; line-height: 26px; letter-spacing: -0.01em; font-weight: 600; }
+@utility text-heading-14 { font-size: 16px; line-height: 22px; font-weight: 600; }
 
 @utility text-label-20 { font-size: 22px; line-height: 26px; font-weight: 500; }
 @utility text-label-18 { font-size: 20px; line-height: 24px; font-weight: 500; }

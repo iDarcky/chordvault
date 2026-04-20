@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 import React, { useRef, useState, useMemo, useImperativeHandle } from 'react';
+
 import { cn } from '../../lib/utils';
 
 /**

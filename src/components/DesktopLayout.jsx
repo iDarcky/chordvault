@@ -3,7 +3,7 @@ import Sidebar from './Sidebar';
 import { cn } from '../lib/utils';
 import { useMediaQuery } from '../lib/useMediaQuery';
 
-export default function DesktopLayout({ children, mobileHeader, bottomNav, activeView, onNavigate, isFullscreen = false, hasUnreadNotifications, onNotificationClick, notifications, onMarkRead, onNotificationAction, drawerOpen = false }) {
+export default function DesktopLayout({ children, activeView, onNavigate, isFullscreen = false, hasUnreadNotifications, onNotificationClick, notifications, onMarkRead, onNotificationAction, drawerOpen = false }) {
   const mainRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 639.98px)');
   const applyDrawerTransform = drawerOpen && isMobile;
@@ -15,67 +15,23 @@ export default function DesktopLayout({ children, mobileHeader, bottomNav, activ
     }
   }, [activeView]);
 
-  useEffect(() => {
-    // Expose a global hook so nested components can trigger global nav if necessary
-    window.appNavigation = onNavigate;
-    return () => {
-      delete window.appNavigation;
-    };
-  }, [onNavigate]);
-
+  const cols = isFullscreen
+    ? 'grid-cols-1'
+    : 'grid-cols-1 sm:grid-cols-[80px_1fr] xl:grid-cols-[280px_1fr]';
   return (
-    <div className="w-full h-[100dvh] bg-[var(--ds-background-100)] overflow-hidden flex flex-col relative">
-      {/* We MUST keep the Sidebar for mobile Drawer functionality! We just hide it visually on Desktop (sm:hidden) */}
-      {!isFullscreen && (
-        <div className="sm:hidden absolute inset-0 z-0 pointer-events-none">
-          <div className="pointer-events-auto h-full">
-            <Sidebar activeView={activeView} onNavigate={onNavigate} hasUnreadNotifications={hasUnreadNotifications} onNotificationClick={onNotificationClick} notifications={notifications} onMarkRead={onMarkRead} onNotificationAction={onNotificationAction} />
-          </div>
-        </div>
-      )}
+    <div className={cn('w-full h-[100dvh] grid overflow-hidden', cols)}>
+      {!isFullscreen && <Sidebar activeView={activeView} onNavigate={onNavigate} hasUnreadNotifications={hasUnreadNotifications} onNotificationClick={onNotificationClick} notifications={notifications} onMarkRead={onMarkRead} onNotificationAction={onNotificationAction} />}
+      {/*
+        The main content area owns its scroll; the sidebar stays rigidly pinned
+        to the viewport so iPad can't drag it. h-[100dvh] tracks iOS Safari's
+        dynamic viewport so the layout never extends under the address bar.
 
-      {!isFullscreen && (
-        <div className="hidden sm:flex items-center justify-between px-10 py-6 bg-[var(--ds-background-100)] z-[110]">
-          <div className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80" onClick={() => onNavigate('dashboard')}>
-            <span className="text-heading-20 font-serif font-bold text-[var(--text-1)] tracking-tight">
-              Setlists<span className="text-[var(--color-brand)] ml-0.5">MD</span>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-8 text-label-14 font-semibold text-[var(--text-2)]">
-            <button
-              onClick={() => onNavigate('dashboard')}
-              className={`bg-transparent border-none cursor-pointer transition-colors ${activeView === 'dashboard' ? 'text-[var(--text-1)]' : 'hover:text-[var(--text-1)]'}`}
-            >
-              Home
-            </button>
-            <button
-              onClick={() => onNavigate('library')}
-              className={`bg-transparent border-none cursor-pointer transition-colors ${activeView === 'library' ? 'text-[var(--text-1)]' : 'hover:text-[var(--text-1)]'}`}
-            >
-              Library
-            </button>
-            <button
-              onClick={() => onNavigate('setlists')}
-              className={`bg-transparent border-none cursor-pointer transition-colors ${activeView === 'setlists' ? 'text-[var(--text-1)]' : 'hover:text-[var(--text-1)]'}`}
-            >
-              Shows
-            </button>
-            <button
-              onClick={() => onNavigate('settings')}
-              className={`bg-transparent border-none cursor-pointer transition-colors ${activeView === 'settings' ? 'text-[var(--text-1)]' : 'hover:text-[var(--text-1)]'}`}
-            >
-              Settings
-            </button>
-            {hasUnreadNotifications && (
-               <div className="w-2 h-2 bg-[var(--color-brand)] rounded-full -ml-6 mb-3" />
-            )}
-          </div>
-        </div>
-      )}
-
-      <div
-        className="flex-1 flex flex-col relative w-full transition-transform duration-300 ease-out will-change-transform overflow-hidden"
+        When the mobile drawer is open, the main content scales down and
+        shifts right — mimicking an iOS-style push drawer.
+      */}
+      <main
+        ref={mainRef}
+        className="h-[100dvh] overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] relative w-full transition-transform duration-300 ease-out will-change-transform"
         style={{
           transform: applyDrawerTransform ? 'translateX(72%) scale(0.92)' : undefined,
           transformOrigin: 'left center',
@@ -83,23 +39,14 @@ export default function DesktopLayout({ children, mobileHeader, bottomNav, activ
           boxShadow: applyDrawerTransform ? '0 30px 60px rgba(0,0,0,0.45)' : undefined,
         }}
       >
-        {mobileHeader}
-        <main
-          ref={mainRef}
-          className="flex-1 overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] w-full"
-        >
-          {children}
-          {/* Mobile Spacer */}
-          <div
-            className="shrink-0 sm:hidden"
-            style={{ height: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}
-            aria-hidden="true"
-          />
-        </main>
-      </div>
-      <div className="z-[200]">
-        {bottomNav}
-      </div>
+        {children}
+        {/* Mobile Spacer: Guaranteed scrollable space to prevent bottom-nav obstruction */}
+        <div
+          className="shrink-0 sm:hidden"
+          style={{ height: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}
+          aria-hidden="true"
+        />
+      </main>
     </div>
   );
 }

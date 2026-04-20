@@ -1,10 +1,18 @@
+
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+
 import { parseSongMd, songToMd, lineToPlacement, placementToLine, extractInlineNotes } from '../../parser';
+
 import { sectionStyle } from '../../music';
+
 import TabBlock from '../TabBlock';
+
 import ChordPalette from './ChordPalette';
+
 import SectionDrawer from './SectionDrawer';
+
 import { IconButton } from '../ui/IconButton';
+/* eslint-disable no-unused-vars */
 import { Button } from '../ui/Button';
 
 const SECTION_TYPES = [

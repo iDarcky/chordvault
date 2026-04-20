@@ -245,7 +245,7 @@ function ShortcutHelp({ onClose }) {
         className="w-full max-w-sm rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--ds-gray-300)]">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--ds-background-300)]">
           <h2 className="text-heading-16 text-[var(--ds-gray-1000)] m-0">Keyboard shortcuts</h2>
           <IconButton variant="ghost" size="sm" onClick={onClose} aria-label="Close">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -262,7 +262,7 @@ function ShortcutHelp({ onClose }) {
                 {row.keys.map((k) => (
                   <kbd
                     key={k}
-                    className="px-2 py-0.5 rounded-md border border-[var(--ds-gray-400)] bg-[var(--ds-background-200)] text-label-11-mono text-[var(--ds-gray-1000)] font-semibold"
+                    className="px-2 py-0.5 rounded-md bg-[var(--ds-background-300)] ring-1 ring-[var(--ds-gray-300)] text-label-11-mono text-[var(--ds-gray-1000)] font-semibold"
                   >
                     {k}
                   </kbd>
