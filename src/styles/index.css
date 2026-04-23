@@ -27,8 +27,8 @@
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
 
   /* Page Backgrounds (Dark Mode fallback) */
-  --ds-background-100: #0a0a0a;
-  --ds-background-200: #000000;
+  --ds-background-100: #14161e;
+  --ds-background-200: #0e1017;
 
     /* Geist Gray Scale (Dark Mode) */
   --ds-gray-100-value: 0, 0%, 10%;
@@ -554,13 +554,16 @@
     border-color: var(--ds-gray-600);
   }
 
-  /* Frosted glass sticky header — solid fallback, blur when supported */
+  /* Frosted glass sticky header — solid fallback, blur when supported.
+   * Also provides iOS safe-area-top padding so standalone PWAs don't render
+   * under the status bar / dynamic island. */
   .material-header {
     position: sticky;
     top: 0;
     z-index: 10;
     background: var(--header-bg);
     border-bottom: 1px solid var(--ds-gray-200);
+    padding-top: env(safe-area-inset-top, 0px);
   }
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
     .material-header {
@@ -659,3 +662,86 @@
   .strong { font-weight: 600 !important; }
   .subtle { color: var(--ds-gray-900) !important; }
 }
+
+/*
+ * Theme: "modes" — dark, card-centric surface that matches the mobile drawer.
+ * Applied via `data-theme-variant="modes"` on a page root (currently the Dashboard).
+ * The page becomes a soft card sitting on a teal/plum radial gradient, with all
+ * interior surfaces reading as translucent cards against that wash.
+ */
+[data-theme-variant="modes"] {
+  --modes-surface: rgba(255, 255, 255, 0.04);
+  --modes-surface-strong: rgba(255, 255, 255, 0.07);
+  --modes-border: rgba(255, 255, 255, 0.09);
+  --modes-text: #ffffff;
+  --modes-text-muted: rgba(255, 255, 255, 0.6);
+  --modes-text-dim: rgba(255, 255, 255, 0.45);
+
+  background: #14161e;
+  color: var(--modes-text);
+}
+
+[data-theme-variant="modes"] .modes-card {
+  background: var(--modes-surface);
+  border: 1px solid var(--modes-border);
+  border-radius: 1rem;
+}
+
+[data-theme-variant="modes"] .modes-card-strong {
+  background: var(--modes-surface-strong);
+  border: 1px solid var(--modes-border);
+  border-radius: 1.25rem;
+}
+
+[data-theme-variant="modes"] .modes-label {
+  color: var(--modes-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+/* Light-mode override for modes variant */
+[data-theme="light"] [data-theme-variant="modes"] {
+  --modes-surface: rgba(0, 0, 0, 0.035);
+  --modes-surface-strong: rgba(0, 0, 0, 0.05);
+  --modes-border: rgba(0, 0, 0, 0.08);
+  --modes-text: var(--ds-gray-1000);
+  --modes-text-muted: var(--ds-gray-900);
+  --modes-text-dim: var(--ds-gray-700);
+
+  background: var(--ds-background-100);
+  color: var(--modes-text);
+}
+
+/* MobileDrawer — surface + text vars (dark default, light override) */
+.drawer-panel {
+  background:
+    radial-gradient(130% 70% at 8% 0%, rgba(92, 138, 128, 0.55) 0%, rgba(22, 18, 32, 0.92) 38%, #0b0910 100%),
+    radial-gradient(90% 60% at 100% 100%, rgba(130, 50, 90, 0.35) 0%, rgba(11, 9, 16, 0) 60%);
+  background-blend-mode: screen, normal;
+  color: #ffffff;
+  --drawer-surface: rgba(255, 255, 255, 0.05);
+  --drawer-surface-hover: rgba(255, 255, 255, 0.09);
+  --drawer-border: rgba(255, 255, 255, 0.10);
+  --drawer-close-bg: rgba(255, 255, 255, 0.10);
+  --drawer-close-bg-hover: rgba(255, 255, 255, 0.15);
+  --drawer-text: #ffffff;
+  --drawer-text-muted: rgba(255, 255, 255, 0.80);
+  --drawer-text-dim: rgba(255, 255, 255, 0.50);
+  --drawer-text-faint: rgba(255, 255, 255, 0.40);
+}
+[data-theme="light"] .drawer-panel {
+  background:
+    radial-gradient(130% 70% at 8% 0%, rgba(162, 208, 198, 0.70) 0%, rgba(250, 248, 254, 0.95) 38%, #ffffff 100%),
+    radial-gradient(90% 60% at 100% 100%, rgba(230, 180, 210, 0.50) 0%, rgba(255, 255, 255, 0) 60%);
+  color: var(--ds-gray-1000);
+  --drawer-surface: rgba(0, 0, 0, 0.035);
+  --drawer-surface-hover: rgba(0, 0, 0, 0.06);
+  --drawer-border: rgba(0, 0, 0, 0.08);
+  --drawer-close-bg: rgba(0, 0, 0, 0.06);
+  --drawer-close-bg-hover: rgba(0, 0, 0, 0.10);
+  --drawer-text: var(--ds-gray-1000);
+  --drawer-text-muted: var(--ds-gray-900);
+  --drawer-text-dim: var(--ds-gray-700);
+  --drawer-text-faint: var(--ds-gray-600);
+}
+

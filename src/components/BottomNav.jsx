@@ -1,17 +1,11 @@
-import React from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-const HomeIcon = () => (
+const DashboardIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-    <polyline points="9 22 9 12 15 12 15 22" />
-  </svg>
-);
-
-const LibraryIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 18V5l12-2v13" />
-    <circle cx="6" cy="18" r="3" />
-    <circle cx="18" cy="16" r="3" />
+    <rect x="3" y="3" width="7" height="9" rx="1.5" />
+    <rect x="14" y="3" width="7" height="5" rx="1.5" />
+    <rect x="14" y="12" width="7" height="9" rx="1.5" />
+    <rect x="3" y="16" width="7" height="5" rx="1.5" />
   </svg>
 );
 
@@ -26,75 +20,157 @@ const SetlistsIcon = () => (
   </svg>
 );
 
+const SongsIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18V5l12-2v13" />
+    <circle cx="6" cy="18" r="3" />
+    <circle cx="18" cy="16" r="3" />
+  </svg>
+);
+
 const tabs = [
-  { id: 'home', label: 'Home', Icon: HomeIcon },
-  { id: 'library', label: 'Library', Icon: LibraryIcon },
+  { id: 'home', label: 'Dashboard', Icon: DashboardIcon },
   { id: 'setlists', label: 'Setlists', Icon: SetlistsIcon },
+  { id: 'library', label: 'Songs', Icon: SongsIcon },
 ];
 
-function ProfileAvatar({ initial, active }) {
+const INDICATOR_SIZE = 36;
+const RIPPLE_SIZE = 64;
+
+export default function BottomNav({ activeView, onNavigate }) {
+  const containerRef = useRef(null);
+  const iconRefs = useRef({});
+  const [pill, setPill] = useState(null); // { x, y }
+  const [mounted, setMounted] = useState(false);
+  const [ripples, setRipples] = useState([]); // [{ id, tileId }]
+  const nextRippleId = useRef(0);
+
+  const activeId = tabs.some(t => t.id === activeView) ? activeView : 'home';
+
+  const measurePill = () => {
+    const container = containerRef.current;
+    const iconEl = iconRefs.current[activeId];
+    if (!container || !iconEl) return;
+    const cRect = container.getBoundingClientRect();
+    const iRect = iconEl.getBoundingClientRect();
+    const centerX = iRect.left - cRect.left + iRect.width / 2;
+    const centerY = iRect.top - cRect.top + iRect.height / 2;
+    setPill({ x: centerX - INDICATOR_SIZE / 2, y: centerY - INDICATOR_SIZE / 2 });
+  };
+
+  useLayoutEffect(() => {
+    measurePill();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
+
+  useLayoutEffect(() => {
+    window.addEventListener('resize', measurePill);
+    return () => window.removeEventListener('resize', measurePill);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
+
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
+
+  const handleTileClick = (id) => {
+    const rid = nextRippleId.current++;
+    setRipples(rs => [...rs, { id: rid, tileId: id }]);
+    setTimeout(() => setRipples(rs => rs.filter(r => r.id !== rid)), 600);
+    onNavigate(id);
+  };
+
   return (
-    <span className="relative inline-flex">
-      <span
-        className={`w-7 h-7 rounded-full flex items-center justify-center text-label-12 font-bold transition-colors duration-200 ${
-          active
-            ? 'bg-[var(--color-brand)] text-white'
-            : 'bg-[var(--ds-gray-300)] text-[var(--ds-gray-700)]'
-        }`}
+    <>
+      {/* Fade above the nav so scrolling content doesn't hard-cut at the edge */}
+      <div
+        aria-hidden="true"
+        className="fixed left-0 right-0 z-[99] h-10 pointer-events-none sm:hidden"
+        style={{
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)',
+          background: 'linear-gradient(to top, var(--ds-background-100) 0%, transparent 100%)',
+        }}
+      />
+      <nav
+        ref={containerRef}
+        className="fixed bottom-0 left-0 right-0 z-[100] sm:hidden"
+        style={{
+          background: 'var(--ds-background-100)',
+          paddingLeft: '12px',
+          paddingRight: '12px',
+          paddingTop: '10px',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 10px)',
+        }}
       >
-        {initial}
-      </span>
-    </span>
-  );
-}
+        <div className="relative grid grid-cols-3 gap-2">
+          {/* Circular active indicator — slides between icon centers */}
+          {pill && (
+            <span
+              aria-hidden="true"
+              className="absolute pointer-events-none rounded-full"
+              style={{
+                left: 0,
+                top: 0,
+                width: INDICATOR_SIZE,
+                height: INDICATOR_SIZE,
+                transform: `translate(${pill.x}px, ${pill.y}px)`,
+                background: 'var(--ds-gray-100)',
+                transition: mounted ? 'transform 320ms cubic-bezier(0.32, 0.72, 0, 1)' : 'none',
+              }}
+            />
+          )}
 
-export default function BottomNav({ activeView, onNavigate, userName }) {
-  const initial = (userName || 'G').charAt(0).toUpperCase();
-  const profileActive = activeView === 'settings';
+          {tabs.map(({ id, label, Icon }) => {
+            const active = id === activeId;
+            const tileRipples = ripples.filter(r => r.tileId === id);
+            return (
+              <button
+                key={id}
+                onClick={() => handleTileClick(id)}
+                className={`relative z-[1] flex flex-col items-center justify-center gap-1 h-14 border-none cursor-pointer p-0 bg-transparent transition-[color,transform] duration-200 active:scale-[0.97] ${
+                  active ? 'text-[var(--color-brand)]' : 'text-[var(--ds-gray-700)]'
+                }`}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <span
+                  ref={el => { iconRefs.current[id] = el; }}
+                  className="relative flex items-center justify-center"
+                  style={{ width: INDICATOR_SIZE, height: INDICATOR_SIZE }}
+                >
+                  {tileRipples.map(r => (
+                    <span
+                      key={r.id}
+                      aria-hidden="true"
+                      className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
+                      style={{
+                        width: RIPPLE_SIZE,
+                        height: RIPPLE_SIZE,
+                        marginLeft: -RIPPLE_SIZE / 2,
+                        marginTop: -RIPPLE_SIZE / 2,
+                        background: 'var(--color-brand)',
+                        animation: 'nav-tile-ripple 550ms cubic-bezier(0.25, 0.8, 0.25, 1) forwards',
+                      }}
+                    />
+                  ))}
+                  <span className="relative"><Icon /></span>
+                </span>
+                <span className={`relative text-[11px] leading-tight ${active ? 'font-semibold' : 'font-medium'}`}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
-  return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 flex z-[100] bg-[var(--ds-background-200)] border-t border-[var(--ds-gray-200)] sm:hidden"
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
-      }}
-    >
-      {tabs.map(({ id, label, Icon }) => {
-        const active = activeView === id;
-        return (
-          <button
-            key={id}
-            onClick={() => onNavigate(id)}
-            className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
-              active ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
-            }`}
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            <Icon />
-            <span className={`text-label-12 ${active ? 'font-semibold' : 'font-medium'}`}>
-              {label}
-            </span>
-          </button>
-        );
-      })}
-
-      {/* Profile tab */}
-      <button
-        onClick={() => onNavigate('settings')}
-        className={`flex-1 flex flex-col items-center justify-center gap-1 h-16 bg-transparent border-none cursor-pointer p-0 transition-colors duration-200 ${
-          profileActive ? 'text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'
-        }`}
-        style={{ WebkitTapHighlightColor: 'transparent' }}
-      >
-        <ProfileAvatar
-          initial={initial}
-          active={profileActive}
-        />
-        <span className={`text-label-12 ${profileActive ? 'font-semibold' : 'font-medium'}`}>
-          Profile
-        </span>
-      </button>
-    </nav>
+      <style>{`
+        @keyframes nav-tile-ripple {
+          0% { transform: scale(0); opacity: 0.38; }
+          60% { opacity: 0.22; }
+          100% { transform: scale(1); opacity: 0; }
+        }
+      `}</style>
+    </>
   );
 }

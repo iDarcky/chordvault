@@ -2,6 +2,7 @@ import { createGoogleDriveProvider } from './google-drive';
 import { createDropboxProvider } from './dropbox';
 import { createOneDriveProvider } from './onedrive';
 import { isProviderConfigured } from './constants';
+import { setActiveProvider, clearProvider, getSyncState } from './tokens';
 
 /**
  * Provider interface — each provider must implement:
@@ -41,8 +42,37 @@ export function getProvider(name) {
 
 export function getAvailableProviders() {
   return [
-    { name: 'google-drive', displayName: 'Google Drive', icon: '\uD83D\uDCBE', configured: isProviderConfigured('google-drive') },
-    { name: 'dropbox', displayName: 'Dropbox', icon: '\uD83D\uDCE6', configured: isProviderConfigured('dropbox') },
-    { name: 'onedrive', displayName: 'OneDrive', icon: '\u2601\uFE0F', configured: isProviderConfigured('onedrive') },
+    { name: 'google-drive', displayName: 'Google Drive', icon: '💾', configured: isProviderConfigured('google-drive') },
+    { name: 'dropbox', displayName: 'Dropbox', icon: '📦', configured: isProviderConfigured('dropbox') },
+    { name: 'onedrive', displayName: 'OneDrive', icon: '☁️', configured: isProviderConfigured('onedrive') },
   ];
+}
+
+/**
+ * Launch a provider's OAuth flow, persist the returned tokens as the active
+ * provider, and return the tokens. Throws if the provider is not configured
+ * (missing client ID) or if the user cancels the popup.
+ */
+export async function connectProvider(name) {
+  const provider = getProvider(name);
+  const tokens = await provider.connect();
+  await setActiveProvider(name, tokens);
+  return tokens;
+}
+
+/**
+ * Disconnect the currently active provider (clears local tokens and
+ * best-effort revokes with the remote).
+ */
+export async function disconnectProvider() {
+  const state = await getSyncState();
+  if (state.activeProvider) {
+    try {
+      const provider = getProvider(state.activeProvider);
+      await provider.disconnect?.();
+    } catch {
+      // best effort — we still want to clear local tokens
+    }
+  }
+  await clearProvider();
 }

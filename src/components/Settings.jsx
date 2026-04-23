@@ -2,25 +2,23 @@ import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
 import PageHeader from './PageHeader';
 import { Button } from './ui/Button';
-import { Card } from './ui/Card';
-import { Separator } from './ui/Separator';
 
 const Section = ({ title, children }) => (
   <section className="flex flex-col gap-4">
-    <h2 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold px-2">
+    <h2 className="text-label-12 text-[var(--modes-text-dim)] uppercase tracking-wider font-semibold px-2">
       {title}
     </h2>
-    <Card className="flex flex-col p-0 overflow-hidden divide-y divide-[var(--ds-gray-400)] border-[var(--ds-gray-400)]">
+    <div className="modes-card flex flex-col p-0 overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
       {children}
-    </Card>
+    </div>
   </section>
 );
 
 const Row = ({ label, children, description }) => (
-  <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)]">
+  <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between">
     <div className="flex flex-col">
-      <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">{label}</span>
-      {description && <span className="text-copy-13 text-[var(--ds-gray-700)]">{description}</span>}
+      <span className="text-copy-14 text-[var(--modes-text)] font-medium">{label}</span>
+      {description && <span className="text-copy-13 text-[var(--modes-text-muted)]">{description}</span>}
     </div>
     <div className="flex items-center gap-2 mt-2 sm:mt-0">
       {children}
@@ -38,6 +36,7 @@ export default function Settings({
   syncState,
   onSyncStateChange,
   onSyncNow,
+  onRequestSignIn,
   onDesign,
   onHelp
 }) {
@@ -57,7 +56,7 @@ export default function Settings({
   };
 
   return (
-    <div className="min-h-screen material-page pb-8">
+    <div data-theme-variant="modes" className="min-h-screen pb-8">
       <PageHeader title="Settings" />
 
       <div className="a4-container py-10 flex flex-col gap-12">
@@ -70,30 +69,34 @@ export default function Settings({
               value={settings.userName || ''}
               onChange={e => update('userName', e.target.value)}
               placeholder="Guest"
-              className="h-8 px-3 rounded-lg border border-[var(--ds-gray-400)] bg-[var(--ds-background-100)] text-copy-14 text-[var(--ds-gray-1000)] placeholder:text-[var(--ds-gray-600)] outline-none focus:border-[var(--ds-gray-600)] transition-colors w-40"
+              className="h-8 px-3 rounded-lg border border-[var(--modes-border)] bg-[var(--modes-surface-strong)] text-copy-14 text-[var(--modes-text)] placeholder:text-[var(--modes-text-dim)] outline-none focus:border-[var(--color-brand)] transition-colors w-40"
             />
           </Row>
         </Section>
 
         {/* Appearance */}
         <Section title="Appearance">
-          <Row label="Theme" description="Switch between light and dark mode.">
-            <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
-              {['dark', 'light'].map(t => (
+          <Row label="Theme" description="System follows your device preference.">
+            <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
+              {[
+                { key: 'default', label: 'System' },
+                { key: 'light', label: 'Light' },
+                { key: 'dark', label: 'Dark' },
+              ].map(({ key, label }) => (
                 <Button
-                  key={t}
+                  key={key}
                   size="sm"
-                  variant={settings.theme === t ? 'secondary' : 'ghost'}
-                  onClick={() => update('theme', t)}
-                  className={settings.theme === t ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+                  variant={settings.theme === key ? 'secondary' : 'ghost'}
+                  onClick={() => update('theme', key)}
+                  className={settings.theme === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
                 >
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                  {label}
                 </Button>
               ))}
             </div>
           </Row>
           <Row label="Library Layout" description="Number of columns for the library view.">
-            <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
+            <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
               {['auto', 1, 2].map(v => (
                 <Button
                   key={v}
@@ -112,7 +115,7 @@ export default function Settings({
         {/* Global Chart Preferences */}
         <Section title="Chart Preferences">
           <Row label="Chart Flow" description="How sections fill when using 2 columns.">
-            <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg">
+            <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
               {[
                 { key: 'columns', label: 'Top ↓ Down' },
                 { key: 'rows', label: 'Left → Right' },
@@ -155,6 +158,7 @@ export default function Settings({
           syncState={syncState || { state: 'idle', lastSync: null, provider: null }}
           onSyncStateChange={onSyncStateChange}
           onSyncNow={onSyncNow}
+          onRequestSignIn={onRequestSignIn}
         />
 
         {/* Tools */}
@@ -177,15 +181,15 @@ export default function Settings({
 
         {/* About */}
         <div className="px-2 py-4 flex flex-col gap-2">
-          <h1 className="text-heading-20 text-[var(--ds-gray-1000)] m-0">Setlists MD</h1>
-          <p className="text-copy-14 text-[var(--ds-gray-700)] leading-relaxed max-w-sm">
+          <h1 className="text-heading-20 text-[var(--modes-text)] m-0">Setlists MD</h1>
+          <p className="text-copy-14 text-[var(--modes-text-muted)] leading-relaxed max-w-sm">
             A minimalist, offline-first chord chart app built for speed.
             Your songs belong to you as simple markdown files.
           </p>
-          <div className="mt-4 flex gap-4 text-label-12 text-[var(--ds-gray-900)] font-medium">
+          <div className="mt-4 flex gap-4 text-label-12 text-[var(--modes-text-muted)] font-medium">
             <span>v1.2.0</span>
-            <span className="text-[var(--ds-gray-400)]">•</span>
-            <a href="#" className="hover:text-[var(--ds-gray-1000)] transition-colors underline-offset-4 underline decoration-[var(--ds-gray-400)]">
+            <span className="text-[var(--modes-text-dim)]">•</span>
+            <a href="#" className="hover:text-[var(--modes-text)] transition-colors underline-offset-4 underline decoration-[var(--modes-border)]">
               GitHub
             </a>
           </div>

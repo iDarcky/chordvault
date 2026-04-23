@@ -13,17 +13,15 @@ export default defineConfig({
         name: 'Setlists MD',
         short_name: 'Setlists MD',
         description: 'Chord charts for worship teams',
-        theme_color: '#0b0b0f',
-        background_color: '#0b0b0f',
+        theme_color: '#14161e',
+        background_color: '#14161e',
         display: 'standalone',
         orientation: 'any',
         icons: [
-          {
-            src: '/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
         ]
       },
       workbox: {

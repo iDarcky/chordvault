@@ -1,63 +1,152 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
+import { toast } from '../ui/use-toast';
+import { useAuth } from '../../auth/useAuth';
+import {
+  connectProvider,
+  disconnectProvider,
+  getAvailableProviders,
+} from '../../sync/provider';
 
-export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow }) {
-  const providers = [
-    { id: 'google', name: 'Google Drive', icon: '💾' },
-    { id: 'dropbox', name: 'Dropbox', icon: '📦' },
-    { id: 'onedrive', name: 'OneDrive', icon: '☁️' },
-  ];
+export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow, onRequestSignIn }) {
+  const { user } = useAuth();
+  const providers = getAvailableProviders();
+  const [busy, setBusy] = useState(null); // provider name or null
+
+  const handleConnect = async (name) => {
+    setBusy(name);
+    try {
+      await connectProvider(name);
+      onSyncStateChange({ ...syncState, provider: name, state: 'idle' });
+      toast({ title: 'Connected', description: `Syncing with ${providers.find(p => p.name === name)?.displayName}.` });
+    } catch (err) {
+      toast({
+        title: 'Connect failed',
+        description: err?.message || 'Could not complete sign-in with the provider.',
+        variant: 'error',
+      });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    setBusy('__disconnect');
+    try {
+      await disconnectProvider();
+      onSyncStateChange({ ...syncState, provider: null, state: 'idle' });
+      toast({ title: 'Disconnected' });
+    } catch (err) {
+      toast({ title: 'Disconnect failed', description: err?.message, variant: 'error' });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // Signed-out users get a sign-in CTA instead of provider buttons.
+  if (!user) {
+    return (
+      <section className="flex flex-col gap-4">
+        <h2 className="text-label-12 text-[var(--modes-text-dim)] uppercase tracking-wider font-semibold px-2">
+          Cloud Sync
+        </h2>
+        <div className="modes-card p-5 flex flex-col gap-3 border-dashed">
+          <h3 className="text-heading-16 text-[var(--modes-text)] m-0 font-semibold">
+            Sign in to enable cloud sync
+          </h3>
+          <p className="text-copy-14 text-[var(--modes-text-muted)] m-0">
+            Cloud sync with Google Drive, Dropbox, or OneDrive is a Pro feature.
+            Sign in to connect your account.
+          </p>
+          <Button variant="brand" size="sm" onClick={onRequestSignIn} className="self-start">
+            Sign in
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  const activeName = syncState.provider;
 
   return (
     <section className="flex flex-col gap-4">
       <div className="flex justify-between items-center px-2">
-        <h2 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold">
+        <h2 className="text-label-12 text-[var(--modes-text-dim)] uppercase tracking-wider font-semibold">
           Cloud Sync
         </h2>
-        {syncState.provider && (
+        {activeName && (
           <Button variant="ghost" size="sm" onClick={onSyncNow} loading={syncState.state === 'syncing'}>
             Sync Now
           </Button>
         )}
       </div>
 
-      <Card className="flex flex-col p-0 overflow-hidden divide-y divide-[var(--ds-gray-400)] border-[var(--ds-gray-400)]">
-        <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)] hover:bg-[var(--ds-gray-100)] transition-colors">
+      <div className="modes-card flex flex-col p-0 overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
+        <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col">
-            <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">Status</span>
-            <span className="text-copy-13 text-[var(--ds-gray-700)]">
+            <span className="text-copy-14 text-[var(--modes-text)] font-medium">Status</span>
+            <span className="text-copy-13 text-[var(--modes-text-muted)]">
               {syncState.lastSync ? `Last synced: ${new Date(syncState.lastSync).toLocaleString()}` : 'Not connected'}
             </span>
           </div>
           <div className="flex items-center gap-2 mt-2 sm:mt-0">
-            <div className={`h-2 w-2 rounded-full ${syncState.state === 'syncing' ? 'bg-amber-400 animate-pulse' : syncState.provider ? 'bg-emerald-400' : 'bg-[var(--ds-gray-400)]'}`} />
-            <span className="text-label-12 uppercase font-semibold text-[var(--ds-gray-900)]">
-              {syncState.state === 'syncing' ? 'Syncing…' : syncState.provider ? 'Connected' : 'Disconnected'}
+            <div className={`h-2 w-2 rounded-full ${syncState.state === 'syncing' ? 'bg-amber-400 animate-pulse' : activeName ? 'bg-emerald-400' : 'bg-[var(--modes-border)]'}`} />
+            <span className="text-label-12 uppercase font-semibold text-[var(--modes-text-muted)]">
+              {syncState.state === 'syncing' ? 'Syncing…' : activeName ? 'Connected' : 'Disconnected'}
             </span>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between bg-[var(--ds-background-100)] hover:bg-[var(--ds-gray-100)] transition-colors">
-          <div className="flex flex-col">
-            <span className="text-copy-14 text-[var(--ds-gray-1000)] font-medium">Provider</span>
-            <span className="text-copy-13 text-[var(--ds-gray-700)]">Choose where your data is stored securely.</span>
-          </div>
-          <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg flex-wrap mt-2 sm:mt-0">
-            {providers.map(p => (
-              <Button
-                key={p.id}
-                size="sm"
-                variant={syncState.provider === p.id ? 'secondary' : 'ghost'}
-                onClick={() => onSyncStateChange({ ...syncState, provider: p.id })}
-                className={syncState.provider === p.id ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
-              >
-                {p.icon} {p.name}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </Card>
+        {providers.map(p => {
+          const isActive = activeName === p.name;
+          const isBusy = busy === p.name;
+          return (
+            <div key={p.name} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col">
+                <span className="text-copy-14 text-[var(--modes-text)] font-medium flex items-center gap-2">
+                  {p.icon} {p.displayName}
+                  <span className="text-label-11 uppercase tracking-wider text-[var(--color-brand)] font-semibold">Pro</span>
+                </span>
+                <span className="text-copy-13 text-[var(--modes-text-muted)]">
+                  {!p.configured
+                    ? 'Not configured on this build.'
+                    : isActive
+                      ? 'Connected. Syncing enabled.'
+                      : 'Tap Connect to enable sync with this provider.'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-2 sm:mt-0">
+                {isActive ? (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleDisconnect}
+                    loading={busy === '__disconnect'}
+                  >
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="brand"
+                    onClick={() => handleConnect(p.name)}
+                    loading={isBusy}
+                    disabled={!p.configured || (activeName && activeName !== p.name) || busy != null}
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {activeName && (
+        <p className="text-copy-12 text-[var(--modes-text-dim)] px-2">
+          Only one provider at a time. Disconnect to switch.
+        </p>
+      )}
     </section>
   );
 }

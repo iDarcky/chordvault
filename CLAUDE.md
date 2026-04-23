@@ -142,6 +142,62 @@ We utilize standard Vercel Geist design tokens mapped via Tailwind CSS configura
 - Special components limit their custom CSS, leaning entirely on standard `className` declarations from Tailwind.
 - `--chord` (gold) is preserved specifically for unique chord coloration logic.
 
+### "modes" Theme Variant
+
+A page-level visual variant, opted-in via `data-theme-variant="modes"` on the page root (currently applied to `Dashboard.jsx`). It mirrors the mobile drawer aesthetic: dark radial gradient (teal top-left + plum bottom-right on near-black base) with translucent card surfaces.
+
+Tokens exposed inside a `[data-theme-variant="modes"]` subtree:
+- `--modes-surface` / `--modes-surface-strong` — translucent white fills for cards
+- `--modes-border` — 9% white hairline
+- `--modes-text` / `--modes-text-muted` / `--modes-text-dim`
+
+Helper classes (only active inside the variant):
+- `.modes-card` — `rounded-xl`, 4% white fill, hairline border
+- `.modes-card-strong` — `rounded-2xl`, stronger fill, for hero surfaces
+- `.modes-label` — uppercase + wide tracking + dim text
+
+## Mobile Layout Specification
+
+The mobile experience (< 640px) is a bespoke shell distinct from the desktop sidebar layout.
+
+### Shell Structure
+- `DesktopLayout`'s `<main>` is `flex flex-col` + `overflow-y-auto`, so child pages can use `flex-1 min-h-0` to fit the viewport (Dashboard does this to avoid outer scroll).
+- An iOS-style push transform is applied when the drawer is open (`translateX(72%) scale(0.92)`, 24px radius, drop shadow). `will-change: transform` is only set during the open state so it doesn't interfere with sticky children while idle.
+- `MobileTopBar` is rendered as a child of `<main>` on the three main tabs only (`home`, `library`, `setlists`) — not on chart/editor/player/settings. It uses explicit inline `position: sticky; top: 0` with safe-area padding so it stays pinned across iOS Safari quirks.
+- `BottomNav` is `position: fixed`, borderless, laid out as a 3-column grid of soft tiles (Dashboard / Setlists / Songs). Secondary destinations (Settings, Help, Design, Notifications) live inside the drawer.
+- `MobileDrawer` is rendered at the App root (not inside `<main>`) so its fixed positioning is not affected by the main element's transform.
+
+### MobileTopBar
+- Transparent chrome (no bottom border, no shadow) with `backdrop-blur-md` so page content shows through.
+- One horizontal card at `h-14 rounded-xl` containing the hamburger (embedded left, `w-12`, no divider) and a plain text input.
+- No search-icon affordance — the placeholder communicates intent.
+- A brand-color `+` button (`w-14 h-14 rounded-xl`) sits to the right and is context-aware: Library → new song, Setlists → new setlist, Dashboard → dropdown picker.
+- A unified search queries both songs and setlists; results render as an absolute dropdown below the bar.
+
+### BottomNav
+- Clean, borderless, floating 3-tile grid — no heavy chrome. Transparent background, with each tab rendered as a soft `rounded-xl` tile (`h-14`) inside a `grid grid-cols-3 gap-2` container.
+- Active tile: `--color-brand` text on a `--ds-gray-100` fill. Inactive: muted gray text, fill appears only on tap.
+- Safe-area padding lives on the nav root, not the tiles, so the tiles stay visually compact above the home indicator.
+
+### MobileDrawer
+- Slides in from the left (300ms `cubic-bezier(0.32, 0.72, 0, 1)`) with swipe-to-close (threshold 35% of panel width).
+- Background uses a brand-forward radial gradient (teal spotlight top-left, plum accent bottom-right on `#0b0910`) — intentionally distinct from reference apps.
+- Sections: close button, serif greeting, (signed-in-only) "Your Account", "Your Plan", shimmering Upgrade-to-Pro pill with sparkles on both sides, optional "Create account" CTA for guests (`!isSignedIn`), stat cards (songs/setlists), nav rows (Settings, Notifications, Help, Design).
+- Rows and stat cards use `rounded-xl` for a squared, card-forward look.
+
+### Mobile-only Affordances
+- `Library` and `Setlists` hide their inline search inputs on mobile (`hidden sm:block`) because the global top bar handles search.
+- Their FABs are tablet-only (`hidden sm:block lg:hidden`) — mobile uses the top bar's `+` button.
+- `Dashboard` drops all mobile-specific headers/FABs, runs under the "modes" theme variant, and uses `flex-1 min-h-0 overflow-hidden flex-col` so it fills the viewport without outer scroll. The "Recently Edited" card becomes the only internally scrollable region on the page.
+
+### Theme Setting
+Settings → Appearance → Theme offers three options stored on `settings.theme`:
+- `default` — follows the OS via `matchMedia('(prefers-color-scheme: light)')` and live-updates on system changes.
+- `light` — forces the light palette (`data-theme="light"` on `<html>`).
+- `dark` — forces the dark palette (default).
+
+The theme is applied by an effect in `App.jsx` that sets/clears `document.documentElement.dataset.theme` and subscribes to the media query only when `default` is selected.
+
 ## Conventions
 
 - All components use inline styles (no CSS modules or styled-components)
