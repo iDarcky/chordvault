@@ -70,7 +70,7 @@ const navButtonClass = (active) =>
       : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
   }`;
 
-export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications, notifications, onMarkRead, onNotificationAction }) {
+export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications, notifications, onMarkRead, onNotificationAction, displayName = 'Guest', plan = 'Free' }) {
   const [trayOpen, setTrayOpen] = useState(false);
 
   const tabs = [
@@ -83,15 +83,19 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
     <>
       <aside className="h-[100dvh] hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
         {/* Profile */}
-        <div className="flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0">
+        <button
+          onClick={() => onNavigate('settings')}
+          aria-label="Account settings"
+          className="flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0 bg-transparent border-none cursor-pointer rounded-lg py-1 hover:bg-[var(--ds-gray-200)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] transition-colors text-left"
+        >
           <div className="w-9 h-9 rounded-full bg-[var(--ds-gray-300)] flex items-center justify-center shrink-0">
             <UserIcon />
           </div>
           <div className="hidden xl:block overflow-hidden">
-            <p className="text-label-14 font-semibold text-[var(--ds-gray-1000)] truncate">Guest</p>
-            <p className="text-label-12 text-[var(--ds-teal-800)] font-medium truncate uppercase tracking-widest text-[10px]">FREE TIER</p>
+            <p className="text-label-14 font-semibold text-[var(--ds-gray-1000)] truncate">{displayName}</p>
+            <p className="text-label-12 text-[var(--ds-teal-800)] font-medium truncate uppercase tracking-widest text-[10px]">{plan} TIER</p>
           </div>
-        </div>
+        </button>
 
         {/* Nav Menu */}
         <nav className="flex-1 min-h-0 flex flex-col gap-1 overflow-hidden">

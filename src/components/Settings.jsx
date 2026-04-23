@@ -2,6 +2,14 @@ import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
 import PageHeader from './PageHeader';
 import { Button } from './ui/Button';
+import {
+  Greeting,
+  AccountSummary,
+  PlanLabel,
+  UpgradePill,
+  CreateAccountButton,
+  StatCards,
+} from './account/AccountPanel';
 
 const Section = ({ title, children }) => (
   <section className="flex flex-col gap-4">
@@ -38,7 +46,14 @@ export default function Settings({
   onSyncNow,
   onRequestSignIn,
   onDesign,
-  onHelp
+  onHelp,
+  isSignedIn = false,
+  displayName = 'Guest',
+  displayEmail = '',
+  plan = 'Free',
+  onUpgrade,
+  onCreateAccount,
+  onSignOut,
 }) {
   const [detectingKey, setDetectingKey] = useState(null);
 
@@ -60,6 +75,25 @@ export default function Settings({
       <PageHeader title="Settings" />
 
       <div className="a4-container py-10 flex flex-col gap-12">
+
+        {/* Account */}
+        <section className="flex flex-col gap-6">
+          <Greeting displayName={displayName} tone="modes" />
+          <AccountSummary
+            isSignedIn={isSignedIn}
+            displayEmail={displayEmail}
+            onSignOut={onSignOut}
+            tone="modes"
+          />
+          <div className="modes-card-strong p-6 flex flex-col gap-4">
+            <PlanLabel plan={plan} tone="modes" />
+            <UpgradePill onUpgrade={onUpgrade} />
+            {!isSignedIn && (
+              <CreateAccountButton onCreateAccount={onCreateAccount} tone="modes" />
+            )}
+          </div>
+          <StatCards songCount={songCount} setlistCount={setlistCount} tone="modes" />
+        </section>
 
         {/* Profile */}
         <Section title="Profile">

@@ -452,6 +452,21 @@ export default function App() {
     </div>
   );
 
+  const isSignedIn = !!user;
+  const displayName = profile?.display_name || settings?.userName || 'Guest';
+  const displayEmail = user?.email || 'guest@setlists.md';
+  const plan = profile?.plan
+    ? profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1)
+    : 'Free';
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({ title: 'Signed out' });
+    } catch (err) {
+      toast({ title: 'Sign-out failed', description: err.message, variant: 'error' });
+    }
+  };
+
   return (
     <ErrorBoundary>
     <Suspense fallback={lazyFallback}>
@@ -489,7 +504,7 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen}>
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan}>
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar
               key={view}
@@ -658,6 +673,13 @@ export default function App() {
               onSyncNow={triggerSync} onDesign={() => setView("design")}
               onHelp={() => navigate('help')}
               onRequestSignIn={() => navigate('signin')}
+              isSignedIn={isSignedIn}
+              displayName={displayName}
+              displayEmail={displayEmail}
+              plan={plan}
+              onUpgrade={() => navigate('upgrade')}
+              onCreateAccount={() => navigate('signin')}
+              onSignOut={handleSignOut}
             />
           )}
           {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
@@ -675,10 +697,10 @@ export default function App() {
         <MobileDrawer
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
-          userName={profile?.display_name || settings?.userName}
-          email={user?.email}
-          plan={profile?.plan ? profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1) : 'Free'}
-          isSignedIn={!!user}
+          userName={displayName}
+          email={displayEmail}
+          plan={plan}
+          isSignedIn={isSignedIn}
           songCount={songs.length}
           setlistCount={setlists.length}
           hasUnreadNotifications={hasUnreadNotifications}
@@ -686,15 +708,7 @@ export default function App() {
           onOpenNotifications={() => { setDrawerOpen(false); setNotifTrayOpen(true); }}
           onOpenHelp={() => { setDrawerOpen(false); navigate('help'); }}
           onOpenDesign={() => { setDrawerOpen(false); setView('design'); }}
-          onSignOut={async () => {
-            setDrawerOpen(false);
-            try {
-              await signOut();
-              toast({ title: 'Signed out' });
-            } catch (err) {
-              toast({ title: 'Sign-out failed', description: err.message, variant: 'error' });
-            }
-          }}
+          onSignOut={async () => { setDrawerOpen(false); await handleSignOut(); }}
           onUpgrade={() => { setDrawerOpen(false); navigate('upgrade'); }}
           onCreateAccount={() => { setDrawerOpen(false); navigate('signin'); }}
         />

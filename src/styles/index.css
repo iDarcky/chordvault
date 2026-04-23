@@ -699,6 +699,19 @@
   letter-spacing: 0.15em;
 }
 
+/* Upgrade pill — shared shimmer gradient used on desktop + mobile drawer */
+.upgrade-pill {
+  background:
+    linear-gradient(110deg, #fef3c7 0%, #f5d0fe 35%, #a5f3fc 70%, #fef3c7 100%);
+  background-size: 200% 100%;
+  animation: account-shimmer 4s linear infinite;
+}
+
+@keyframes account-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* Light-mode override for modes variant */
 [data-theme="light"] [data-theme-variant="modes"] {
   --modes-surface: rgba(0, 0, 0, 0.035);
