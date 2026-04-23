@@ -19,6 +19,8 @@ const AppleIcon = () => (
   </svg>
 );
 
+const APPLE_ENABLED = import.meta.env.VITE_ENABLE_APPLE_SIGNIN === 'true';
+
 export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' }) {
   const { signInWithGoogle, signInWithApple, signInWithOtp, signInWithPassword, signUpWithPassword, isConfigured } = useAuth();
 
@@ -105,16 +107,18 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
               <GoogleIcon />
               <span className="ml-2">Continue with Google</span>
             </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full"
-              disabled={busy}
-              onClick={() => handleOauth(signInWithApple, 'Apple')}
-            >
-              <AppleIcon />
-              <span className="ml-2">Continue with Apple</span>
-            </Button>
+            {APPLE_ENABLED && (
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full"
+                disabled={busy}
+                onClick={() => handleOauth(signInWithApple, 'Apple')}
+              >
+                <AppleIcon />
+                <span className="ml-2">Continue with Apple</span>
+              </Button>
+            )}
           </div>
 
           <div className="flex items-center gap-3 px-2">
