@@ -76,6 +76,7 @@ export default function MobileDrawer({
   onOpenDesign,
   onUpgrade,
   onCreateAccount,
+  onSignOut,
 }) {
   const panelRef = useRef(null);
   const [dragX, setDragX] = useState(0);
@@ -182,8 +183,18 @@ export default function MobileDrawer({
         {/* Account */}
         {isSignedIn && (
           <div className="px-5">
-            <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)] mb-1.5">
-              Your Account
+            <div className="flex items-baseline justify-between gap-3 mb-1.5">
+              <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)]">
+                Your Account
+              </div>
+              {onSignOut && (
+                <button
+                  onClick={onSignOut}
+                  className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-muted)] hover:text-[var(--drawer-text)] bg-transparent border-none p-0 cursor-pointer"
+                >
+                  Sign out
+                </button>
+              )}
             </div>
             <div className="text-copy-16 text-[var(--drawer-text)] truncate">{displayEmail}</div>
           </div>

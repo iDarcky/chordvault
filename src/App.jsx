@@ -18,6 +18,8 @@ import MobileTopBar from './components/MobileTopBar';
 import MobileDrawer from './components/MobileDrawer';
 import NotificationTray from './components/NotificationTray';
 import FeedbackButton from './components/FeedbackButton';
+import ErrorBoundary from './components/ErrorBoundary';
+import { useAuth } from './auth/useAuth';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
 
 const QUOTA_WARN_THRESHOLD = 0.8;
@@ -57,12 +59,23 @@ const SetlistOverview = lazy(() => import('./components/SetlistOverview'));
 const LydianShowcase = lazy(() => import('./components/LydianShowcase'));
 const SmartImportDialog = lazy(() => import('./components/SmartImportDialog'));
 const HelpPage = lazy(() => import('./components/HelpPage'));
+const AuthScreen = lazy(() => import('./components/auth/AuthScreen'));
+const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
+const UpgradeScreen = lazy(() => import('./components/UpgradeScreen'));
 
 export default function App() {
+  const { user, profile, signOut } = useAuth();
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
   const [tombstones, setTombstones] = useState({ songs: [], setlists: [] });
-  const [view, setView] = useState('loading');
+  const [view, setView] = useState(() => {
+    // OAuth / magic-link callbacks land on /auth/callback. Detect that up
+    // front so the first render doesn't flash the Welcome screen.
+    if (typeof window !== 'undefined' && window.location.pathname === '/auth/callback') {
+      return 'auth-callback';
+    }
+    return 'loading';
+  });
   const [currentSong, setCurrentSong] = useState(null);
   const [currentSetlist, setCurrentSetlist] = useState(null);
   const [settings, setSettings] = useState(null);
@@ -413,6 +426,16 @@ export default function App() {
     }
   };
 
+  if (view === 'auth-callback') {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[var(--ds-background-100)]" />}>
+          <AuthCallback onDone={() => goToMainView('home')} />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   if (!loaded) {
     return (
       <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
@@ -430,8 +453,15 @@ export default function App() {
   );
 
   return (
+    <ErrorBoundary>
     <Suspense fallback={lazyFallback}>
       <Toaster />
+      {view === 'signin' && (
+        <AuthScreen onBack={goBack} onSignedIn={() => goToMainView('home')} />
+      )}
+      {view === 'upgrade' && (
+        <UpgradeScreen onBack={goBack} />
+      )}
       {view === 'welcome' && (
         <Welcome
           onGetStarted={() => {
@@ -458,7 +488,7 @@ export default function App() {
           }}
         />
       )}
-      {!['welcome', 'onboarding'].includes(view) && (
+      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
         <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen}>
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar
@@ -627,6 +657,7 @@ export default function App() {
               onSyncStateChange={setSyncState}
               onSyncNow={triggerSync} onDesign={() => setView("design")}
               onHelp={() => navigate('help')}
+              onRequestSignIn={() => navigate('signin')}
             />
           )}
           {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
@@ -637,17 +668,17 @@ export default function App() {
           )}
         </DesktopLayout>
       )}
-      {!['welcome', 'onboarding'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
+      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
         <EdgeSwipeHotspot onOpen={() => setDrawerOpen(true)} />
       )}
-      {!['welcome', 'onboarding'].includes(view) && (
+      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
         <MobileDrawer
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
-          userName={settings?.userName}
-          email={settings?.accountEmail}
-          plan="Free"
-          isSignedIn={false}
+          userName={profile?.display_name || settings?.userName}
+          email={user?.email}
+          plan={profile?.plan ? profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1) : 'Free'}
+          isSignedIn={!!user}
           songCount={songs.length}
           setlistCount={setlists.length}
           hasUnreadNotifications={hasUnreadNotifications}
@@ -655,17 +686,20 @@ export default function App() {
           onOpenNotifications={() => { setDrawerOpen(false); setNotifTrayOpen(true); }}
           onOpenHelp={() => { setDrawerOpen(false); navigate('help'); }}
           onOpenDesign={() => { setDrawerOpen(false); setView('design'); }}
-          onUpgrade={() => {
+          onSignOut={async () => {
             setDrawerOpen(false);
-            toast({ title: 'Setlists MD Pro', description: 'Coming soon — thanks for your interest!' });
+            try {
+              await signOut();
+              toast({ title: 'Signed out' });
+            } catch (err) {
+              toast({ title: 'Sign-out failed', description: err.message, variant: 'error' });
+            }
           }}
-          onCreateAccount={() => {
-            setDrawerOpen(false);
-            toast({ title: 'Create account', description: 'Coming soon — sign-in is on the way.' });
-          }}
+          onUpgrade={() => { setDrawerOpen(false); navigate('upgrade'); }}
+          onCreateAccount={() => { setDrawerOpen(false); navigate('signin'); }}
         />
       )}
-      {!['welcome', 'onboarding'].includes(view) && (
+      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
         <NotificationTray
           open={notifTrayOpen}
           onClose={() => setNotifTrayOpen(false)}
@@ -683,8 +717,9 @@ export default function App() {
           onImport={handleSmartImport}
         />
       )}
-      {!['welcome', 'onboarding'].includes(view) && <FeedbackButton />}
+      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
     </Suspense>
+    </ErrorBoundary>
   );
 }
 

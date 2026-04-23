@@ -36,6 +36,7 @@ export default function Settings({
   syncState,
   onSyncStateChange,
   onSyncNow,
+  onRequestSignIn,
   onDesign,
   onHelp
 }) {
@@ -157,6 +158,7 @@ export default function Settings({
           syncState={syncState || { state: 'idle', lastSync: null, provider: null }}
           onSyncStateChange={onSyncStateChange}
           onSyncNow={onSyncNow}
+          onRequestSignIn={onRequestSignIn}
         />
 
         {/* Tools */}

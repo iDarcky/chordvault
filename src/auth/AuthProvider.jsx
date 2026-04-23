@@ -1,0 +1,126 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { supabase, isSupabaseConfigured } from './supabase';
+import { AuthContext } from './AuthContext';
+
+const REDIRECT_URL = typeof window !== 'undefined'
+  ? `${window.location.origin}/auth/callback`
+  : undefined;
+
+export function AuthProvider({ children }) {
+  const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
+  // If Supabase isn't configured in this build we're already "loaded" — there
+  // is no session to recover.
+  const [loading, setLoading] = useState(() => supabase != null);
+  const profileLoadedFor = useRef(null);
+
+  // Bootstrap: read any persisted session, then subscribe to changes.
+  useEffect(() => {
+    if (!supabase) return;
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setSession(data.session ?? null);
+      setLoading(false);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession ?? null);
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Load / refresh the user's profile row whenever their identity changes.
+  useEffect(() => {
+    if (!supabase) return;
+    const uid = session?.user?.id ?? null;
+    if (uid === profileLoadedFor.current) return;
+    profileLoadedFor.current = uid;
+    if (!uid) {
+      queueMicrotask(() => setProfile(null));
+      return;
+    }
+    supabase
+      .from('profiles')
+      .select('id, email, display_name, plan')
+      .eq('id', uid)
+      .maybeSingle()
+      .then(({ data }) => {
+        setProfile(data ?? null);
+      });
+  }, [session?.user?.id]);
+
+  const value = useMemo(() => {
+    const guard = () => {
+      if (!supabase) throw new Error('Supabase is not configured — set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+    };
+    return {
+      user: session?.user ?? null,
+      session,
+      profile,
+      loading,
+      isConfigured: isSupabaseConfigured(),
+
+      signInWithGoogle: () => {
+        guard();
+        return supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: REDIRECT_URL },
+        });
+      },
+      signInWithApple: () => {
+        guard();
+        return supabase.auth.signInWithOAuth({
+          provider: 'apple',
+          options: { redirectTo: REDIRECT_URL },
+        });
+      },
+      signInWithOtp: (email) => {
+        guard();
+        return supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: REDIRECT_URL },
+        });
+      },
+      signInWithPassword: (email, password) => {
+        guard();
+        return supabase.auth.signInWithPassword({ email, password });
+      },
+      signUpWithPassword: (email, password, displayName) => {
+        guard();
+        return supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: REDIRECT_URL,
+            data: displayName ? { name: displayName } : undefined,
+          },
+        });
+      },
+      signOut: async () => {
+        guard();
+        const result = await supabase.auth.signOut();
+        setProfile(null);
+        return result;
+      },
+      updateProfile: async (updates) => {
+        guard();
+        const uid = session?.user?.id;
+        if (!uid) throw new Error('No user signed in.');
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({ ...updates, updated_at: new Date().toISOString() })
+          .eq('id', uid)
+          .select()
+          .maybeSingle();
+        if (error) throw error;
+        setProfile(data ?? null);
+        return data;
+      },
+    };
+  }, [session, profile, loading]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
