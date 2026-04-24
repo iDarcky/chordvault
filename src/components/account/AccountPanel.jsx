@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 const SparkleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 2l2.39 5.96L20.5 10l-5.58 2.72L12 19l-2.92-6.28L3.5 10l6.11-2.04L12 2z" />
@@ -25,6 +27,49 @@ export function Greeting({ displayName, tone = 'modes' }) {
     >
       You have a beautiful <span className="italic">library</span>,{' '}
       <span className="whitespace-nowrap">{displayName}</span>
+    </h1>
+  );
+}
+
+const ROTATING_PHRASES = [
+  'Ready for soundcheck, {name}.',
+  'The stage is yours, {name}.',
+  'Time to plug in.',
+  'Set the tempo, {name}.',
+  'Cue the lights.',
+  'Count it in: 1, 2, 3, 4…',
+  'Library synced and ready.',
+  'Ready for the downbeat.',
+  "Let's make some noise, {name}.",
+  'Welcome to the cockpit.',
+];
+
+export function RotatingGreeting({ displayName, tone = 'modes', interval = 5000 }) {
+  const v = tokens(tone);
+  const [index, setIndex] = useState(() => Math.floor(Math.random() * ROTATING_PHRASES.length));
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setVisible(false);
+      const swap = setTimeout(() => {
+        setIndex(i => (i + 1) % ROTATING_PHRASES.length);
+        setVisible(true);
+      }, 250);
+      return () => clearTimeout(swap);
+    }, interval);
+    return () => clearInterval(tick);
+  }, [interval]);
+
+  const phrase = ROTATING_PHRASES[index].replaceAll('{name}', displayName);
+
+  return (
+    <h1
+      className="text-[34px] leading-[40px] font-serif m-0 tracking-tight transition-opacity duration-[250ms] ease-out motion-reduce:transition-none min-h-[80px]"
+      style={{ color: v.text, opacity: visible ? 1 : 0 }}
+      aria-live="polite"
+    >
+      {phrase}
     </h1>
   );
 }

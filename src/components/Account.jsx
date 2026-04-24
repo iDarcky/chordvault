@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Greeting,
+  RotatingGreeting,
   AccountSummary,
   PlanLabel,
   UpgradePill,
@@ -44,7 +44,7 @@ export default function Account({
       }}
     >
       <div className="a4-container pt-6 pb-10 flex flex-col gap-6">
-        <Greeting displayName={displayName} tone="drawer" />
+        <RotatingGreeting displayName={displayName} tone="drawer" />
         <AccountSummary
           isSignedIn={isSignedIn}
           displayEmail={displayEmail}
