@@ -557,7 +557,7 @@ export default function App() {
               onNewSong={() => goEditor()}
               onNewSetlist={() => goSetlistBuild()}
               onViewSetlist={goSetlistView}
-              onPlaySetlist={goSetlistPlay}
+              onPlaySetlist={goSetlistPerformance}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
             />
@@ -592,7 +592,7 @@ export default function App() {
               setlists={setlists}
               loaded={loaded}
               onViewSetlist={goSetlistView}
-              onPlaySetlist={goSetlistPlay}
+              onPlaySetlist={goSetlistPerformance}
               onNewSetlist={() => goSetlistBuild()}
               onImportSetlist={handleImportSetlist}
               previewSetlistId={previewSetlistId}

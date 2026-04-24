@@ -122,12 +122,12 @@ export default function PerformanceView({ setlist, songs, onBack }) {
                 </SelectContent>
               </Select>
               {cur.song.tempo && (
-                <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap hidden xs:inline">
+                <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap">
                   ♩ {cur.song.tempo}
                 </span>
               )}
               {cur.song.time && (
-                <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap hidden xs:inline">
+                <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap">
                   {cur.song.time}
                 </span>
               )}
