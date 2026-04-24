@@ -26,13 +26,20 @@ npm run lint     # ESLint
 ```
 src/
 ├── main.jsx              # Entry point
-├── App.jsx               # Root component, view routing, data management
+├── App.jsx               # Root component, view routing, data management,
+│                         #   preference cloud-sync, auth-URL cleanup
 ├── music.js              # Transpose engine (transposeChord, transposeKey, sectionStyle)
 ├── parser.js             # .md song format parser/serializer
 │                         #   exports: parseSongMd, songToMd, parseLine, generateId,
 │                         #            parseTabBlock, serializeTabBlock, parseTabPositions
 ├── storage.js            # IndexedDB layer (loadSongs, saveSongs, loadSetlists, saveSetlists, clearAll)
 ├── styles/index.css      # Global styles, CSS variables, fonts
+├── auth/
+│   ├── supabase.js       # Supabase client (null when env vars missing)
+│   ├── AuthContext.js    # React context for the auth value bag
+│   ├── useAuth.js        # Hook: { user, profile, signIn*, signUp*, resetPassword,
+│   │                     #         updatePassword, resendVerification, updateProfile, signOut }
+│   └── AuthProvider.jsx  # Session bootstrap, profile fetch w/ preferences fallback
 ├── data/
 │   ├── demos.js          # 3 demo songs loaded on first run
 │   └── chordShapes.js    # ~50 worship chord fingering shapes for svguitar
@@ -47,6 +54,17 @@ src/
     ├── SetlistBuilder.jsx    # Build setlists: pick songs, reorder, per-song transpose & notes
     ├── SetlistPlayer.jsx     # Live mode: progress bar, song strip, prev/next navigation
     ├── SetlistOverview.jsx   # Read-only setlist overview with song list and duration
+    ├── PerformanceView.jsx   # Fullscreen live view (sidebar hidden on desktop/tablet)
+    ├── Account.jsx           # Account page — edits display name (local + profile), sign-in/out
+    ├── Welcome.jsx           # Onboarding welcome with optional "Already have an account?" link
+    ├── auth/
+    │   ├── AuthScreen.jsx    # Sign-in/up form (magic link + password), loading states,
+    │   │                     #   password reveal, last-email prefill, friendly errors
+    │   ├── AuthCallback.jsx  # Handles OAuth /auth/callback (PKCE exchange)
+    │   └── RecoveryScreen.jsx# Set-new-password screen for type=recovery links
+    ├── account/
+    │   └── AccountPanel.jsx  # Shared account bits: StageGreeting, PlanLabel, SignInButton,
+    │                         #   CreateAccountButton, StatCards
     ├── editor/
     │   ├── FormTab.jsx       # Structured form editor: metadata fields + section blocks
     │   ├── VisualTab.jsx     # Toolbar + textarea: chord picker, section inserter, tab grid editor
@@ -59,12 +77,16 @@ src/
         ├── Card.jsx          # Geist 16px radius cards
         ├── Tabs.jsx          # Underline style tabs
         └── ...               # Avatar, Badge, Input, SegmentedControl, etc.
+
+supabase/
+└── migrations/           # SQL applied manually (or via supabase db push).
+                          # See "Supabase Schema" below.
 ```
 
 ## Architecture
 
-- **No router** — App.jsx manages views via `view` state (`library`, `chart`, `editor`, `setlist-build`, `setlist-play`)
-- **No server** — all data stored client-side in IndexedDB via idb-keyval
+- **No router** — App.jsx manages views via `view` state (`library`, `chart`, `editor`, `setlist-build`, `setlist-play`, `setlist-performance`, `signin`, `recovery`, `auth-callback`, …)
+- **No server for song data** — songs/setlists stored client-side in IndexedDB via idb-keyval. Supabase only handles auth + account-level preferences.
 - **Songs** are stored as parsed objects (title, artist, key, tempo, sections, etc.)
 - **The .md format** is the interchange format — YAML frontmatter + `## Section` headers + `[Chord]lyrics` inline chords + `> notes` for band cues + `{tab}...{/tab}` for guitar tabs
 - **Section types** each have a color scheme defined in `music.js` (Intro, Verse, Chorus, Bridge, etc.)
@@ -74,6 +96,15 @@ src/
 - **Tab editing** — VisualTab detects cursor inside `{tab}...{/tab}` to open TabGridEditor pre-loaded; FormTab shows "Edit Tab" buttons per tab block; saves replace in-place
 - **Editor** — `md` state lives in Editor.jsx shell; all tabs receive `md` + `onChange`; switching tabs preserves content
 - **Split-screen preview** — `useSyncExternalStore` with `window.matchMedia('(min-width: 768px)')` — side-by-side on wide, toggle on narrow
+
+### Auth + Account-Level Preferences
+
+- **Supabase optional** — `auth/supabase.js` exports `null` when env vars are missing; every call site degrades gracefully to a guest experience.
+- **Redirect strategy** — OAuth uses `${origin}/auth/callback` (handled by `AuthCallback.jsx`). Magic-links, password resets, and signup confirmations redirect to `${origin}/`; `detectSessionInUrl` consumes the hash and an App.jsx effect strips lingering `access_token` / `type=recovery` / `?code=` so the URL bar stays clean.
+- **Password recovery** — `type=recovery` in the URL hash routes to `RecoveryScreen.jsx`. Navigating Back before completion calls `signOut` so the interim recovery session doesn't linger.
+- **Preferences cloud-sync** — defined in `App.jsx` via `PORTABLE_PREF_KEYS`. On sign-in, App hydrates once from `profile.preferences` (cloud wins). After hydration, local changes are pushed to `updateProfile({ preferences })` debounced 800 ms. Device-local fields (`onboardingComplete`, `helpPageSeen`, `notifications`) never sync.
+- **Display name** — `profile?.display_name || settings?.userName || 'Guest'`. Editing in `Account.jsx` writes to both the local settings and `updateProfile({ display_name })` when signed in. When signed in, the account name replaces the "Setlists MD" label in the drawer footer and Settings about header.
+- **Fullscreen performance** — `setlist-performance` and `setlist-play` always pass `isFullscreen={true}` to `DesktopLayout` so the sidebar collapses on desktop/tablet; the existing mobile layout already hides chrome for these views.
 
 ## .md Format Quick Reference
 
@@ -207,6 +238,10 @@ The theme is applied by an effect in `App.jsx` that sets/clears `document.docume
 - Tab objects in `section.lines[]` are detected via `typeof line === 'object' && line.type === 'tab'`
 - Modulate objects in `section.lines[]` are detected via `typeof line === 'object' && line.type === 'modulate'`
 - Always check line type before calling `.trim()` on section lines (can be string, tab object, or modulate object)
+- Auth buttons use the shared `Button` component (variant=brand lg for primary CTAs, secondary md for alternates) — don't hand-roll auth buttons with raw `<button>` + inline styles
+- Auth forms surface per-action loading state via a `busyTarget` string + `Button.loading` — this lets one button spin while the others stay disabled but idle
+- Auth error copy goes through a `friendlyAuthError(err)` helper that checks `navigator.onLine` first, then matches common Supabase messages. Add new cases there rather than inline in handlers
+- Last-used email is persisted under `localStorage['setlists-md:last-email']`; only write on a successful call
 
 ## Supabase Schema
 
@@ -233,4 +268,9 @@ RLS must allow each user to `select`/`update` their own profile row
 - svguitar renders imperatively into a DOM ref — use `useRef` + `useEffect`, copy ref to local var in cleanup
 - TabGridEditor uses `key` prop for remount when editing different tabs — do not add deps to the `initialTab` useEffect
 - ChartView computes `sectionModOffsets` via `useMemo` — uses `acc` object instead of `let` variable to satisfy React compiler immutability rules
+- Preference hydration runs **once per user id** via `prefsHydratedForUserRef` — don't re-run it on every profile change or you'll clobber a later local edit with the cloud value. The ref is cleared on sign-out.
+- Only keys in `PORTABLE_PREF_KEYS` (App.jsx) are allowed in `profile.preferences`. Adding a new portable preference? Add its key to that array or it won't follow the user across devices.
+- The `profiles.preferences` column is optional at runtime — `AuthProvider` falls back to a base `select('id, email, display_name, plan')` if the column doesn't exist, so sign-in works even before the migration is applied. The push side swallows the error.
+- Auth callback URL handling is split: OAuth stays on `/auth/callback` (dedicated `AuthCallback.jsx`). Magic links and recovery links land on `/` and rely on App.jsx's cleanup effect — don't add a new redirect target without wiring a matching cleanup branch.
+- `RecoveryScreen.handleBack` calls `signOut()` *before* invoking the parent `onBack`. If you ever route away from it through another path, make sure that path also ends the recovery session.
 
