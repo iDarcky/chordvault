@@ -3,7 +3,7 @@ import Sidebar from './Sidebar';
 import { cn } from '../lib/utils';
 import { useMediaQuery } from '../lib/useMediaQuery';
 
-export default function DesktopLayout({ children, activeView, onNavigate, isFullscreen = false, hasUnreadNotifications, onNotificationClick, notifications, onMarkRead, onNotificationAction, drawerOpen = false, displayName, plan }) {
+export default function DesktopLayout({ children, activeView, onNavigate, isFullscreen = false, hasUnreadNotifications, onNotificationClick, notifications, onMarkRead, onNotificationAction, drawerOpen = false, displayName, plan, hideBottomSpacer = false }) {
   const mainRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 639.98px)');
   const applyDrawerTransform = drawerOpen && isMobile;
@@ -42,11 +42,13 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
       >
         {children}
         {/* Mobile Spacer: Guaranteed scrollable space to prevent bottom-nav obstruction */}
-        <div
-          className="shrink-0 sm:hidden"
-          style={{ height: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}
-          aria-hidden="true"
-        />
+        {!hideBottomSpacer && (
+          <div
+            className="shrink-0 sm:hidden"
+            style={{ height: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}
+            aria-hidden="true"
+          />
+        )}
       </main>
     </div>
   );
