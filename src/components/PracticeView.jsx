@@ -120,7 +120,7 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
   return (
     <div
       ref={scrollRef}
-      className="h-screen overflow-y-auto overflow-x-hidden bg-[var(--ds-background-100)]"
+      className="h-full overflow-y-auto overflow-x-hidden bg-[var(--ds-background-100)]"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       {/* ── Minimal sticky header ── */}
