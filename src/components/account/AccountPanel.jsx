@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const SparkleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -18,20 +18,7 @@ function tokens(tone) {
   };
 }
 
-export function Greeting({ displayName, tone = 'modes' }) {
-  const v = tokens(tone);
-  return (
-    <h1
-      className="text-[34px] leading-[40px] font-serif m-0 tracking-tight"
-      style={{ color: v.text }}
-    >
-      You have a beautiful <span className="italic">library</span>,{' '}
-      <span className="whitespace-nowrap">{displayName}</span>
-    </h1>
-  );
-}
-
-const ROTATING_PHRASES = [
+const STAGE_PHRASES = [
   'Ready for soundcheck, {name}.',
   'The stage is yours, {name}.',
   'Time to plug in.',
@@ -44,30 +31,17 @@ const ROTATING_PHRASES = [
   'Welcome to the cockpit.',
 ];
 
-export function RotatingGreeting({ displayName, tone = 'modes', interval = 5000 }) {
+export function StageGreeting({ displayName, tone = 'modes' }) {
   const v = tokens(tone);
-  const [index, setIndex] = useState(() => Math.floor(Math.random() * ROTATING_PHRASES.length));
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const tick = setInterval(() => {
-      setVisible(false);
-      const swap = setTimeout(() => {
-        setIndex(i => (i + 1) % ROTATING_PHRASES.length);
-        setVisible(true);
-      }, 250);
-      return () => clearTimeout(swap);
-    }, interval);
-    return () => clearInterval(tick);
-  }, [interval]);
-
-  const phrase = ROTATING_PHRASES[index].replaceAll('{name}', displayName);
+  const [template] = useState(
+    () => STAGE_PHRASES[Math.floor(Math.random() * STAGE_PHRASES.length)]
+  );
+  const phrase = template.replaceAll('{name}', displayName);
 
   return (
     <h1
-      className="text-[34px] leading-[40px] font-serif m-0 tracking-tight transition-opacity duration-[250ms] ease-out motion-reduce:transition-none min-h-[80px]"
-      style={{ color: v.text, opacity: visible ? 1 : 0 }}
-      aria-live="polite"
+      className="text-[34px] leading-[40px] font-serif m-0 tracking-tight"
+      style={{ color: v.text }}
     >
       {phrase}
     </h1>

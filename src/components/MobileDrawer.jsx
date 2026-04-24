@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Greeting,
+  StageGreeting,
   AccountSummary,
   PlanLabel,
   UpgradePill,
@@ -64,6 +64,7 @@ function Row({ icon: Icon, label, onClick, accessory }) {
 
 export default function MobileDrawer({
   open,
+  openKey = 0,
   onClose,
   userName,
   email,
@@ -175,7 +176,7 @@ export default function MobileDrawer({
 
         {/* Greeting */}
         <div className="px-5 pt-4 pb-6">
-          <Greeting displayName={displayName} tone="drawer" />
+          <StageGreeting key={openKey} displayName={displayName} tone="drawer" />
         </div>
 
         {/* Account */}

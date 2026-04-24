@@ -87,6 +87,11 @@ export default function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSmartImport, setShowSmartImport] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpenKey, setDrawerOpenKey] = useState(0);
+  const openDrawer = () => {
+    setDrawerOpenKey(k => k + 1);
+    setDrawerOpen(true);
+  };
   const [notifTrayOpen, setNotifTrayOpen] = useState(false);
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
@@ -512,7 +517,7 @@ export default function App() {
               view={view}
               songs={songs}
               setlists={setlists}
-              onOpenDrawer={() => setDrawerOpen(true)}
+              onOpenDrawer={openDrawer}
               onSelectSong={goChart}
               onSelectSetlist={goSetlistView}
               onNewSong={() => goEditor()}
@@ -700,11 +705,12 @@ export default function App() {
         </DesktopLayout>
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
-        <EdgeSwipeHotspot onOpen={() => setDrawerOpen(true)} />
+        <EdgeSwipeHotspot onOpen={openDrawer} />
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
         <MobileDrawer
           open={drawerOpen}
+          openKey={drawerOpenKey}
           onClose={() => setDrawerOpen(false)}
           userName={displayName}
           email={displayEmail}
