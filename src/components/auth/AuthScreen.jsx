@@ -1,8 +1,45 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import ScreenHeader from '../ui/ScreenHeader';
 import { useAuth } from '../../auth/useAuth';
+
+const LAST_EMAIL_KEY = 'setlists-md:last-email';
+const RESEND_COOLDOWN_MS = 30_000;
+
+// Map the most common Supabase auth errors to copy our users can actually
+// act on. Falls through to the raw message when nothing matches.
+function friendlyAuthError(err) {
+  const raw = err?.message || '';
+  const lower = raw.toLowerCase();
+  if (lower.includes('invalid login credentials')) return 'Wrong email or password.';
+  if (lower.includes('user already registered')) return 'That email already has an account — try signing in instead.';
+  if (lower.includes('email not confirmed')) return 'Please confirm your email before signing in.';
+  if (lower.includes('email rate limit') || lower.includes('over_email_send_rate_limit')) {
+    return 'Too many emails sent. Try again in a few minutes.';
+  }
+  if (lower.includes('you can only request this') || lower.includes('once every')) {
+    return 'Please wait a minute before trying again.';
+  }
+  if (lower.includes('password should be at least')) return 'Password must be at least 8 characters.';
+  return raw || 'Something went wrong.';
+}
+
+const EyeIcon = ({ off = false }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {off ? (
+      <>
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+        <line x1="1" y1="1" x2="23" y2="23" />
+      </>
+    ) : (
+      <>
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    )}
+  </svg>
+);
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -35,48 +72,72 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
 
   const [mode, setMode] = useState(defaultMode); // 'signin' | 'signup'
   const [emailMode, setEmailMode] = useState('magic'); // 'magic' | 'password'
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    try { return window.localStorage.getItem(LAST_EMAIL_KEY) || ''; } catch { return ''; }
+  });
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [busy, setBusy] = useState(false);
+  // Which button currently owns the busy state — drives per-button spinners
+  // so e.g. "Forgot password?" doesn't spin the main submit button.
+  const [busyTarget, setBusyTarget] = useState(null);
   const [message, setMessage] = useState(null); // { kind: 'info' | 'error', text }
   // Email address awaiting verification, set after a successful signup.
   // Controls rendering of the "Didn't get the email? Resend" affordance.
   const [pendingVerification, setPendingVerification] = useState(null);
+  const [resendAvailableAt, setResendAvailableAt] = useState(0);
+  const [now, setNow] = useState(Date.now());
 
   const isSignUp = mode === 'signup';
   const passwordTooShort = isSignUp && emailMode === 'password' && password.length > 0 && password.length < 8;
+  const resendSecondsLeft = Math.max(0, Math.ceil((resendAvailableAt - now) / 1000));
+
+  // Tick once a second while a cooldown is active so the countdown animates.
+  useEffect(() => {
+    if (resendAvailableAt <= now) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [resendAvailableAt, now]);
+
+  const rememberEmail = (value) => {
+    if (typeof window === 'undefined' || !value) return;
+    try { window.localStorage.setItem(LAST_EMAIL_KEY, value); } catch { /* ignore */ }
+  };
+
+  const runAction = async (target, fn) => {
+    setBusy(true);
+    setBusyTarget(target);
+    setMessage(null);
+    try {
+      await fn();
+    } catch (err) {
+      setMessage({ kind: 'error', text: friendlyAuthError(err) });
+    } finally {
+      setBusy(false);
+      setBusyTarget(null);
+    }
+  };
 
   const handleResetPassword = async () => {
     if (!email) {
       setMessage({ kind: 'error', text: 'Enter your email above, then tap "Forgot password?" again.' });
       return;
     }
-    setBusy(true);
-    setMessage(null);
-    try {
+    await runAction('reset', async () => {
       const { error } = await resetPassword(email);
       if (error) throw error;
+      rememberEmail(email);
       setMessage({ kind: 'info', text: `Password reset link sent to ${email}.` });
-    } catch (err) {
-      setMessage({ kind: 'error', text: err.message || 'Could not send reset email.' });
-    } finally {
-      setBusy(false);
-    }
+    });
   };
 
-  const handleOauth = async (fn, label) => {
-    setBusy(true);
-    setMessage(null);
-    try {
+  const handleOauth = (fn, label) =>
+    runAction(`oauth:${label}`, async () => {
       const { error } = await fn();
       if (error) throw error;
-    } catch (err) {
-      setMessage({ kind: 'error', text: err.message || `${label} sign-in failed.` });
-    } finally {
-      setBusy(false);
-    }
-  };
+    });
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -84,44 +145,37 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
       setMessage({ kind: 'error', text: 'Password must be at least 8 characters.' });
       return;
     }
-    setBusy(true);
-    setMessage(null);
-    try {
+    await runAction('submit', async () => {
       if (emailMode === 'magic') {
         const { error } = await signInWithOtp(email);
         if (error) throw error;
+        rememberEmail(email);
         setMessage({ kind: 'info', text: `Magic link sent to ${email}. Check your inbox.` });
         setPendingVerification(null);
       } else if (isSignUp) {
         const { error } = await signUpWithPassword(email, password, displayName);
         if (error) throw error;
+        rememberEmail(email);
         setMessage({ kind: 'info', text: `Check ${email} to confirm your account.` });
         setPendingVerification(email);
+        setResendAvailableAt(Date.now() + RESEND_COOLDOWN_MS);
       } else {
         const { error } = await signInWithPassword(email, password);
         if (error) throw error;
+        rememberEmail(email);
         onSignedIn?.();
       }
-    } catch (err) {
-      setMessage({ kind: 'error', text: err.message || 'Something went wrong.' });
-    } finally {
-      setBusy(false);
-    }
+    });
   };
 
   const handleResendVerification = async () => {
-    if (!pendingVerification) return;
-    setBusy(true);
-    setMessage(null);
-    try {
+    if (!pendingVerification || resendSecondsLeft > 0) return;
+    await runAction('resend', async () => {
       const { error } = await resendVerification(pendingVerification);
       if (error) throw error;
       setMessage({ kind: 'info', text: `Confirmation email resent to ${pendingVerification}.` });
-    } catch (err) {
-      setMessage({ kind: 'error', text: err.message || 'Could not resend email.' });
-    } finally {
-      setBusy(false);
-    }
+      setResendAvailableAt(Date.now() + RESEND_COOLDOWN_MS);
+    });
   };
 
   if (!isConfigured) {
@@ -154,6 +208,7 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
               size="lg"
               className="w-full"
               disabled={busy}
+              loading={busyTarget === 'oauth:Google'}
               onClick={() => handleOauth(signInWithGoogle, 'Google')}
             >
               <GoogleIcon />
@@ -165,6 +220,7 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
                 size="lg"
                 className="w-full"
                 disabled={busy}
+                loading={busyTarget === 'oauth:Apple'}
                 onClick={() => handleOauth(signInWithApple, 'Apple')}
               >
                 <AppleIcon />
@@ -230,13 +286,23 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
               <label className="flex flex-col gap-1">
                 <span className="text-label-12 text-[var(--modes-text-muted)] uppercase tracking-wider">Password</span>
                 <Input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete={isSignUp ? 'new-password' : 'current-password'}
                   required
                   minLength={isSignUp ? 8 : undefined}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  suffix={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(s => !s)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="bg-transparent border-none p-0 cursor-pointer text-[var(--modes-text-muted)] hover:text-[var(--modes-text)] transition-colors flex items-center"
+                    >
+                      <EyeIcon off={showPassword} />
+                    </button>
+                  }
                 />
                 {isSignUp && (
                   <span className={`text-label-12 mt-1 ${passwordTooShort ? 'text-[var(--ds-amber-900)]' : 'text-[var(--modes-text-dim)]'}`}>
@@ -250,7 +316,7 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
                     disabled={busy}
                     className="self-end mt-1 text-label-12 text-[var(--color-brand)] font-medium bg-transparent border-none p-0 cursor-pointer disabled:opacity-50"
                   >
-                    Forgot password?
+                    {busyTarget === 'reset' ? 'Sending…' : 'Forgot password?'}
                   </button>
                 )}
               </label>
@@ -258,6 +324,8 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
 
             {message && (
               <div
+                role="status"
+                aria-live="polite"
                 className={`text-copy-13 px-3 py-2 rounded-lg ${
                   message.kind === 'error'
                     ? 'bg-[var(--ds-red-100)] text-[var(--ds-red-1000)]'
@@ -269,16 +337,27 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
                   <button
                     type="button"
                     onClick={handleResendVerification}
-                    disabled={busy}
-                    className="block mt-2 text-label-12 font-semibold underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer disabled:opacity-50"
+                    disabled={busy || resendSecondsLeft > 0}
+                    className="block mt-2 text-label-12 font-semibold underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer disabled:no-underline disabled:opacity-60"
                   >
-                    Didn't get it? Resend email
+                    {busyTarget === 'resend'
+                      ? 'Resending…'
+                      : resendSecondsLeft > 0
+                        ? `Resend available in ${resendSecondsLeft}s`
+                        : "Didn't get it? Resend email"}
                   </button>
                 )}
               </div>
             )}
 
-            <Button type="submit" variant="brand" size="lg" className="w-full" disabled={busy || !email}>
+            <Button
+              type="submit"
+              variant="brand"
+              size="lg"
+              className="w-full"
+              disabled={busy || !email}
+              loading={busyTarget === 'submit'}
+            >
               {emailMode === 'magic'
                 ? 'Send magic link'
                 : isSignUp
