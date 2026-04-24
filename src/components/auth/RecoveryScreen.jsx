@@ -21,8 +21,14 @@ const EyeIcon = ({ off = false }) => (
 );
 
 function friendlyAuthError(err) {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return "You're offline. Check your connection and try again.";
+  }
   const raw = err?.message || '';
   const lower = raw.toLowerCase();
+  if (lower.includes('failed to fetch') || lower.includes('network request failed') || lower.includes('networkerror')) {
+    return "Couldn't reach the server. Check your connection and try again.";
+  }
   if (lower.includes('password should be at least')) return 'Password must be at least 8 characters.';
   if (lower.includes('same as the old password') || lower.includes('same password')) {
     return 'Please choose a different password than your current one.';
@@ -122,6 +128,7 @@ export default function RecoveryScreen({ onBack, onDone }) {
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
               placeholder="••••••••"
+              suffix={revealSuffix}
             />
             {mismatch && (
               <span className="text-label-12 text-[var(--ds-amber-900)]">Passwords don't match.</span>

@@ -208,6 +208,23 @@ The theme is applied by an effect in `App.jsx` that sets/clears `document.docume
 - Modulate objects in `section.lines[]` are detected via `typeof line === 'object' && line.type === 'modulate'`
 - Always check line type before calling `.trim()` on section lines (can be string, tab object, or modulate object)
 
+## Supabase Schema
+
+The signed-in experience depends on a `profiles` table with columns:
+`id`, `email`, `display_name`, `plan`, `preferences` (JSONB), `updated_at`.
+
+Migrations live in `supabase/migrations/`. Apply them with the Supabase
+CLI (`supabase db push`) or copy/paste the SQL into the project's SQL editor.
+
+- `20260424_add_profile_preferences.sql` — adds the `preferences` JSONB
+  column that account-level preference sync writes to. The client
+  gracefully falls back to the base profile select if this column is
+  missing, so sign-in still works before the migration is applied, but
+  cross-device pref sync is a no-op until it is.
+
+RLS must allow each user to `select`/`update` their own profile row
+(typical policy: `auth.uid() = id`).
+
 ## Known Gotchas
 
 - `section.lines[]` can contain **strings** (normal lines), **tab objects**, OR **modulate objects** — always type-check before calling string methods

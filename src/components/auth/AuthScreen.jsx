@@ -10,8 +10,16 @@ const RESEND_COOLDOWN_MS = 30_000;
 // Map the most common Supabase auth errors to copy our users can actually
 // act on. Falls through to the raw message when nothing matches.
 function friendlyAuthError(err) {
+  // Offline / transport failures come back as plain fetch errors with no
+  // useful message — surface a clear "you're offline" instead.
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return "You're offline. Check your connection and try again.";
+  }
   const raw = err?.message || '';
   const lower = raw.toLowerCase();
+  if (lower.includes('failed to fetch') || lower.includes('network request failed') || lower.includes('networkerror')) {
+    return "Couldn't reach the server. Check your connection and try again.";
+  }
   if (lower.includes('invalid login credentials')) return 'Wrong email or password.';
   if (lower.includes('user already registered')) return 'That email already has an account — try signing in instead.';
   if (lower.includes('email not confirmed')) return 'Please confirm your email before signing in.';
@@ -121,10 +129,7 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
   };
 
   const handleResetPassword = async () => {
-    if (!email) {
-      setMessage({ kind: 'error', text: 'Enter your email above, then tap "Forgot password?" again.' });
-      return;
-    }
+    if (!email) return; // Button is already disabled in this state.
     await runAction('reset', async () => {
       const { error } = await resetPassword(email);
       if (error) throw error;
@@ -313,8 +318,9 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
                   <button
                     type="button"
                     onClick={handleResetPassword}
-                    disabled={busy}
-                    className="self-end mt-1 text-label-12 text-[var(--color-brand)] font-medium bg-transparent border-none p-0 cursor-pointer disabled:opacity-50"
+                    disabled={busy || !email}
+                    title={!email ? 'Enter your email above to reset your password' : undefined}
+                    className="self-end mt-1 text-label-12 text-[var(--color-brand)] font-medium bg-transparent border-none p-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {busyTarget === 'reset' ? 'Sending…' : 'Forgot password?'}
                   </button>

@@ -3,11 +3,16 @@ import SyncSettings from './settings/SyncSettings';
 import PageHeader from './PageHeader';
 import { Button } from './ui/Button';
 
-const Section = ({ title, children }) => (
+const Section = ({ title, subtitle, children }) => (
   <section className="flex flex-col gap-4">
-    <h2 className="text-label-12 text-[var(--modes-text-dim)] uppercase tracking-wider font-semibold px-2">
-      {title}
-    </h2>
+    <div className="flex flex-col gap-1 px-2">
+      <h2 className="text-label-12 text-[var(--modes-text-dim)] uppercase tracking-wider font-semibold m-0">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="text-copy-13 text-[var(--modes-text-muted)] m-0">{subtitle}</p>
+      )}
+    </div>
     <div className="modes-card flex flex-col p-0 overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
       {children}
     </div>
@@ -64,7 +69,12 @@ export default function Settings({
       <div className="a4-container py-10 flex flex-col gap-12">
 
         {/* Appearance */}
-        <Section title="Appearance">
+        <Section
+          title="Appearance"
+          subtitle={isSignedIn
+            ? 'Synced to your account — changes follow you across devices.'
+            : 'Sign in to sync these preferences to every device you use.'}
+        >
           <Row label="Theme" description="System follows your device preference.">
             <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
               {[
