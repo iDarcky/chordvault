@@ -1,4 +1,4 @@
-import PageHeader from './PageHeader';
+import { useState, useEffect } from 'react';
 import {
   Greeting,
   AccountSummary,
@@ -7,6 +7,8 @@ import {
   CreateAccountButton,
   StatCards,
 } from './account/AccountPanel';
+
+const NAME_MAX = 15;
 
 export default function Account({
   settings,
@@ -21,41 +23,86 @@ export default function Account({
   onCreateAccount,
   onSignOut,
 }) {
-  const updateName = (value) => onUpdate({ ...settings, userName: value });
+  const savedName = settings?.userName || '';
+  const [draftName, setDraftName] = useState(savedName);
+
+  useEffect(() => {
+    setDraftName(savedName);
+  }, [savedName]);
+
+  const dirty = draftName !== savedName;
+  const saveName = () => {
+    if (!dirty) return;
+    onUpdate({ ...settings, userName: draftName });
+  };
 
   return (
-    <div data-theme-variant="modes" className="min-h-screen pb-8">
-      <PageHeader title="Account" />
-
-      <div className="a4-container py-10 flex flex-col gap-6">
-        <Greeting displayName={displayName} tone="modes" />
+    <div
+      className="drawer-panel min-h-screen pb-8"
+      style={{
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
+      }}
+    >
+      <div className="a4-container pt-6 pb-10 flex flex-col gap-6">
+        <Greeting displayName={displayName} tone="drawer" />
         <AccountSummary
           isSignedIn={isSignedIn}
           displayEmail={displayEmail}
           onSignOut={onSignOut}
-          tone="modes"
+          tone="drawer"
         />
-        <div className="modes-card p-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          className="rounded-xl border p-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"
+          style={{ background: 'var(--drawer-surface)', borderColor: 'var(--drawer-border)' }}
+        >
           <div className="flex flex-col">
-            <span className="text-copy-14 text-[var(--modes-text)] font-medium">Your Name</span>
-            <span className="text-copy-13 text-[var(--modes-text-muted)]">Used in the dashboard greeting.</span>
+            <span className="text-copy-14 font-medium" style={{ color: 'var(--drawer-text)' }}>Your Name</span>
+            <span className="text-copy-13" style={{ color: 'var(--drawer-text-muted)' }}>
+              Up to {NAME_MAX} characters. Used in the greeting.
+            </span>
           </div>
-          <input
-            type="text"
-            value={settings?.userName || ''}
-            onChange={e => updateName(e.target.value)}
-            placeholder="Guest"
-            className="h-8 px-3 rounded-lg border border-[var(--modes-border)] bg-[var(--modes-surface-strong)] text-copy-14 text-[var(--modes-text)] placeholder:text-[var(--modes-text-dim)] outline-none focus:border-[var(--color-brand)] transition-colors mt-2 sm:mt-0 sm:w-40"
-          />
+          <div className="flex items-center gap-2 mt-2 sm:mt-0">
+            <input
+              type="text"
+              value={draftName}
+              onChange={e => setDraftName(e.target.value.slice(0, NAME_MAX))}
+              onKeyDown={e => { if (e.key === 'Enter') saveName(); }}
+              maxLength={NAME_MAX}
+              placeholder="Guest"
+              className="h-8 px-3 rounded-lg border outline-none transition-colors text-copy-14 w-full sm:w-40"
+              style={{
+                background: 'var(--drawer-surface)',
+                borderColor: 'var(--drawer-border)',
+                color: 'var(--drawer-text)',
+              }}
+            />
+            <button
+              onClick={saveName}
+              disabled={!dirty}
+              aria-label="Save name"
+              className={`h-8 px-3 rounded-lg text-copy-13 font-medium border-none cursor-pointer transition-all duration-200 ease-out ${
+                dirty ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+              }`}
+              style={{
+                background: 'var(--color-brand)',
+                color: '#fff',
+              }}
+            >
+              Save
+            </button>
+          </div>
         </div>
-        <div className="modes-card-strong p-6 flex flex-col gap-4">
-          <PlanLabel plan={plan} tone="modes" />
+        <div
+          className="rounded-2xl border p-6 flex flex-col gap-4"
+          style={{ background: 'var(--drawer-surface)', borderColor: 'var(--drawer-border)' }}
+        >
+          <PlanLabel plan={plan} tone="drawer" />
           <UpgradePill onUpgrade={onUpgrade} />
           {!isSignedIn && (
-            <CreateAccountButton onCreateAccount={onCreateAccount} tone="modes" />
+            <CreateAccountButton onCreateAccount={onCreateAccount} tone="drawer" />
           )}
         </div>
-        <StatCards songCount={songCount} setlistCount={setlistCount} tone="modes" />
+        <StatCards songCount={songCount} setlistCount={setlistCount} tone="drawer" />
       </div>
     </div>
   );
