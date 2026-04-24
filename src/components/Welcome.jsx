@@ -1,6 +1,28 @@
 import { useRef } from 'react';
 import { Button } from './ui/Button';
 
+function ChordLine({ line }) {
+  const parts = [];
+  const regex = /(\[[^\]]+\])/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(line)) !== null) {
+    if (match.index > lastIndex) parts.push({ type: 'lyric', text: line.slice(lastIndex, match.index) });
+    parts.push({ type: 'chord', text: match[0] });
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < line.length) parts.push({ type: 'lyric', text: line.slice(lastIndex) });
+  return (
+    <div className="text-copy-13 leading-relaxed">
+      {parts.map((p, i) =>
+        p.type === 'chord'
+          ? <span key={i} className="font-bold" style={{ color: 'var(--chord)' }}>{p.text}</span>
+          : <span key={i} className="text-[var(--ds-gray-800)]">{p.text}</span>
+      )}
+    </div>
+  );
+}
+
 export default function Welcome({ onGetStarted, onImport, onSignIn }) {
   const fileRef = useRef(null);
 
@@ -26,13 +48,18 @@ export default function Welcome({ onGetStarted, onImport, onSignIn }) {
       />
 
       {/* Logo */}
-      <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-heading-32 mb-6 shadow-lg"
+      <div
+        className="w-20 h-20 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg"
         style={{
           background: 'linear-gradient(135deg, var(--color-brand), #6b9e91)',
           boxShadow: '0 8px 32px var(--color-brand-border)',
         }}
       >
-        CV
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 18V5l12-2v13" />
+          <circle cx="6" cy="18" r="3" />
+          <circle cx="18" cy="16" r="3" />
+        </svg>
       </div>
 
       {/* Title */}
@@ -45,6 +72,22 @@ export default function Welcome({ onGetStarted, onImport, onSignIn }) {
         Chord charts for worship teams
       </p>
 
+      {/* Mini chord chart preview */}
+      <div
+        className="mt-6 w-full max-w-xs rounded-xl px-4 py-3 border text-left"
+        style={{ background: 'var(--ds-background-100)', borderColor: 'var(--ds-gray-400)' }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-label-12 font-semibold text-[var(--ds-gray-700)]">Amazing Grace</span>
+          <span className="text-label-11 px-1.5 py-0.5 rounded font-semibold" style={{ background: 'var(--color-brand-soft)', color: 'var(--color-brand)' }}>G</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <ChordLine line="A[G]mazing [G7]grace, how [C]sweet the [G]sound" />
+          <ChordLine line="That saved a wretch like [D]me." />
+          <ChordLine line="I [G]once was [G7]lost, but [C]now I'm [G]found" />
+        </div>
+      </div>
+
       {/* Description */}
       <p className="text-copy-14 text-[var(--ds-gray-500)] text-center mt-4 max-w-xs leading-relaxed">
         Build chord charts, create setlists, transpose on the fly.
@@ -56,7 +99,7 @@ export default function Welcome({ onGetStarted, onImport, onSignIn }) {
         variant="brand"
         size="lg"
         onClick={onGetStarted}
-        className="mt-10 px-12"
+        className="mt-8 px-12"
       >
         Get Started
       </Button>
@@ -94,4 +137,3 @@ export default function Welcome({ onGetStarted, onImport, onSignIn }) {
     </div>
   );
 }
-

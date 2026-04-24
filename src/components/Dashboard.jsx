@@ -15,6 +15,7 @@ export default function Dashboard({
   onPlaySetlist,
   onGoLibrary,
   onGoSetlists,
+  onDismissFirstRun,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -159,6 +160,47 @@ export default function Dashboard({
 
 
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-8 flex flex-col gap-6 sm:gap-8">
+
+        {/* First-run guide card — shown until the user opens any song */}
+        {!settings?.firstSongOpened && songs.length > 0 && (
+          <div className="modes-card-strong relative overflow-hidden">
+            <button
+              type="button"
+              onClick={onDismissFirstRun}
+              className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer border-none"
+              style={{ background: 'transparent', color: 'var(--modes-text-dim)' }}
+              aria-label="Dismiss"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <div className="p-5 pr-10">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 rounded-full" style={{ background: 'var(--color-brand)' }} />
+                <span className="text-label-12 font-semibold uppercase tracking-widest" style={{ color: 'var(--color-brand)' }}>
+                  Get Started
+                </span>
+              </div>
+              <h3 className="text-heading-20 text-[var(--modes-text)] m-0 mb-1">
+                Try your first chord chart
+              </h3>
+              <p className="text-copy-13 text-[var(--modes-text-muted)] mb-4">
+                Open Amazing Grace, transpose it to your key, then hit Play.
+              </p>
+              <Button
+                variant="brand"
+                size="sm"
+                onClick={() => {
+                  const song = songs.find(s => s.title === 'Amazing Grace') || songs[0];
+                  if (song) onSelectSong(song);
+                }}
+              >
+                Open Amazing Grace →
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Upcoming Setlists */}
         <section className="flex flex-col gap-3 sm:gap-4">

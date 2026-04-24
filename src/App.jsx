@@ -432,7 +432,12 @@ export default function App() {
   // Navigation shortcuts
   const goLibrary = () => goToMainView('library');
   const goSetlists = () => goToMainView('setlists');
-  const goChart = (song) => navigate('chart', { song });
+  const goChart = (song) => {
+    if (!settings?.firstSongOpened) {
+      setSettings(prev => ({ ...prev, firstSongOpened: true }));
+    }
+    navigate('chart', { song });
+  };
   const goEditor = (song = null) => navigate('editor', { song });
   const goSetlistBuild = (sl = null) => navigate('setlist-build', { setlist: sl });
   const goSetlistView = (sl) => navigate('setlist-view', { setlist: sl });
@@ -658,6 +663,11 @@ export default function App() {
             setSettings(prev => ({ ...prev, onboardingComplete: true }));
             setView('home');
           }}
+          onSignIn={() => {
+            setSettings(prev => ({ ...prev, onboardingComplete: true }));
+            setAuthStartMode('signin');
+            setView('signin');
+          }}
         />
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
@@ -687,6 +697,7 @@ export default function App() {
               onPlaySetlist={goSetlistPerformance}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
+              onDismissFirstRun={() => setSettings(prev => ({ ...prev, firstSongOpened: true }))}
             />
           )}
           {view === 'library' && (
