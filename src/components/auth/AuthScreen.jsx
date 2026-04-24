@@ -22,7 +22,16 @@ const AppleIcon = () => (
 const APPLE_ENABLED = import.meta.env.VITE_ENABLE_APPLE_SIGNIN === 'true';
 
 export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' }) {
-  const { signInWithGoogle, signInWithApple, signInWithOtp, signInWithPassword, signUpWithPassword, resetPassword, isConfigured } = useAuth();
+  const {
+    signInWithGoogle,
+    signInWithApple,
+    signInWithOtp,
+    signInWithPassword,
+    signUpWithPassword,
+    resetPassword,
+    resendVerification,
+    isConfigured,
+  } = useAuth();
 
   const [mode, setMode] = useState(defaultMode); // 'signin' | 'signup'
   const [emailMode, setEmailMode] = useState('magic'); // 'magic' | 'password'
@@ -31,8 +40,12 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
   const [displayName, setDisplayName] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(null); // { kind: 'info' | 'error', text }
+  // Email address awaiting verification, set after a successful signup.
+  // Controls rendering of the "Didn't get the email? Resend" affordance.
+  const [pendingVerification, setPendingVerification] = useState(null);
 
   const isSignUp = mode === 'signup';
+  const passwordTooShort = isSignUp && emailMode === 'password' && password.length > 0 && password.length < 8;
 
   const handleResetPassword = async () => {
     if (!email) {
@@ -67,6 +80,10 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
+    if (isSignUp && emailMode === 'password' && password.length < 8) {
+      setMessage({ kind: 'error', text: 'Password must be at least 8 characters.' });
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
@@ -74,10 +91,12 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
         const { error } = await signInWithOtp(email);
         if (error) throw error;
         setMessage({ kind: 'info', text: `Magic link sent to ${email}. Check your inbox.` });
+        setPendingVerification(null);
       } else if (isSignUp) {
         const { error } = await signUpWithPassword(email, password, displayName);
         if (error) throw error;
         setMessage({ kind: 'info', text: `Check ${email} to confirm your account.` });
+        setPendingVerification(email);
       } else {
         const { error } = await signInWithPassword(email, password);
         if (error) throw error;
@@ -85,6 +104,21 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
       }
     } catch (err) {
       setMessage({ kind: 'error', text: err.message || 'Something went wrong.' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!pendingVerification) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { error } = await resendVerification(pendingVerification);
+      if (error) throw error;
+      setMessage({ kind: 'info', text: `Confirmation email resent to ${pendingVerification}.` });
+    } catch (err) {
+      setMessage({ kind: 'error', text: err.message || 'Could not resend email.' });
     } finally {
       setBusy(false);
     }
@@ -199,10 +233,16 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
                   type="password"
                   autoComplete={isSignUp ? 'new-password' : 'current-password'}
                   required
+                  minLength={isSignUp ? 8 : undefined}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
                 />
+                {isSignUp && (
+                  <span className={`text-label-12 mt-1 ${passwordTooShort ? 'text-[var(--ds-amber-900)]' : 'text-[var(--modes-text-dim)]'}`}>
+                    At least 8 characters.
+                  </span>
+                )}
                 {!isSignUp && (
                   <button
                     type="button"
@@ -225,6 +265,16 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
                 }`}
               >
                 {message.text}
+                {pendingVerification && message.kind === 'info' && (
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={busy}
+                    className="block mt-2 text-label-12 font-semibold underline underline-offset-4 bg-transparent border-none p-0 cursor-pointer disabled:opacity-50"
+                  >
+                    Didn't get it? Resend email
+                  </button>
+                )}
               </div>
             )}
 

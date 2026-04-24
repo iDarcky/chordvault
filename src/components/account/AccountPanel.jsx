@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '../ui/Button';
 
 const SparkleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -114,35 +115,17 @@ export function UpgradePill({ onUpgrade }) {
 
 export function SignInButton({ onSignIn }) {
   return (
-    <button
-      onClick={onSignIn}
-      className="w-full h-12 rounded-xl flex items-center justify-center gap-2 cursor-pointer border-none text-white font-semibold active:scale-[0.98] transition-transform duration-150"
-      style={{
-        background: 'var(--color-brand)',
-        WebkitTapHighlightColor: 'transparent',
-      }}
-    >
-      <span className="text-copy-15">Sign in</span>
-    </button>
+    <Button variant="brand" size="lg" className="w-full" onClick={onSignIn}>
+      Sign in
+    </Button>
   );
 }
 
-export function CreateAccountButton({ onCreateAccount, tone = 'modes' }) {
-  const v = tokens(tone);
+export function CreateAccountButton({ onCreateAccount }) {
   return (
-    <button
-      onClick={onCreateAccount}
-      className="w-full h-10 rounded-xl flex items-center justify-center gap-2 cursor-pointer bg-transparent border active:scale-[0.98] transition-all duration-150"
-      style={{
-        borderColor: v.border,
-        color: v.textMuted,
-        WebkitTapHighlightColor: 'transparent',
-      }}
-      onMouseEnter={e => (e.currentTarget.style.background = v.surface)}
-      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-    >
-      <span className="text-copy-13 font-medium">Create account</span>
-    </button>
+    <Button variant="secondary" size="md" className="w-full" onClick={onCreateAccount}>
+      Create account
+    </Button>
   );
 }
 

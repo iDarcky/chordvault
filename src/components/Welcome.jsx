@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Button } from './ui/Button';
 
-export default function Welcome({ onGetStarted, onImport }) {
+export default function Welcome({ onGetStarted, onImport, onSignIn }) {
   const fileRef = useRef(null);
 
   const handleFiles = async (e) => {
@@ -78,6 +78,19 @@ export default function Welcome({ onGetStarted, onImport }) {
         onChange={handleFiles}
         className="hidden"
       />
+
+      {onSignIn && (
+        <p className="mt-10 text-copy-13 text-[var(--ds-gray-600)] text-center">
+          Already have an account?{' '}
+          <button
+            type="button"
+            onClick={onSignIn}
+            className="text-[var(--color-brand)] font-semibold bg-transparent border-none p-0 cursor-pointer underline-offset-4 hover:underline"
+          >
+            Sign in
+          </button>
+        </p>
+      )}
     </div>
   );
 }

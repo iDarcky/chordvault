@@ -8,6 +8,7 @@ import {
   CreateAccountButton,
   StatCards,
 } from './account/AccountPanel';
+import { useAuth } from '../auth/useAuth';
 
 const NAME_MAX = 15;
 
@@ -25,7 +26,10 @@ export default function Account({
   onCreateAccount,
   onSignOut,
 }) {
-  const savedName = settings?.userName || '';
+  const { profile, updateProfile } = useAuth();
+  // Prefer the cloud display_name so the input matches what the rest of the UI
+  // shows for signed-in users; fall back to the local userName for guests.
+  const savedName = (isSignedIn ? profile?.display_name : settings?.userName) || settings?.userName || '';
   const [draftName, setDraftName] = useState(savedName);
 
   useEffect(() => {
@@ -33,9 +37,16 @@ export default function Account({
   }, [savedName]);
 
   const dirty = draftName !== savedName;
-  const saveName = () => {
+  const saveName = async () => {
     if (!dirty) return;
     onUpdate({ ...settings, userName: draftName });
+    if (isSignedIn) {
+      try {
+        await updateProfile({ display_name: draftName });
+      } catch (err) {
+        console.warn('[account] display_name sync failed:', err?.message || err);
+      }
+    }
   };
 
   return (
@@ -103,7 +114,7 @@ export default function Account({
           {!isSignedIn && (
             <>
               <SignInButton onSignIn={onSignIn} />
-              <CreateAccountButton onCreateAccount={onCreateAccount} tone="drawer" />
+              <CreateAccountButton onCreateAccount={onCreateAccount} />
             </>
           )}
         </div>

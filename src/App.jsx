@@ -64,6 +64,7 @@ const SmartImportDialog = lazy(() => import('./components/SmartImportDialog'));
 const HelpPage = lazy(() => import('./components/HelpPage'));
 const AuthScreen = lazy(() => import('./components/auth/AuthScreen'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
+const RecoveryScreen = lazy(() => import('./components/auth/RecoveryScreen'));
 const UpgradeScreen = lazy(() => import('./components/UpgradeScreen'));
 
 // Subset of local settings that gets mirrored to the user's cloud profile
@@ -106,9 +107,13 @@ export default function App() {
   const [tombstones, setTombstones] = useState({ songs: [], setlists: [] });
   const [view, setView] = useState(() => {
     // OAuth / magic-link callbacks land on /auth/callback. Detect that up
-    // front so the first render doesn't flash the Welcome screen.
-    if (typeof window !== 'undefined' && window.location.pathname === '/auth/callback') {
-      return 'auth-callback';
+    // front so the first render doesn't flash the Welcome screen. Password
+    // recovery links land on `/` with `type=recovery` in the fragment — show
+    // the RecoveryScreen so the user can set a new password before doing
+    // anything else.
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname === '/auth/callback') return 'auth-callback';
+      if (/type=recovery/.test(window.location.hash)) return 'recovery';
     }
     return 'loading';
   });
@@ -566,6 +571,19 @@ export default function App() {
     );
   }
 
+  if (view === 'recovery') {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[var(--ds-background-100)]" />}>
+          <RecoveryScreen
+            onBack={() => goToMainView('home')}
+            onDone={() => goToMainView('home')}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   if (!loaded) {
     return (
       <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
@@ -589,9 +607,14 @@ export default function App() {
     ? profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1)
     : 'Free';
   const handleSignOut = async () => {
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      const ok = window.confirm('Sign out? Your songs and setlists stay on this device.');
+      if (!ok) return;
+    }
     try {
       await signOut();
       toast({ title: 'Signed out' });
+      goToMainView('home');
     } catch (err) {
       toast({ title: 'Sign-out failed', description: err.message, variant: 'error' });
     }
@@ -622,6 +645,10 @@ export default function App() {
             handleImportSong(mdText);
             setSettings(prev => ({ ...prev, onboardingComplete: true }));
             setView('home');
+          }}
+          onSignIn={() => {
+            setAuthStartMode('signin');
+            setView('signin');
           }}
         />
       )}

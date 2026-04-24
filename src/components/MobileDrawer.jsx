@@ -205,7 +205,7 @@ export default function MobileDrawer({
           {!isSignedIn && (
             <>
               <SignInButton onSignIn={onSignIn} />
-              <CreateAccountButton onCreateAccount={onCreateAccount} tone="drawer" />
+              <CreateAccountButton onCreateAccount={onCreateAccount} />
             </>
           )}
         </div>

@@ -121,6 +121,18 @@ export function AuthProvider({ children }) {
           redirectTo: ROOT_REDIRECT_URL,
         });
       },
+      updatePassword: (newPassword) => {
+        guard();
+        return supabase.auth.updateUser({ password: newPassword });
+      },
+      resendVerification: (email) => {
+        guard();
+        return supabase.auth.resend({
+          type: 'signup',
+          email,
+          options: { emailRedirectTo: ROOT_REDIRECT_URL },
+        });
+      },
       signOut: async () => {
         guard();
         const result = await supabase.auth.signOut();
