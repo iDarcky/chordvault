@@ -2,9 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { AuthContext } from './AuthContext';
 
-const REDIRECT_URL = typeof window !== 'undefined'
-  ? `${window.location.origin}/auth/callback`
-  : undefined;
+const ORIGIN = typeof window !== 'undefined' ? window.location.origin : '';
+// OAuth providers land on a dedicated callback route so the PKCE exchange
+// completes deterministically. Magic links/password-reset emails land on the
+// app root instead — Supabase's detectSessionInUrl picks up the fragment and
+// App.jsx strips it from the URL, so the user never sees `/auth/callback#?…`.
+const REDIRECT_URL = ORIGIN ? `${ORIGIN}/auth/callback` : undefined;
+const ROOT_REDIRECT_URL = ORIGIN ? `${ORIGIN}/` : undefined;
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
@@ -33,6 +37,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Load / refresh the user's profile row whenever their identity changes.
+  // `preferences` is optional — if the column hasn't been migrated yet in a
+  // given project, we gracefully drop back to the base select so sign-in
+  // still works.
   useEffect(() => {
     if (!supabase) return;
     const uid = session?.user?.id ?? null;
@@ -42,14 +49,23 @@ export function AuthProvider({ children }) {
       queueMicrotask(() => setProfile(null));
       return;
     }
-    supabase
-      .from('profiles')
-      .select('id, email, display_name, plan')
-      .eq('id', uid)
-      .maybeSingle()
-      .then(({ data }) => {
-        setProfile(data ?? null);
-      });
+    (async () => {
+      const withPrefs = await supabase
+        .from('profiles')
+        .select('id, email, display_name, plan, preferences')
+        .eq('id', uid)
+        .maybeSingle();
+      if (!withPrefs.error) {
+        setProfile(withPrefs.data ?? null);
+        return;
+      }
+      const base = await supabase
+        .from('profiles')
+        .select('id, email, display_name, plan')
+        .eq('id', uid)
+        .maybeSingle();
+      setProfile(base.data ?? null);
+    })();
   }, [session?.user?.id]);
 
   const value = useMemo(() => {
@@ -81,7 +97,7 @@ export function AuthProvider({ children }) {
         guard();
         return supabase.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo: REDIRECT_URL },
+          options: { emailRedirectTo: ROOT_REDIRECT_URL },
         });
       },
       signInWithPassword: (email, password) => {
@@ -94,9 +110,27 @@ export function AuthProvider({ children }) {
           email,
           password,
           options: {
-            emailRedirectTo: REDIRECT_URL,
+            emailRedirectTo: ROOT_REDIRECT_URL,
             data: displayName ? { name: displayName } : undefined,
           },
+        });
+      },
+      resetPassword: (email) => {
+        guard();
+        return supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: ROOT_REDIRECT_URL,
+        });
+      },
+      updatePassword: (newPassword) => {
+        guard();
+        return supabase.auth.updateUser({ password: newPassword });
+      },
+      resendVerification: (email) => {
+        guard();
+        return supabase.auth.resend({
+          type: 'signup',
+          email,
+          options: { emailRedirectTo: ROOT_REDIRECT_URL },
         });
       },
       signOut: async () => {

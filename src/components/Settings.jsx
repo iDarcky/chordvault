@@ -3,11 +3,16 @@ import SyncSettings from './settings/SyncSettings';
 import PageHeader from './PageHeader';
 import { Button } from './ui/Button';
 
-const Section = ({ title, children }) => (
+const Section = ({ title, subtitle, children }) => (
   <section className="flex flex-col gap-4">
-    <h2 className="text-label-12 text-[var(--modes-text-dim)] uppercase tracking-wider font-semibold px-2">
-      {title}
-    </h2>
+    <div className="flex flex-col gap-1 px-2">
+      <h2 className="text-label-12 text-[var(--modes-text-dim)] uppercase tracking-wider font-semibold m-0">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="text-copy-13 text-[var(--modes-text-muted)] m-0">{subtitle}</p>
+      )}
+    </div>
     <div className="modes-card flex flex-col p-0 overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
       {children}
     </div>
@@ -39,6 +44,8 @@ export default function Settings({
   onRequestSignIn,
   onDesign,
   onHelp,
+  isSignedIn = false,
+  displayName = '',
 }) {
   const [detectingKey, setDetectingKey] = useState(null);
 
@@ -62,7 +69,12 @@ export default function Settings({
       <div className="a4-container py-10 flex flex-col gap-12">
 
         {/* Appearance */}
-        <Section title="Appearance">
+        <Section
+          title="Appearance"
+          subtitle={isSignedIn
+            ? 'Synced to your account — changes follow you across devices.'
+            : 'Sign in to sync these preferences to every device you use.'}
+        >
           <Row label="Theme" description="System follows your device preference.">
             <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
               {[
@@ -166,9 +178,12 @@ export default function Settings({
           </Row>
         </Section>
 
-        {/* About */}
+        {/* About — the heading is the account name for signed-in users so the
+            app feels personalised; falls back to the app name for guests. */}
         <div className="px-2 py-4 flex flex-col gap-2">
-          <h1 className="text-heading-20 text-[var(--modes-text)] m-0">Setlists MD</h1>
+          <h1 className="text-heading-20 text-[var(--modes-text)] m-0">
+            {isSignedIn && displayName ? displayName : 'Setlists MD'}
+          </h1>
           <p className="text-copy-14 text-[var(--modes-text-muted)] leading-relaxed max-w-sm">
             A minimalist, offline-first chord chart app built for speed.
             Your songs belong to you as simple markdown files.

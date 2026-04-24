@@ -64,18 +64,56 @@ const SmartImportDialog = lazy(() => import('./components/SmartImportDialog'));
 const HelpPage = lazy(() => import('./components/HelpPage'));
 const AuthScreen = lazy(() => import('./components/auth/AuthScreen'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
+const RecoveryScreen = lazy(() => import('./components/auth/RecoveryScreen'));
 const UpgradeScreen = lazy(() => import('./components/UpgradeScreen'));
 
+// Subset of local settings that gets mirrored to the user's cloud profile
+// (profiles.preferences). Device-local flags like onboardingComplete,
+// helpPageSeen, and the notification inbox are intentionally excluded.
+const PORTABLE_PREF_KEYS = [
+  'theme',
+  'defaultColumns',
+  'defaultFontSize',
+  'pedalNext',
+  'pedalPrev',
+  'showInlineNotes',
+  'inlineNoteStyle',
+  'displayRole',
+  'duplicateSections',
+  'chartLayout',
+  'userName',
+];
+
+function extractPortablePrefs(s) {
+  const out = {};
+  if (!s) return out;
+  for (const k of PORTABLE_PREF_KEYS) {
+    if (s[k] !== undefined) out[k] = s[k];
+  }
+  return out;
+}
+
+function prefsEqual(a, b) {
+  for (const k of PORTABLE_PREF_KEYS) {
+    if ((a?.[k] ?? null) !== (b?.[k] ?? null)) return false;
+  }
+  return true;
+}
+
 export default function App() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, updateProfile } = useAuth();
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
   const [tombstones, setTombstones] = useState({ songs: [], setlists: [] });
   const [view, setView] = useState(() => {
     // OAuth / magic-link callbacks land on /auth/callback. Detect that up
-    // front so the first render doesn't flash the Welcome screen.
-    if (typeof window !== 'undefined' && window.location.pathname === '/auth/callback') {
-      return 'auth-callback';
+    // front so the first render doesn't flash the Welcome screen. Password
+    // recovery links land on `/` with `type=recovery` in the fragment — show
+    // the RecoveryScreen so the user can set a new password before doing
+    // anything else.
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname === '/auth/callback') return 'auth-callback';
+      if (/type=recovery/.test(window.location.hash)) return 'recovery';
     }
     return 'loading';
   });
@@ -87,6 +125,7 @@ export default function App() {
   const [previewSongId, setPreviewSongId] = useState(null);
   const [previewSetlistId, setPreviewSetlistId] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [authStartMode, setAuthStartMode] = useState('signin');
   const [showSmartImport, setShowSmartImport] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerOpenKey, setDrawerOpenKey] = useState(0);
@@ -98,6 +137,8 @@ export default function App() {
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
   const quotaWarnedRef = useRef(false);
+  const prefsHydratedForUserRef = useRef(null);
+  const prefsPushTimerRef = useRef(null);
 
   // Initialize sync engine
   if (syncEngineRef.current == null) {
@@ -206,6 +247,70 @@ export default function App() {
   }, [setlists, loaded]);
   useEffect(() => { if (loaded) saveTombstones(tombstones); }, [tombstones, loaded]);
   useEffect(() => { if (loaded && settings) saveSettings(settings); }, [settings, loaded]);
+
+  // Clean up Supabase auth tokens from the URL after magic-link / password
+  // reset redirects. detectSessionInUrl consumes the fragment, but the string
+  // itself lingers in the address bar until we replaceState.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasAuthHash = window.location.hash && /(access_token|refresh_token|error_description|type=recovery)/.test(window.location.hash);
+    const hasAuthQuery = /[?&](code|error_description)=/.test(window.location.search);
+    if (!hasAuthHash && !hasAuthQuery) return;
+    // Defer so detectSessionInUrl (async) has a chance to consume tokens first.
+    const t = setTimeout(() => {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }, 150);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Hydrate local settings from the user's cloud preferences on sign-in —
+  // once per user id. Cloud is treated as source of truth for the portable
+  // subset; device-local fields stay untouched.
+  useEffect(() => {
+    if (!loaded || !settings || !user?.id || !profile) return;
+    if (prefsHydratedForUserRef.current === user.id) return;
+    prefsHydratedForUserRef.current = user.id;
+    const cloud = profile.preferences;
+    if (cloud && typeof cloud === 'object' && Object.keys(cloud).length > 0) {
+      setSettings(prev => ({ ...prev, ...cloud }));
+    }
+  }, [loaded, user?.id, profile, settings]);
+
+  // Forget hydration marker on sign-out so a later sign-in re-hydrates.
+  useEffect(() => {
+    if (!user?.id) prefsHydratedForUserRef.current = null;
+  }, [user?.id]);
+
+  // Push portable preference changes to the cloud (debounced, only after
+  // hydration so we don't clobber server state with local defaults).
+  useEffect(() => {
+    if (!loaded || !settings || !user?.id) return;
+    if (prefsHydratedForUserRef.current !== user.id) return;
+    const portable = extractPortablePrefs(settings);
+    if (prefsEqual(portable, profile?.preferences || {})) return;
+    clearTimeout(prefsPushTimerRef.current);
+    prefsPushTimerRef.current = setTimeout(() => {
+      updateProfile({ preferences: portable }).catch(err => {
+        console.warn('[prefs] cloud sync failed:', err?.message || err);
+      });
+    }, 800);
+    return () => clearTimeout(prefsPushTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    loaded,
+    user?.id,
+    settings?.theme,
+    settings?.defaultColumns,
+    settings?.defaultFontSize,
+    settings?.pedalNext,
+    settings?.pedalPrev,
+    settings?.showInlineNotes,
+    settings?.inlineNoteStyle,
+    settings?.displayRole,
+    settings?.duplicateSections,
+    settings?.chartLayout,
+    settings?.userName,
+  ]);
 
   // Sync on tab focus
   useEffect(() => {
@@ -466,6 +571,19 @@ export default function App() {
     );
   }
 
+  if (view === 'recovery') {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen bg-[var(--ds-background-100)]" />}>
+          <RecoveryScreen
+            onBack={() => goToMainView('home')}
+            onDone={() => goToMainView('home')}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   if (!loaded) {
     return (
       <div className="min-h-screen bg-[var(--ds-background-200)] flex items-center justify-center">
@@ -489,9 +607,14 @@ export default function App() {
     ? profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1)
     : 'Free';
   const handleSignOut = async () => {
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      const ok = window.confirm('Sign out? Your songs and setlists stay on this device.');
+      if (!ok) return;
+    }
     try {
       await signOut();
       toast({ title: 'Signed out' });
+      goToMainView('home');
     } catch (err) {
       toast({ title: 'Sign-out failed', description: err.message, variant: 'error' });
     }
@@ -502,7 +625,7 @@ export default function App() {
     <Suspense fallback={lazyFallback}>
       <Toaster />
       {view === 'signin' && (
-        <AuthScreen onBack={goBack} onSignedIn={() => goToMainView('home')} />
+        <AuthScreen onBack={goBack} onSignedIn={() => goToMainView('home')} defaultMode={authStartMode} />
       )}
       {view === 'upgrade' && (
         <UpgradeScreen onBack={goBack} />
@@ -523,6 +646,10 @@ export default function App() {
             setSettings(prev => ({ ...prev, onboardingComplete: true }));
             setView('home');
           }}
+          onSignIn={() => {
+            setAuthStartMode('signin');
+            setView('signin');
+          }}
         />
       )}
       {view === 'onboarding' && (
@@ -534,7 +661,7 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan} hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}>
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || (isFullscreen && (view === 'library' || view === 'setlists'))} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan} hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}>
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar
               key={view}
@@ -719,7 +846,9 @@ export default function App() {
               onSyncStateChange={setSyncState}
               onSyncNow={triggerSync} onDesign={() => setView("design")}
               onHelp={() => navigate('help')}
-              onRequestSignIn={() => navigate('signin')}
+              onRequestSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
+              isSignedIn={isSignedIn}
+              displayName={displayName}
             />
           )}
           {view === "account" && settings && (
@@ -733,7 +862,8 @@ export default function App() {
               songCount={songs.length}
               setlistCount={setlists.length}
               onUpgrade={() => navigate('upgrade')}
-              onCreateAccount={() => navigate('signin')}
+              onSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
+              onCreateAccount={() => { setAuthStartMode('signup'); navigate('signin'); }}
               onSignOut={handleSignOut}
             />
           )}
@@ -766,7 +896,8 @@ export default function App() {
           onOpenDesign={() => { setDrawerOpen(false); setView('design'); }}
           onSignOut={async () => { setDrawerOpen(false); await handleSignOut(); }}
           onUpgrade={() => { setDrawerOpen(false); navigate('upgrade'); }}
-          onCreateAccount={() => { setDrawerOpen(false); navigate('signin'); }}
+          onSignIn={() => { setDrawerOpen(false); setAuthStartMode('signin'); navigate('signin'); }}
+          onCreateAccount={() => { setDrawerOpen(false); setAuthStartMode('signup'); navigate('signin'); }}
         />
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
