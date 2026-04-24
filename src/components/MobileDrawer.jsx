@@ -1,4 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
+import {
+  StageGreeting,
+  AccountSummary,
+  PlanLabel,
+  UpgradePill,
+  CreateAccountButton,
+  StatCards,
+} from './account/AccountPanel';
 
 const CloseIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -40,12 +48,6 @@ const DesignIcon = () => (
   </svg>
 );
 
-const SparkleIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2l2.39 5.96L20.5 10l-5.58 2.72L12 19l-2.92-6.28L3.5 10l6.11-2.04L12 2z" />
-  </svg>
-);
-
 function Row({ icon: Icon, label, onClick, accessory }) {
   return (
     <button
@@ -62,6 +64,7 @@ function Row({ icon: Icon, label, onClick, accessory }) {
 
 export default function MobileDrawer({
   open,
+  openKey = 0,
   onClose,
   userName,
   email,
@@ -173,86 +176,42 @@ export default function MobileDrawer({
 
         {/* Greeting */}
         <div className="px-5 pt-4 pb-6">
-          <h1 className="text-[34px] leading-[40px] font-serif text-[var(--drawer-text)] m-0 tracking-tight">
-            You have a beautiful{' '}
-            <span className="italic">library</span>,{' '}
-            <span className="whitespace-nowrap">{displayName}</span>
-          </h1>
+          <StageGreeting key={openKey} displayName={displayName} tone="drawer" />
         </div>
 
         {/* Account */}
         {isSignedIn && (
           <div className="px-5">
-            <div className="flex items-baseline justify-between gap-3 mb-1.5">
-              <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)]">
-                Your Account
-              </div>
-              {onSignOut && (
-                <button
-                  onClick={onSignOut}
-                  className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-muted)] hover:text-[var(--drawer-text)] bg-transparent border-none p-0 cursor-pointer"
-                >
-                  Sign out
-                </button>
-              )}
-            </div>
-            <div className="text-copy-16 text-[var(--drawer-text)] truncate">{displayEmail}</div>
+            <AccountSummary
+              isSignedIn={isSignedIn}
+              displayEmail={displayEmail}
+              onSignOut={onSignOut}
+              tone="drawer"
+            />
           </div>
         )}
 
         {/* Plan */}
         <div className={`px-5 ${isSignedIn ? 'mt-5' : ''}`}>
-          <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)] mb-1.5">
-            Your Plan
-          </div>
-          <div className="text-copy-16 text-[var(--drawer-text)]">{plan} Plan</div>
+          <PlanLabel plan={plan} tone="drawer" />
         </div>
 
         {/* Upgrade pill */}
-        <div className="px-5 mt-6">
-          <button
-            onClick={onUpgrade}
-            className="w-full h-12 rounded-xl flex items-center justify-center gap-2 cursor-pointer border-none relative overflow-hidden"
-            style={{
-              background:
-                'linear-gradient(110deg, #fef3c7 0%, #f5d0fe 35%, #a5f3fc 70%, #fef3c7 100%)',
-              backgroundSize: '200% 100%',
-              animation: 'drawer-shimmer 4s linear infinite',
-              WebkitTapHighlightColor: 'transparent',
-            }}
-          >
-            <span className="text-fuchsia-700"><SparkleIcon /></span>
-            <span className="text-copy-15 font-semibold bg-gradient-to-r from-amber-700 via-fuchsia-700 to-cyan-700 bg-clip-text text-transparent">
-              Upgrade to Pro
-            </span>
-            <span className="text-fuchsia-700"><SparkleIcon /></span>
-          </button>
+        <div className="px-5 mt-6 flex flex-col gap-2">
+          <UpgradePill onUpgrade={onUpgrade} />
           {!isSignedIn && (
-            <button
-              onClick={onCreateAccount}
-              className="mt-2 w-full h-11 rounded-xl flex items-center justify-center gap-2 cursor-pointer bg-transparent border border-[var(--drawer-border)] text-[var(--drawer-text-muted)] hover:bg-[var(--drawer-surface)] active:scale-[0.98] transition-all duration-150"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <span className="text-copy-14 font-medium">Create account</span>
-            </button>
+            <CreateAccountButton onCreateAccount={onCreateAccount} tone="drawer" />
           )}
         </div>
 
         {/* Library stats */}
-        <div className="px-5 mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-[var(--drawer-surface)] border border-[var(--drawer-border)] p-4">
-            <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)]">Songs</div>
-            <div className="text-heading-24 text-[var(--drawer-text)] font-semibold mt-1">{songCount}</div>
-          </div>
-          <div className="rounded-xl bg-[var(--drawer-surface)] border border-[var(--drawer-border)] p-4">
-            <div className="text-label-11 uppercase tracking-[0.15em] text-[var(--drawer-text-dim)]">Setlists</div>
-            <div className="text-heading-24 text-[var(--drawer-text)] font-semibold mt-1">{setlistCount}</div>
-          </div>
+        <div className="px-5 mt-6">
+          <StatCards songCount={songCount} setlistCount={setlistCount} tone="drawer" />
         </div>
 
         {/* Nav rows */}
         <div className="px-5 mt-6 flex flex-col gap-2">
-          <Row icon={SettingsIcon} label="Settings" onClick={onOpenSettings} />
+          <Row icon={SettingsIcon} label="Preferences" onClick={onOpenSettings} />
           <Row
             icon={BellIcon}
             label="Notifications"
@@ -270,14 +229,6 @@ export default function MobileDrawer({
           <div className="text-label-11 text-[var(--drawer-text-faint)]">Setlists MD</div>
         </div>
       </aside>
-
-      {/* Local keyframes for shimmer */}
-      <style>{`
-        @keyframes drawer-shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
     </>
   );
 }

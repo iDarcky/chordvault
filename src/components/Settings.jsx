@@ -38,7 +38,7 @@ export default function Settings({
   onSyncNow,
   onRequestSignIn,
   onDesign,
-  onHelp
+  onHelp,
 }) {
   const [detectingKey, setDetectingKey] = useState(null);
 
@@ -57,22 +57,9 @@ export default function Settings({
 
   return (
     <div data-theme-variant="modes" className="min-h-screen pb-8">
-      <PageHeader title="Settings" />
+      <PageHeader title="Preferences" />
 
       <div className="a4-container py-10 flex flex-col gap-12">
-
-        {/* Profile */}
-        <Section title="Profile">
-          <Row label="Your Name" description="Used in the dashboard greeting.">
-            <input
-              type="text"
-              value={settings.userName || ''}
-              onChange={e => update('userName', e.target.value)}
-              placeholder="Guest"
-              className="h-8 px-3 rounded-lg border border-[var(--modes-border)] bg-[var(--modes-surface-strong)] text-copy-14 text-[var(--modes-text)] placeholder:text-[var(--modes-text-dim)] outline-none focus:border-[var(--color-brand)] transition-colors w-40"
-            />
-          </Row>
-        </Section>
 
         {/* Appearance */}
         <Section title="Appearance">
