@@ -4,6 +4,7 @@ import {
   AccountSummary,
   PlanLabel,
   UpgradePill,
+  SignInButton,
   CreateAccountButton,
   StatCards,
 } from './account/AccountPanel';
@@ -20,6 +21,7 @@ export default function Account({
   songCount = 0,
   setlistCount = 0,
   onUpgrade,
+  onSignIn,
   onCreateAccount,
   onSignOut,
 }) {
@@ -99,7 +101,10 @@ export default function Account({
           <PlanLabel plan={plan} tone="drawer" />
           <UpgradePill onUpgrade={onUpgrade} />
           {!isSignedIn && (
-            <CreateAccountButton onCreateAccount={onCreateAccount} tone="drawer" />
+            <>
+              <SignInButton onSignIn={onSignIn} />
+              <CreateAccountButton onCreateAccount={onCreateAccount} tone="drawer" />
+            </>
           )}
         </div>
         <StatCards songCount={songCount} setlistCount={setlistCount} tone="drawer" />

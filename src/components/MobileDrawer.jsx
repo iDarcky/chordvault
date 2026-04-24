@@ -4,6 +4,7 @@ import {
   AccountSummary,
   PlanLabel,
   UpgradePill,
+  SignInButton,
   CreateAccountButton,
   StatCards,
 } from './account/AccountPanel';
@@ -78,6 +79,7 @@ export default function MobileDrawer({
   onOpenHelp,
   onOpenDesign,
   onUpgrade,
+  onSignIn,
   onCreateAccount,
   onSignOut,
 }) {
@@ -196,11 +198,15 @@ export default function MobileDrawer({
           <PlanLabel plan={plan} tone="drawer" />
         </div>
 
-        {/* Upgrade pill */}
+        {/* Sign-in CTA stack for guests — big brand Sign in, smaller
+            Create account below. Upgrade pill sits above for context. */}
         <div className="px-5 mt-6 flex flex-col gap-2">
           <UpgradePill onUpgrade={onUpgrade} />
           {!isSignedIn && (
-            <CreateAccountButton onCreateAccount={onCreateAccount} tone="drawer" />
+            <>
+              <SignInButton onSignIn={onSignIn} />
+              <CreateAccountButton onCreateAccount={onCreateAccount} tone="drawer" />
+            </>
           )}
         </div>
 

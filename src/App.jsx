@@ -120,6 +120,7 @@ export default function App() {
   const [previewSongId, setPreviewSongId] = useState(null);
   const [previewSetlistId, setPreviewSetlistId] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [authStartMode, setAuthStartMode] = useState('signin');
   const [showSmartImport, setShowSmartImport] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerOpenKey, setDrawerOpenKey] = useState(0);
@@ -601,7 +602,7 @@ export default function App() {
     <Suspense fallback={lazyFallback}>
       <Toaster />
       {view === 'signin' && (
-        <AuthScreen onBack={goBack} onSignedIn={() => goToMainView('home')} />
+        <AuthScreen onBack={goBack} onSignedIn={() => goToMainView('home')} defaultMode={authStartMode} />
       )}
       {view === 'upgrade' && (
         <UpgradeScreen onBack={goBack} />
@@ -818,7 +819,7 @@ export default function App() {
               onSyncStateChange={setSyncState}
               onSyncNow={triggerSync} onDesign={() => setView("design")}
               onHelp={() => navigate('help')}
-              onRequestSignIn={() => navigate('signin')}
+              onRequestSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
               isSignedIn={isSignedIn}
               displayName={displayName}
             />
@@ -834,7 +835,8 @@ export default function App() {
               songCount={songs.length}
               setlistCount={setlists.length}
               onUpgrade={() => navigate('upgrade')}
-              onCreateAccount={() => navigate('signin')}
+              onSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
+              onCreateAccount={() => { setAuthStartMode('signup'); navigate('signin'); }}
               onSignOut={handleSignOut}
             />
           )}
@@ -867,7 +869,8 @@ export default function App() {
           onOpenDesign={() => { setDrawerOpen(false); setView('design'); }}
           onSignOut={async () => { setDrawerOpen(false); await handleSignOut(); }}
           onUpgrade={() => { setDrawerOpen(false); navigate('upgrade'); }}
-          onCreateAccount={() => { setDrawerOpen(false); navigate('signin'); }}
+          onSignIn={() => { setDrawerOpen(false); setAuthStartMode('signin'); navigate('signin'); }}
+          onCreateAccount={() => { setDrawerOpen(false); setAuthStartMode('signup'); navigate('signin'); }}
         />
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (

@@ -112,12 +112,27 @@ export function UpgradePill({ onUpgrade }) {
   );
 }
 
+export function SignInButton({ onSignIn }) {
+  return (
+    <button
+      onClick={onSignIn}
+      className="w-full h-12 rounded-xl flex items-center justify-center gap-2 cursor-pointer border-none text-white font-semibold active:scale-[0.98] transition-transform duration-150"
+      style={{
+        background: 'var(--color-brand)',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      <span className="text-copy-15">Sign in</span>
+    </button>
+  );
+}
+
 export function CreateAccountButton({ onCreateAccount, tone = 'modes' }) {
   const v = tokens(tone);
   return (
     <button
       onClick={onCreateAccount}
-      className="w-full h-11 rounded-xl flex items-center justify-center gap-2 cursor-pointer bg-transparent border active:scale-[0.98] transition-all duration-150"
+      className="w-full h-10 rounded-xl flex items-center justify-center gap-2 cursor-pointer bg-transparent border active:scale-[0.98] transition-all duration-150"
       style={{
         borderColor: v.border,
         color: v.textMuted,
@@ -126,7 +141,7 @@ export function CreateAccountButton({ onCreateAccount, tone = 'modes' }) {
       onMouseEnter={e => (e.currentTarget.style.background = v.surface)}
       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
     >
-      <span className="text-copy-14 font-medium">Create account</span>
+      <span className="text-copy-13 font-medium">Create account</span>
     </button>
   );
 }
