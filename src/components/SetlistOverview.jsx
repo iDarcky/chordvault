@@ -3,7 +3,7 @@ import { transposeKey } from '../music';
 import { Chip } from './ui/Chip';
 import { IconButton } from './ui/IconButton';
 
-export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay, onDelete, isFullscreen = false, onToggleFullscreen }) {
+export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay, onPractice, onDelete, isFullscreen = false, onToggleFullscreen }) {
   const getSong = (id) => songs.find(s => s.id === id);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -227,11 +227,27 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
         </div>
       )}
 
-      {/* ── FAB play button ── */}
+      {/* ── FAB buttons: Practice + Play ── */}
       <div
-        className="fixed right-6 z-[150]"
+        className="fixed right-6 z-[150] flex flex-col items-end gap-2"
         style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
       >
+        {onPractice && (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={onPractice}
+            onKeyDown={(e) => e.key === 'Enter' && onPractice?.()}
+            className="flex items-center gap-2 h-10 px-4 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] shadow-md cursor-pointer hover:bg-[var(--ds-background-100)] transition-all duration-150 active:scale-95 select-none"
+            aria-label="Practice setlist"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-900)]">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            <span className="text-label-13 font-semibold text-[var(--ds-gray-900)]">Practice</span>
+          </div>
+        )}
         <div
           role="button"
           tabIndex={0}

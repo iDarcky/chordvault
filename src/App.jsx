@@ -57,6 +57,8 @@ const Editor = lazy(() => import('./components/Editor'));
 const SetlistBuilder = lazy(() => import('./components/SetlistBuilder'));
 const SetlistPlayer = lazy(() => import('./components/SetlistPlayer'));
 const SetlistOverview = lazy(() => import('./components/SetlistOverview'));
+const PerformanceView = lazy(() => import('./components/PerformanceView'));
+const PracticeView = lazy(() => import('./components/PracticeView'));
 const LydianShowcase = lazy(() => import('./components/LydianShowcase'));
 const SmartImportDialog = lazy(() => import('./components/SmartImportDialog'));
 const HelpPage = lazy(() => import('./components/HelpPage'));
@@ -330,6 +332,8 @@ export default function App() {
   const goSetlistBuild = (sl = null) => navigate('setlist-build', { setlist: sl });
   const goSetlistView = (sl) => navigate('setlist-view', { setlist: sl });
   const goSetlistPlay = (sl) => navigate('setlist-play', { setlist: sl });
+  const goSetlistPerformance = (sl) => navigate('setlist-performance', { setlist: sl });
+  const goSetlistPractice = (sl) => navigate('setlist-practice', { setlist: sl });
 
   // Song CRUD
   const handleSaveSong = (song) => {
@@ -385,6 +389,26 @@ export default function App() {
     });
     goBack();
   };
+
+  const handleUpdateSong = useCallback((updatedSong) => {
+    setSongs(prev => {
+      const i = prev.findIndex(s => s.id === updatedSong.id);
+      if (i < 0) return prev;
+      const next = [...prev];
+      next[i] = { ...updatedSong, updatedAt: Date.now() };
+      return next;
+    });
+  }, []);
+
+  const handleUpdateSetlist = useCallback((updatedSetlist) => {
+    setSetlists(prev => {
+      const i = prev.findIndex(s => s.id === updatedSetlist.id);
+      if (i < 0) return prev;
+      const next = [...prev];
+      next[i] = updatedSetlist;
+      return next;
+    });
+  }, []);
 
   const handleDeleteSetlist = (id) => {
     setSetlists(prev => prev.filter(s => s.id !== id));
@@ -510,7 +534,7 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan}>
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan} hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}>
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar
               key={view}
@@ -533,7 +557,7 @@ export default function App() {
               onNewSong={() => goEditor()}
               onNewSetlist={() => goSetlistBuild()}
               onViewSetlist={goSetlistView}
-              onPlaySetlist={goSetlistPlay}
+              onPlaySetlist={goSetlistPerformance}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
             />
@@ -568,7 +592,7 @@ export default function App() {
               setlists={setlists}
               loaded={loaded}
               onViewSetlist={goSetlistView}
-              onPlaySetlist={goSetlistPlay}
+              onPlaySetlist={goSetlistPerformance}
               onNewSetlist={() => goSetlistBuild()}
               onImportSetlist={handleImportSetlist}
               previewSetlistId={previewSetlistId}
@@ -616,7 +640,8 @@ export default function App() {
               onBack={goBack}
               onEdit={() => goSetlistBuild(currentSetlist)}
               onExport={() => handleExportSetlist(currentSetlist)}
-              onPlay={() => goSetlistPlay(currentSetlist)}
+              onPlay={() => goSetlistPerformance(currentSetlist)}
+              onPractice={() => goSetlistPractice(currentSetlist)}
               onDelete={() => handleDeleteSetlist(currentSetlist.id)}
             />
           )}
@@ -640,6 +665,22 @@ export default function App() {
               inlineNoteStyle={settings?.inlineNoteStyle || 'dashes'}
               displayRole={settings?.displayRole || 'leader'}
               duplicateSections={settings?.duplicateSections || 'full'}
+            />
+          )}
+          {view === 'setlist-performance' && currentSetlist && (
+            <PerformanceView
+              setlist={currentSetlist}
+              songs={songs}
+              onBack={goBack}
+            />
+          )}
+          {view === 'setlist-practice' && currentSetlist && (
+            <PracticeView
+              setlist={currentSetlist}
+              songs={songs}
+              onBack={goBack}
+              onUpdateSong={handleUpdateSong}
+              onUpdateSetlist={handleUpdateSetlist}
             />
           )}
           {view === "design" && (
