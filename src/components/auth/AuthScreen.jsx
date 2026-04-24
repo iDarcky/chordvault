@@ -22,7 +22,7 @@ const AppleIcon = () => (
 const APPLE_ENABLED = import.meta.env.VITE_ENABLE_APPLE_SIGNIN === 'true';
 
 export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' }) {
-  const { signInWithGoogle, signInWithApple, signInWithOtp, signInWithPassword, signUpWithPassword, isConfigured } = useAuth();
+  const { signInWithGoogle, signInWithApple, signInWithOtp, signInWithPassword, signUpWithPassword, resetPassword, isConfigured } = useAuth();
 
   const [mode, setMode] = useState(defaultMode); // 'signin' | 'signup'
   const [emailMode, setEmailMode] = useState('magic'); // 'magic' | 'password'
@@ -33,6 +33,24 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
   const [message, setMessage] = useState(null); // { kind: 'info' | 'error', text }
 
   const isSignUp = mode === 'signup';
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setMessage({ kind: 'error', text: 'Enter your email above, then tap "Forgot password?" again.' });
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { error } = await resetPassword(email);
+      if (error) throw error;
+      setMessage({ kind: 'info', text: `Password reset link sent to ${email}.` });
+    } catch (err) {
+      setMessage({ kind: 'error', text: err.message || 'Could not send reset email.' });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleOauth = async (fn, label) => {
     setBusy(true);
@@ -185,6 +203,16 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
                 />
+                {!isSignUp && (
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={busy}
+                    className="self-end mt-1 text-label-12 text-[var(--color-brand)] font-medium bg-transparent border-none p-0 cursor-pointer disabled:opacity-50"
+                  >
+                    Forgot password?
+                  </button>
+                )}
               </label>
             )}
 
@@ -200,25 +228,25 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
               </div>
             )}
 
-            <Button type="submit" variant="brand" size="lg" disabled={busy || !email}>
+            <Button type="submit" variant="brand" size="lg" className="w-full" disabled={busy || !email}>
               {emailMode === 'magic'
                 ? 'Send magic link'
                 : isSignUp
                   ? 'Create account'
                   : 'Sign in'}
             </Button>
-          </form>
 
-          <div className="text-center text-copy-14 text-[var(--modes-text-muted)]">
-            {isSignUp ? 'Already have an account?' : "New here?"}{' '}
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="md"
+              className="w-full"
+              disabled={busy}
               onClick={() => { setMode(isSignUp ? 'signin' : 'signup'); setMessage(null); }}
-              className="text-[var(--color-brand)] font-semibold bg-transparent border-none p-0 cursor-pointer"
             >
-              {isSignUp ? 'Sign in' : 'Create an account'}
-            </button>
-          </div>
+              {isSignUp ? 'Sign in instead' : 'Create an account'}
+            </Button>
+          </form>
         </div>
       </div>
     </div>

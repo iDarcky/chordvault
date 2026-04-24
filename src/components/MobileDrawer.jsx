@@ -224,9 +224,12 @@ export default function MobileDrawer({
           <Row icon={DesignIcon} label="Design" onClick={onOpenDesign} />
         </div>
 
-        {/* Footer */}
+        {/* Footer — surfaces the signed-in account name as the primary brand
+            label; falls back to the app name for guests. */}
         <div className="mt-auto px-5 pt-8 text-center">
-          <div className="text-label-11 text-[var(--drawer-text-faint)]">Setlists MD</div>
+          <div className="text-label-11 text-[var(--drawer-text-faint)]">
+            {isSignedIn ? displayName : 'Setlists MD'}
+          </div>
         </div>
       </aside>
     </>

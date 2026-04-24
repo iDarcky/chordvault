@@ -39,6 +39,8 @@ export default function Settings({
   onRequestSignIn,
   onDesign,
   onHelp,
+  isSignedIn = false,
+  displayName = '',
 }) {
   const [detectingKey, setDetectingKey] = useState(null);
 
@@ -166,9 +168,12 @@ export default function Settings({
           </Row>
         </Section>
 
-        {/* About */}
+        {/* About — the heading is the account name for signed-in users so the
+            app feels personalised; falls back to the app name for guests. */}
         <div className="px-2 py-4 flex flex-col gap-2">
-          <h1 className="text-heading-20 text-[var(--modes-text)] m-0">Setlists MD</h1>
+          <h1 className="text-heading-20 text-[var(--modes-text)] m-0">
+            {isSignedIn && displayName ? displayName : 'Setlists MD'}
+          </h1>
           <p className="text-copy-14 text-[var(--modes-text-muted)] leading-relaxed max-w-sm">
             A minimalist, offline-first chord chart app built for speed.
             Your songs belong to you as simple markdown files.

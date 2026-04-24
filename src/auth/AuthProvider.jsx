@@ -2,9 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { AuthContext } from './AuthContext';
 
-const REDIRECT_URL = typeof window !== 'undefined'
-  ? `${window.location.origin}/auth/callback`
-  : undefined;
+const ORIGIN = typeof window !== 'undefined' ? window.location.origin : '';
+// OAuth providers land on a dedicated callback route so the PKCE exchange
+// completes deterministically. Magic links/password-reset emails land on the
+// app root instead — Supabase's detectSessionInUrl picks up the fragment and
+// App.jsx strips it from the URL, so the user never sees `/auth/callback#?…`.
+const REDIRECT_URL = ORIGIN ? `${ORIGIN}/auth/callback` : undefined;
+const ROOT_REDIRECT_URL = ORIGIN ? `${ORIGIN}/` : undefined;
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
@@ -44,7 +48,7 @@ export function AuthProvider({ children }) {
     }
     supabase
       .from('profiles')
-      .select('id, email, display_name, plan')
+      .select('id, email, display_name, plan, preferences')
       .eq('id', uid)
       .maybeSingle()
       .then(({ data }) => {
@@ -81,7 +85,7 @@ export function AuthProvider({ children }) {
         guard();
         return supabase.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo: REDIRECT_URL },
+          options: { emailRedirectTo: ROOT_REDIRECT_URL },
         });
       },
       signInWithPassword: (email, password) => {
@@ -94,9 +98,15 @@ export function AuthProvider({ children }) {
           email,
           password,
           options: {
-            emailRedirectTo: REDIRECT_URL,
+            emailRedirectTo: ROOT_REDIRECT_URL,
             data: displayName ? { name: displayName } : undefined,
           },
+        });
+      },
+      resetPassword: (email) => {
+        guard();
+        return supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: ROOT_REDIRECT_URL,
         });
       },
       signOut: async () => {

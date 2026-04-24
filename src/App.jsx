@@ -66,8 +66,41 @@ const AuthScreen = lazy(() => import('./components/auth/AuthScreen'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
 const UpgradeScreen = lazy(() => import('./components/UpgradeScreen'));
 
+// Subset of local settings that gets mirrored to the user's cloud profile
+// (profiles.preferences). Device-local flags like onboardingComplete,
+// helpPageSeen, and the notification inbox are intentionally excluded.
+const PORTABLE_PREF_KEYS = [
+  'theme',
+  'defaultColumns',
+  'defaultFontSize',
+  'pedalNext',
+  'pedalPrev',
+  'showInlineNotes',
+  'inlineNoteStyle',
+  'displayRole',
+  'duplicateSections',
+  'chartLayout',
+  'userName',
+];
+
+function extractPortablePrefs(s) {
+  const out = {};
+  if (!s) return out;
+  for (const k of PORTABLE_PREF_KEYS) {
+    if (s[k] !== undefined) out[k] = s[k];
+  }
+  return out;
+}
+
+function prefsEqual(a, b) {
+  for (const k of PORTABLE_PREF_KEYS) {
+    if ((a?.[k] ?? null) !== (b?.[k] ?? null)) return false;
+  }
+  return true;
+}
+
 export default function App() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, updateProfile } = useAuth();
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
   const [tombstones, setTombstones] = useState({ songs: [], setlists: [] });
@@ -98,6 +131,8 @@ export default function App() {
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
   const quotaWarnedRef = useRef(false);
+  const prefsHydratedForUserRef = useRef(null);
+  const prefsPushTimerRef = useRef(null);
 
   // Initialize sync engine
   if (syncEngineRef.current == null) {
@@ -206,6 +241,70 @@ export default function App() {
   }, [setlists, loaded]);
   useEffect(() => { if (loaded) saveTombstones(tombstones); }, [tombstones, loaded]);
   useEffect(() => { if (loaded && settings) saveSettings(settings); }, [settings, loaded]);
+
+  // Clean up Supabase auth tokens from the URL after magic-link / password
+  // reset redirects. detectSessionInUrl consumes the fragment, but the string
+  // itself lingers in the address bar until we replaceState.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasAuthHash = window.location.hash && /(access_token|refresh_token|error_description|type=recovery)/.test(window.location.hash);
+    const hasAuthQuery = /[?&](code|error_description)=/.test(window.location.search);
+    if (!hasAuthHash && !hasAuthQuery) return;
+    // Defer so detectSessionInUrl (async) has a chance to consume tokens first.
+    const t = setTimeout(() => {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }, 150);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Hydrate local settings from the user's cloud preferences on sign-in —
+  // once per user id. Cloud is treated as source of truth for the portable
+  // subset; device-local fields stay untouched.
+  useEffect(() => {
+    if (!loaded || !settings || !user?.id || !profile) return;
+    if (prefsHydratedForUserRef.current === user.id) return;
+    prefsHydratedForUserRef.current = user.id;
+    const cloud = profile.preferences;
+    if (cloud && typeof cloud === 'object' && Object.keys(cloud).length > 0) {
+      setSettings(prev => ({ ...prev, ...cloud }));
+    }
+  }, [loaded, user?.id, profile, settings]);
+
+  // Forget hydration marker on sign-out so a later sign-in re-hydrates.
+  useEffect(() => {
+    if (!user?.id) prefsHydratedForUserRef.current = null;
+  }, [user?.id]);
+
+  // Push portable preference changes to the cloud (debounced, only after
+  // hydration so we don't clobber server state with local defaults).
+  useEffect(() => {
+    if (!loaded || !settings || !user?.id) return;
+    if (prefsHydratedForUserRef.current !== user.id) return;
+    const portable = extractPortablePrefs(settings);
+    if (prefsEqual(portable, profile?.preferences || {})) return;
+    clearTimeout(prefsPushTimerRef.current);
+    prefsPushTimerRef.current = setTimeout(() => {
+      updateProfile({ preferences: portable }).catch(err => {
+        console.warn('[prefs] cloud sync failed:', err?.message || err);
+      });
+    }, 800);
+    return () => clearTimeout(prefsPushTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    loaded,
+    user?.id,
+    settings?.theme,
+    settings?.defaultColumns,
+    settings?.defaultFontSize,
+    settings?.pedalNext,
+    settings?.pedalPrev,
+    settings?.showInlineNotes,
+    settings?.inlineNoteStyle,
+    settings?.displayRole,
+    settings?.duplicateSections,
+    settings?.chartLayout,
+    settings?.userName,
+  ]);
 
   // Sync on tab focus
   useEffect(() => {
@@ -534,7 +633,7 @@ export default function App() {
         />
       )}
       {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={isFullscreen && (view === 'library' || view === 'setlists')} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan} hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}>
+        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || (isFullscreen && (view === 'library' || view === 'setlists'))} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan} hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}>
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar
               key={view}
@@ -720,6 +819,8 @@ export default function App() {
               onSyncNow={triggerSync} onDesign={() => setView("design")}
               onHelp={() => navigate('help')}
               onRequestSignIn={() => navigate('signin')}
+              isSignedIn={isSignedIn}
+              displayName={displayName}
             />
           )}
           {view === "account" && settings && (
