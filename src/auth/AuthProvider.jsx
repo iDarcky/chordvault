@@ -37,6 +37,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Load / refresh the user's profile row whenever their identity changes.
+  // `preferences` is optional — if the column hasn't been migrated yet in a
+  // given project, we gracefully drop back to the base select so sign-in
+  // still works.
   useEffect(() => {
     if (!supabase) return;
     const uid = session?.user?.id ?? null;
@@ -46,14 +49,23 @@ export function AuthProvider({ children }) {
       queueMicrotask(() => setProfile(null));
       return;
     }
-    supabase
-      .from('profiles')
-      .select('id, email, display_name, plan, preferences')
-      .eq('id', uid)
-      .maybeSingle()
-      .then(({ data }) => {
-        setProfile(data ?? null);
-      });
+    (async () => {
+      const withPrefs = await supabase
+        .from('profiles')
+        .select('id, email, display_name, plan, preferences')
+        .eq('id', uid)
+        .maybeSingle();
+      if (!withPrefs.error) {
+        setProfile(withPrefs.data ?? null);
+        return;
+      }
+      const base = await supabase
+        .from('profiles')
+        .select('id, email, display_name, plan')
+        .eq('id', uid)
+        .maybeSingle();
+      setProfile(base.data ?? null);
+    })();
   }, [session?.user?.id]);
 
   const value = useMemo(() => {
