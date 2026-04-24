@@ -676,8 +676,10 @@ export default function App() {
               onRequestSignIn={() => navigate('signin')}
             />
           )}
-          {view === "account" && (
+          {view === "account" && settings && (
             <Account
+              settings={settings}
+              onUpdate={setSettings}
               isSignedIn={isSignedIn}
               displayName={displayName}
               displayEmail={displayEmail}
