@@ -11,6 +11,7 @@ import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
 import Settings from './components/Settings';
+import Account from './components/Account';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
 import DesktopLayout from './components/DesktopLayout';
@@ -673,16 +674,22 @@ export default function App() {
               onSyncNow={triggerSync} onDesign={() => setView("design")}
               onHelp={() => navigate('help')}
               onRequestSignIn={() => navigate('signin')}
+            />
+          )}
+          {view === "account" && (
+            <Account
               isSignedIn={isSignedIn}
               displayName={displayName}
               displayEmail={displayEmail}
               plan={plan}
+              songCount={songs.length}
+              setlistCount={setlists.length}
               onUpgrade={() => navigate('upgrade')}
               onCreateAccount={() => navigate('signin')}
               onSignOut={handleSignOut}
             />
           )}
-          {['home', 'library', 'setlists', 'settings', 'setlist-view'].includes(view) && (
+          {['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view) && (
             <BottomNav
               activeView={view === 'setlist-view' ? 'setlists' : view}
               onNavigate={goToMainView}

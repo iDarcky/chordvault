@@ -84,9 +84,13 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
       <aside className="h-[100dvh] hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
         {/* Profile */}
         <button
-          onClick={() => onNavigate('settings')}
-          aria-label="Account settings"
-          className="flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0 bg-transparent border-none cursor-pointer rounded-lg py-1 hover:bg-[var(--ds-gray-200)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] transition-colors text-left"
+          onClick={() => onNavigate('account')}
+          aria-label="Account"
+          className={`flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0 bg-transparent border-none cursor-pointer rounded-lg py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] transition-colors text-left ${
+            activeView === 'account'
+              ? 'bg-[var(--ds-teal-100)]'
+              : 'hover:bg-[var(--ds-gray-200)]'
+          }`}
         >
           <div className="w-9 h-9 rounded-full bg-[var(--ds-gray-300)] flex items-center justify-center shrink-0">
             <UserIcon />
@@ -136,7 +140,7 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
             className={navButtonClass(activeView === 'settings')}
           >
             <SettingsIcon />
-            <span className={`hidden xl:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Settings</span>
+            <span className={`hidden xl:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Preferences</span>
           </button>
         </div>
 

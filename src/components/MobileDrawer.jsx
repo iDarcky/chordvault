@@ -210,7 +210,7 @@ export default function MobileDrawer({
 
         {/* Nav rows */}
         <div className="px-5 mt-6 flex flex-col gap-2">
-          <Row icon={SettingsIcon} label="Settings" onClick={onOpenSettings} />
+          <Row icon={SettingsIcon} label="Preferences" onClick={onOpenSettings} />
           <Row
             icon={BellIcon}
             label="Notifications"
