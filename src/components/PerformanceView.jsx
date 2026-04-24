@@ -89,7 +89,7 @@ export default function PerformanceView({ setlist, songs, onBack }) {
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       {/* ── Minimal sticky header ── */}
-      <div className="material-header sticky top-0 z-50">
+      <div className="material-header" style={{ zIndex: 50 }}>
         <div className="a4-container flex items-center gap-2 py-3">
           {/* Back */}
           <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Back">

@@ -7,7 +7,7 @@ export default function FloatingNavPill({ current, total, nextLabel, onPrev, onN
       <div
         className="pointer-events-auto flex items-stretch h-16 rounded-2xl border border-[var(--ds-gray-400)] shadow-xl overflow-hidden select-none"
         style={{
-          background: 'var(--ds-background-200)',
+          background: 'var(--header-bg-blur)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           minWidth: '240px',
