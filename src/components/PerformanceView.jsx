@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { transposeKey, ALL_KEYS, semitonesBetween } from '../music';
 import SectionBlock from './SectionBlock';
+import { StructureRibbon } from './StructureRibbon';
 import FloatingNavPill from './ui/FloatingNavPill';
 import { IconButton } from './ui/IconButton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/Select';
@@ -134,6 +135,9 @@ export default function PerformanceView({ setlist, songs, onBack }) {
             </div>
           )}
 
+          {/* Separator */}
+          <div className="w-px h-5 bg-[var(--ds-gray-400)] shrink-0" />
+
           {/* Overflow: font size + columns */}
           <div className="relative" ref={overflowRef}>
             <IconButton
@@ -185,6 +189,20 @@ export default function PerformanceView({ setlist, songs, onBack }) {
             )}
           </div>
         </div>
+
+        {/* Structure ribbon — only for songs */}
+        {!cur.isBreak && cur.song.sections?.length > 0 && (
+          <div className="a4-container pb-2 pt-0">
+            <StructureRibbon
+              structure={cur.song.sections.map(s => s.type)}
+              compact
+              onSelect={(i) => {
+                const el = document.getElementById(`perf-section-${i}`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* ── Content ── */}
@@ -246,7 +264,7 @@ function SongChart({ song, selectedKey, fontSize, columns }) {
       }}
     >
       {song.sections.map((section, i) => (
-        <div key={section.id || i} style={{ breakInside: 'avoid' }}>
+        <div key={section.id || i} id={`perf-section-${i}`} style={{ breakInside: 'avoid', scrollMarginTop: '7rem' }}>
           <SectionBlock
             section={section}
             transpose={transpose}

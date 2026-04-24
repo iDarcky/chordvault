@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { transposeKey, ALL_KEYS, semitonesBetween } from '../music';
 import SectionBlock from './SectionBlock';
+import { StructureRibbon } from './StructureRibbon';
 import FloatingNavPill from './ui/FloatingNavPill';
 import { IconButton } from './ui/IconButton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/Select';
@@ -228,6 +229,20 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
             )}
           </div>
         </div>
+
+        {/* Structure ribbon — only for songs */}
+        {!cur.isBreak && cur.song.sections?.length > 0 && (
+          <div className="a4-container pb-2 pt-0">
+            <StructureRibbon
+              structure={cur.song.sections.map(s => s.type)}
+              compact
+              onSelect={(i) => {
+                const el = document.getElementById(`practice-section-${i}`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* ── Content ── */}
@@ -299,7 +314,7 @@ function PracticeChart({ song, selectedKey, fontSize, columns, onSaveCue }) {
       }}
     >
       {song.sections.map((section, i) => (
-        <div key={section.id || i}>
+        <div key={section.id || i} id={`practice-section-${i}`} style={{ scrollMarginTop: '7rem' }}>
           <SectionBlock
             section={section}
             transpose={transpose}
