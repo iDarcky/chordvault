@@ -6,8 +6,7 @@ import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSet
 import { DEMO_SONGS_MD } from './data/demos';
 import { createSyncEngine } from './sync/engine';
 import { getSyncState } from './sync/tokens';
-import Welcome from './components/Welcome';
-import Onboarding from './components/Onboarding';
+import OnboardingFlow from './onboarding/OnboardingFlow';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
 import Settings from './components/Settings';
@@ -189,8 +188,8 @@ export default function App() {
       setSettings(savedSettings);
 
       // Determine initial view based on onboarding state
-      if (savedSongs.length === 0 && !savedSettings.onboardingComplete) {
-        setView('welcome');
+      if (!savedSettings.onboardingComplete && savedSongs.length === 0) {
+        setView('onboarding');
       } else if (!savedSettings.onboardingComplete) {
         // Existing user who predates onboarding — skip it, go to home
         savedSettings.onboardingComplete = true;
@@ -442,17 +441,27 @@ export default function App() {
   const goSetlistBuild = (sl = null) => navigate('setlist-build', { setlist: sl });
   const goSetlistView = (sl) => navigate('setlist-view', { setlist: sl });
   const goSetlistPlay = (sl) => navigate('setlist-play', { setlist: sl });
-  const goSetlistPerformance = (sl) => navigate('setlist-performance', { setlist: sl });
+  const goSetlistPerformance = (sl) => {
+    if (!settings?.firstStageMode) {
+      setSettings(prev => ({ ...prev, firstStageMode: true }));
+    }
+    navigate('setlist-performance', { setlist: sl });
+  };
   const goSetlistPractice = (sl) => navigate('setlist-practice', { setlist: sl });
 
   // Song CRUD
   const handleSaveSong = (song) => {
     const stamped = { ...song, updatedAt: Date.now() };
+    let isNew = false;
     setSongs(prev => {
       const idx = prev.findIndex(s => s.id === song.id);
       if (idx >= 0) { const n = [...prev]; n[idx] = stamped; return n; }
+      isNew = true;
       return [...prev, stamped];
     });
+    if (isNew && !settings?.firstSongAdded) {
+      setSettings(prev => ({ ...prev, firstSongAdded: true }));
+    }
     // After save, pop the stale chart entry that was pushed when entering the editor,
     // then navigate to chart with the updated song (no new history entry)
     historyRef.current.pop();
@@ -497,6 +506,9 @@ export default function App() {
       if (idx >= 0) { const n = [...prev]; n[idx] = sl; return n; }
       return [...prev, sl];
     });
+    if (!settings?.firstSetlistBuilt) {
+      setSettings(prev => ({ ...prev, firstSetlistBuilt: true }));
+    }
     goBack();
   };
 
@@ -635,32 +647,24 @@ export default function App() {
       {view === 'upgrade' && (
         <UpgradeScreen onBack={goBack} />
       )}
-      {view === 'welcome' && (
-        <Welcome
-          onGetStarted={() => {
-            const demos = DEMO_SONGS_MD.map(md => ({
-              ...parseSongMd(md),
-              id: generateId(),
-            }));
-            setSongs(demos);
-            saveSongs(demos);
-            setView('onboarding');
-          }}
-          onImport={(mdText) => {
-            handleImportSong(mdText);
-            setSettings(prev => ({ ...prev, onboardingComplete: true }));
-            setView('home');
-          }}
-          onSignIn={() => {
-            setAuthStartMode('signin');
-            setView('signin');
-          }}
-        />
-      )}
       {view === 'onboarding' && (
-        <Onboarding
-          onComplete={() => {
-            setSettings(prev => ({ ...prev, onboardingComplete: true }));
+        <OnboardingFlow
+          onComplete={(quiz) => {
+            // Inject demos if not already present (covers the first-run path).
+            setSongs(prev => {
+              if (prev.length > 0) return prev;
+              const demos = DEMO_SONGS_MD.map(md => ({
+                ...parseSongMd(md),
+                id: generateId(),
+              }));
+              saveSongs(demos);
+              return demos;
+            });
+            setSettings(prev => ({
+              ...prev,
+              ...quiz,
+              onboardingComplete: true,
+            }));
             setView('home');
           }}
           onSignIn={() => {
@@ -670,7 +674,7 @@ export default function App() {
           }}
         />
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
         <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || (isFullscreen && (view === 'library' || view === 'setlists'))} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan} hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}>
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar
@@ -697,7 +701,17 @@ export default function App() {
               onPlaySetlist={goSetlistPerformance}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
-              onDismissFirstRun={() => setSettings(prev => ({ ...prev, firstSongOpened: true }))}
+              hasCloud={!!syncState?.provider}
+              checklistActions={{
+                openFirstSong: () => {
+                  const song = songs.find(s => s.title === 'Amazing Grace') || songs[0];
+                  if (song) goChart(song);
+                },
+                newSong: () => goEditor(),
+                newSetlist: () => goSetlistBuild(),
+                signIn: () => { setAuthStartMode('signin'); navigate('signin'); },
+              }}
+              onDismissChecklist={() => setSettings(prev => ({ ...prev, checklistDismissed: true }))}
             />
           )}
           {view === 'library' && (
@@ -761,6 +775,11 @@ export default function App() {
               displayRole={settings?.displayRole || 'leader'}
               duplicateSections={settings?.duplicateSections || 'full'}
               chartLayout={settings?.chartLayout || 'columns'}
+              onTransposed={() => {
+                if (!settings?.firstTransposed) {
+                  setSettings(prev => ({ ...prev, firstTransposed: true }));
+                }
+              }}
             />
           )}
           {view === 'editor' && (
@@ -886,10 +905,10 @@ export default function App() {
           )}
         </DesktopLayout>
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
         <EdgeSwipeHotspot onOpen={openDrawer} />
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
         <MobileDrawer
           open={drawerOpen}
           openKey={drawerOpenKey}
@@ -911,7 +930,7 @@ export default function App() {
           onCreateAccount={() => { setDrawerOpen(false); setAuthStartMode('signup'); navigate('signin'); }}
         />
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
         <NotificationTray
           open={notifTrayOpen}
           onClose={() => setNotifTrayOpen(false)}
@@ -929,7 +948,7 @@ export default function App() {
           onImport={handleSmartImport}
         />
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
     </Suspense>
     </ErrorBoundary>
   );
