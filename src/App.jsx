@@ -6,8 +6,7 @@ import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSet
 import { DEMO_SONGS_MD } from './data/demos';
 import { createSyncEngine } from './sync/engine';
 import { getSyncState } from './sync/tokens';
-import Welcome from './components/Welcome';
-import Onboarding from './components/Onboarding';
+import OnboardingFlow from './onboarding/OnboardingFlow';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
 import Settings from './components/Settings';
@@ -22,6 +21,8 @@ import FeedbackButton from './components/FeedbackButton';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './auth/useAuth';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
+import { usePWAUpdate } from './hooks/usePWAUpdate';
+import { useInstallPrompt } from './hooks/useInstallPrompt';
 
 const QUOTA_WARN_THRESHOLD = 0.8;
 
@@ -65,7 +66,11 @@ const HelpPage = lazy(() => import('./components/HelpPage'));
 const AuthScreen = lazy(() => import('./components/auth/AuthScreen'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
 const RecoveryScreen = lazy(() => import('./components/auth/RecoveryScreen'));
-const UpgradeScreen = lazy(() => import('./components/UpgradeScreen'));
+const PricingScreen = lazy(() => import('./components/PricingScreen'));
+const WakeLockExplainer = lazy(() => import('./components/WakeLockExplainer'));
+const AccountWall = lazy(() => import('./components/AccountWall'));
+const FounderNote = lazy(() => import('./components/FounderNote'));
+const IOSInstallHint = lazy(() => import('./components/IOSInstallHint'));
 
 // Subset of local settings that gets mirrored to the user's cloud profile
 // (profiles.preferences). Device-local flags like onboardingComplete,
@@ -102,6 +107,11 @@ function prefsEqual(a, b) {
 
 export default function App() {
   const { user, profile, signOut, updateProfile } = useAuth();
+  // PWA update prompt — toast appears when a new SW is downloaded.
+  usePWAUpdate();
+  // Native + iOS install affordance.
+  const { canInstall, isIOS, isStandalone, promptInstall } = useInstallPrompt();
+  const [showIOSHint, setShowIOSHint] = useState(false);
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
   const [tombstones, setTombstones] = useState({ songs: [], setlists: [] });
@@ -134,6 +144,19 @@ export default function App() {
     setDrawerOpen(true);
   };
   const [notifTrayOpen, setNotifTrayOpen] = useState(false);
+  // Account-wall modal state — surfaced after the user saves their first
+  // local item (song or setlist) without being signed in.
+  const [accountWallTrigger, setAccountWallTrigger] = useState(null);
+  // Founder note — queued by onTransposed, shown when the user lands on
+  // the dashboard so it never interrupts the chart they're playing with.
+  const [founderNoteQueued, setFounderNoteQueued] = useState(false);
+  const [showFounderNote, setShowFounderNote] = useState(false);
+  // Settings sub-panel ('hub' | 'appearance' | 'chart' | 'sync' | 'data' | 'about')
+  // Lifted to App so it participates in the back-button history stack.
+  const [settingsPanel, setSettingsPanel] = useState('hub');
+  // Wake-lock explainer is now state-driven (was render-condition-driven) so
+  // it can participate in the history stack.
+  const [showWakeLockExplainer, setShowWakeLockExplainer] = useState(false);
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
   const quotaWarnedRef = useRef(false);
@@ -189,8 +212,8 @@ export default function App() {
       setSettings(savedSettings);
 
       // Determine initial view based on onboarding state
-      if (savedSongs.length === 0 && !savedSettings.onboardingComplete) {
-        setView('welcome');
+      if (!savedSettings.onboardingComplete && savedSongs.length === 0) {
+        setView('onboarding');
       } else if (!savedSettings.onboardingComplete) {
         // Existing user who predates onboarding — skip it, go to home
         savedSettings.onboardingComplete = true;
@@ -358,16 +381,36 @@ export default function App() {
     setThemeColor(theme);
   }, [settings?.theme]);
 
-  // Navigation with history stack
-  const navigate = useCallback((nextView, { song, setlist, replace } = {}) => {
-    if (!replace) {
-      historyRef.current.push({ view, song: currentSong, setlist: currentSetlist });
-      window.history.pushState(null, '');
-    }
+  // Snapshot of every state field that participates in back/forward.
+  // Centralised so navigate / goToMainView / goSettingsPanel / openModal all
+  // push the same shape — keeps goBack able to restore any prior screen.
+  const snapshot = () => ({
+    view,
+    song: currentSong,
+    setlist: currentSetlist,
+    settingsPanel,
+    accountWall: accountWallTrigger,
+    founderNote: showFounderNote,
+    iosHint: showIOSHint,
+    wakeLockExplainer: showWakeLockExplainer,
+    isFullscreen,
+  });
+
+  const pushHistory = (snap) => {
+    historyRef.current.push(snap);
+    window.history.pushState(null, '');
+  };
+
+  // Navigation with history stack. Not memoised — captures current state
+  // through snapshot() on each call, which is what we want for back/forward.
+  const navigate = (nextView, { song, setlist, replace } = {}) => {
+    if (!replace) pushHistory(snapshot());
     if (song !== undefined) setCurrentSong(song);
     if (setlist !== undefined) setCurrentSetlist(setlist);
     setView(nextView);
-  }, [view, currentSong, currentSetlist]);
+    // Entering Settings fresh always lands on the hub.
+    if (nextView === 'settings') setSettingsPanel('hub');
+  };
 
   const goBack = useCallback(() => {
     const prev = historyRef.current.pop();
@@ -375,14 +418,28 @@ export default function App() {
       setView(prev.view);
       setCurrentSong(prev.song);
       setCurrentSetlist(prev.setlist);
+      if (prev.settingsPanel !== undefined) setSettingsPanel(prev.settingsPanel);
+      setAccountWallTrigger(prev.accountWall ?? null);
+      setShowFounderNote(!!prev.founderNote);
+      setShowIOSHint(!!prev.iosHint);
+      setShowWakeLockExplainer(!!prev.wakeLockExplainer);
+      if (typeof prev.isFullscreen === 'boolean') setIsFullscreen(prev.isFullscreen);
     } else {
       setView('home');
       setCurrentSong(null);
       setCurrentSetlist(null);
+      setSettingsPanel('hub');
+      setAccountWallTrigger(null);
+      setShowFounderNote(false);
+      setShowIOSHint(false);
+      setShowWakeLockExplainer(false);
+      setIsFullscreen(false);
     }
   }, []);
 
-  // Browser back button support
+  // Browser back button support — single popstate handler for the whole app.
+  // Anything that's allowed to be backed-out-of must have pushed onto
+  // historyRef during its open call (see openModal / pushHistory above).
   useEffect(() => {
     const handler = (e) => {
       if (historyRef.current.length > 0) {
@@ -394,19 +451,96 @@ export default function App() {
     return () => window.removeEventListener('popstate', handler);
   }, [goBack]);
 
-  // Navigate between main pages (no history push)
+  // Auto-fire: founder note when the user lands on the dashboard with a
+  // queued note. openFounderNote pushes history so back closes it.
+  useEffect(() => {
+    if (founderNoteQueued && view === 'home' && !showFounderNote && !settings?.seenFounderNote) {
+      openFounderNote();
+    }
+  }, [founderNoteQueued, view, showFounderNote, settings?.seenFounderNote]);
+
+  // Auto-fire: iOS Add-to-Home-Screen explainer once after onboarding on
+  // iOS Safari. iOS never fires beforeinstallprompt so we always need a
+  // custom UI affordance.
+  useEffect(() => {
+    if (
+      isIOS && !isStandalone &&
+      view === 'home' &&
+      settings?.onboardingComplete &&
+      !settings?.seenIOSInstallHint &&
+      !showIOSHint
+    ) {
+      openIOSHint();
+    }
+  }, [isIOS, isStandalone, view, settings?.onboardingComplete, settings?.seenIOSInstallHint, showIOSHint]);
+
+  // Auto-fire: wake-lock explainer the first time the user enters a stage
+  // view. The hook itself acquires silently — this just tells them why.
+  useEffect(() => {
+    if (
+      (view === 'setlist-performance' || view === 'setlist-play') &&
+      !settings?.seenWakeLockExplainer &&
+      !showWakeLockExplainer
+    ) {
+      openWakeLockExplainer();
+    }
+  }, [view, settings?.seenWakeLockExplainer, showWakeLockExplainer]);
+
+  // Switch a top-level page (Home / Library / Setlists / Settings / Account /
+  // Help / Design). Now pushes history so hardware Back navigates within the
+  // app instead of exiting the PWA.
   const goToMainView = (viewName) => {
+    if (view === viewName) return;
+    pushHistory(snapshot());
     const apply = () => {
       setView(viewName);
       setCurrentSong(null);
       setCurrentSetlist(null);
       setIsFullscreen(false);
+      if (viewName === 'settings') setSettingsPanel('hub');
     };
     if (typeof document !== 'undefined' && typeof document.startViewTransition === 'function') {
       document.startViewTransition(apply);
     } else {
       apply();
     }
+  };
+
+  // Drill into a Settings sub-panel ('appearance', 'chart', etc.) — pushes
+  // history so the in-app and hardware back both return to the hub.
+  const goSettingsPanel = (nextPanel) => {
+    if (nextPanel === settingsPanel) return;
+    pushHistory(snapshot());
+    setSettingsPanel(nextPanel);
+  };
+
+  // Modal openers — each one pushes history first so hardware Back closes
+  // the modal instead of bypassing it. Modal close handlers call
+  // window.history.back() which triggers popstate → goBack → modal hides.
+  const openAccountWall = (trigger) => {
+    pushHistory(snapshot());
+    setAccountWallTrigger(trigger);
+  };
+  const openFounderNote = () => {
+    if (showFounderNote) return;
+    pushHistory(snapshot());
+    setShowFounderNote(true);
+  };
+  const openIOSHint = () => {
+    if (showIOSHint) return;
+    pushHistory(snapshot());
+    setShowIOSHint(true);
+  };
+  const openWakeLockExplainer = () => {
+    if (showWakeLockExplainer) return;
+    pushHistory(snapshot());
+    setShowWakeLockExplainer(true);
+  };
+  // All modal close paths route through window.history.back() — this keeps
+  // the browser history aligned whether the user tapped X, the primary CTA,
+  // or the hardware Back button.
+  const dismissTopModal = () => {
+    if (typeof window !== 'undefined') window.history.back();
   };
 
   const toggleFullscreen = useCallback(() => setIsFullscreen(f => !f), []);
@@ -423,35 +557,56 @@ export default function App() {
     }));
   }, []);
 
-  const handleNotificationAction = useCallback((action) => {
+  const handleNotificationAction = (action) => {
     if (action?.type === 'navigate') {
       navigate(action.view);
     }
-  }, [navigate]);
+  };
 
   // Navigation shortcuts
   const goLibrary = () => goToMainView('library');
   const goSetlists = () => goToMainView('setlists');
-  const goChart = (song) => navigate('chart', { song });
+  const goChart = (song) => {
+    if (!settings?.firstSongOpened) {
+      setSettings(prev => ({ ...prev, firstSongOpened: true }));
+    }
+    navigate('chart', { song });
+  };
   const goEditor = (song = null) => navigate('editor', { song });
   const goSetlistBuild = (sl = null) => navigate('setlist-build', { setlist: sl });
   const goSetlistView = (sl) => navigate('setlist-view', { setlist: sl });
   const goSetlistPlay = (sl) => navigate('setlist-play', { setlist: sl });
-  const goSetlistPerformance = (sl) => navigate('setlist-performance', { setlist: sl });
+  const goSetlistPerformance = (sl) => {
+    if (!settings?.firstStageMode) {
+      setSettings(prev => ({ ...prev, firstStageMode: true }));
+    }
+    navigate('setlist-performance', { setlist: sl });
+  };
   const goSetlistPractice = (sl) => navigate('setlist-practice', { setlist: sl });
 
   // Song CRUD
   const handleSaveSong = (song) => {
     const stamped = { ...song, updatedAt: Date.now() };
+    let isNew = false;
     setSongs(prev => {
       const idx = prev.findIndex(s => s.id === song.id);
       if (idx >= 0) { const n = [...prev]; n[idx] = stamped; return n; }
+      isNew = true;
       return [...prev, stamped];
     });
+    if (isNew && !settings?.firstSongAdded) {
+      setSettings(prev => ({ ...prev, firstSongAdded: true }));
+    }
+    // First-save account wall: only for new items, only when not signed in,
+    // only once per user. Tier-2 upsell follows the "Alma moment" — they
+    // already have something they don't want to lose.
     // After save, pop the stale chart entry that was pushed when entering the editor,
     // then navigate to chart with the updated song (no new history entry)
     historyRef.current.pop();
     navigate('chart', { song, replace: true });
+    if (isNew && !user && !settings?.seenSaveAccountWall) {
+      openAccountWall({ kind: 'song', title: song.title || 'Untitled song' });
+    }
   };
 
   const handleDeleteSong = (id) => {
@@ -487,12 +642,20 @@ export default function App() {
 
   // Setlist CRUD
   const handleSaveSetlist = (sl) => {
+    let isNew = false;
     setSetlists(prev => {
       const idx = prev.findIndex(s => s.id === sl.id);
       if (idx >= 0) { const n = [...prev]; n[idx] = sl; return n; }
+      isNew = true;
       return [...prev, sl];
     });
+    if (!settings?.firstSetlistBuilt) {
+      setSettings(prev => ({ ...prev, firstSetlistBuilt: true }));
+    }
     goBack();
+    if (isNew && !user && !settings?.seenSaveAccountWall) {
+      openAccountWall({ kind: 'setlist', title: sl.name || 'Untitled setlist' });
+    }
   };
 
   const handleUpdateSong = useCallback((updatedSong) => {
@@ -628,39 +791,43 @@ export default function App() {
         <AuthScreen onBack={goBack} onSignedIn={() => goToMainView('home')} defaultMode={authStartMode} />
       )}
       {view === 'upgrade' && (
-        <UpgradeScreen onBack={goBack} />
-      )}
-      {view === 'welcome' && (
-        <Welcome
-          onGetStarted={() => {
-            const demos = DEMO_SONGS_MD.map(md => ({
-              ...parseSongMd(md),
-              id: generateId(),
-            }));
-            setSongs(demos);
-            saveSongs(demos);
-            setView('onboarding');
+        <PricingScreen
+          onBack={goBack}
+          settings={settings}
+          onSignIn={() => {
+            setAuthStartMode('signup');
+            navigate('signin');
           }}
-          onImport={(mdText) => {
-            handleImportSong(mdText);
-            setSettings(prev => ({ ...prev, onboardingComplete: true }));
+        />
+      )}
+      {view === 'onboarding' && (
+        <OnboardingFlow
+          onComplete={(quiz) => {
+            // Inject demos if not already present (covers the first-run path).
+            setSongs(prev => {
+              if (prev.length > 0) return prev;
+              const demos = DEMO_SONGS_MD.map(md => ({
+                ...parseSongMd(md),
+                id: generateId(),
+              }));
+              saveSongs(demos);
+              return demos;
+            });
+            setSettings(prev => ({
+              ...prev,
+              ...quiz,
+              onboardingComplete: true,
+            }));
             setView('home');
           }}
           onSignIn={() => {
+            setSettings(prev => ({ ...prev, onboardingComplete: true }));
             setAuthStartMode('signin');
             setView('signin');
           }}
         />
       )}
-      {view === 'onboarding' && (
-        <Onboarding
-          onComplete={() => {
-            setSettings(prev => ({ ...prev, onboardingComplete: true }));
-            setView('home');
-          }}
-        />
-      )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
         <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || (isFullscreen && (view === 'library' || view === 'setlists'))} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan} hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}>
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar
@@ -687,6 +854,17 @@ export default function App() {
               onPlaySetlist={goSetlistPerformance}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
+              hasCloud={!!syncState?.provider}
+              checklistActions={{
+                openFirstSong: () => {
+                  const song = songs.find(s => s.title === 'Amazing Grace') || songs[0];
+                  if (song) goChart(song);
+                },
+                newSong: () => goEditor(),
+                newSetlist: () => goSetlistBuild(),
+                signIn: () => { setAuthStartMode('signin'); navigate('signin'); },
+              }}
+              onDismissChecklist={() => setSettings(prev => ({ ...prev, checklistDismissed: true }))}
             />
           )}
           {view === 'library' && (
@@ -739,6 +917,7 @@ export default function App() {
             />
           )}
           {view === 'chart' && currentSong && (
+            <ErrorBoundary>
             <ChartView
               song={currentSong}
               onBack={goBack}
@@ -750,7 +929,18 @@ export default function App() {
               displayRole={settings?.displayRole || 'leader'}
               duplicateSections={settings?.duplicateSections || 'full'}
               chartLayout={settings?.chartLayout || 'columns'}
+              onTransposed={() => {
+                if (!settings?.firstTransposed) {
+                  setSettings(prev => ({ ...prev, firstTransposed: true }));
+                }
+                // Queue the founder note — surfaced the next time we land
+                // on the dashboard so it never interrupts the chart itself.
+                if (!settings?.seenFounderNote) {
+                  setFounderNoteQueued(true);
+                }
+              }}
             />
+            </ErrorBoundary>
           )}
           {view === 'editor' && (
             <Editor
@@ -827,6 +1017,9 @@ export default function App() {
             <Settings
               settings={settings}
               onUpdate={setSettings}
+              onBack={goBack}
+              panel={settingsPanel}
+              onChangePanel={goSettingsPanel}
               onClearAll={handleClearAll}
               onDownloadSongs={() => {
                 songs.forEach(s => {
@@ -844,8 +1037,7 @@ export default function App() {
               setlistCount={setlists.length}
               syncState={syncState}
               onSyncStateChange={setSyncState}
-              onSyncNow={triggerSync} onDesign={() => setView("design")}
-              onHelp={() => navigate('help')}
+              onSyncNow={triggerSync}
               onRequestSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
               isSignedIn={isSignedIn}
               displayName={displayName}
@@ -875,10 +1067,10 @@ export default function App() {
           )}
         </DesktopLayout>
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
         <EdgeSwipeHotspot onOpen={openDrawer} />
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
         <MobileDrawer
           open={drawerOpen}
           openKey={drawerOpenKey}
@@ -893,14 +1085,24 @@ export default function App() {
           onOpenSettings={() => { setDrawerOpen(false); goToMainView('settings'); }}
           onOpenNotifications={() => { setDrawerOpen(false); setNotifTrayOpen(true); }}
           onOpenHelp={() => { setDrawerOpen(false); navigate('help'); }}
-          onOpenDesign={() => { setDrawerOpen(false); setView('design'); }}
           onSignOut={async () => { setDrawerOpen(false); await handleSignOut(); }}
           onUpgrade={() => { setDrawerOpen(false); navigate('upgrade'); }}
           onSignIn={() => { setDrawerOpen(false); setAuthStartMode('signin'); navigate('signin'); }}
           onCreateAccount={() => { setDrawerOpen(false); setAuthStartMode('signup'); navigate('signin'); }}
+          canInstall={canInstall}
+          isIOS={isIOS}
+          isStandalone={isStandalone}
+          onInstall={async () => {
+            setDrawerOpen(false);
+            if (isIOS) {
+              openIOSHint();
+            } else if (canInstall) {
+              await promptInstall();
+            }
+          }}
         />
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && (
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
         <NotificationTray
           open={notifTrayOpen}
           onClose={() => setNotifTrayOpen(false)}
@@ -918,7 +1120,63 @@ export default function App() {
           onImport={handleSmartImport}
         />
       )}
-      {!['welcome', 'onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
+      {!['onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
+
+      {/* One-time pre-permission explainer for stage mode — render is
+          state-driven now so the modal participates in the back stack. */}
+      {showWakeLockExplainer && (
+        <WakeLockExplainer
+          onContinue={() => {
+            setSettings(prev => ({ ...prev, seenWakeLockExplainer: true }));
+            dismissTopModal();
+          }}
+        />
+      )}
+
+      {/* Account wall — fired by handleSaveSong / handleSaveSetlist on
+          first NEW save when the user is not signed in. All three actions
+          go through dismissTopModal so the back stack stays clean. */}
+      {accountWallTrigger && (
+        <AccountWall
+          kind={accountWallTrigger.kind}
+          savedItemTitle={accountWallTrigger.title}
+          onSaveLocal={() => {
+            setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
+            dismissTopModal();
+          }}
+          onSignIn={() => {
+            setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
+            dismissTopModal();
+            navigate('upgrade');
+          }}
+          onSkip={() => {
+            setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
+            dismissTopModal();
+          }}
+        />
+      )}
+
+      {/* Founder note — surfaced on the dashboard once after the user has
+          transposed their first chart (the engagement signal). */}
+      {showFounderNote && (
+        <FounderNote
+          onClose={() => {
+            setSettings(prev => ({ ...prev, seenFounderNote: true }));
+            setFounderNoteQueued(false);
+            dismissTopModal();
+          }}
+        />
+      )}
+
+      {/* iOS Add-to-Home-Screen explainer — shown once on iOS Safari. */}
+      {showIOSHint && (
+        <IOSInstallHint
+          onClose={() => {
+            setSettings(prev => ({ ...prev, seenIOSInstallHint: true }));
+            dismissTopModal();
+          }}
+        />
+      )}
     </Suspense>
     </ErrorBoundary>
   );

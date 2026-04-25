@@ -25,6 +25,7 @@ export default function ChartView({
   displayRole = 'leader', duplicateSections = 'full',
   chartLayout = 'columns',
   isFullscreen = false, onToggleFullscreen,
+  onTransposed,
 }) {
   const initialFontSize = FONT_SIZES[defaultFontSize] || (typeof defaultFontSize === 'number' ? defaultFontSize : 16);
 
@@ -43,6 +44,17 @@ export default function ChartView({
   const scrollContainerRef = useRef(null);
 
   const transpose = semitonesBetween(song.key, selectedKey);
+
+  // Notify parent the first time a user transposes this song. Used by the
+  // onboarding checklist to mark the "Transpose a song" task complete.
+  const transposedFiredRef = useRef(false);
+  useEffect(() => {
+    if (transposedFiredRef.current) return;
+    if (selectedKey !== song.key) {
+      transposedFiredRef.current = true;
+      onTransposed?.();
+    }
+  }, [selectedKey, song.key, onTransposed]);
 
   const toggleInfo = () => { setShowInfo(s => !s); setShowSettings(false); setShowMusicSettings(false); };
   const toggleAa = () => { setShowSettings(s => !s); setShowInfo(false); setShowMusicSettings(false); };

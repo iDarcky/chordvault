@@ -3,6 +3,7 @@ import SongCard from './SongCard';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Chip } from './ui/Chip';
+import ProgressChecklist from '../onboarding/ProgressChecklist';
 
 export default function Dashboard({
   songs,
@@ -15,6 +16,9 @@ export default function Dashboard({
   onPlaySetlist,
   onGoLibrary,
   onGoSetlists,
+  hasCloud,
+  checklistActions,
+  onDismissChecklist,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -159,6 +163,18 @@ export default function Dashboard({
 
 
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-4 sm:py-8 flex flex-col gap-6 sm:gap-8">
+
+        {/* Onboarding progress checklist — hides itself when complete or dismissed */}
+        {!settings?.checklistDismissed && checklistActions && (
+          <ProgressChecklist
+            settings={settings}
+            songs={songs}
+            setlists={setlists}
+            hasCloud={hasCloud}
+            actions={checklistActions}
+            onDismiss={onDismissChecklist}
+          />
+        )}
 
         {/* Upcoming Setlists */}
         <section className="flex flex-col gap-3 sm:gap-4">

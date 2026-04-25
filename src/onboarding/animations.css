@@ -1,0 +1,60 @@
+/* Onboarding flow animations.
+   Imported once from OnboardingFlow.jsx. */
+
+@keyframes sm-onboard-chord-pop {
+  0%   { opacity: 0; transform: translateY(-3px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.sm-onboard-chord-pop {
+  animation: sm-onboard-chord-pop 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes sm-onboard-key-pulse {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 0 var(--color-brand-soft); }
+  50%  { transform: scale(1.06); box-shadow: 0 0 0 6px transparent; }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 transparent; }
+}
+.sm-onboard-key-pulse {
+  animation: sm-onboard-key-pulse 380ms ease-out;
+}
+
+@keyframes sm-onboard-screen-in {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0);   }
+}
+.sm-onboard-screen-in {
+  animation: sm-onboard-screen-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes sm-onboard-tile-bounce {
+  0%   { transform: scale(0.96); }
+  60%  { transform: scale(1.03); }
+  100% { transform: scale(1);    }
+}
+.sm-onboard-tile-bounce {
+  animation: sm-onboard-tile-bounce 220ms ease-out;
+}
+
+@keyframes sm-onboard-check-draw {
+  0%   { stroke-dashoffset: 18; }
+  100% { stroke-dashoffset: 0;  }
+}
+.sm-onboard-check-draw {
+  stroke-dasharray: 18;
+  animation: sm-onboard-check-draw 320ms ease-out forwards;
+}
+
+@keyframes sm-onboard-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0;  }
+}
+.sm-onboard-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-brand-soft) 0%,
+    rgba(255,255,255,0.05) 50%,
+    var(--color-brand-soft) 100%
+  );
+  background-size: 200% 100%;
+  animation: sm-onboard-shimmer 2.4s linear infinite;
+}
