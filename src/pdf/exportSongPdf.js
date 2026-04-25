@@ -546,16 +546,25 @@ export function exportSongPdf(song, opts = {}) {
   const transpose = Number.isFinite(opts.transpose) ? opts.transpose : 0;
   const html = buildDocument(song, transpose);
 
-  const w = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1100');
-  if (!w) {
-    // Popup blocked — fall back to current-window print so the user gets
-    // *something*. They can re-trigger after allowing popups.
-    console.warn('[exportSongPdf] popup blocked; falling back to inline print');
-    window.print();
+  // IMPORTANT: do NOT pass `noopener` / `noreferrer` in the features string.
+  // Those flags cause browsers to return `null` from window.open(), which
+  // would leave us unable to write HTML into the popup. We need a live
+  // handle to the new window.
+  const w = window.open('about:blank', '_blank', 'width=900,height=1100,resizable=yes,scrollbars=yes');
+  if (!w || w.closed || typeof w.document === 'undefined') {
+    // Popup blocked. Don't fall back to printing the current page (that's
+    // exactly the bug we're fixing). Instead, alert the user.
+    alert('Could not open the print window. Please allow popups for this site and try again.');
     return;
   }
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  w.focus();
+  try {
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+  } catch (err) {
+    console.error('[exportSongPdf] failed to populate popup window', err);
+    try { w.close(); } catch { /* ignore */ }
+    alert('Could not render the printable view. Please try again.');
+  }
 }
