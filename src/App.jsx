@@ -965,7 +965,6 @@ export default function App() {
           onOpenSettings={() => { setDrawerOpen(false); goToMainView('settings'); }}
           onOpenNotifications={() => { setDrawerOpen(false); setNotifTrayOpen(true); }}
           onOpenHelp={() => { setDrawerOpen(false); navigate('help'); }}
-          onOpenDesign={() => { setDrawerOpen(false); setView('design'); }}
           onSignOut={async () => { setDrawerOpen(false); await handleSignOut(); }}
           onUpgrade={() => { setDrawerOpen(false); navigate('upgrade'); }}
           onSignIn={() => { setDrawerOpen(false); setAuthStartMode('signin'); navigate('signin'); }}

@@ -38,17 +38,6 @@ const HelpIcon = () => (
   </svg>
 );
 
-const DesignIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <circle cx="12" cy="12" r="4" />
-    <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" />
-    <line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
-    <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" />
-    <line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
-  </svg>
-);
-
 const InstallIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -85,7 +74,6 @@ export default function MobileDrawer({
   onOpenSettings,
   onOpenNotifications,
   onOpenHelp,
-  onOpenDesign,
   onUpgrade,
   onSignIn,
   onCreateAccount,
@@ -176,8 +164,24 @@ export default function MobileDrawer({
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
         }}
       >
-        {/* Close button */}
-        <div className="px-5 flex justify-end">
+        {/* Top bar — bell + close */}
+        <div className="px-5 flex items-center justify-end gap-2">
+          {onOpenNotifications && (
+            <button
+              onClick={onOpenNotifications}
+              aria-label={hasUnreadNotifications ? 'Notifications (unread)' : 'Notifications'}
+              className="relative w-9 h-9 rounded-full flex items-center justify-center bg-[var(--drawer-close-bg)] text-[var(--drawer-text-muted)] hover:bg-[var(--drawer-close-bg-hover)] cursor-pointer border-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <BellIcon />
+              {hasUnreadNotifications && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--color-brand)]"
+                />
+              )}
+            </button>
+          )}
           <button
             onClick={onClose}
             aria-label="Close menu"
@@ -230,16 +234,7 @@ export default function MobileDrawer({
         {/* Nav rows */}
         <div className="px-5 mt-6 flex flex-col gap-2">
           <Row icon={SettingsIcon} label="Preferences" onClick={onOpenSettings} />
-          <Row
-            icon={BellIcon}
-            label="Notifications"
-            onClick={onOpenNotifications}
-            accessory={hasUnreadNotifications ? (
-              <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-brand)]" />
-            ) : null}
-          />
           <Row icon={HelpIcon} label="Help" onClick={onOpenHelp} />
-          <Row icon={DesignIcon} label="Design" onClick={onOpenDesign} />
           {!isStandalone && (canInstall || isIOS) && onInstall && (
             <Row
               icon={InstallIcon}
