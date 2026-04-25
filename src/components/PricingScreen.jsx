@@ -144,10 +144,10 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
   };
 
   return (
-    <div data-theme-variant="modes" className="min-h-screen flex flex-col">
+    <div data-theme-variant="modes" className="h-[100dvh] flex flex-col overflow-y-auto">
       <ScreenHeader onBack={onBack} title="Setlists.md plans" />
 
-      <div className="flex-1 flex items-start justify-center px-4 py-6 sm:py-10">
+      <div className="flex-1 flex items-start justify-center px-4 py-6 sm:py-10 pb-20">
         <div className="w-full max-w-3xl flex flex-col gap-6">
           {/* Hero */}
           <div className="modes-card-strong p-6 sm:p-8 flex flex-col gap-3 text-center">
