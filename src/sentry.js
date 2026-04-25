@@ -1,14 +1,20 @@
-// Optional Sentry integration. We import @sentry/react dynamically so
-// the app builds and runs even when the package isn't installed yet — a
-// missing dep just means errors aren't reported. Set VITE_SENTRY_DSN in
-// your Vercel/.env to turn it on; everything else here is sane defaults.
+// Optional Sentry integration. We load @sentry/react via a dynamic-import
+// expression that Rollup/Vite cannot statically analyze — that way the app
+// builds even when the package isn't installed yet. A missing dep just
+// means errors aren't reported. Set VITE_SENTRY_DSN in your Vercel/.env to
+// turn it on; everything else here is sane defaults.
+
+// `new Function` keeps the import string opaque to the bundler, so the
+// production build never tries to resolve @sentry/react when it isn't a
+// real dependency. This is the standard "optional peer dep" pattern.
+const lazyImport = (mod) => new Function('m', 'return import(m)')(mod);
 
 export async function initSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   if (!dsn) return; // No-op until DSN is configured.
 
   try {
-    const Sentry = await import('@sentry/react');
+    const Sentry = await lazyImport('@sentry/react');
     Sentry.init({
       dsn,
       environment: import.meta.env.MODE,

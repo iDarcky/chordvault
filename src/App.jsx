@@ -898,6 +898,7 @@ export default function App() {
             <Settings
               settings={settings}
               onUpdate={setSettings}
+              onBack={goBack}
               onClearAll={handleClearAll}
               onDownloadSongs={() => {
                 songs.forEach(s => {

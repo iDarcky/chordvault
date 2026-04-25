@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
-import PageHeader from './PageHeader';
+import ScreenHeader from './ui/ScreenHeader';
 import { Button } from './ui/Button';
 
 const Section = ({ title, subtitle, children }) => (
@@ -34,6 +34,7 @@ const Row = ({ label, children, description }) => (
 export default function Settings({
   settings,
   onUpdate,
+  onBack,
   onClearAll,
   onDownloadSongs,
   songCount,
@@ -63,10 +64,10 @@ export default function Settings({
   };
 
   return (
-    <div data-theme-variant="modes" className="min-h-screen pb-8">
-      <PageHeader title="Preferences" />
+    <div data-theme-variant="modes" className="h-[100dvh] flex flex-col overflow-y-auto">
+      <ScreenHeader onBack={onBack} title="Preferences" />
 
-      <div className="a4-container py-10 flex flex-col gap-12">
+      <div className="a4-container py-10 pb-20 flex flex-col gap-12">
 
         {/* Appearance */}
         <Section
