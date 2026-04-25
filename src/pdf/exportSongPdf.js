@@ -202,7 +202,7 @@ function buildDocument(song, transpose, initialPrefs = {}) {
 <style>
   @page {
     size: Letter;
-    margin: 0.55in 0.55in 0.65in;
+    margin: 0.55in 0.55in 0.7in;
     @bottom-right {
       content: counter(page) " / " counter(pages);
       font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -284,7 +284,12 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     gap: 8px 14px;
     align-items: center;
   }
-  .toolbar-row.actions { justify-content: flex-end; }
+  /* Print/Close pair sits at the far right of the controls row. */
+  .action-group {
+    display: inline-flex;
+    gap: 8px;
+    margin-left: auto;
+  }
 
   .control-group {
     display: inline-flex;
@@ -575,6 +580,27 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     margin-bottom: 4px;
   }
 
+  /* ── Brand footer (repeats on every printed page) ───────────────── */
+  /* On screen we hide it; @media print uses position:fixed so the browser
+     repeats the element as a footer on each page (Chrome/Safari/Firefox). */
+  .brand-footer { display: none; }
+  @media print {
+    .brand-footer {
+      display: block;
+      position: fixed;
+      bottom: 0.25in;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      font-size: 8.5pt;
+      letter-spacing: 0.04em;
+      color: #888;
+    }
+    .brand-footer .brand-name { color: #444; font-weight: 500; }
+    .brand-footer .brand-md   { color: #53796F; font-weight: 700; }
+  }
+
   /* ── Modulate marker ────────────────────────────────────────────── */
   .modulate {
     display: flex;
@@ -602,6 +628,12 @@ function buildDocument(song, transpose, initialPrefs = {}) {
 <body>
   <div class="page">
     <div class="toolbar" data-toolbar>
+      <div class="toolbar-row tip-row">
+        <div class="tip">
+          <strong>Tip:</strong> in the print dialog, open <em>More settings</em> and uncheck
+          <em>Headers and footers</em> for a clean output (no URL or date at the top).
+        </div>
+      </div>
       <div class="toolbar-row controls">
         <div class="control-group">
           <span class="group-label">Cols</span>
@@ -633,16 +665,16 @@ function buildDocument(song, transpose, initialPrefs = {}) {
         <button type="button" class="toggle" data-control="colors">
           <span class="check"></span>Colors
         </button>
-      </div>
-      <div class="toolbar-row actions">
-        <div class="tip">
-          <strong>Tip:</strong> in the print dialog, open <em>More settings</em> and uncheck
-          <em>Headers and footers</em> for a clean output (no URL or date at the top).
+        <div class="action-group">
+          <button class="action primary" type="button" data-action="print">Print / Save as PDF</button>
+          <button class="action" type="button" data-action="close">Close</button>
         </div>
-        <button class="action primary" type="button" data-action="print">Print / Save as PDF</button>
-        <button class="action" type="button" data-action="close">Close</button>
       </div>
     </div>
+
+    <footer class="brand-footer" aria-hidden="true">
+      <span class="brand-name">setlists</span><span class="brand-md">.md</span>
+    </footer>
 
     <header class="cover">
       <h1>${titleSafe}</h1>
