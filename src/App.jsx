@@ -147,8 +147,16 @@ export default function App() {
   // Account-wall modal state — surfaced after the user saves their first
   // local item (song or setlist) without being signed in.
   const [accountWallTrigger, setAccountWallTrigger] = useState(null);
-  // Founder note — shown once after the user transposes their first chart.
+  // Founder note — queued by onTransposed, shown when the user lands on
+  // the dashboard so it never interrupts the chart they're playing with.
+  const [founderNoteQueued, setFounderNoteQueued] = useState(false);
   const [showFounderNote, setShowFounderNote] = useState(false);
+  // Settings sub-panel ('hub' | 'appearance' | 'chart' | 'sync' | 'data' | 'about')
+  // Lifted to App so it participates in the back-button history stack.
+  const [settingsPanel, setSettingsPanel] = useState('hub');
+  // Wake-lock explainer is now state-driven (was render-condition-driven) so
+  // it can participate in the history stack.
+  const [showWakeLockExplainer, setShowWakeLockExplainer] = useState(false);
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
   const quotaWarnedRef = useRef(false);
@@ -373,16 +381,36 @@ export default function App() {
     setThemeColor(theme);
   }, [settings?.theme]);
 
-  // Navigation with history stack
-  const navigate = useCallback((nextView, { song, setlist, replace } = {}) => {
-    if (!replace) {
-      historyRef.current.push({ view, song: currentSong, setlist: currentSetlist });
-      window.history.pushState(null, '');
-    }
+  // Snapshot of every state field that participates in back/forward.
+  // Centralised so navigate / goToMainView / goSettingsPanel / openModal all
+  // push the same shape — keeps goBack able to restore any prior screen.
+  const snapshot = () => ({
+    view,
+    song: currentSong,
+    setlist: currentSetlist,
+    settingsPanel,
+    accountWall: accountWallTrigger,
+    founderNote: showFounderNote,
+    iosHint: showIOSHint,
+    wakeLockExplainer: showWakeLockExplainer,
+    isFullscreen,
+  });
+
+  const pushHistory = (snap) => {
+    historyRef.current.push(snap);
+    window.history.pushState(null, '');
+  };
+
+  // Navigation with history stack. Not memoised — captures current state
+  // through snapshot() on each call, which is what we want for back/forward.
+  const navigate = (nextView, { song, setlist, replace } = {}) => {
+    if (!replace) pushHistory(snapshot());
     if (song !== undefined) setCurrentSong(song);
     if (setlist !== undefined) setCurrentSetlist(setlist);
     setView(nextView);
-  }, [view, currentSong, currentSetlist]);
+    // Entering Settings fresh always lands on the hub.
+    if (nextView === 'settings') setSettingsPanel('hub');
+  };
 
   const goBack = useCallback(() => {
     const prev = historyRef.current.pop();
@@ -390,14 +418,28 @@ export default function App() {
       setView(prev.view);
       setCurrentSong(prev.song);
       setCurrentSetlist(prev.setlist);
+      if (prev.settingsPanel !== undefined) setSettingsPanel(prev.settingsPanel);
+      setAccountWallTrigger(prev.accountWall ?? null);
+      setShowFounderNote(!!prev.founderNote);
+      setShowIOSHint(!!prev.iosHint);
+      setShowWakeLockExplainer(!!prev.wakeLockExplainer);
+      if (typeof prev.isFullscreen === 'boolean') setIsFullscreen(prev.isFullscreen);
     } else {
       setView('home');
       setCurrentSong(null);
       setCurrentSetlist(null);
+      setSettingsPanel('hub');
+      setAccountWallTrigger(null);
+      setShowFounderNote(false);
+      setShowIOSHint(false);
+      setShowWakeLockExplainer(false);
+      setIsFullscreen(false);
     }
   }, []);
 
-  // Browser back button support
+  // Browser back button support — single popstate handler for the whole app.
+  // Anything that's allowed to be backed-out-of must have pushed onto
+  // historyRef during its open call (see openModal / pushHistory above).
   useEffect(() => {
     const handler = (e) => {
       if (historyRef.current.length > 0) {
@@ -409,19 +451,96 @@ export default function App() {
     return () => window.removeEventListener('popstate', handler);
   }, [goBack]);
 
-  // Navigate between main pages (no history push)
+  // Auto-fire: founder note when the user lands on the dashboard with a
+  // queued note. openFounderNote pushes history so back closes it.
+  useEffect(() => {
+    if (founderNoteQueued && view === 'home' && !showFounderNote && !settings?.seenFounderNote) {
+      openFounderNote();
+    }
+  }, [founderNoteQueued, view, showFounderNote, settings?.seenFounderNote]);
+
+  // Auto-fire: iOS Add-to-Home-Screen explainer once after onboarding on
+  // iOS Safari. iOS never fires beforeinstallprompt so we always need a
+  // custom UI affordance.
+  useEffect(() => {
+    if (
+      isIOS && !isStandalone &&
+      view === 'home' &&
+      settings?.onboardingComplete &&
+      !settings?.seenIOSInstallHint &&
+      !showIOSHint
+    ) {
+      openIOSHint();
+    }
+  }, [isIOS, isStandalone, view, settings?.onboardingComplete, settings?.seenIOSInstallHint, showIOSHint]);
+
+  // Auto-fire: wake-lock explainer the first time the user enters a stage
+  // view. The hook itself acquires silently — this just tells them why.
+  useEffect(() => {
+    if (
+      (view === 'setlist-performance' || view === 'setlist-play') &&
+      !settings?.seenWakeLockExplainer &&
+      !showWakeLockExplainer
+    ) {
+      openWakeLockExplainer();
+    }
+  }, [view, settings?.seenWakeLockExplainer, showWakeLockExplainer]);
+
+  // Switch a top-level page (Home / Library / Setlists / Settings / Account /
+  // Help / Design). Now pushes history so hardware Back navigates within the
+  // app instead of exiting the PWA.
   const goToMainView = (viewName) => {
+    if (view === viewName) return;
+    pushHistory(snapshot());
     const apply = () => {
       setView(viewName);
       setCurrentSong(null);
       setCurrentSetlist(null);
       setIsFullscreen(false);
+      if (viewName === 'settings') setSettingsPanel('hub');
     };
     if (typeof document !== 'undefined' && typeof document.startViewTransition === 'function') {
       document.startViewTransition(apply);
     } else {
       apply();
     }
+  };
+
+  // Drill into a Settings sub-panel ('appearance', 'chart', etc.) — pushes
+  // history so the in-app and hardware back both return to the hub.
+  const goSettingsPanel = (nextPanel) => {
+    if (nextPanel === settingsPanel) return;
+    pushHistory(snapshot());
+    setSettingsPanel(nextPanel);
+  };
+
+  // Modal openers — each one pushes history first so hardware Back closes
+  // the modal instead of bypassing it. Modal close handlers call
+  // window.history.back() which triggers popstate → goBack → modal hides.
+  const openAccountWall = (trigger) => {
+    pushHistory(snapshot());
+    setAccountWallTrigger(trigger);
+  };
+  const openFounderNote = () => {
+    if (showFounderNote) return;
+    pushHistory(snapshot());
+    setShowFounderNote(true);
+  };
+  const openIOSHint = () => {
+    if (showIOSHint) return;
+    pushHistory(snapshot());
+    setShowIOSHint(true);
+  };
+  const openWakeLockExplainer = () => {
+    if (showWakeLockExplainer) return;
+    pushHistory(snapshot());
+    setShowWakeLockExplainer(true);
+  };
+  // All modal close paths route through window.history.back() — this keeps
+  // the browser history aligned whether the user tapped X, the primary CTA,
+  // or the hardware Back button.
+  const dismissTopModal = () => {
+    if (typeof window !== 'undefined') window.history.back();
   };
 
   const toggleFullscreen = useCallback(() => setIsFullscreen(f => !f), []);
@@ -438,11 +557,11 @@ export default function App() {
     }));
   }, []);
 
-  const handleNotificationAction = useCallback((action) => {
+  const handleNotificationAction = (action) => {
     if (action?.type === 'navigate') {
       navigate(action.view);
     }
-  }, [navigate]);
+  };
 
   // Navigation shortcuts
   const goLibrary = () => goToMainView('library');
@@ -481,13 +600,13 @@ export default function App() {
     // First-save account wall: only for new items, only when not signed in,
     // only once per user. Tier-2 upsell follows the "Alma moment" — they
     // already have something they don't want to lose.
-    if (isNew && !user && !settings?.seenSaveAccountWall) {
-      setAccountWallTrigger({ kind: 'song', title: song.title || 'Untitled song' });
-    }
     // After save, pop the stale chart entry that was pushed when entering the editor,
     // then navigate to chart with the updated song (no new history entry)
     historyRef.current.pop();
     navigate('chart', { song, replace: true });
+    if (isNew && !user && !settings?.seenSaveAccountWall) {
+      openAccountWall({ kind: 'song', title: song.title || 'Untitled song' });
+    }
   };
 
   const handleDeleteSong = (id) => {
@@ -533,10 +652,10 @@ export default function App() {
     if (!settings?.firstSetlistBuilt) {
       setSettings(prev => ({ ...prev, firstSetlistBuilt: true }));
     }
-    if (isNew && !user && !settings?.seenSaveAccountWall) {
-      setAccountWallTrigger({ kind: 'setlist', title: sl.name || 'Untitled setlist' });
-    }
     goBack();
+    if (isNew && !user && !settings?.seenSaveAccountWall) {
+      openAccountWall({ kind: 'setlist', title: sl.name || 'Untitled setlist' });
+    }
   };
 
   const handleUpdateSong = useCallback((updatedSong) => {
@@ -817,7 +936,7 @@ export default function App() {
                 // Queue the founder note — surfaced the next time we land
                 // on the dashboard so it never interrupts the chart itself.
                 if (!settings?.seenFounderNote) {
-                  setShowFounderNote(true);
+                  setFounderNoteQueued(true);
                 }
               }}
             />
@@ -899,6 +1018,8 @@ export default function App() {
               settings={settings}
               onUpdate={setSettings}
               onBack={goBack}
+              panel={settingsPanel}
+              onChangePanel={goSettingsPanel}
               onClearAll={handleClearAll}
               onDownloadSongs={() => {
                 songs.forEach(s => {
@@ -974,7 +1095,7 @@ export default function App() {
           onInstall={async () => {
             setDrawerOpen(false);
             if (isIOS) {
-              setShowIOSHint(true);
+              openIOSHint();
             } else if (canInstall) {
               await promptInstall();
             }
@@ -1001,56 +1122,58 @@ export default function App() {
       )}
       {!['onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
 
-      {/* One-time pre-permission explainer for stage mode. The wake lock
-          itself acquires silently inside the stage view; this modal just
-          tells the user why their screen is staying on. */}
-      {(view === 'setlist-performance' || view === 'setlist-play') && !settings?.seenWakeLockExplainer && (
+      {/* One-time pre-permission explainer for stage mode — render is
+          state-driven now so the modal participates in the back stack. */}
+      {showWakeLockExplainer && (
         <WakeLockExplainer
-          onContinue={() => setSettings(prev => ({ ...prev, seenWakeLockExplainer: true }))}
+          onContinue={() => {
+            setSettings(prev => ({ ...prev, seenWakeLockExplainer: true }));
+            dismissTopModal();
+          }}
         />
       )}
 
       {/* Account wall — fired by handleSaveSong / handleSaveSetlist on
-          first NEW save when the user is not signed in. */}
+          first NEW save when the user is not signed in. All three actions
+          go through dismissTopModal so the back stack stays clean. */}
       {accountWallTrigger && (
         <AccountWall
           kind={accountWallTrigger.kind}
           savedItemTitle={accountWallTrigger.title}
           onSaveLocal={() => {
             setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
-            setAccountWallTrigger(null);
+            dismissTopModal();
           }}
           onSignIn={() => {
             setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
-            setAccountWallTrigger(null);
+            dismissTopModal();
             navigate('upgrade');
           }}
           onSkip={() => {
             setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
-            setAccountWallTrigger(null);
+            dismissTopModal();
           }}
         />
       )}
 
       {/* Founder note — surfaced on the dashboard once after the user has
-          actually transposed their first chart (the engagement signal). */}
-      {showFounderNote && view === 'home' && !settings?.seenFounderNote && (
+          transposed their first chart (the engagement signal). */}
+      {showFounderNote && (
         <FounderNote
           onClose={() => {
             setSettings(prev => ({ ...prev, seenFounderNote: true }));
-            setShowFounderNote(false);
+            setFounderNoteQueued(false);
+            dismissTopModal();
           }}
         />
       )}
 
-      {/* iOS Add-to-Home-Screen explainer — shown once on iOS Safari when
-          the user lands on the dashboard, since iOS never fires
-          beforeinstallprompt. */}
-      {(showIOSHint || (isIOS && !isStandalone && view === 'home' && settings?.onboardingComplete && !settings?.seenIOSInstallHint)) && (
+      {/* iOS Add-to-Home-Screen explainer — shown once on iOS Safari. */}
+      {showIOSHint && (
         <IOSInstallHint
           onClose={() => {
             setSettings(prev => ({ ...prev, seenIOSInstallHint: true }));
-            setShowIOSHint(false);
+            dismissTopModal();
           }}
         />
       )}

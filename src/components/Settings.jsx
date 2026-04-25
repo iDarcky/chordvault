@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import SyncSettings from './settings/SyncSettings';
 import ScreenHeader from './ui/ScreenHeader';
 import { Button } from './ui/Button';
@@ -303,15 +302,15 @@ export default function Settings({
   onRequestSignIn,
   isSignedIn = false,
   displayName = '',
+  // Sub-panel state lives in App.jsx so it participates in the back stack.
+  panel = 'hub',
+  onChangePanel = () => {},
 }) {
-  const [panel, setPanel] = useState('hub');
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
-
-  const headerBack = panel === 'hub' ? onBack : () => setPanel('hub');
 
   return (
     <div data-theme-variant="modes" className="flex flex-col">
-      <ScreenHeader onBack={headerBack} title={PANEL_TITLES[panel]} />
+      <ScreenHeader onBack={onBack} title={PANEL_TITLES[panel]} />
 
       <div className="a4-container py-6 pb-20 flex flex-col gap-6">
         {panel === 'hub' && (
@@ -320,31 +319,31 @@ export default function Settings({
               icon={AppearanceIcon}
               label="Appearance"
               value={appearanceSummary(settings)}
-              onClick={() => setPanel('appearance')}
+              onClick={() => onChangePanel('appearance')}
             />
             <HubRow
               icon={ChartIcon}
               label="Chart Defaults"
               value={chartSummary(settings)}
-              onClick={() => setPanel('chart')}
+              onClick={() => onChangePanel('chart')}
             />
             <HubRow
               icon={CloudIcon}
               label="Cloud Sync"
               value={syncSummary(syncState)}
-              onClick={() => setPanel('sync')}
+              onClick={() => onChangePanel('sync')}
             />
             <HubRow
               icon={DataIcon}
               label="Data"
               value={`${songCount} songs · ${setlistCount} setlists`}
-              onClick={() => setPanel('data')}
+              onClick={() => onChangePanel('data')}
             />
             <HubRow
               icon={AboutIcon}
               label="About"
               value="v1.2.0"
-              onClick={() => setPanel('about')}
+              onClick={() => onChangePanel('about')}
             />
           </div>
         )}
