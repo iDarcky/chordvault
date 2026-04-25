@@ -9,6 +9,7 @@ import { SegmentedControl } from './ui/SegmentedControl';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/Select';
 import { cn } from '../lib/utils';
 import { StructureRibbon } from './StructureRibbon';
+import { exportSongPdf } from '../pdf/exportSongPdf';
 
 const FONT_SIZES = { S: 14, M: 18, L: 22 };
 
@@ -68,6 +69,20 @@ export default function ChartView({
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Intercept Cmd/Ctrl+P so the keyboard shortcut routes through the
+  // dedicated PDF exporter instead of dumping the whole window to paper.
+  useEffect(() => {
+    if (isPreview) return;
+    const onKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        exportSongPdf(song, { transpose });
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [song, transpose, isPreview]);
 
   // Compute cumulative modulate offsets per section
   const sectionModOffsets = useMemo(() => {
@@ -163,7 +178,7 @@ export default function ChartView({
                 <div className="w-px h-5 bg-[var(--border-1)]" />
               </div>
 
-              <IconButton variant="default" size="sm" onClick={() => window.print()} aria-label="Print chart" title="Print (Cmd/Ctrl+P)">
+              <IconButton variant="default" size="sm" onClick={() => exportSongPdf(song, { transpose })} aria-label="Print chart" title="Print / Save as PDF">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="6 9 6 2 18 2 18 9" />
                   <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
