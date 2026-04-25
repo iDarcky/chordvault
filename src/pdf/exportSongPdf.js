@@ -149,7 +149,7 @@ function renderStructureRibbon(structure) {
   }</div>`;
 }
 
-function buildDocument(song, transpose) {
+function buildDocument(song, transpose, initialPrefs = {}) {
   const displayKey = transposeKey(song.key, transpose);
   const transposeNote = transpose !== 0
     ? ` <span class="meta-shift">(orig. ${escapeHtml(song.key)})</span>`
@@ -222,11 +222,39 @@ function buildDocument(song, transpose) {
     print-color-adjust: exact;
   }
 
+  :root {
+    --body-size: 11pt;
+    --lyric-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --col-count: 1;
+    --col-gap: 0.4in;
+  }
+
   body {
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 11pt;
+    font-family: var(--lyric-font);
+    font-size: var(--body-size);
     line-height: 1.45;
   }
+
+  /* Multi-column body layout (cover header stays full width). */
+  main {
+    column-count: var(--col-count);
+    column-gap: var(--col-gap);
+    column-fill: balance;
+  }
+
+  /* "no-chords" mode: hide the chord row entirely; lyrics flow as plain text. */
+  body.no-chords .chord { display: none !important; }
+  body.no-chords .cl-line { line-height: 1.4; }
+  body.no-chords .cl-pair { margin-right: 0; }
+
+  /* "bw" (no-color) mode: drop section / chord / structure colors for a
+     monochrome print that's friendly to grayscale printers and reduces ink. */
+  body.bw .section-label,
+  body.bw .structure-pill { color: #222 !important; }
+  body.bw .section-rule   { background: #ccc !important; }
+  body.bw .structure-pill { border-color: #ccc !important; background: #f5f5f5 !important; }
+  body.bw .cl-pair .chord { color: #222 !important; }
+  body.bw .modulate-pill  { background: #444 !important; }
 
   /* On-screen wrapper so the page looks reasonable before printing. */
   .page {
@@ -244,13 +272,98 @@ function buildDocument(song, transpose) {
     position: sticky;
     top: 0;
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 12px 0 16px;
-    background: linear-gradient(#fff, #fff 70%, rgba(255,255,255,0));
+    padding: 12px 0 14px;
+    background: linear-gradient(#fff, #fff 80%, rgba(255,255,255,0));
     z-index: 10;
   }
+  .toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: center;
+  }
+  .toolbar-row.actions { justify-content: flex-end; }
+
+  .control-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .control-group .group-label {
+    font-size: 8.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin-right: 2px;
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    padding: 2px;
+    background: #fafafa;
+  }
+  .seg button {
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 9.5pt;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #555;
+  }
+  .seg button.active {
+    background: #fff;
+    color: #111;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    font-weight: 600;
+  }
+
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 9.5pt;
+    cursor: pointer;
+    color: #555;
+  }
+  .toggle.active {
+    background: #fff;
+    color: #111;
+    border-color: #b8b8b8;
+    font-weight: 600;
+  }
+  .toggle .check {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid #c0c0c0;
+    background: #fff;
+    position: relative;
+  }
+  .toggle.active .check {
+    background: #111;
+    border-color: #111;
+  }
+  .toggle.active .check::after {
+    content: "";
+    position: absolute;
+    left: 3px; top: 0px;
+    width: 4px; height: 8px;
+    border: solid #fff;
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+
   .toolbar .tip {
     flex: 1;
     font-size: 9pt;
@@ -258,7 +371,7 @@ function buildDocument(song, transpose) {
     line-height: 1.35;
   }
   .toolbar .tip strong { color: #444; font-weight: 600; }
-  .toolbar button {
+  .toolbar button.action {
     font: inherit;
     font-size: 10pt;
     padding: 7px 14px;
@@ -268,7 +381,7 @@ function buildDocument(song, transpose) {
     cursor: pointer;
     white-space: nowrap;
   }
-  .toolbar button.primary {
+  .toolbar button.action.primary {
     background: #111;
     color: #fff;
     border-color: #111;
@@ -489,12 +602,46 @@ function buildDocument(song, transpose) {
 <body>
   <div class="page">
     <div class="toolbar" data-toolbar>
-      <div class="tip">
-        <strong>Tip:</strong> in the print dialog, open <em>More settings</em> and uncheck
-        <em>Headers and footers</em> for a clean output (no URL or date at the top).
+      <div class="toolbar-row controls">
+        <div class="control-group">
+          <span class="group-label">Cols</span>
+          <div class="seg" role="group" aria-label="Columns">
+            <button type="button" data-control="cols" data-value="1">1</button>
+            <button type="button" data-control="cols" data-value="2">2</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <span class="group-label">Size</span>
+          <div class="seg" role="group" aria-label="Font size">
+            <button type="button" data-control="size" data-value="S">S</button>
+            <button type="button" data-control="size" data-value="M">M</button>
+            <button type="button" data-control="size" data-value="L">L</button>
+            <button type="button" data-control="size" data-value="XL">XL</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <span class="group-label">Font</span>
+          <div class="seg" role="group" aria-label="Font family">
+            <button type="button" data-control="font" data-value="sans">Sans</button>
+            <button type="button" data-control="font" data-value="serif">Serif</button>
+            <button type="button" data-control="font" data-value="mono">Mono</button>
+          </div>
+        </div>
+        <button type="button" class="toggle" data-control="chords">
+          <span class="check"></span>Chords
+        </button>
+        <button type="button" class="toggle" data-control="colors">
+          <span class="check"></span>Colors
+        </button>
       </div>
-      <button class="primary" type="button" data-action="print">Print / Save as PDF</button>
-      <button type="button" data-action="close">Close</button>
+      <div class="toolbar-row actions">
+        <div class="tip">
+          <strong>Tip:</strong> in the print dialog, open <em>More settings</em> and uncheck
+          <em>Headers and footers</em> for a clean output (no URL or date at the top).
+        </div>
+        <button class="action primary" type="button" data-action="print">Print / Save as PDF</button>
+        <button class="action" type="button" data-action="close">Close</button>
+      </div>
     </div>
 
     <header class="cover">
@@ -513,23 +660,114 @@ function buildDocument(song, transpose) {
 
   <script>
     (function () {
-      var btnPrint = document.querySelector('[data-action="print"]');
-      var btnClose = document.querySelector('[data-action="close"]');
-      if (btnPrint) btnPrint.addEventListener('click', function () { window.print(); });
-      if (btnClose) btnClose.addEventListener('click', function () { window.close(); });
-      // Intentionally NOT auto-opening the print dialog or auto-closing on
-      // afterprint. The user previewed the layout; let them choose when to
-      // print and when to dismiss the window.
+      var STORAGE_KEY = 'setlists-md:pdf-prefs';
+      var DEFAULTS = { cols: 1, size: 'M', font: 'sans', chords: true, colors: true };
+      var SIZE = { S: '10pt', M: '11pt', L: '12.5pt', XL: '14pt' };
+      var FONT = {
+        sans:  'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+        serif: '"Iowan Old Style", Georgia, "Times New Roman", serif',
+        mono:  '"JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace'
+      };
+
+      // Initial prefs are injected by the parent app from its own localStorage
+      // so the popup honours the user's last-used PDF settings even when the
+      // popup's about:blank context can't read them itself.
+      var initial = ${JSON.stringify(initialPrefs).replace(/</g, '\\u003c')};
+      var prefs = Object.assign({}, DEFAULTS, initial);
+
+      function readStored() {
+        // Try opener's localStorage first (parent app's origin) so prefs
+        // survive across exports. Fall back to our own (ephemeral on
+        // about:blank in some browsers, but no-op there is fine).
+        try {
+          if (window.opener && window.opener.localStorage) {
+            var raw = window.opener.localStorage.getItem(STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+          }
+        } catch (e) { /* cross-origin or closed opener */ }
+        try {
+          var raw2 = localStorage.getItem(STORAGE_KEY);
+          if (raw2) return JSON.parse(raw2);
+        } catch (e) { /* unavailable */ }
+        return null;
+      }
+
+      function writeStored(p) {
+        var s = JSON.stringify(p);
+        try { if (window.opener && window.opener.localStorage) window.opener.localStorage.setItem(STORAGE_KEY, s); } catch (e) {}
+        try { localStorage.setItem(STORAGE_KEY, s); } catch (e) {}
+      }
+
+      var stored = readStored();
+      if (stored) prefs = Object.assign(prefs, stored);
+
+      var root = document.documentElement;
+      var body = document.body;
+
+      function apply() {
+        root.style.setProperty('--col-count', String(prefs.cols));
+        root.style.setProperty('--body-size', SIZE[prefs.size] || SIZE.M);
+        root.style.setProperty('--lyric-font', FONT[prefs.font] || FONT.sans);
+        body.classList.toggle('no-chords', !prefs.chords);
+        body.classList.toggle('bw', !prefs.colors);
+        // Reflect active state on the controls.
+        var nodes = document.querySelectorAll('[data-control]');
+        for (var i = 0; i < nodes.length; i++) {
+          var el = nodes[i];
+          var k = el.getAttribute('data-control');
+          var v = el.getAttribute('data-value');
+          var active = false;
+          if      (k === 'cols')   active = String(prefs.cols) === v;
+          else if (k === 'size')   active = prefs.size === v;
+          else if (k === 'font')   active = prefs.font === v;
+          else if (k === 'chords') active = !!prefs.chords;
+          else if (k === 'colors') active = !!prefs.colors;
+          el.classList.toggle('active', active);
+        }
+        writeStored(prefs);
+      }
+
+      document.addEventListener('click', function (e) {
+        var ctrl = e.target.closest('[data-control]');
+        if (ctrl) {
+          var k = ctrl.getAttribute('data-control');
+          var v = ctrl.getAttribute('data-value');
+          if      (k === 'cols')   prefs.cols   = parseInt(v, 10) || 1;
+          else if (k === 'size')   prefs.size   = v;
+          else if (k === 'font')   prefs.font   = v;
+          else if (k === 'chords') prefs.chords = !prefs.chords;
+          else if (k === 'colors') prefs.colors = !prefs.colors;
+          apply();
+          return;
+        }
+        var act = e.target.closest('[data-action]');
+        if (!act) return;
+        if (act.dataset.action === 'print') window.print();
+        if (act.dataset.action === 'close') window.close();
+      });
+
+      apply();
     })();
   </script>
 </body>
 </html>`;
 }
 
+const PREFS_KEY = 'setlists-md:pdf-prefs';
+
+function readInitialPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
 export function exportSongPdf(song, opts = {}) {
   if (!song) return;
   const transpose = Number.isFinite(opts.transpose) ? opts.transpose : 0;
-  const html = buildDocument(song, transpose);
+  const html = buildDocument(song, transpose, readInitialPrefs());
 
   // IMPORTANT: do NOT pass `noopener` / `noreferrer` in the features string.
   // Those flags cause browsers to return `null` from window.open(), which
