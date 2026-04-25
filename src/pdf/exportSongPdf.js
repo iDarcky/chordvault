@@ -169,12 +169,14 @@ function buildDocument(song, transpose) {
     });
   })();
 
-  const metaPills = [
-    { label: 'Key',   value: `${displayKey}${transposeNote}` },
-    song.tempo ? { label: 'Tempo', value: `${song.tempo} <span class="meta-unit">BPM</span>` } : null,
-    song.time  ? { label: 'Time',  value: escapeHtml(song.time) } : null,
-    song.capo  ? { label: 'Capo',  value: escapeHtml(String(song.capo)) } : null,
-  ].filter(Boolean);
+  // Inline subtitle parts: Artist · Key · Tempo · Time · Capo
+  const subtitleParts = [];
+  if (song.artist) subtitleParts.push(`<span class="sub-artist">${escapeHtml(song.artist)}</span>`);
+  subtitleParts.push(`<span class="sub-meta"><span class="sub-label">Key</span> <strong>${displayKey}</strong>${transposeNote}</span>`);
+  if (song.tempo) subtitleParts.push(`<span class="sub-meta"><span class="sub-label">Tempo</span> <strong>${escapeHtml(String(song.tempo))}</strong> <span class="sub-unit">bpm</span></span>`);
+  if (song.time)  subtitleParts.push(`<span class="sub-meta"><span class="sub-label">Time</span> <strong>${escapeHtml(song.time)}</strong></span>`);
+  if (song.capo)  subtitleParts.push(`<span class="sub-meta"><span class="sub-label">Capo</span> <strong>${escapeHtml(String(song.capo))}</strong></span>`);
+  const subtitleHtml = subtitleParts.join('<span class="sub-sep">·</span>');
 
   const sectionsHtml = (song.sections || [])
     .map((s, i) => renderSection(s, transpose, modOffsets[i] || 0))
@@ -203,12 +205,6 @@ function buildDocument(song, transpose) {
     margin: 0.55in 0.55in 0.65in;
     @bottom-right {
       content: counter(page) " / " counter(pages);
-      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-      font-size: 9pt;
-      color: #888;
-    }
-    @bottom-left {
-      content: "${titleSafe.replace(/"/g, '\\"')}${artistSafe ? ' — ' + artistSafe.replace(/"/g, '\\"') : ''}";
       font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
       font-size: 9pt;
       color: #888;
@@ -248,12 +244,20 @@ function buildDocument(song, transpose) {
     position: sticky;
     top: 0;
     display: flex;
-    gap: 8px;
+    gap: 10px;
+    align-items: center;
     justify-content: flex-end;
     padding: 12px 0 16px;
     background: linear-gradient(#fff, #fff 70%, rgba(255,255,255,0));
     z-index: 10;
   }
+  .toolbar .tip {
+    flex: 1;
+    font-size: 9pt;
+    color: #777;
+    line-height: 1.35;
+  }
+  .toolbar .tip strong { color: #444; font-weight: 600; }
   .toolbar button {
     font: inherit;
     font-size: 10pt;
@@ -262,6 +266,7 @@ function buildDocument(song, transpose) {
     border: 1px solid #d0d0d0;
     background: #fff;
     cursor: pointer;
+    white-space: nowrap;
   }
   .toolbar button.primary {
     background: #111;
@@ -272,52 +277,40 @@ function buildDocument(song, transpose) {
   /* ── Cover header ───────────────────────────────────────────────── */
   .cover {
     border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 18px;
-    margin-bottom: 22px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
   }
   .cover h1 {
     font-family: "Iowan Old Style", Georgia, "Times New Roman", serif;
-    font-size: 28pt;
+    font-size: 26pt;
     line-height: 1.1;
     margin: 0 0 4px;
     font-weight: 600;
     letter-spacing: -0.01em;
   }
-  .cover .artist {
-    font-size: 12pt;
-    color: #666;
-    margin-bottom: 14px;
-  }
-
-  .meta-row {
+  .cover .subtitle {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 14px;
-    margin-bottom: 12px;
-  }
-  .meta-pill {
-    display: inline-flex;
     align-items: baseline;
-    gap: 6px;
-    padding: 5px 11px;
-    border: 1px solid #e0e0e0;
-    border-radius: 999px;
-    background: #fafafa;
+    gap: 6px 8px;
     font-size: 10pt;
+    color: #666;
+    margin-bottom: 10px;
   }
-  .meta-pill .meta-label {
+  .sub-artist { color: #444; font-weight: 500; }
+  .sub-sep    { color: #bbb; }
+  .sub-meta   { color: #555; }
+  .sub-meta strong { color: #111; font-weight: 600; }
+  .sub-label  {
     font-size: 8.5pt;
-    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #888;
+    color: #999;
+    font-weight: 700;
+    margin-right: 1px;
   }
-  .meta-pill .meta-value {
-    font-weight: 600;
-    color: #111;
-  }
+  .sub-unit   { color: #888; font-size: 9pt; }
   .meta-shift { color: #888; font-weight: 400; font-size: 9pt; }
-  .meta-unit  { color: #888; font-weight: 400; font-size: 9pt; }
 
   .structure-ribbon {
     display: flex;
@@ -496,20 +489,17 @@ function buildDocument(song, transpose) {
 <body>
   <div class="page">
     <div class="toolbar" data-toolbar>
+      <div class="tip">
+        <strong>Tip:</strong> in the print dialog, open <em>More settings</em> and uncheck
+        <em>Headers and footers</em> for a clean output (no URL or date at the top).
+      </div>
       <button class="primary" type="button" data-action="print">Print / Save as PDF</button>
       <button type="button" data-action="close">Close</button>
     </div>
 
     <header class="cover">
       <h1>${titleSafe}</h1>
-      ${artistSafe ? `<div class="artist">${artistSafe}</div>` : ''}
-      <div class="meta-row">
-        ${metaPills.map(p => `
-          <span class="meta-pill">
-            <span class="meta-label">${escapeHtml(p.label)}</span>
-            <span class="meta-value">${p.value}</span>
-          </span>`).join('')}
-      </div>
+      <div class="subtitle">${subtitleHtml}</div>
       ${renderStructureRibbon((song.sections || []).map(s => s.type))}
       ${tagsHtml}
       ${ccliHtml ? `<div>${ccliHtml}</div>` : ''}
@@ -527,14 +517,9 @@ function buildDocument(song, transpose) {
       var btnClose = document.querySelector('[data-action="close"]');
       if (btnPrint) btnPrint.addEventListener('click', function () { window.print(); });
       if (btnClose) btnClose.addEventListener('click', function () { window.close(); });
-      window.addEventListener('afterprint', function () {
-        // Give the user a beat to inspect, then auto-close.
-        setTimeout(function () { window.close(); }, 250);
-      });
-      // Auto-open the print dialog once fonts/layout settle.
-      window.addEventListener('load', function () {
-        setTimeout(function () { window.print(); }, 350);
-      });
+      // Intentionally NOT auto-opening the print dialog or auto-closing on
+      // afterprint. The user previewed the layout; let them choose when to
+      // print and when to dismiss the window.
     })();
   </script>
 </body>
