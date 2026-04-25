@@ -30,18 +30,18 @@ function buildItems({ settings, songs, setlists, hasCloud, actions }) {
       onAction: actions.openFirstSong,
     },
     {
-      id: 'stage',
-      title: 'Try stage mode',
-      done: !!settings?.firstStageMode,
-      action: 'Open stage',
-      onAction: actions.openFirstSong,
-    },
-    {
       id: 'setlist',
       title: 'Build your first setlist',
       done: setlists?.length > 0 || !!settings?.firstSetlistBuilt,
       action: 'Build one',
       onAction: actions.newSetlist,
+    },
+    {
+      id: 'stage',
+      title: 'Try stage mode',
+      done: !!settings?.firstStageMode,
+      action: 'Open stage',
+      onAction: actions.openFirstSong,
     },
     {
       id: 'song',

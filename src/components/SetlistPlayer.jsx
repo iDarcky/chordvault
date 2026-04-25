@@ -3,8 +3,10 @@ import { transposeKey, sectionStyle } from '../music';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import ChartView from './ChartView';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, defaultFontSize, showInlineNotes, inlineNoteStyle, displayRole, duplicateSections }) {
+  useWakeLock(true);
   const [idx, setIdx] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const songBarRef = useRef(null);

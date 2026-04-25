@@ -5,8 +5,10 @@ import { StructureRibbon } from './StructureRibbon';
 import FloatingNavPill from './ui/FloatingNavPill';
 import { IconButton } from './ui/IconButton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/Select';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 export default function PerformanceView({ setlist, songs, onBack }) {
+  useWakeLock(true);
   const [idx, setIdx] = useState(0);
   const [selectedKey, setSelectedKey] = useState(null);
   const [fontSize, setFontSize] = useState(18);

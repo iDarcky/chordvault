@@ -64,7 +64,10 @@ const HelpPage = lazy(() => import('./components/HelpPage'));
 const AuthScreen = lazy(() => import('./components/auth/AuthScreen'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
 const RecoveryScreen = lazy(() => import('./components/auth/RecoveryScreen'));
-const UpgradeScreen = lazy(() => import('./components/UpgradeScreen'));
+const PricingScreen = lazy(() => import('./components/PricingScreen'));
+const WakeLockExplainer = lazy(() => import('./components/WakeLockExplainer'));
+const AccountWall = lazy(() => import('./components/AccountWall'));
+const FounderNote = lazy(() => import('./components/FounderNote'));
 
 // Subset of local settings that gets mirrored to the user's cloud profile
 // (profiles.preferences). Device-local flags like onboardingComplete,
@@ -133,6 +136,11 @@ export default function App() {
     setDrawerOpen(true);
   };
   const [notifTrayOpen, setNotifTrayOpen] = useState(false);
+  // Account-wall modal state — surfaced after the user saves their first
+  // local item (song or setlist) without being signed in.
+  const [accountWallTrigger, setAccountWallTrigger] = useState(null);
+  // Founder note — shown once after the user transposes their first chart.
+  const [showFounderNote, setShowFounderNote] = useState(false);
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
   const quotaWarnedRef = useRef(false);
@@ -462,6 +470,12 @@ export default function App() {
     if (isNew && !settings?.firstSongAdded) {
       setSettings(prev => ({ ...prev, firstSongAdded: true }));
     }
+    // First-save account wall: only for new items, only when not signed in,
+    // only once per user. Tier-2 upsell follows the "Alma moment" — they
+    // already have something they don't want to lose.
+    if (isNew && !user && !settings?.seenSaveAccountWall) {
+      setAccountWallTrigger({ kind: 'song', title: song.title || 'Untitled song' });
+    }
     // After save, pop the stale chart entry that was pushed when entering the editor,
     // then navigate to chart with the updated song (no new history entry)
     historyRef.current.pop();
@@ -501,13 +515,18 @@ export default function App() {
 
   // Setlist CRUD
   const handleSaveSetlist = (sl) => {
+    let isNew = false;
     setSetlists(prev => {
       const idx = prev.findIndex(s => s.id === sl.id);
       if (idx >= 0) { const n = [...prev]; n[idx] = sl; return n; }
+      isNew = true;
       return [...prev, sl];
     });
     if (!settings?.firstSetlistBuilt) {
       setSettings(prev => ({ ...prev, firstSetlistBuilt: true }));
+    }
+    if (isNew && !user && !settings?.seenSaveAccountWall) {
+      setAccountWallTrigger({ kind: 'setlist', title: sl.name || 'Untitled setlist' });
     }
     goBack();
   };
@@ -645,7 +664,14 @@ export default function App() {
         <AuthScreen onBack={goBack} onSignedIn={() => goToMainView('home')} defaultMode={authStartMode} />
       )}
       {view === 'upgrade' && (
-        <UpgradeScreen onBack={goBack} />
+        <PricingScreen
+          onBack={goBack}
+          settings={settings}
+          onSignIn={() => {
+            setAuthStartMode('signup');
+            navigate('signin');
+          }}
+        />
       )}
       {view === 'onboarding' && (
         <OnboardingFlow
@@ -778,6 +804,11 @@ export default function App() {
               onTransposed={() => {
                 if (!settings?.firstTransposed) {
                   setSettings(prev => ({ ...prev, firstTransposed: true }));
+                }
+                // Queue the founder note — surfaced the next time we land
+                // on the dashboard so it never interrupts the chart itself.
+                if (!settings?.seenFounderNote) {
+                  setShowFounderNote(true);
                 }
               }}
             />
@@ -949,6 +980,48 @@ export default function App() {
         />
       )}
       {!['onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
+
+      {/* One-time pre-permission explainer for stage mode. The wake lock
+          itself acquires silently inside the stage view; this modal just
+          tells the user why their screen is staying on. */}
+      {(view === 'setlist-performance' || view === 'setlist-play') && !settings?.seenWakeLockExplainer && (
+        <WakeLockExplainer
+          onContinue={() => setSettings(prev => ({ ...prev, seenWakeLockExplainer: true }))}
+        />
+      )}
+
+      {/* Account wall — fired by handleSaveSong / handleSaveSetlist on
+          first NEW save when the user is not signed in. */}
+      {accountWallTrigger && (
+        <AccountWall
+          kind={accountWallTrigger.kind}
+          savedItemTitle={accountWallTrigger.title}
+          onSaveLocal={() => {
+            setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
+            setAccountWallTrigger(null);
+          }}
+          onSignIn={() => {
+            setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
+            setAccountWallTrigger(null);
+            navigate('upgrade');
+          }}
+          onSkip={() => {
+            setSettings(prev => ({ ...prev, seenSaveAccountWall: true }));
+            setAccountWallTrigger(null);
+          }}
+        />
+      )}
+
+      {/* Founder note — surfaced on the dashboard once after the user has
+          actually transposed their first chart (the engagement signal). */}
+      {showFounderNote && view === 'home' && !settings?.seenFounderNote && (
+        <FounderNote
+          onClose={() => {
+            setSettings(prev => ({ ...prev, seenFounderNote: true }));
+            setShowFounderNote(false);
+          }}
+        />
+      )}
     </Suspense>
     </ErrorBoundary>
   );

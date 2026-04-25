@@ -1,37 +1,64 @@
-export default function ChordLine({ line, animateKey }) {
-  const parts = [];
-  const re = /(\[[^\]]+\])/g;
+// Parse a "[C]Hello [G]world" string into chord/lyric blocks suitable for
+// stacked rendering: chord on top, lyric below. Each block represents one
+// chord-segment-of-lyric pair. The first block can have chord=null when the
+// line starts with lyric text before any chord.
+function parseChordBlocks(line) {
+  const blocks = [];
+  const re = /\[([^\]]+)\]/g;
   let lastIndex = 0;
   let match;
   while ((match = re.exec(line)) !== null) {
-    if (match.index > lastIndex) parts.push({ type: 'lyric', text: line.slice(lastIndex, match.index) });
-    parts.push({ type: 'chord', text: match[0] });
+    const pre = line.slice(lastIndex, match.index);
+    if (pre) {
+      if (blocks.length === 0) {
+        blocks.push({ chord: null, lyric: pre });
+      } else {
+        blocks[blocks.length - 1].lyric += pre;
+      }
+    }
+    blocks.push({ chord: match[1], lyric: '' });
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < line.length) parts.push({ type: 'lyric', text: line.slice(lastIndex) });
+  if (lastIndex < line.length) {
+    const trail = line.slice(lastIndex);
+    if (blocks.length > 0) {
+      blocks[blocks.length - 1].lyric += trail;
+    } else {
+      blocks.push({ chord: null, lyric: trail });
+    }
+  }
+  return blocks;
+}
 
+export default function ChordLine({ line, animateKey }) {
+  const blocks = parseChordBlocks(line);
   let chordIdx = 0;
   return (
-    <div className="text-copy-14 leading-loose">
-      {parts.map((p, i) => {
-        if (p.type === 'chord') {
-          const delay = chordIdx * 30;
-          chordIdx += 1;
-          return (
+    <div className="text-copy-14" style={{ lineHeight: 1.25 }}>
+      {blocks.map((b, i) => {
+        const delay = b.chord ? chordIdx * 30 : 0;
+        if (b.chord) chordIdx += 1;
+        return (
+          <span
+            key={`${animateKey ?? 0}-${i}`}
+            className="inline-block align-top"
+            style={{ whiteSpace: 'pre' }}
+          >
             <span
-              key={`${animateKey ?? 0}-${i}`}
-              className="font-bold inline-block sm-onboard-chord-pop"
+              className={`block font-bold leading-tight ${b.chord ? 'sm-onboard-chord-pop' : ''}`}
               style={{
                 color: 'var(--chord)',
                 animationDelay: `${delay}ms`,
+                minHeight: '1.2em',
+                fontSize: '0.9em',
               }}
             >
-              {p.text}
+              {b.chord || ' '}
             </span>
-          );
-        }
-        return (
-          <span key={i} className="text-[var(--ds-gray-900)]">{p.text}</span>
+            <span className="block leading-tight text-[var(--ds-gray-900)]">
+              {b.lyric || ' '}
+            </span>
+          </span>
         );
       })}
     </div>

@@ -114,8 +114,8 @@ export default function LiveHello({ onContinue, onSkip, onSignIn, onInteract }) 
             </div>
           </div>
           <div className="px-4 py-4">
-            <div className="text-label-11 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)] mb-2">Verse 1</div>
-            <div className="flex flex-col gap-1.5">
+            <div className="text-label-11 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)] mb-3">Verse 1</div>
+            <div className="flex flex-col gap-3">
               {lines.map((line, i) => (
                 <ChordLine key={i} line={line} animateKey={semis} />
               ))}
