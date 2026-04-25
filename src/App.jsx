@@ -21,6 +21,8 @@ import FeedbackButton from './components/FeedbackButton';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './auth/useAuth';
 import { exportSetlistZip, importSetlistZip } from './setlist-io';
+import { usePWAUpdate } from './hooks/usePWAUpdate';
+import { useInstallPrompt } from './hooks/useInstallPrompt';
 
 const QUOTA_WARN_THRESHOLD = 0.8;
 
@@ -68,6 +70,7 @@ const PricingScreen = lazy(() => import('./components/PricingScreen'));
 const WakeLockExplainer = lazy(() => import('./components/WakeLockExplainer'));
 const AccountWall = lazy(() => import('./components/AccountWall'));
 const FounderNote = lazy(() => import('./components/FounderNote'));
+const IOSInstallHint = lazy(() => import('./components/IOSInstallHint'));
 
 // Subset of local settings that gets mirrored to the user's cloud profile
 // (profiles.preferences). Device-local flags like onboardingComplete,
@@ -104,6 +107,11 @@ function prefsEqual(a, b) {
 
 export default function App() {
   const { user, profile, signOut, updateProfile } = useAuth();
+  // PWA update prompt — toast appears when a new SW is downloaded.
+  usePWAUpdate();
+  // Native + iOS install affordance.
+  const { canInstall, isIOS, isStandalone, promptInstall } = useInstallPrompt();
+  const [showIOSHint, setShowIOSHint] = useState(false);
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
   const [tombstones, setTombstones] = useState({ songs: [], setlists: [] });
@@ -790,6 +798,7 @@ export default function App() {
             />
           )}
           {view === 'chart' && currentSong && (
+            <ErrorBoundary>
             <ChartView
               song={currentSong}
               onBack={goBack}
@@ -812,6 +821,7 @@ export default function App() {
                 }
               }}
             />
+            </ErrorBoundary>
           )}
           {view === 'editor' && (
             <Editor
@@ -959,6 +969,17 @@ export default function App() {
           onUpgrade={() => { setDrawerOpen(false); navigate('upgrade'); }}
           onSignIn={() => { setDrawerOpen(false); setAuthStartMode('signin'); navigate('signin'); }}
           onCreateAccount={() => { setDrawerOpen(false); setAuthStartMode('signup'); navigate('signin'); }}
+          canInstall={canInstall}
+          isIOS={isIOS}
+          isStandalone={isStandalone}
+          onInstall={async () => {
+            setDrawerOpen(false);
+            if (isIOS) {
+              setShowIOSHint(true);
+            } else if (canInstall) {
+              await promptInstall();
+            }
+          }}
         />
       )}
       {!['onboarding', 'signin', 'upgrade'].includes(view) && (
@@ -1019,6 +1040,18 @@ export default function App() {
           onClose={() => {
             setSettings(prev => ({ ...prev, seenFounderNote: true }));
             setShowFounderNote(false);
+          }}
+        />
+      )}
+
+      {/* iOS Add-to-Home-Screen explainer — shown once on iOS Safari when
+          the user lands on the dashboard, since iOS never fires
+          beforeinstallprompt. */}
+      {(showIOSHint || (isIOS && !isStandalone && view === 'home' && settings?.onboardingComplete && !settings?.seenIOSInstallHint)) && (
+        <IOSInstallHint
+          onClose={() => {
+            setSettings(prev => ({ ...prev, seenIOSInstallHint: true }));
+            setShowIOSHint(false);
           }}
         />
       )}

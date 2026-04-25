@@ -49,6 +49,14 @@ const DesignIcon = () => (
   </svg>
 );
 
+const InstallIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+);
+
 function Row({ icon: Icon, label, onClick, accessory }) {
   return (
     <button
@@ -82,6 +90,10 @@ export default function MobileDrawer({
   onSignIn,
   onCreateAccount,
   onSignOut,
+  canInstall = false,
+  isIOS = false,
+  isStandalone = false,
+  onInstall,
 }) {
   const panelRef = useRef(null);
   const [dragX, setDragX] = useState(0);
@@ -228,6 +240,13 @@ export default function MobileDrawer({
           />
           <Row icon={HelpIcon} label="Help" onClick={onOpenHelp} />
           <Row icon={DesignIcon} label="Design" onClick={onOpenDesign} />
+          {!isStandalone && (canInstall || isIOS) && onInstall && (
+            <Row
+              icon={InstallIcon}
+              label={isIOS ? 'Add to Home Screen' : 'Install app'}
+              onClick={onInstall}
+            />
+          )}
         </div>
 
         {/* Footer — surfaces the signed-in account name as the primary brand

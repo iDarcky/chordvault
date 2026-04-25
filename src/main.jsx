@@ -6,7 +6,11 @@ import '@fontsource/jetbrains-mono/600.css';
 import '@fontsource/jetbrains-mono/700.css';
 import App from './App';
 import { AuthProvider } from './auth/AuthProvider';
+import { initSentry } from './sentry';
 import './styles/index.css';
+
+// Fire-and-forget — Sentry no-ops if VITE_SENTRY_DSN isn't set.
+initSentry();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
