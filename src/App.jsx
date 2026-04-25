@@ -916,8 +916,7 @@ export default function App() {
               setlistCount={setlists.length}
               syncState={syncState}
               onSyncStateChange={setSyncState}
-              onSyncNow={triggerSync} onDesign={() => setView("design")}
-              onHelp={() => navigate('help')}
+              onSyncNow={triggerSync}
               onRequestSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
               isSignedIn={isSignedIn}
               displayName={displayName}
