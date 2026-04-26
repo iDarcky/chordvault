@@ -21,6 +21,7 @@ import FeedbackButton from './components/FeedbackButton';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './auth/useAuth';
 import { exportSetlistZip, importSetlistZip, slugify } from './setlist-io';
+import { exportSetlistPdf } from './pdf/exportSetlistPdf';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 
@@ -956,7 +957,9 @@ export default function App() {
               songs={songs}
               onBack={goBack}
               onEdit={() => goSetlistBuild(currentSetlist)}
-              onExport={() => handleExportSetlist(currentSetlist)}
+              onExportZip={() => handleExportSetlist(currentSetlist)}
+              onExportPdfOverview={() => exportSetlistPdf(currentSetlist, songs, { mode: 'overview' })}
+              onExportPdfFull={() => exportSetlistPdf(currentSetlist, songs, { mode: 'full' })}
               onPlay={() => goSetlistPerformance(currentSetlist)}
               onPractice={() => goSetlistPractice(currentSetlist)}
               onDelete={() => handleDeleteSetlist(currentSetlist.id)}

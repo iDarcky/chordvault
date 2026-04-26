@@ -2,10 +2,12 @@ import { useMemo, useState, useEffect } from 'react';
 import { transposeKey } from '../music';
 import { Chip } from './ui/Chip';
 import { IconButton } from './ui/IconButton';
+import ExportSetlistDialog from './ExportSetlistDialog';
 
-export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay, onPractice, onDelete, isFullscreen = false, onToggleFullscreen }) {
+export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExportZip, onExportPdfOverview, onExportPdfFull, onPlay, onPractice, onDelete, isFullscreen = false, onToggleFullscreen }) {
   const getSong = (id) => songs.find(s => s.id === id);
   const [collapsed, setCollapsed] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setCollapsed(window.scrollY > 60);
@@ -35,7 +37,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
 
   const actionIcons = (
     <div className="flex items-center gap-1 shrink-0">
-      <IconButton variant="ghost" size="sm" onClick={onExport} aria-label="Export setlist">
+      <IconButton variant="ghost" size="sm" onClick={() => setExportOpen(true)} aria-label="Export setlist">
         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
@@ -261,6 +263,15 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           </svg>
         </div>
       </div>
+
+      {exportOpen && (
+        <ExportSetlistDialog
+          onClose={() => setExportOpen(false)}
+          onExportZip={() => { setExportOpen(false); onExportZip?.(); }}
+          onExportPdfOverview={() => { setExportOpen(false); onExportPdfOverview?.(); }}
+          onExportPdfFull={() => { setExportOpen(false); onExportPdfFull?.(); }}
+        />
+      )}
     </div>
   );
 }

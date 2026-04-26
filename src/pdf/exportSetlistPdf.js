@@ -1,227 +1,25 @@
-// Export a song to a print-friendly PDF via a popup window.
+// Export a setlist to a print-friendly PDF via a popup window.
 //
-// Renders a self-contained HTML document with a beautiful header, structure
-// ribbon, and chord-above-lyric body, then triggers the browser's native
-// print dialog (which the user can use to "Save as PDF" or send to a printer).
+// Two modes:
+//   - 'overview'   : single cover page with the full set order (titles,
+//                    keys, capo, tempo, per-song notes). Useful as a
+//                    band/runner sheet.
+//   - 'full'       : cover page + every song as a full chord chart
+//                    (each starts on a new page). Mirrors the per-song
+//                    chord chart export.
 //
-// Why a new window? The previous implementation called window.print() on the
-// current page, which printed whatever was visible (including the Library list
-// in the desktop preview pane). A dedicated window guarantees the output is
-// just the song, regardless of where it was triggered from.
+// Reuses the JS render helpers from exportSongPdf.js so song bodies match
+// the single-song export. The print CSS is intentionally duplicated below
+// so this module stays self-contained — keep it in sync with exportSongPdf
+// if either file's print styles change meaningfully.
 
-import { transposeChord, transposeKey, sectionStyle } from '../music';
-import { parseLine, serializeTabBlock } from '../parser';
+import { transposeKey } from '../music';
+import {
+  escapeHtml,
+  buildSongBody,
+} from './exportSongPdf';
 
-// Print-friendly section accent colors (CMYK-safe approximations of the Geist
-// palette used in-app — we can't rely on CSS vars in the popup window).
-const SECTION_ACCENTS = {
-  Intro:        '#1F5FB4',
-  Refrain:      '#6F42C1',
-  Verse:        '#1A7F37',
-  'Pre Chorus': '#B8801B',
-  Chorus:       '#C2255C',
-  Bridge:       '#1F7E8C',
-  Instrumental: '#B8801B',
-  Ending:       '#B1361E',
-  Tag:          '#1F5FB4',
-  Interlude:    '#6F42C1',
-  Vamp:         '#B8801B',
-  Outro:        '#B1361E',
-};
-
-export function accentForSection(type) {
-  const base = (type || '').replace(/\s*\d+$/, '').replace(/:+$/, '');
-  const key = Object.keys(SECTION_ACCENTS).find(
-    k => base.toLowerCase().startsWith(k.toLowerCase())
-  );
-  // Fall back to the in-app sectionStyle just for parity (won't be used,
-  // but keeps the import meaningful for future tweaks).
-  void sectionStyle;
-  return SECTION_ACCENTS[key] || '#555555';
-}
-
-export function escapeHtml(str) {
-  if (str == null) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-export function renderTab(tab) {
-  // Prefer the raw ASCII for fidelity; fall back to serialized strings.
-  let lines = tab.raw && tab.raw.length > 0
-    ? tab.raw
-    : serializeTabBlock(tab).split('\n').slice(1, -1);
-  // Drop the {tab} / {/tab} delimiters if they slipped in.
-  lines = lines.filter(l => !/^\{\/?tab/.test(l.trim()));
-  const time = tab.time ? `<span class="tab-time">${escapeHtml(tab.time)}</span>` : '';
-  return `<pre class="tab-block">${time}${escapeHtml(lines.join('\n'))}</pre>`;
-}
-
-export function renderModulate(mod) {
-  const sign = mod.semitones > 0 ? '+' : '';
-  return `
-    <div class="modulate">
-      <span class="modulate-rule"></span>
-      <span class="modulate-pill">Key Change: ${sign}${mod.semitones}</span>
-      <span class="modulate-rule"></span>
-    </div>`;
-}
-
-export function renderLyricLine(line, transpose) {
-  const noteMatch = line.match(/\{!(.*?)\}/);
-  const inlineNote = noteMatch ? noteMatch[1] : null;
-  const cleanLine = line.replace(/\{!.*?\}/g, '');
-
-  // Plain text line (no chords)
-  if (!cleanLine.includes('[')) {
-    if (!cleanLine.trim() && !inlineNote) {
-      return '<div class="empty-line">&nbsp;</div>';
-    }
-    return `<div class="plain-line">${escapeHtml(cleanLine)}${
-      inlineNote ? `<span class="inline-note"> &mdash; ${escapeHtml(inlineNote)}</span>` : ''
-    }</div>`;
-  }
-
-  const pairs = parseLine(cleanLine);
-  const hasLyrics = pairs.some(p => p.text.trim());
-
-  const pairHtml = pairs.map(p => {
-    const chord = p.chord ? transposeChord(p.chord, transpose) : '';
-    const text = p.text || (p.chord ? ' ' : '');
-    return `<span class="cl-pair${hasLyrics ? '' : ' chord-only'}">${
-      chord ? `<span class="chord">${escapeHtml(chord)}</span>` : ''
-    }${
-      hasLyrics ? `<span class="lyric">${escapeHtml(text)}</span>` : ''
-    }</span>`;
-  }).join('');
-
-  const noteHtml = inlineNote
-    ? `<span class="inline-note inline-note-cl"> &mdash; ${escapeHtml(inlineNote)}</span>`
-    : '';
-
-  return `<div class="cl-line${hasLyrics ? '' : ' chord-only-line'}">${pairHtml}${noteHtml}</div>`;
-}
-
-export function renderSection(section, transpose, modOffset) {
-  let running = modOffset;
-  const accent = accentForSection(section.type);
-  const label = (section.type || '').replace(/:+$/, '');
-
-  const inner = (section.lines || []).map(line => {
-    if (typeof line === 'object' && line) {
-      if (line.type === 'tab') return renderTab(line);
-      if (line.type === 'modulate') {
-        running += line.semitones;
-        return renderModulate(line);
-      }
-      return '';
-    }
-    return renderLyricLine(line, transpose + running);
-  }).join('');
-
-  const noteHtml = section.note
-    ? `<div class="section-note" style="border-color:${accent}">${escapeHtml(section.note)}</div>`
-    : '';
-
-  return `
-    <section class="song-section" style="--accent:${accent}">
-      <header class="section-header">
-        <span class="section-label">${escapeHtml(label)}</span>
-        <span class="section-rule"></span>
-      </header>
-      ${noteHtml}
-      <div class="section-body">${inner}</div>
-    </section>`;
-}
-
-export function renderStructureRibbon(structure) {
-  if (!structure || structure.length === 0) return '';
-  return `<div class="structure-ribbon">${
-    structure.map(type => {
-      const accent = accentForSection(type);
-      const label = (type || '').replace(/:+$/, '');
-      return `<span class="structure-pill" style="--accent:${accent}">${escapeHtml(label)}</span>`;
-    }).join('')
-  }</div>`;
-}
-
-// Returns { coverHtml, sectionsHtml, titleSafe, artistSafe } for one song.
-// Reused by both single-song and setlist (full charts) PDF exports so the
-// rendered output stays in sync.
-export function buildSongBody(song, transpose, opts = {}) {
-  const { extraSubtitle = '', noteOverride = null } = opts;
-  const displayKey = transposeKey(song.key, transpose);
-  const transposeNote = transpose !== 0
-    ? ` <span class="meta-shift">(orig. ${escapeHtml(song.key)})</span>`
-    : '';
-
-  // Cumulative modulate offsets per section (same logic as ChartView).
-  const modOffsets = (() => {
-    const acc = { total: 0 };
-    return (song.sections || []).map(section => {
-      const offset = acc.total;
-      (section.lines || []).forEach(line => {
-        if (line && typeof line === 'object' && line.type === 'modulate') {
-          acc.total += line.semitones;
-        }
-      });
-      return offset;
-    });
-  })();
-
-  // Inline subtitle parts: Artist · Key · Tempo · Time · Capo
-  const subtitleParts = [];
-  if (song.artist) subtitleParts.push(`<span class="sub-artist">${escapeHtml(song.artist)}</span>`);
-  subtitleParts.push(`<span class="sub-meta"><span class="sub-label">Key</span> <strong>${displayKey}</strong>${transposeNote}</span>`);
-  if (song.tempo) subtitleParts.push(`<span class="sub-meta"><span class="sub-label">Tempo</span> <strong>${escapeHtml(String(song.tempo))}</strong> <span class="sub-unit">bpm</span></span>`);
-  if (song.time)  subtitleParts.push(`<span class="sub-meta"><span class="sub-label">Time</span> <strong>${escapeHtml(song.time)}</strong></span>`);
-  if (song.capo)  subtitleParts.push(`<span class="sub-meta"><span class="sub-label">Capo</span> <strong>${escapeHtml(String(song.capo))}</strong></span>`);
-  if (extraSubtitle) subtitleParts.push(`<span class="sub-meta">${extraSubtitle}</span>`);
-  const subtitleHtml = subtitleParts.join('<span class="sub-sep">·</span>');
-
-  const sectionsHtml = (song.sections || [])
-    .map((s, i) => renderSection(s, transpose, modOffsets[i] || 0))
-    .join('');
-
-  const tagsHtml = song.tags && song.tags.length
-    ? `<div class="cover-tags">${song.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>`
-    : '';
-
-  const ccliHtml = song.ccli ? `<span class="cover-aux"><strong>CCLI</strong> ${escapeHtml(song.ccli)}</span>` : '';
-  const notesText = noteOverride != null ? noteOverride : song.notes;
-  const notesHtml = notesText
-    ? `<div class="cover-notes"><strong>Notes</strong> ${escapeHtml(notesText)}</div>`
-    : '';
-
-  const titleSafe = escapeHtml(song.title || 'Untitled');
-  const artistSafe = escapeHtml(song.artist || '');
-
-  const coverHtml = `
-    <header class="cover">
-      <h1>${titleSafe}</h1>
-      <div class="subtitle">${subtitleHtml}</div>
-      ${renderStructureRibbon((song.sections || []).map(s => s.type))}
-      ${tagsHtml}
-      ${ccliHtml ? `<div>${ccliHtml}</div>` : ''}
-      ${notesHtml}
-    </header>`;
-
-  return { coverHtml, sectionsHtml, titleSafe, artistSafe };
-}
-
-function buildDocument(song, transpose, initialPrefs = {}) {
-  const { coverHtml, sectionsHtml, titleSafe, artistSafe } = buildSongBody(song, transpose);
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>${titleSafe}${artistSafe ? ' — ' + artistSafe : ''}</title>
-<style>
+const PDF_STYLES = `
   @page {
     size: Letter;
     margin: 0.55in 0.55in 0.7in;
@@ -257,20 +55,24 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     line-height: 1.45;
   }
 
-  /* Multi-column body layout (cover header stays full width). */
-  main {
+  /* Each song is wrapped in <article class="song"> so we can break pages
+     between songs reliably across browsers. */
+  article.song {
+    break-before: page;
+    page-break-before: always;
+  }
+  article.song:first-of-type { break-before: auto; page-break-before: auto; }
+
+  article.song main {
     column-count: var(--col-count);
     column-gap: var(--col-gap);
     column-fill: balance;
   }
 
-  /* "no-chords" mode: hide the chord row entirely; lyrics flow as plain text. */
   body.no-chords .chord { display: none !important; }
   body.no-chords .cl-line { line-height: 1.4; }
   body.no-chords .cl-pair { margin-right: 0; }
 
-  /* "bw" (no-color) mode: drop section / chord / structure colors for a
-     monochrome print that's friendly to grayscale printers and reduces ink. */
   body.bw .section-label,
   body.bw .structure-pill { color: #222 !important; }
   body.bw .section-rule   { background: #ccc !important; }
@@ -278,7 +80,6 @@ function buildDocument(song, transpose, initialPrefs = {}) {
   body.bw .cl-pair .chord { color: #222 !important; }
   body.bw .modulate-pill  { background: #444 !important; }
 
-  /* On-screen wrapper so the page looks reasonable before printing. */
   .page {
     max-width: 7.5in;
     margin: 0 auto;
@@ -289,7 +90,6 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     .toolbar { display: none !important; }
   }
 
-  /* Floating toolbar shown on screen only, before/after print. */
   .toolbar {
     position: sticky;
     top: 0;
@@ -306,13 +106,11 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     gap: 8px 14px;
     align-items: center;
   }
-  /* Print/Close pair sits at the far right of the controls row. */
   .action-group {
     display: inline-flex;
     gap: 8px;
     margin-left: auto;
   }
-
   .control-group {
     display: inline-flex;
     align-items: center;
@@ -349,7 +147,6 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     box-shadow: 0 1px 2px rgba(0,0,0,0.08);
     font-weight: 600;
   }
-
   .toggle {
     display: inline-flex;
     align-items: center;
@@ -390,7 +187,6 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     border-width: 0 1.5px 1.5px 0;
     transform: rotate(45deg);
   }
-
   .toolbar .tip {
     flex: 1;
     font-size: 9pt;
@@ -414,7 +210,124 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     border-color: #111;
   }
 
-  /* ── Cover header ───────────────────────────────────────────────── */
+  /* ── Setlist cover page ─────────────────────────────────────────── */
+  .setlist-cover {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+  }
+  .setlist-cover .eyebrow {
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #888;
+    margin: 0 0 6px;
+  }
+  .setlist-cover h1 {
+    font-family: "Iowan Old Style", Georgia, "Times New Roman", serif;
+    font-size: 30pt;
+    line-height: 1.05;
+    margin: 0 0 8px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .setlist-cover .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 10pt;
+    color: #555;
+  }
+  .setlist-cover .meta strong { color: #111; font-weight: 600; }
+  .setlist-cover .meta .sep { color: #ccc; }
+  .setlist-cover .tags {
+    display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 10px;
+  }
+  .setlist-cover .tag {
+    font-size: 8.5pt;
+    color: #555;
+    padding: 2px 7px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+  }
+
+  /* ── Set order list ─────────────────────────────────────────────── */
+  .set-order { margin-top: 4px; }
+  .set-order .row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ececec;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .set-order .row:last-child { border-bottom: 0; }
+  .set-order .num {
+    font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 10pt;
+    color: #999;
+    width: 1.6em;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .set-order .body { flex: 1; min-width: 0; }
+  .set-order .title {
+    font-size: 12.5pt;
+    font-weight: 600;
+    color: #111;
+    margin: 0;
+  }
+  .set-order .artist {
+    font-size: 9.5pt;
+    color: #666;
+    margin: 2px 0 0;
+  }
+  .set-order .row .tail {
+    text-align: right;
+    flex-shrink: 0;
+    font-size: 10pt;
+    color: #555;
+    line-height: 1.35;
+  }
+  .set-order .key {
+    font-weight: 700;
+    color: #111;
+  }
+  .set-order .capo {
+    display: inline-block;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #666;
+    margin-right: 6px;
+  }
+  .set-order .tempo {
+    display: block;
+    font-size: 9pt;
+    color: #777;
+    margin-top: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .set-order .note {
+    margin: 4px 0 0;
+    font-size: 9.5pt;
+    color: #555;
+    font-style: italic;
+  }
+  .set-order .row.break {
+    background: #fafafa;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-left: 2px solid #ddd;
+  }
+  .set-order .row.break .label {
+    font-style: italic;
+    color: #555;
+  }
+
+  /* ── Per-song cover (re-uses styles from song export) ───────────── */
   .cover {
     border-bottom: 1px solid #e0e0e0;
     padding-bottom: 14px;
@@ -422,7 +335,7 @@ function buildDocument(song, transpose, initialPrefs = {}) {
   }
   .cover h1 {
     font-family: "Iowan Old Style", Georgia, "Times New Roman", serif;
-    font-size: 26pt;
+    font-size: 22pt;
     line-height: 1.1;
     margin: 0 0 4px;
     font-weight: 600;
@@ -469,7 +382,6 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
     background: color-mix(in srgb, var(--accent) 8%, transparent);
   }
-
   .cover-tags {
     margin-top: 10px;
     display: flex;
@@ -483,18 +395,9 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     border: 1px solid #e0e0e0;
     border-radius: 4px;
   }
-  .cover-aux {
-    margin-top: 10px;
-    font-size: 9pt;
-    color: #666;
-  }
+  .cover-aux { margin-top: 10px; font-size: 9pt; color: #666; }
   .cover-aux strong { color: #444; margin-right: 4px; font-weight: 600; }
-  .cover-notes {
-    margin-top: 10px;
-    font-size: 9.5pt;
-    color: #444;
-    font-style: italic;
-  }
+  .cover-notes { margin-top: 10px; font-size: 9.5pt; color: #444; font-style: italic; }
   .cover-notes strong { font-style: normal; color: #222; margin-right: 4px; }
 
   /* ── Sections ───────────────────────────────────────────────────── */
@@ -503,12 +406,7 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     break-inside: avoid;
     page-break-inside: avoid;
   }
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
-  }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
   .section-label {
     font-size: 10pt;
     font-weight: 700;
@@ -531,11 +429,7 @@ function buildDocument(song, transpose, initialPrefs = {}) {
   }
   .section-body { padding-left: 2px; }
 
-  /* ── Lyric / chord lines ────────────────────────────────────────── */
-  .plain-line {
-    margin: 0 0 4px;
-    white-space: pre-wrap;
-  }
+  .plain-line { margin: 0 0 4px; white-space: pre-wrap; }
   .empty-line { height: 0.6em; }
 
   .cl-line {
@@ -546,7 +440,6 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     line-height: 1;
   }
   .cl-line.chord-only-line { margin-bottom: 4px; }
-
   .cl-pair {
     display: inline-flex;
     flex-direction: column;
@@ -562,13 +455,9 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     padding: 0 0.5em 2px 0;
     white-space: nowrap;
   }
-  .cl-pair .lyric {
-    line-height: 1.25;
-    white-space: pre-wrap;
-  }
+  .cl-pair .lyric { line-height: 1.25; white-space: pre-wrap; }
   .cl-pair.chord-only { margin-right: 0.5em; }
   .cl-pair.chord-only .chord { padding-bottom: 0; }
-
   .inline-note {
     color: #777;
     font-style: italic;
@@ -577,7 +466,6 @@ function buildDocument(song, transpose, initialPrefs = {}) {
   }
   .inline-note-cl { align-self: flex-end; }
 
-  /* ── Tab blocks ─────────────────────────────────────────────────── */
   .tab-block {
     font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     font-size: 9.5pt;
@@ -602,9 +490,19 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     margin-bottom: 4px;
   }
 
-  /* ── Brand footer (repeats on every printed page) ───────────────── */
-  /* On screen we hide it; @media print uses position:fixed so the browser
-     repeats the element as a footer on each page (Chrome/Safari/Firefox). */
+  .modulate { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .modulate-rule { flex: 1; height: 1px; background: #d0d0d0; }
+  .modulate-pill {
+    font-size: 8.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #111;
+    color: #fff;
+  }
+
   .brand-footer { display: none; }
   @media print {
     .brand-footer {
@@ -622,30 +520,146 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     .brand-footer .brand-name { color: #444; font-weight: 500; }
     .brand-footer .brand-md   { color: #53796F; font-weight: 700; }
   }
+`;
 
-  /* ── Modulate marker ────────────────────────────────────────────── */
-  .modulate {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 10px 0;
+function formatDate(dateStr, timeStr) {
+  if (!dateStr) return '';
+  try {
+    const t = timeStr || '12:00';
+    const d = new Date(`${dateStr}T${t}:00`);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+    });
+  } catch {
+    return dateStr;
   }
-  .modulate-rule {
-    flex: 1;
-    height: 1px;
-    background: #d0d0d0;
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  try {
+    const d = new Date(`1970-01-01T${timeStr}`);
+    if (Number.isNaN(d.getTime())) return timeStr;
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
+  } catch {
+    return timeStr;
   }
-  .modulate-pill {
-    font-size: 8.5pt;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: #111;
-    color: #fff;
+}
+
+function renderSetlistCover(setlist, items) {
+  const tags = (setlist.tags && setlist.tags.length)
+    ? setlist.tags
+    : (setlist.service ? [setlist.service] : []);
+
+  const songCount = items.filter(it => it.type !== 'break').length;
+  const breakCount = items.filter(it => it.type === 'break').length;
+
+  const dateLabel = formatDate(setlist.date, setlist.time);
+  const timeLabel = formatTime(setlist.time);
+
+  const metaParts = [];
+  if (dateLabel) metaParts.push(`<span><strong>${escapeHtml(dateLabel)}</strong></span>`);
+  if (timeLabel) metaParts.push(`<span>${escapeHtml(timeLabel)}</span>`);
+  if (setlist.location) metaParts.push(`<span>${escapeHtml(setlist.location)}</span>`);
+  metaParts.push(`<span>${songCount} song${songCount !== 1 ? 's' : ''}${breakCount ? ` + ${breakCount} break${breakCount !== 1 ? 's' : ''}` : ''}</span>`);
+  const metaHtml = metaParts.join('<span class="sep">·</span>');
+
+  const tagsHtml = tags.length
+    ? `<div class="tags">${tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>`
+    : '';
+
+  return `
+    <header class="setlist-cover">
+      <p class="eyebrow">Setlist</p>
+      <h1>${escapeHtml(setlist.name || 'Untitled Setlist')}</h1>
+      <div class="meta">${metaHtml}</div>
+      ${tagsHtml}
+    </header>`;
+}
+
+function renderSetOrderRow(item, idx, songs) {
+  const num = String(idx + 1).padStart(2, '0');
+
+  if (item.type === 'break') {
+    const duration = item.duration ? `<span class="tempo">${escapeHtml(String(item.duration))} min</span>` : '';
+    const note = item.note ? `<p class="note">${escapeHtml(item.note)}</p>` : '';
+    return `
+      <div class="row break">
+        <span class="num">${num}</span>
+        <div class="body">
+          <p class="title label">${escapeHtml(item.label || 'Break')}</p>
+          ${note}
+        </div>
+        <div class="tail">${duration}</div>
+      </div>`;
   }
-</style>
+
+  const song = songs.find(s => s.id === item.songId);
+  if (!song) return '';
+  const transpose = item.transpose || 0;
+  const capo = item.capo || 0;
+  const displayKey = transposeKey(song.key, transpose);
+
+  const note = item.note ? `<p class="note">${escapeHtml(item.note)}</p>` : '';
+
+  return `
+    <div class="row">
+      <span class="num">${num}</span>
+      <div class="body">
+        <p class="title">${escapeHtml(song.title || 'Untitled')}</p>
+        ${song.artist ? `<p class="artist">${escapeHtml(song.artist)}</p>` : ''}
+        ${note}
+      </div>
+      <div class="tail">
+        <div>
+          ${capo > 0 ? `<span class="capo">Capo ${escapeHtml(String(capo))}</span>` : ''}
+          <span class="key">${escapeHtml(displayKey || '')}</span>
+        </div>
+        ${song.tempo ? `<span class="tempo">${escapeHtml(String(song.tempo))} BPM</span>` : ''}
+      </div>
+    </div>`;
+}
+
+function buildSetlistDocument(setlist, songs, mode, initialPrefs = {}) {
+  const items = setlist.items || [];
+
+  const setOrderHtml = `
+    <div class="set-order">
+      ${items.map((item, idx) => renderSetOrderRow(item, idx, songs)).join('')}
+    </div>`;
+
+  // For 'full' mode, render every song as its own article (each starts on
+  // a new page), using per-item transpose and per-item note.
+  let songsHtml = '';
+  if (mode === 'full') {
+    songsHtml = items
+      .filter(it => it.type !== 'break')
+      .map(item => {
+        const song = songs.find(s => s.id === item.songId);
+        if (!song) return '';
+        const transpose = item.transpose || 0;
+        const noteOverride = item.note ? item.note : null;
+        const { coverHtml, sectionsHtml } = buildSongBody(song, transpose, {
+          noteOverride,
+        });
+        return `
+          <article class="song">
+            ${coverHtml}
+            <main>${sectionsHtml}</main>
+          </article>`;
+      }).join('');
+  }
+
+  const titleSafe = escapeHtml(setlist.name || 'Setlist');
+  const coverHtml = renderSetlistCover(setlist, items);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>${titleSafe} — Setlist</title>
+<style>${PDF_STYLES}</style>
 </head>
 <body>
   <div class="page">
@@ -701,8 +715,10 @@ function buildDocument(song, transpose, initialPrefs = {}) {
     ${coverHtml}
 
     <main>
-      ${sectionsHtml}
+      ${setOrderHtml}
     </main>
+
+    ${songsHtml}
   </div>
 
   <script>
@@ -716,26 +732,20 @@ function buildDocument(song, transpose, initialPrefs = {}) {
         mono:  '"JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace'
       };
 
-      // Initial prefs are injected by the parent app from its own localStorage
-      // so the popup honours the user's last-used PDF settings even when the
-      // popup's about:blank context can't read them itself.
       var initial = ${JSON.stringify(initialPrefs).replace(/</g, '\\u003c')};
       var prefs = Object.assign({}, DEFAULTS, initial);
 
       function readStored() {
-        // Try opener's localStorage first (parent app's origin) so prefs
-        // survive across exports. Fall back to our own (ephemeral on
-        // about:blank in some browsers, but no-op there is fine).
         try {
           if (window.opener && window.opener.localStorage) {
             var raw = window.opener.localStorage.getItem(STORAGE_KEY);
             if (raw) return JSON.parse(raw);
           }
-        } catch (e) { /* cross-origin or closed opener */ }
+        } catch (e) {}
         try {
           var raw2 = localStorage.getItem(STORAGE_KEY);
           if (raw2) return JSON.parse(raw2);
-        } catch (e) { /* unavailable */ }
+        } catch (e) {}
         return null;
       }
 
@@ -757,7 +767,6 @@ function buildDocument(song, transpose, initialPrefs = {}) {
         root.style.setProperty('--lyric-font', FONT[prefs.font] || FONT.sans);
         body.classList.toggle('no-chords', !prefs.chords);
         body.classList.toggle('bw', !prefs.colors);
-        // Reflect active state on the controls.
         var nodes = document.querySelectorAll('[data-control]');
         for (var i = 0; i < nodes.length; i++) {
           var el = nodes[i];
@@ -811,19 +820,20 @@ function readInitialPrefs() {
   }
 }
 
-export function exportSongPdf(song, opts = {}) {
-  if (!song) return;
-  const transpose = Number.isFinite(opts.transpose) ? opts.transpose : 0;
-  const html = buildDocument(song, transpose, readInitialPrefs());
+/**
+ * Open a print-friendly window for a setlist.
+ *
+ * @param {object} setlist - The setlist (name, date, time, location, tags, items).
+ * @param {Array}  songs   - All songs (used to look up each item.songId).
+ * @param {object} opts    - { mode: 'overview' | 'full' }.
+ */
+export function exportSetlistPdf(setlist, songs, opts = {}) {
+  if (!setlist) return;
+  const mode = opts.mode === 'full' ? 'full' : 'overview';
+  const html = buildSetlistDocument(setlist, songs || [], mode, readInitialPrefs());
 
-  // IMPORTANT: do NOT pass `noopener` / `noreferrer` in the features string.
-  // Those flags cause browsers to return `null` from window.open(), which
-  // would leave us unable to write HTML into the popup. We need a live
-  // handle to the new window.
   const w = window.open('about:blank', '_blank', 'width=900,height=1100,resizable=yes,scrollbars=yes');
   if (!w || w.closed || typeof w.document === 'undefined') {
-    // Popup blocked. Don't fall back to printing the current page (that's
-    // exactly the bug we're fixing). Instead, alert the user.
     alert('Could not open the print window. Please allow popups for this site and try again.');
     return;
   }
@@ -833,7 +843,7 @@ export function exportSongPdf(song, opts = {}) {
     w.document.close();
     w.focus();
   } catch (err) {
-    console.error('[exportSongPdf] failed to populate popup window', err);
+    console.error('[exportSetlistPdf] failed to populate popup window', err);
     try { w.close(); } catch { /* ignore */ }
     alert('Could not render the printable view. Please try again.');
   }
