@@ -3,7 +3,7 @@ import { transposeKey } from '../music';
 import { Chip } from './ui/Chip';
 import { IconButton } from './ui/IconButton';
 
-export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onPlay, onPractice, onDelete, isFullscreen = false, onToggleFullscreen }) {
+export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExport, onExportPdf, onPlay, onPractice, onDelete, isFullscreen = false, onToggleFullscreen }) {
   const getSong = (id) => songs.find(s => s.id === id);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -13,14 +13,19 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const { songCount, breakCount } = useMemo(() => {
-    let sc = 0, bc = 0;
-    for (const it of setlist.items) {
-      if (it.type === 'break') bc++;
-      else sc++;
-    }
-    return { songCount: sc, breakCount: bc };
-  }, [setlist, songs]);
+  const { songCount, breakCount, songNumberFor } = useMemo(() => {
+    const acc = { sc: 0, bc: 0 };
+    const map = {};
+    setlist.items.forEach((it, idx) => {
+      if (it.type === 'break') {
+        acc.bc += 1;
+      } else {
+        acc.sc += 1;
+        map[idx] = acc.sc;
+      }
+    });
+    return { songCount: acc.sc, breakCount: acc.bc, songNumberFor: map };
+  }, [setlist]);
 
   const dateStr = new Date(setlist.date + 'T' + (setlist.time || '12:00') + ':00').toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
@@ -35,7 +40,16 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
 
   const actionIcons = (
     <div className="flex items-center gap-1 shrink-0">
-      <IconButton variant="ghost" size="sm" onClick={onExport} aria-label="Export setlist">
+      {onExportPdf && (
+        <IconButton variant="ghost" size="sm" onClick={onExportPdf} aria-label="Print / Save as PDF" title="Print / Save as PDF">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" />
+          </svg>
+        </IconButton>
+      )}
+      <IconButton variant="ghost" size="sm" onClick={onExport} aria-label="Export setlist as .zip" title="Export setlist (.zip)">
         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
@@ -138,11 +152,45 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
         <p className="section-title m-0 mb-4">Set Order</p>
 
         <div className="flex flex-col gap-2">
+          {/* Songs are numbered sequentially; breaks are transitions and
+              don't take a number — they render as a centered divider. */}
           {setlist.items.map((item, idx) => {
-            const num = String(idx + 1).padStart(2, '0');
+              if (item.type === 'break') {
+                const dur = (item.duration || 0) > 0 ? ` · ${item.duration} min` : '';
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 px-2 py-2 my-0.5"
+                    role="separator"
+                    aria-label={`Break: ${item.label || 'Break'}${dur}`}
+                  >
+                    <div className="flex-1 h-px bg-[var(--ds-gray-300)]" />
+                    <div className="flex items-baseline gap-1.5 shrink-0 text-label-12 uppercase tracking-[0.14em] text-[var(--ds-gray-700)]">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="opacity-70">
+                        <rect x="6" y="5" width="4" height="14" rx="1" />
+                        <rect x="14" y="5" width="4" height="14" rx="1" />
+                      </svg>
+                      <span className="font-semibold not-italic">{item.label || 'Break'}</span>
+                      {(item.duration || 0) > 0 && (
+                        <span className="text-[var(--ds-gray-600)]">· {item.duration} min</span>
+                      )}
+                      {item.note && (
+                        <span className="text-[var(--ds-gray-600)] italic normal-case tracking-normal">
+                          — {item.note}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 h-px bg-[var(--ds-gray-300)]" />
+                  </div>
+                );
+              }
 
-            /* ── Break row ── */
-            if (item.type === 'break') {
+              /* ── Song row ── */
+              const song = getSong(item.songId);
+              if (!song) return null;
+              const num = String(songNumberFor[idx] || 0).padStart(2, '0');
+              const displayKey = transposeKey(song.key, item.transpose);
+
               return (
                 <div
                   key={idx}
@@ -151,38 +199,6 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                   <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
                     {num}
                   </span>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-copy-14 text-[var(--ds-gray-1000)] italic">
-                      {item.label || 'Break'}
-                    </span>
-                    {item.note && (
-                      <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
-                        {item.note}
-                      </p>
-                    )}
-                  </div>
-                  {(item.duration || 0) > 0 && (
-                    <span className="text-label-12 text-[var(--ds-gray-600)] shrink-0">
-                      {item.duration} min
-                    </span>
-                  )}
-                </div>
-              );
-            }
-
-            /* ── Song row ── */
-            const song = getSong(item.songId);
-            if (!song) return null;
-            const displayKey = transposeKey(song.key, item.transpose);
-
-            return (
-              <div
-                key={idx}
-                className="material-card flex items-center gap-3 px-4 py-3"
-              >
-                <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
-                  {num}
-                </span>
 
                 <div className="flex-1 min-w-0">
                   <p className="text-heading-14 text-[var(--ds-gray-1000)] m-0 truncate">
@@ -207,8 +223,8 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
                   </span>
                 </div>
               </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
 

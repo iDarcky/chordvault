@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { generateId } from '../parser';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
@@ -22,6 +22,20 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     return [];
   });
   const [items, setItems] = useState(setlist?.items || []);
+
+  // Per-item song numbers (1-based, breaks excluded). Computed once per
+  // items change so SetlistItemRow can render "01", "02", … on songs only.
+  const songNumberFor = useMemo(() => {
+    const acc = { count: 0 };
+    const map = {};
+    items.forEach((it, idx) => {
+      if (it.type !== 'break') {
+        acc.count += 1;
+        map[idx] = acc.count;
+      }
+    });
+    return map;
+  }, [items]);
   const undoStackRef = useRef([]);
 
   // Wraps setItems for structural mutations (add/remove/reorder) that
@@ -224,6 +238,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                     <SetlistItemRow
                       item={item}
                       idx={idx}
+                      songNum={songNumberFor[idx]}
                       song={item.type !== 'break' ? getSong(item.songId) : null}
                       onRemove={removeItem}
                       onUpdateNote={updateNote}

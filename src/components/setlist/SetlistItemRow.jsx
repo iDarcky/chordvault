@@ -8,30 +8,41 @@ import { Input } from '../ui/Input';
  * Song rows expand on click to show key/capo/notes controls.
  */
 export default function SetlistItemRow({
-  item, idx, song,
+  item, idx, song, songNum,
   onRemove, onUpdateNote, onUpdateTranspose, onUpdateCapo,
   onUpdateBreakField,
   dragHandleProps,
 }) {
   const [expanded, setExpanded] = useState(false);
-  const num = String(idx + 1).padStart(2, '0');
 
-  /* ── Break row ── */
+  /* ── Break row: slim dashed-border divider, no number ── */
   if (item.type === 'break') {
     return (
-      <div className="material-card overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-3">
+      <div
+        className="rounded-lg border border-dashed border-[var(--ds-gray-400)] bg-[var(--ds-gray-alpha-100)] overflow-hidden"
+        role="separator"
+        aria-label="Break"
+      >
+        <div className="flex items-center gap-2 px-3 py-2">
           {/* Drag handle */}
           <span
             {...dragHandleProps}
             className="text-[var(--ds-gray-500)] cursor-grab active:cursor-grabbing shrink-0 select-none"
             aria-label="Drag to reorder"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
           </span>
 
-          <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
-            {num}
+          {/* Pause icon — visual cue that this is a break, not a list item */}
+          <span className="text-[var(--ds-gray-600)] shrink-0" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="5" width="4" height="14" rx="1" />
+              <rect x="14" y="5" width="4" height="14" rx="1" />
+            </svg>
+          </span>
+
+          <span className="text-label-10 text-[var(--ds-gray-600)] uppercase tracking-[0.14em] font-semibold shrink-0">
+            Break
           </span>
 
           <div className="flex-1 min-w-0">
@@ -46,17 +57,18 @@ export default function SetlistItemRow({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <div className="flex flex-col items-center">
-              <span className="text-label-10 text-[var(--ds-gray-600)]">Min</span>
+            <div className="flex items-center gap-1">
               <input
                 type="number"
                 min="0"
                 value={item.duration || ''}
                 onChange={e => onUpdateBreakField(idx, 'duration', parseInt(e.target.value) || 0)}
                 placeholder="0"
+                aria-label="Break duration in minutes"
                 className="w-10 px-1 py-0.5 text-center text-label-12-mono bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] rounded-md text-[var(--ds-gray-1000)] outline-none focus:border-[var(--ds-gray-600)] transition-colors"
                 style={{ minHeight: 'auto' }}
               />
+              <span className="text-label-10 text-[var(--ds-gray-600)]">min</span>
             </div>
             <IconButton
               size="xs"
@@ -74,6 +86,7 @@ export default function SetlistItemRow({
 
   /* ── Song row ── */
   if (!song) return null;
+  const num = String(songNum != null ? songNum : idx + 1).padStart(2, '0');
   const displayKey = transposeKey(song.key, item.transpose);
 
   return (
