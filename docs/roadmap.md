@@ -28,7 +28,7 @@ This document consolidates earlier specifications (`product-spec.md`) and design
 - [ ] Smart import from ChordPro (`.cho`), SongSelect (`.usr`), OnSong, generic Text/PDF/Word parsing contexts.
 - [ ] Enhanced playback modes: Explicit Rehearsal vs Live sub-modes.
 - [ ] Display customizations: Nashville number system toggle, Duplicate section handling rules, Chords-only/Lyrics-only displays.
-- [ ] Print single song / setlist to PDF
+- [x] Print single song / setlist to PDF
 - [ ] Export as ChordPro (`.cho`) for interoperability
 - [ ] Setlist URL/QR Code share capabilities.
 - [ ] Internationalization (i18n): Foundational hooks and tier-1 language file population (es, pt, ko, fr).
@@ -48,7 +48,42 @@ This document consolidates earlier specifications (`product-spec.md`) and design
 - [ ] Team collaboration shared-folder logic.
 - [ ] Real-time session playback syncing (WebSockets relay framework).
 
-## 6. Native Apps Expansion (v4)
+## 7. PDF Export Enhancements
+*(Builds on `src/pdf/exportSongPdf.js` — the dedicated print-window renderer.)*
+
+Shipped:
+- [x] Self-contained popup renderer (Cover header, structure ribbon, sections,
+      tab blocks, modulate markers, per-page footer).
+- [x] Live preview controls in the popup: columns (1/2), size (S/M/L/XL),
+      lyric font (Sans/Serif/Mono), chords on/off, colors on/off.
+- [x] Per-user preference persistence under `setlists-md:pdf-prefs`.
+- [x] Repeating brand footer (`setlists.md` with `.md` in brand teal) on every
+      printed page.
+- [x] Unicode-safe export filenames (e.g. `Înțelept.md` survives slugify).
+
+Planned (highest-value first):
+- [ ] **Paper size toggle** — Letter vs A4 (matters for non-US users; today
+      it's hard-coded to Letter).
+- [ ] **Hide cover toggle** — for re-prints / songbooks where metadata is
+      repeated; jumps straight to section 1.
+- [ ] **Hide tab blocks / hide section notes / hide inline `{!band notes}`** —
+      individually toggleable for vocalist sheets and clean projection sheets.
+- [ ] **Margins toggle** — Normal / Narrow / Wide. Narrow buys ~25% more
+      content room on dense charts.
+- [ ] **Spacing toggle** — Compact vs Comfortable. Pair with size XL when
+      sight-reading from a stand; pair with Compact when fitting a long song
+      onto fewer pages.
+- [ ] **Force "section per page"** — every section starts a fresh page. Niche
+      but useful for in-ear monitor screens that show one section at a time.
+- [ ] **Chord-diagram strip** — render the same svguitar shapes the in-app
+      ChartView shows, at the top of page 1.
+- [ ] **Reset to defaults button** — one-click revert if the user has tweaked
+      everything into something unprintable.
+- [ ] **Setlist PDF** — bundle every song in a setlist into one document with
+      a setlist cover page, repeating song-level cover headers, and a
+      cumulative table of contents.
+
+## 8. Native Apps Expansion (v4)
 - [ ] Capacitor wrappers for dedicated iOS/Android distributions.
 - [ ] Underlying SQLite data conversions (instead of IndexedDB mapping).
 - [ ] Native Bluetooth driver mapping (overriding Web Bluetooth hooks).
