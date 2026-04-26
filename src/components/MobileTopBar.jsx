@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { IonHeader, IonToolbar, IonSearchbar, IonButtons, IonButton, IonIcon, IonMenuButton, IonPopover, IonList, IonItem, IonLabel, IonContent } from '@ionic/react';
+import { addOutline, musicalNotesOutline, listOutline } from 'ionicons/icons';
 import SongCard from './SongCard';
 
 const HamburgerIcon = () => (
@@ -94,14 +96,17 @@ export default function MobileTopBar({
     : view === 'library' ? 'Search songs & setlists…'
     : 'Search my library…';
 
-  const handlePlus = () => {
+  const [popoverEvent, setPopoverEvent] = useState(null);
+
+  const handlePlusClick = (e) => {
     if (view === 'library') {
       onNewSong?.();
     } else if (view === 'setlists') {
       onNewSetlist?.();
     } else {
-      // Dashboard → toggle the mini menu
-      setAddOpen(o => !o);
+      e.persist();
+      setPopoverEvent(e);
+      setAddOpen(true);
     }
   };
 
@@ -115,90 +120,54 @@ export default function MobileTopBar({
   const hasAnyResults = results.songs.length > 0 || results.setlists.length > 0;
 
   return (
-    <div
+    <IonHeader
       ref={containerRef}
-      className="sm:hidden"
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-      }}
+      className="sm:hidden ion-no-border"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div>
-        <div className="flex items-center gap-2 px-3 py-3">
-          {/* Search card — hamburger lives inside on the left */}
-          <div className="flex-1 flex items-stretch h-14 rounded-xl bg-[var(--ds-gray-100)] overflow-hidden">
-            {/* Hamburger as an embedded card */}
-            <button
-              onClick={onOpenDrawer}
-              aria-label="Open menu"
-              className="shrink-0 w-12 flex items-center justify-center bg-transparent text-[var(--text-1)] cursor-pointer active:bg-[var(--ds-gray-200)] transition-colors border-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <HamburgerIcon />
-            </button>
-            {/* Search input */}
-            <div className="relative flex-1 min-w-0 flex items-center">
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onFocus={() => setFocused(true)}
-                placeholder={placeholder}
-                className="w-full h-full px-4 bg-transparent border-none text-copy-15 text-[var(--text-1)] placeholder:text-[var(--text-2)] outline-none"
-              />
-            </div>
-          </div>
+      <IonToolbar style={{ '--background': 'var(--ds-background-200)', '--padding-top': '4px', '--padding-bottom': '4px' }}>
+        <IonButtons slot="start">
+          <IonMenuButton autoHide={false} onClick={onOpenDrawer} />
+        </IonButtons>
 
-          {/* Brand + button */}
-          <div ref={addRef} className="relative shrink-0">
-            <button
-              onClick={handlePlus}
-              aria-label={view === 'library' ? 'New song' : view === 'setlists' ? 'New setlist' : 'New'}
-              className="w-14 h-14 rounded-xl flex items-center justify-center bg-[var(--color-brand)] shadow-[0_1px_2px_rgba(0,0,0,0.2)] cursor-pointer active:scale-95 transition-transform border-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <PlusIcon open={addOpen} />
-            </button>
-            {addOpen && (
-              <div className="absolute top-full right-0 mt-2 w-52 rounded-xl border border-[var(--border-1)] bg-[var(--bg-1)] shadow-xl overflow-hidden z-50 animate-[fadeIn_120ms_ease-out]">
-                <button
-                  onClick={() => { setAddOpen(false); onNewSong?.(); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-none text-left text-copy-14 text-[var(--text-1)] cursor-pointer hover:bg-[var(--bg-2)]"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18V5l12-2v13" />
-                    <circle cx="6" cy="18" r="3" />
-                    <circle cx="18" cy="16" r="3" />
-                  </svg>
-                  New Song
-                </button>
-                <div className="h-px bg-[var(--border-1)]" />
-                <button
-                  onClick={() => { setAddOpen(false); onNewSetlist?.(); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-none text-left text-copy-14 text-[var(--text-1)] cursor-pointer hover:bg-[var(--bg-2)]"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="8" y1="6" x2="21" y2="6" />
-                    <line x1="8" y1="12" x2="21" y2="12" />
-                    <line x1="8" y1="18" x2="21" y2="18" />
-                    <line x1="3" y1="6" x2="3.01" y2="6" />
-                    <line x1="3" y1="12" x2="3.01" y2="12" />
-                    <line x1="3" y1="18" x2="3.01" y2="18" />
-                  </svg>
-                  New Setlist
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+        <IonSearchbar
+          value={query}
+          onIonInput={e => setQuery(e.detail.value)}
+          onIonFocus={() => setFocused(true)}
+          placeholder={placeholder}
+          className="custom-searchbar px-0 pb-0 pt-0"
+          style={{ '--background': 'var(--ds-background-100)', '--color': 'var(--text-1)', '--icon-color': 'var(--text-2)', '--clear-button-color': 'var(--text-2)', '--border-radius': '12px' }}
+        />
+
+        <IonButtons slot="end" className="mr-2 relative" ref={addRef}>
+          <IonButton
+            id="mobile-add-btn"
+            onClick={handlePlusClick}
+            className="w-10 h-10 m-0"
+            style={{ '--background': 'var(--color-brand)', '--border-radius': '12px', '--color': 'white' }}
+          >
+            <IonIcon icon={addOutline} />
+          </IonButton>
+          <IonPopover isOpen={addOpen} onDidDismiss={() => setAddOpen(false)} event={popoverEvent}>
+            <IonContent className="ion-padding-0">
+              <IonList lines="full" className="m-0 bg-transparent">
+                <IonItem button onClick={() => { setAddOpen(false); onNewSong?.(); }} detail={false}>
+                  <IonIcon icon={musicalNotesOutline} slot="start" />
+                  <IonLabel>New Song</IonLabel>
+                </IonItem>
+                <IonItem button onClick={() => { setAddOpen(false); onNewSetlist?.(); }} detail={false} lines="none">
+                  <IonIcon icon={listOutline} slot="start" />
+                  <IonLabel>New Setlist</IonLabel>
+                </IonItem>
+              </IonList>
+            </IonContent>
+          </IonPopover>
+        </IonButtons>
+      </IonToolbar>
 
       {/* Search results dropdown */}
       {showResults && (
-        <div className="absolute left-0 right-0 top-full bg-[var(--ds-background-100)] border-b border-[var(--ds-gray-200)] shadow-lg max-h-[70vh] overflow-y-auto">
+        <div className="absolute left-0 right-0 top-full bg-[var(--ds-background-100)] border-b border-[var(--ds-gray-200)] shadow-lg max-h-[70vh] overflow-y-auto z-50">
           {hasAnyResults ? (
             <div className="divide-y divide-[var(--border-1)]">
               {results.songs.length > 0 && (
@@ -261,6 +230,6 @@ export default function MobileTopBar({
           )}
         </div>
       )}
-    </div>
+    </IonHeader>
   );
 }
