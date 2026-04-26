@@ -27,8 +27,8 @@
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
 
   /* Page Backgrounds (Dark Mode fallback) */
-  --ds-background-100: #14161e;
-  --ds-background-200: #0e1017;
+  --ds-background-100: #0a0a0a;
+  --ds-background-200: #000000;
 
     /* Geist Gray Scale (Dark Mode) */
   --ds-gray-100-value: 0, 0%, 10%;
@@ -276,7 +276,7 @@
 @layer base {
   [data-theme="light"] {
     --ds-background-100: #ffffff;
-    --ds-background-200: #F9FAFB;
+    --ds-background-200: #fafafa;
 
     /* Dashboard Surfaces (Light Mode) */
     --dashboard-hero-bg: hsl(0, 0%, 100%);
@@ -502,6 +502,52 @@
     overscroll-behavior: none;
     height: 100dvh;
     overflow: hidden;
+  }
+
+  ion-app {
+    --ion-background-color: var(--ds-background-200);
+    --ion-text-color: var(--ds-gray-900);
+    --ion-font-family: var(--font-sans);
+  }
+
+  ion-content {
+    --background: transparent;
+  }
+
+  ion-menu {
+    --ion-background-color: var(--ds-background-100);
+  }
+
+  ion-header {
+    --ion-background-color: var(--ds-background-200);
+  }
+
+  ion-toolbar {
+    --background: transparent;
+    --border-color: transparent;
+  }
+
+  ion-item {
+    --background: transparent;
+    --ion-item-background: transparent;
+    --color: var(--ds-gray-700);
+  }
+
+  ion-list {
+    --background: transparent;
+    --ion-list-background: transparent;
+  }
+
+  ion-split-pane {
+    --side-width: 280px;
+    --side-min-width: 280px;
+    --side-max-width: 280px;
+  }
+
+  ion-tab-bar {
+    --background: var(--ds-background-100);
+    --border: none;
+    border-top: 1px solid var(--ds-gray-200);
   }
 
   html {

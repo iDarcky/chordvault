@@ -23,6 +23,7 @@ import { useAuth } from './auth/useAuth';
 import { exportSetlistZip, importSetlistZip, slugify } from './setlist-io';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
+import { IonApp } from '@ionic/react';
 
 const QUOTA_WARN_THRESHOLD = 0.8;
 
@@ -786,7 +787,9 @@ export default function App() {
   return (
     <ErrorBoundary>
     <Suspense fallback={lazyFallback}>
-      <Toaster />
+      <IonApp>
+        <div className="contents">
+          <Toaster />
       {view === 'signin' && (
         <AuthScreen onBack={goBack} onSignedIn={() => goToMainView('home')} defaultMode={authStartMode} />
       )}
@@ -1067,9 +1070,6 @@ export default function App() {
           )}
         </DesktopLayout>
       )}
-      {!['onboarding', 'signin', 'upgrade'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
-        <EdgeSwipeHotspot onOpen={openDrawer} />
-      )}
       {!['onboarding', 'signin', 'upgrade'].includes(view) && (
         <MobileDrawer
           open={drawerOpen}
@@ -1177,6 +1177,8 @@ export default function App() {
           }}
         />
       )}
+        </div>
+      </IonApp>
     </Suspense>
     </ErrorBoundary>
   );

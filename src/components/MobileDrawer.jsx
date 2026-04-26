@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { IonMenu, IonHeader, IonToolbar, IonContent, IonList, IonItem, IonIcon, IonLabel, IonButton, IonButtons } from '@ionic/react';
+import { settingsOutline, helpCircleOutline, notificationsOutline, downloadOutline, closeOutline } from 'ionicons/icons';
 import {
   StageGreeting,
   AccountSummary,
@@ -46,20 +48,6 @@ const InstallIcon = () => (
   </svg>
 );
 
-function Row({ icon: Icon, label, onClick, accessory }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[var(--drawer-surface)] hover:bg-[var(--drawer-surface-hover)] border border-[var(--drawer-border)] cursor-pointer active:scale-[0.98] transition-all duration-150 text-left"
-      style={{ WebkitTapHighlightColor: 'transparent' }}
-    >
-      <span className="text-[var(--drawer-text-muted)]"><Icon /></span>
-      <span className="flex-1 text-copy-15 text-[var(--drawer-text)] font-medium">{label}</span>
-      {accessory}
-    </button>
-  );
-}
-
 export default function MobileDrawer({
   open,
   openKey = 0,
@@ -83,114 +71,75 @@ export default function MobileDrawer({
   isStandalone = false,
   onInstall,
 }) {
-  const panelRef = useRef(null);
-  const [dragX, setDragX] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const startXRef = useRef(0);
-
-  // Lock body scroll while open
-  useEffect(() => {
-    if (open) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = prev; };
-    }
-  }, [open]);
-
-  // Escape to close
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose?.(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, onClose]);
-
-  const onTouchStart = (e) => {
-    startXRef.current = e.touches[0].clientX;
-    setDragX(0);
-    setDragging(true);
-  };
-  const onTouchMove = (e) => {
-    if (!dragging) return;
-    const dx = e.touches[0].clientX - startXRef.current;
-    // Only allow dragging left (closing)
-    if (dx < 0) setDragX(dx);
-  };
-  const onTouchEnd = () => {
-    if (!dragging) return;
-    setDragging(false);
-    const width = panelRef.current?.offsetWidth || 320;
-    if (dragX < -width * 0.35) {
-      onClose?.();
-    } else {
-      setDragX(0);
-    }
-  };
-
-  // Drawer visual shifts with dragX while being dragged
-  const translateX = open
-    ? (dragging ? `${dragX}px` : '0px')
-    : '-100%';
+  const menuRef = useRef(null);
 
   const displayName = userName?.trim() || 'Guest';
   const displayEmail = email || 'guest@setlists.md';
 
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        onClick={onClose}
-        className={`fixed inset-0 z-[200] sm:hidden transition-opacity duration-300 ${
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        style={{ backgroundColor: 'rgba(0,0,0,0.55)' }}
-        aria-hidden="true"
-      />
+  // Sync Ionic menu state with external `open` prop
+  useEffect(() => {
+    if (menuRef.current) {
+      if (open) {
+        menuRef.current.open();
+      } else {
+        menuRef.current.close();
+      }
+    }
+  }, [open]);
 
-      {/* Panel */}
-      <aside
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Menu"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        className="drawer-panel fixed top-0 left-0 bottom-0 z-[210] sm:hidden w-[85vw] max-w-[360px] flex flex-col overflow-y-auto overscroll-contain"
-        style={{
-          transform: `translateX(${translateX})`,
-          transition: dragging ? 'none' : 'transform 300ms cubic-bezier(0.32, 0.72, 0, 1)',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
-        }}
-      >
-        {/* Top bar — bell + close */}
-        <div className="px-5 flex items-center justify-end gap-2">
-          {onOpenNotifications && (
-            <button
-              onClick={onOpenNotifications}
-              aria-label={hasUnreadNotifications ? 'Notifications (unread)' : 'Notifications'}
-              className="relative w-9 h-9 rounded-full flex items-center justify-center bg-[var(--drawer-close-bg)] text-[var(--drawer-text-muted)] hover:bg-[var(--drawer-close-bg-hover)] cursor-pointer border-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <BellIcon />
-              {hasUnreadNotifications && (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--color-brand)]"
-                />
-              )}
-            </button>
-          )}
-          <button
-            onClick={onClose}
-            aria-label="Close menu"
-            className="w-9 h-9 rounded-full flex items-center justify-center bg-[var(--drawer-close-bg)] text-[var(--drawer-text-muted)] hover:bg-[var(--drawer-close-bg-hover)] cursor-pointer border-none"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            <CloseIcon />
-          </button>
-        </div>
+  // Prevent background scrolling when Ionic menu opens
+  useEffect(() => {
+    const handleMenuOpen = () => { document.body.style.overflow = 'hidden'; };
+    const handleMenuClose = () => {
+      document.body.style.overflow = '';
+      if (open) onClose?.(); // notify parent if closed by swipe/backdrop
+    };
+
+    document.addEventListener('ionMenuDidOpen', handleMenuOpen);
+    document.addEventListener('ionMenuDidClose', handleMenuClose);
+
+    return () => {
+      document.removeEventListener('ionMenuDidOpen', handleMenuOpen);
+      document.removeEventListener('ionMenuDidClose', handleMenuClose);
+      document.body.style.overflow = '';
+    };
+  }, [open, onClose]);
+
+  return (
+    <IonMenu
+      ref={menuRef}
+      contentId="main-content"
+      menuId="mobile-menu"
+      type="overlay"
+      className="sm:hidden"
+      style={{
+        '--background': 'var(--ds-background-100)',
+        '--width': '85vw',
+        '--max-width': '360px'
+      }}
+    >
+      <IonHeader className="ion-no-border pt-[env(safe-area-inset-top,0px)] bg-transparent">
+        <IonToolbar className="bg-transparent" style={{ '--background': 'transparent' }}>
+          <IonButtons slot="end" className="mr-2">
+            {onOpenNotifications && (
+              <IonButton onClick={onOpenNotifications} className="relative">
+                <IonIcon icon={notificationsOutline} className="text-[var(--ds-gray-700)]" />
+                {hasUnreadNotifications && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[var(--color-brand)]"
+                  />
+                )}
+              </IonButton>
+            )}
+            <IonButton onClick={onClose}>
+              <IonIcon icon={closeOutline} className="text-[var(--ds-gray-700)]" />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+
+      <IonContent style={{ '--background': 'transparent' }} className="px-5 pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
 
         {/* Greeting */}
         <div className="px-5 pt-4 pb-6">
@@ -232,26 +181,33 @@ export default function MobileDrawer({
         </div>
 
         {/* Nav rows */}
-        <div className="px-5 mt-6 flex flex-col gap-2">
-          <Row icon={SettingsIcon} label="Preferences" onClick={onOpenSettings} />
-          <Row icon={HelpIcon} label="Help" onClick={onOpenHelp} />
+        <div className="px-5 mt-6 flex flex-col gap-2 mb-8">
+          <IonItem button onClick={onOpenSettings} lines="none" className="rounded-xl" style={{ '--background': 'transparent' }}>
+            <IonIcon icon={settingsOutline} slot="start" className="text-[var(--ds-gray-700)]" />
+            <IonLabel className="text-[var(--ds-gray-1000)] font-medium">Preferences</IonLabel>
+          </IonItem>
+
+          <IonItem button onClick={onOpenHelp} lines="none" className="rounded-xl" style={{ '--background': 'transparent' }}>
+            <IonIcon icon={helpCircleOutline} slot="start" className="text-[var(--ds-gray-700)]" />
+            <IonLabel className="text-[var(--ds-gray-1000)] font-medium">Help</IonLabel>
+          </IonItem>
+
           {!isStandalone && (canInstall || isIOS) && onInstall && (
-            <Row
-              icon={InstallIcon}
-              label={isIOS ? 'Add to Home Screen' : 'Install app'}
-              onClick={onInstall}
-            />
+            <IonItem button onClick={onInstall} lines="none" className="rounded-xl" style={{ '--background': 'transparent' }}>
+              <IonIcon icon={downloadOutline} slot="start" className="text-[var(--ds-gray-700)]" />
+              <IonLabel className="text-[var(--ds-gray-1000)] font-medium">{isIOS ? 'Add to Home Screen' : 'Install app'}</IonLabel>
+            </IonItem>
           )}
         </div>
 
         {/* Footer — surfaces the signed-in account name as the primary brand
             label; falls back to the app name for guests. */}
-        <div className="mt-auto px-5 pt-8 text-center">
+        <div className="mt-auto px-5 pt-8 text-center pb-4">
           <div className="text-label-11 text-[var(--drawer-text-faint)]">
             {isSignedIn ? displayName : 'Setlists MD'}
           </div>
         </div>
-      </aside>
-    </>
+      </IonContent>
+    </IonMenu>
   );
 }

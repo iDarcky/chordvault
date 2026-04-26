@@ -7,7 +7,14 @@ import '@fontsource/jetbrains-mono/700.css';
 import App from './App';
 import { AuthProvider } from './auth/AuthProvider';
 import { initSentry } from './sentry';
+import { setupIonicReact } from '@ionic/react';
+import '@ionic/react/css/core.css';
+import '@ionic/react/css/normalize.css';
+import '@ionic/react/css/structure.css';
+import '@ionic/react/css/typography.css';
 import './styles/index.css';
+
+setupIonicReact();
 
 // Fire-and-forget — Sentry no-ops if VITE_SENTRY_DSN isn't set.
 initSentry();
