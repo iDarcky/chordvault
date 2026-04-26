@@ -20,7 +20,7 @@ import NotificationTray from './components/NotificationTray';
 import FeedbackButton from './components/FeedbackButton';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './auth/useAuth';
-import { exportSetlistZip, importSetlistZip } from './setlist-io';
+import { exportSetlistZip, importSetlistZip, slugify } from './setlist-io';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 
@@ -703,7 +703,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = (sl.name || 'setlist').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.zip';
+    a.download = slugify(sl.name || 'setlist') + '.zip';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -1028,7 +1028,7 @@ export default function App() {
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
-                  a.download = s.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase() + '.md';
+                  a.download = slugify(s.title) + '.md';
                   a.click();
                   URL.revokeObjectURL(url);
                 });
