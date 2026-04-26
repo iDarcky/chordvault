@@ -906,7 +906,9 @@ export default function App() {
               isFullscreen={isFullscreen}
               onToggleFullscreen={toggleFullscreen}
               onEditSetlist={(sl) => goSetlistBuild(sl)}
-              onExportSetlist={handleExportSetlist}
+              onExportSetlistZip={(sl) => handleExportSetlist(sl)}
+              onExportSetlistPdfOverview={(sl) => exportSetlistPdf(sl, songs, { mode: 'overview' })}
+              onExportSetlistPdfFull={(sl) => exportSetlistPdf(sl, songs, { mode: 'full' })}
               onDeleteSetlist={(id) => {
                 setSetlists(prev => prev.filter(s => s.id !== id));
                 setTombstones(prev => ({
