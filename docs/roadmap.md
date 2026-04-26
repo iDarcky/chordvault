@@ -49,7 +49,8 @@ This document consolidates earlier specifications (`product-spec.md`) and design
 - [ ] Real-time session playback syncing (WebSockets relay framework).
 
 ## 7. PDF Export Enhancements
-*(Builds on `src/pdf/exportSongPdf.js` — the dedicated print-window renderer.)*
+*(Builds on `src/pdf/exportSongPdf.js` and `src/pdf/exportSetlistPdf.js` —
+the dedicated print-window renderers.)*
 
 Shipped:
 - [x] Self-contained popup renderer (Cover header, structure ribbon, sections,
@@ -60,28 +61,96 @@ Shipped:
 - [x] Repeating brand footer (`setlists.md` with `.md` in brand teal) on every
       printed page.
 - [x] Unicode-safe export filenames (e.g. `Înțelept.md` survives slugify).
+- [x] **Setlist PDF** — choose between *set-order overview* (one-page
+      runner sheet) and *full chord charts* (cover page + every song
+      printed in full). Per-item transpose and notes are honoured in
+      both modes. Every song starts on a new page. Breaks render as a
+      separator banner instead of a numbered song row, both in print
+      and in the on-screen overview.
+- [x] Export dialog rendered through `createPortal` so it surfaces above
+      the desktop layout's transformed `<main>` (the desktop preview
+      pane in `Setlists.jsx` and the dedicated `setlist-view` route now
+      both open the dialog correctly).
+- [x] Print toolbar is responsive on narrow popup widths / phones, and
+      the chart-only controls (cols / size / font / chords / colors)
+      auto-hide in *overview-only* mode where they don't apply.
+
+Known issues / risks:
+- [ ] **iPad PWA standalone popup blocking** — the manifest declares
+      `display: 'standalone'` (see `vite.config.js`), so when the app
+      is launched from the iPad Home Screen, `window.open('about:blank',
+      '_blank', ...)` (used by both `exportSongPdf.js` and
+      `exportSetlistPdf.js`) is frequently blocked or bounces out to
+      Safari, breaking the `window.opener.localStorage` pref-sync hook
+      and the `document.write(...)` injection. The current fallback is a
+      generic "Could not open the print window" alert, but there is no
+      popup-permission setting inside an installed PWA, so the user has
+      no recovery path. Plan:
+      • Detect `window.matchMedia('(display-mode: standalone)').matches`
+        and switch to an inline-iframe overlay rendered inside the app,
+        then call `iframe.contentWindow.print()` to trigger AirPrint →
+        *Save to Files* / *Save as PDF*. Keeps the user inside the PWA.
+      • Desktop and Android Chrome continue to use the popup (works fine
+        there and gives a richer preview).
+      • Last-resort fallback: offer a Blob-URL `.html` download the user
+        can open in Safari and print/share-sheet from there.
 
 Planned (highest-value first):
-- [ ] **Paper size toggle** — Letter vs A4 (matters for non-US users; today
-      it's hard-coded to Letter).
-- [ ] **Hide cover toggle** — for re-prints / songbooks where metadata is
-      repeated; jumps straight to section 1.
-- [ ] **Hide tab blocks / hide section notes / hide inline `{!band notes}`** —
-      individually toggleable for vocalist sheets and clean projection sheets.
+- [ ] **More print entry points** — today print is reachable only from
+      inside `ChartView` and from `SetlistOverview`. Add it to:
+      • Library song-row context menu (quick single-song print).
+      • `SetlistPlayer` (live mode) — last-second printout before going
+        on stage.
+      • `PracticeView` — print the current arrangement / loop notes.
+- [ ] **NNS toggle in PDF** — mirror the in-app Nashville Number System
+      toggle so leaders who chart in numbers can print number sheets.
+      Reuses the existing `nns` flag from `ChartView`.
+- [ ] **Chord diagrams in PDF** (supersedes the older "Chord-diagram
+      strip" item) — render the same svguitar shapes the in-app
+      `ChartView` shows. Two layouts to consider: (a) a top-of-page-1
+      diagram strip, and (b) inline diagrams next to first-occurrence
+      chord names.
+- [ ] **Per-song setlist subtitle** — when *full-charts* setlist mode
+      prints song N, add a small "From: <Setlist Name> · <Date>"
+      subtitle so loose printed pages can be re-collated by the
+      band-room runner.
+- [ ] **Cover-page customisation** — band / church name, logo upload,
+      week-of label, leader name. Stored per-user under the existing
+      portable preferences (`PORTABLE_PREF_KEYS` in `App.jsx`).
+- [ ] **Total set duration** — sum BPM-derived rough estimates plus
+      break minutes on the overview cover page; allow a manual
+      duration-override per item in the setlist builder.
+- [ ] **Per-song selection** — let the user pick a subset of items from a
+      setlist before exporting (e.g. just the band block, not the
+      pre-service music).
+- [ ] **"Page N of M" scoped per song** — current footer counts whole
+      document; some leaders prefer per-song numbering on multi-page
+      charts.
+- [ ] **PDF dark-mode** — match the user's app theme choice when
+      printing to screen-style PDFs (for rehearsal viewing on tablets,
+      not paper).
+- [ ] **Programmatic PDF generation fallback (jsPDF / pdfmake)** — if
+      both the popup *and* the iframe paths fail (edge combos: locked-
+      down enterprise WebViews, in-app browsers), build the PDF in
+      memory and trigger a Blob download. ~50 kB gzipped bundle hit, so
+      weigh against the iframe path above before adopting.
+- [ ] **Paper size toggle** — Letter vs A4 (matters for non-US users;
+      today it's hard-coded to Letter).
+- [ ] **Hide cover toggle** — for re-prints / songbooks where metadata
+      is repeated; jumps straight to section 1.
+- [ ] **Hide tab blocks / hide section notes / hide inline `{!band
+      notes}`** — individually toggleable for vocalist sheets and clean
+      projection sheets.
 - [ ] **Margins toggle** — Normal / Narrow / Wide. Narrow buys ~25% more
       content room on dense charts.
-- [ ] **Spacing toggle** — Compact vs Comfortable. Pair with size XL when
-      sight-reading from a stand; pair with Compact when fitting a long song
-      onto fewer pages.
-- [ ] **Force "section per page"** — every section starts a fresh page. Niche
-      but useful for in-ear monitor screens that show one section at a time.
-- [ ] **Chord-diagram strip** — render the same svguitar shapes the in-app
-      ChartView shows, at the top of page 1.
-- [ ] **Reset to defaults button** — one-click revert if the user has tweaked
-      everything into something unprintable.
-- [ ] **Setlist PDF** — bundle every song in a setlist into one document with
-      a setlist cover page, repeating song-level cover headers, and a
-      cumulative table of contents.
+- [ ] **Spacing toggle** — Compact vs Comfortable. Pair with size XL
+      when sight-reading from a stand; pair with Compact when fitting a
+      long song onto fewer pages.
+- [ ] **Force "section per page"** — every section starts a fresh page.
+      Niche but useful for in-ear monitor screens that show one section
+      at a time.
+- [ ] **Reset to defaults button** — one-click revert if the user has
+      tweaked everything into something unprintable.
 
 ## 8. Native Apps Expansion (v4)
 - [ ] Capacitor wrappers for dedicated iOS/Android distributions.
