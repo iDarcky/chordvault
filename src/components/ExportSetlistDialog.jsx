@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { IconButton } from './ui/IconButton';
 
 export default function ExportSetlistDialog({ onClose, onExportZip, onExportPdfOverview, onExportPdfFull }) {
@@ -8,7 +9,7 @@ export default function ExportSetlistDialog({ onClose, onExportZip, onExportPdfO
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  return (
+  return createPortal((
     <div
       className="fixed inset-0 z-[200] bg-black/70 flex items-center justify-center p-4"
       onClick={onClose}
@@ -83,7 +84,7 @@ export default function ExportSetlistDialog({ onClose, onExportZip, onExportPdfO
         </div>
       </div>
     </div>
-  );
+  ), document.body);
 }
 
 function ExportOption({ title, description, badge, icon, onClick }) {

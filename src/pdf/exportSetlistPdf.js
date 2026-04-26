@@ -55,13 +55,12 @@ const PDF_STYLES = `
     line-height: 1.45;
   }
 
-  /* Each song is wrapped in <article class="song"> so we can break pages
-     between songs reliably across browsers. */
+  /* Every song wrapped in <article class="song"> starts on a new page —
+     including the first one (which lands after the cover/set-order page). */
   article.song {
     break-before: page;
     page-break-before: always;
   }
-  article.song:first-of-type { break-before: auto; page-break-before: auto; }
 
   article.song main {
     column-count: var(--col-count);
@@ -110,6 +109,28 @@ const PDF_STYLES = `
     display: inline-flex;
     gap: 8px;
     margin-left: auto;
+  }
+
+  /* Narrow viewport (e.g. user dragged the popup small or opened on a phone):
+     stack the toolbar so controls don't overflow. */
+  @media (max-width: 640px) {
+    .toolbar { padding: 10px 0; gap: 8px; }
+    .toolbar-row.controls {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .toolbar-row.controls .control-group { justify-content: space-between; }
+    .toolbar-row.controls .control-group .seg { flex: 1; justify-content: stretch; }
+    .toolbar-row.controls .control-group .seg button { flex: 1; }
+    .toolbar-row.controls .toggle { justify-content: center; }
+    .toolbar-row.controls .action-group {
+      margin-left: 0;
+      width: 100%;
+      flex-direction: row;
+    }
+    .toolbar-row.controls .action-group .action { flex: 1; text-align: center; }
+    .toolbar .tip { font-size: 8.5pt; }
   }
   .control-group {
     display: inline-flex;
@@ -316,15 +337,53 @@ const PDF_STYLES = `
     color: #555;
     font-style: italic;
   }
-  .set-order .row.break {
-    background: #fafafa;
-    padding-left: 8px;
-    padding-right: 8px;
-    border-left: 2px solid #ddd;
+  /* Breaks read as a band intermission, not a numbered song row. */
+  .set-order .break-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0;
+    padding: 0 4px;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
-  .set-order .row.break .label {
+  .set-order .break-banner .rule {
+    flex: 1;
+    height: 0;
+    border-top: 1px dashed #cfcfcf;
+  }
+  .set-order .break-banner .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #f5f5f3;
+    border: 1px solid #e2e2dd;
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #6a6a6a;
+  }
+  .set-order .break-banner .pill .label-text { color: #2c2c2c; }
+  .set-order .break-banner .pill .dur {
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #888;
+    text-transform: none;
+  }
+  .set-order .break-banner .pill .dot {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: #c0c0c0;
+    display: inline-block;
+  }
+  .set-order .break-banner .note {
+    margin: 4px 12px 0;
+    font-size: 9pt;
+    color: #777;
     font-style: italic;
-    color: #555;
+    text-align: center;
   }
 
   /* ── Per-song cover (re-uses styles from song export) ───────────── */
@@ -578,29 +637,33 @@ function renderSetlistCover(setlist, items) {
     </header>`;
 }
 
-function renderSetOrderRow(item, idx, songs) {
-  const num = String(idx + 1).padStart(2, '0');
+function renderBreakBanner(item) {
+  const label = (item.label || 'Break').trim() || 'Break';
+  const duration = item.duration ? `
+    <span class="dot" aria-hidden="true"></span>
+    <span class="dur">${escapeHtml(String(item.duration))} min</span>` : '';
+  const note = item.note
+    ? `<p class="note">${escapeHtml(item.note)}</p>`
+    : '';
+  return `
+    <div class="break-banner">
+      <span class="rule"></span>
+      <span class="pill">
+        <span class="label-text">${escapeHtml(label)}</span>
+        ${duration}
+      </span>
+      <span class="rule"></span>
+    </div>
+    ${note}`;
+}
 
-  if (item.type === 'break') {
-    const duration = item.duration ? `<span class="tempo">${escapeHtml(String(item.duration))} min</span>` : '';
-    const note = item.note ? `<p class="note">${escapeHtml(item.note)}</p>` : '';
-    return `
-      <div class="row break">
-        <span class="num">${num}</span>
-        <div class="body">
-          <p class="title label">${escapeHtml(item.label || 'Break')}</p>
-          ${note}
-        </div>
-        <div class="tail">${duration}</div>
-      </div>`;
-  }
-
+function renderSongRow(item, songs, songIndex) {
   const song = songs.find(s => s.id === item.songId);
   if (!song) return '';
+  const num = String(songIndex).padStart(2, '0');
   const transpose = item.transpose || 0;
   const capo = item.capo || 0;
   const displayKey = transposeKey(song.key, transpose);
-
   const note = item.note ? `<p class="note">${escapeHtml(item.note)}</p>` : '';
 
   return `
@@ -624,10 +687,17 @@ function renderSetOrderRow(item, idx, songs) {
 function buildSetlistDocument(setlist, songs, mode, initialPrefs = {}) {
   const items = setlist.items || [];
 
-  const setOrderHtml = `
-    <div class="set-order">
-      ${items.map((item, idx) => renderSetOrderRow(item, idx, songs)).join('')}
-    </div>`;
+  // Songs get a running counter (01, 02, 03…); breaks render as banners and
+  // don't consume a number so the song numbering stays clean across breaks.
+  const setOrderHtml = (() => {
+    let songIndex = 0;
+    const rows = items.map(item => {
+      if (item.type === 'break') return renderBreakBanner(item);
+      songIndex += 1;
+      return renderSongRow(item, songs, songIndex);
+    });
+    return `<div class="set-order">${rows.join('')}</div>`;
+  })();
 
   // For 'full' mode, render every song as its own article (each starts on
   // a new page), using per-item transpose and per-item note.
@@ -654,23 +724,11 @@ function buildSetlistDocument(setlist, songs, mode, initialPrefs = {}) {
   const titleSafe = escapeHtml(setlist.name || 'Setlist');
   const coverHtml = renderSetlistCover(setlist, items);
 
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>${titleSafe} — Setlist</title>
-<style>${PDF_STYLES}</style>
-</head>
-<body>
-  <div class="page">
-    <div class="toolbar" data-toolbar>
-      <div class="toolbar-row tip-row">
-        <div class="tip">
-          <strong>Tip:</strong> in the print dialog, open <em>More settings</em> and uncheck
-          <em>Headers and footers</em> for a clean output (no URL or date at the top).
-        </div>
-      </div>
-      <div class="toolbar-row controls">
+  // Overview mode has no chord charts to apply Cols / Size / Font / Chords /
+  // Colors to, so the chart-only controls are hidden — keep the toolbar
+  // focused on Print + Close.
+  const showChartControls = mode === 'full';
+  const chartControlsHtml = showChartControls ? `
         <div class="control-group">
           <span class="group-label">Cols</span>
           <div class="seg" role="group" aria-label="Columns">
@@ -700,7 +758,26 @@ function buildSetlistDocument(setlist, songs, mode, initialPrefs = {}) {
         </button>
         <button type="button" class="toggle" data-control="colors">
           <span class="check"></span>Colors
-        </button>
+        </button>` : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>${titleSafe} — Setlist</title>
+<style>${PDF_STYLES}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="toolbar" data-toolbar>
+      <div class="toolbar-row tip-row">
+        <div class="tip">
+          <strong>Tip:</strong> in the print dialog, open <em>More settings</em> and uncheck
+          <em>Headers and footers</em> for a clean output (no URL or date at the top).
+        </div>
+      </div>
+      <div class="toolbar-row controls">
+        ${chartControlsHtml}
         <div class="action-group">
           <button class="action primary" type="button" data-action="print">Print / Save as PDF</button>
           <button class="action" type="button" data-action="close">Close</button>
