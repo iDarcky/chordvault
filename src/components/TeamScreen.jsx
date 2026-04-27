@@ -126,6 +126,9 @@ function CreateTeamForm({ onCreate }) {
 
 function MemberRow({ member, isCurrentUser, isAdmin, onRemove }) {
   const isOwner = member.role === 'admin';
+  const profile = member.profile || {};
+  const displayName = profile.display_name || profile.email?.split('@')[0] || member.user_id?.slice(0, 8);
+  const initial = displayName?.slice(0, 2)?.toUpperCase() || '??';
 
   return (
     <div
@@ -140,13 +143,13 @@ function MemberRow({ member, isCurrentUser, isAdmin, onRemove }) {
           color: isOwner ? 'var(--color-brand)' : 'var(--ds-gray-700)',
         }}
       >
-        {member.user_id?.slice(0, 2)?.toUpperCase() || '??'}
+        {initial}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-copy-14 font-medium text-[var(--ds-gray-1000)] truncate">
-            {member.user_id?.slice(0, 8)}…
+            {displayName}
           </span>
           {isCurrentUser && (
             <span className="text-label-11 text-[var(--ds-gray-500)]">(you)</span>
@@ -161,6 +164,12 @@ function MemberRow({ member, isCurrentUser, isAdmin, onRemove }) {
           {!isOwner && (
             <span className="text-label-11 text-[var(--ds-gray-500)]">Member</span>
           )}
+          {profile.email && (
+            <>
+              <span className="text-label-11 text-[var(--ds-gray-400)]">•</span>
+              <span className="text-label-11 text-[var(--ds-gray-500)] truncate">{profile.email}</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -169,6 +178,49 @@ function MemberRow({ member, isCurrentUser, isAdmin, onRemove }) {
           onClick={() => onRemove(member.id)}
           className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border border-[var(--ds-gray-300)] cursor-pointer text-[var(--ds-gray-500)] hover:text-[var(--ds-red-700)] hover:border-[var(--ds-red-400)] transition-colors"
           title="Remove member"
+        >
+          <TrashIcon />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function InviteRow({ invite, isAdmin, onCancel }) {
+  return (
+    <div
+      className="flex items-center gap-3 px-4 py-3 rounded-xl opacity-80"
+      style={{ background: 'var(--ds-background-200)', border: '1px dashed var(--ds-gray-400)' }}
+    >
+      <div
+        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-label-14 font-bold"
+        style={{
+          background: 'var(--ds-gray-200)',
+          color: 'var(--ds-gray-600)',
+        }}
+      >
+        @
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-copy-14 font-medium text-[var(--ds-gray-900)] truncate">
+            {invite.email}
+          </span>
+          <span className="text-label-11 text-[var(--ds-orange-700)] bg-[var(--ds-orange-200)] px-2 py-0.5 rounded-full">
+            Pending
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-label-11 text-[var(--ds-gray-500)]">Tell them to sign up to join.</span>
+        </div>
+      </div>
+
+      {isAdmin && (
+        <button
+          onClick={() => onCancel(invite.id)}
+          className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border border-[var(--ds-gray-300)] cursor-pointer text-[var(--ds-gray-500)] hover:text-[var(--ds-red-700)] hover:border-[var(--ds-red-400)] transition-colors"
+          title="Cancel invite"
         >
           <TrashIcon />
         </button>
@@ -213,10 +265,11 @@ function InviteForm({ onInvite, seatsLeft }) {
       </div>
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
-          type="text"
+          type="email"
+          required
           value={userId}
           onChange={e => setUserId(e.target.value)}
-          placeholder="User ID"
+          placeholder="Email address"
           className="flex-1"
         />
         <Button type="submit" variant="brand" size="md" disabled={busy || !userId.trim() || seatsLeft <= 0}>
@@ -239,8 +292,8 @@ function InviteForm({ onInvite, seatsLeft }) {
   );
 }
 
-function TeamDashboard({ team, members, isAdmin, currentUserId, onRemove, onInvite, onLeave, onDelete }) {
-  const seatsLeft = (team.max_seats || 10) - members.length;
+function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemove, onInvite, onCancelInvite, onLeave, onDelete }) {
+  const seatsLeft = (team.max_seats || 10) - members.length - (invites?.length || 0);
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
@@ -297,6 +350,14 @@ function TeamDashboard({ team, members, isAdmin, currentUserId, onRemove, onInvi
                 onRemove={onRemove}
               />
             ))}
+            {invites?.map(invite => (
+              <InviteRow
+                key={invite.id}
+                invite={invite}
+                isAdmin={isAdmin}
+                onCancel={onCancelInvite}
+              />
+            ))}
           </div>
         </div>
 
@@ -338,8 +399,7 @@ function TeamDashboard({ team, members, isAdmin, currentUserId, onRemove, onInvi
 // ── Main Screen ─────────────────────────────────────────────────────────────
 
 export default function TeamScreen({ onBack, onUpgrade }) {
-  const { user } = useAuth();
-  const { team, members, isAdmin, loading, createTeam, inviteMember, removeMember, leaveTeam, deleteTeam, hasTeamPlan } = useTeam();
+  const { team, members, invites, isAdmin, loading, createTeam, inviteMember, removeMember, cancelInvite, leaveTeam, deleteTeam, hasTeamPlan } = useTeam();
 
   return (
     <div className="flex flex-col h-full">
@@ -361,10 +421,12 @@ export default function TeamScreen({ onBack, onUpgrade }) {
         <TeamDashboard
           team={team}
           members={members}
+          invites={invites}
           isAdmin={isAdmin}
           currentUserId={user?.id}
           onRemove={removeMember}
           onInvite={inviteMember}
+          onCancelInvite={cancelInvite}
           onLeave={async () => {
             await leaveTeam();
             onBack?.();

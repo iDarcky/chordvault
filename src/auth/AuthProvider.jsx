@@ -57,6 +57,11 @@ export function AuthProvider({ children }) {
         .maybeSingle();
       if (!withPrefs.error) {
         setProfile(withPrefs.data ?? null);
+        try {
+          await supabase.rpc('claim_team_invites');
+        } catch (err) {
+          console.error('[auth] Failed to claim team invites:', err);
+        }
         return;
       }
       const base = await supabase
@@ -65,6 +70,13 @@ export function AuthProvider({ children }) {
         .eq('id', uid)
         .maybeSingle();
       setProfile(base.data ?? null);
+
+      // Try to claim any pending team invites for this email
+      try {
+        await supabase.rpc('claim_team_invites');
+      } catch (err) {
+        console.error('[auth] Failed to claim team invites:', err);
+      }
     })();
   }, [session?.user?.id]);
 

@@ -12,6 +12,7 @@ export function TeamProvider({ children }) {
   const { user, profile } = useAuth();
   const [team, setTeam] = useState(null);
   const [members, setMembers] = useState([]);
+  const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(false);
   const loadedForUserRef = useRef(null);
 
@@ -23,6 +24,7 @@ export function TeamProvider({ children }) {
     if (!supabase || !user?.id || !hasTeamPlan) {
       setTeam(null);
       setMembers([]);
+      setInvites([]);
       loadedForUserRef.current = null;
       return;
     }
@@ -43,6 +45,7 @@ export function TeamProvider({ children }) {
         if (!membership) {
           setTeam(null);
           setMembers([]);
+          setInvites([]);
           return;
         }
 
@@ -61,7 +64,33 @@ export function TeamProvider({ children }) {
           .select('id, user_id, role, joined_at')
           .eq('team_id', membership.team_id);
 
-        setMembers(memberRows || []);
+        let membersWithProfiles = memberRows || [];
+
+        if (membersWithProfiles.length > 0) {
+          const userIds = membersWithProfiles.map(m => m.user_id);
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, display_name, email')
+            .in('id', userIds);
+
+          if (profiles) {
+            const profileMap = profiles.reduce((acc, p) => ({ ...acc, [p.id]: p }), {});
+            membersWithProfiles = membersWithProfiles.map(m => ({
+              ...m,
+              profile: profileMap[m.user_id] || null
+            }));
+          }
+        }
+
+        setMembers(membersWithProfiles);
+
+        // Load pending invites for the team (only admins/owners can see these due to RLS).
+        const { data: inviteRows } = await supabase
+          .from('team_invites')
+          .select('id, email, role, created_at')
+          .eq('team_id', membership.team_id);
+        
+        setInvites(inviteRows || []);
       } catch (err) {
         console.error('[team] Failed to load team:', err);
       } finally {
@@ -88,6 +117,7 @@ export function TeamProvider({ children }) {
     return {
       team,
       members,
+      invites,
       loading,
       isAdmin,
       hasTeamPlan,
@@ -130,35 +160,77 @@ export function TeamProvider({ children }) {
       },
 
       /**
-       * Invite a user to the team by their auth user id.
-       * In the future this could accept an email and resolve the user id.
-       * @param {string} userId — the Supabase auth uid of the invitee
+       * Invite a user to the team by their email.
+       * Calls the secure RPC which handles both existing and new users.
+       * @param {string} email
        */
-      inviteMember: async (userId) => {
+      inviteMember: async (email) => {
         guard();
         if (!team) throw new Error('No team exists.');
         if (members.length >= (team.max_seats || 10)) {
           throw new Error(`This team is at its ${team.max_seats}-seat limit. Upgrade your plan to add more members.`);
         }
 
-        const { data, error } = await supabase
-          .from('team_members')
-          .insert({
-            team_id: team.id,
-            user_id: userId,
-            role: 'member',
-            invited_by: user.id,
-          })
-          .select()
-          .single();
+        const { data, error } = await supabase.rpc('invite_user_to_team', {
+          p_team_id: team.id,
+          p_email: email.toLowerCase(),
+          p_role: 'member'
+        });
 
         if (error) {
-          if (error.code === '23505') throw new Error('This user is already a member.');
-          throw error;
+          throw new Error(error.message || 'Failed to send invite.');
         }
 
-        setMembers(prev => [...prev, data]);
-        return data;
+        if (data.status === 'added') {
+          // They were an existing user and were instantly added.
+          // Fetch their profile to add to local state.
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, display_name, email')
+            .eq('id', data.user_id)
+            .maybeSingle();
+
+          const newMember = {
+            id: data.member_id,
+            team_id: team.id,
+            user_id: data.user_id,
+            role: 'member',
+            joined_at: new Date().toISOString(),
+            profile: profile || null
+          };
+          setMembers(prev => [...prev, newMember]);
+          return { status: 'added', member: newMember };
+        } else {
+          // They don't have an account yet. Added to team_invites.
+          const newInvite = {
+            id: 'temp-' + Date.now(), // Real ID is in DB, we'll refresh soon or just use this for UI
+            email: data.email,
+            role: 'member',
+            created_at: new Date().toISOString()
+          };
+          setInvites(prev => [...prev, newInvite]);
+          return { status: 'invited', email: data.email };
+        }
+      },
+
+      /**
+       * Cancel a pending invite
+       */
+      cancelInvite: async (inviteId) => {
+        guard();
+        if (!team) throw new Error('No team exists.');
+        
+        // Skip temp IDs from optimistic updates if they haven't synced yet
+        if (!String(inviteId).startsWith('temp-')) {
+          const { error } = await supabase
+            .from('team_invites')
+            .delete()
+            .eq('id', inviteId)
+            .eq('team_id', team.id);
+          if (error) throw error;
+        }
+        
+        setInvites(prev => prev.filter(i => i.id !== inviteId));
       },
 
       /**
@@ -234,7 +306,7 @@ export function TeamProvider({ children }) {
         loadedForUserRef.current = null;
       },
     };
-  }, [team, members, loading, user?.id, plan, hasTeamPlan]);
+  }, [team, members, invites, loading, user?.id, plan, hasTeamPlan]);
 
   return <TeamContext.Provider value={value}>{children}</TeamContext.Provider>;
 }
