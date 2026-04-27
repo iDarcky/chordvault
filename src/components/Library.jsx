@@ -118,6 +118,7 @@ export default function Library({
   isFullscreen = false,
   onToggleFullscreen,
   onEditSong,
+  simulateViewerRole = false,
   chartDefaults = {},
 }) {
   const isDesktop = useIsDesktop();
@@ -393,21 +394,23 @@ export default function Library({
             ))}
 
             {/* Desktop-only quick actions (FAB is hidden on lg+) */}
-            <div className="hidden lg:flex ml-auto items-center gap-1">
-              <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .md" title="Import .md">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </IconButton>
-              <IconButton variant="default" size="sm" onClick={onNewSong} aria-label="New song" title="New song">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              </IconButton>
-            </div>
+            {!simulateViewerRole && (
+              <div className="hidden lg:flex ml-auto items-center gap-1">
+                <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .md" title="Import .md">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                </IconButton>
+                <IconButton variant="default" size="sm" onClick={onNewSong} aria-label="New song" title="New song">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </IconButton>
+              </div>
+            )}
           </div>
           </div>
         </div>
@@ -467,64 +470,68 @@ export default function Library({
               <p className="text-copy-14 text-[var(--modes-text-muted)] max-w-sm mb-5">
                 Create a new chord chart or import one from a .md file you already have.
               </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button variant="primary" onClick={onNewSong}>New song</Button>
-                {onPasteImport && (
-                  <Button variant="secondary" onClick={onPasteImport}>Paste chord sheet</Button>
-                )}
-                <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .md</Button>
-              </div>
+              {!simulateViewerRole && (
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button variant="primary" onClick={onNewSong}>New song</Button>
+                  {onPasteImport && (
+                    <Button variant="secondary" onClick={onPasteImport}>Paste chord sheet</Button>
+                  )}
+                  <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .md</Button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {/* FAB — tablet only; mobile uses the top-bar +, desktop uses header button */}
-      <div
-        ref={fabRef}
-        className="fixed right-6 z-[150] hidden sm:block lg:hidden"
-        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
-      >
-        {fabOpen && (
-          <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
-            <button
-              onClick={() => { setFabOpen(false); onNewSong(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-            >
-              New Song
-            </button>
-            {onPasteImport && (
+      {!simulateViewerRole && (
+        <div
+          ref={fabRef}
+          className="fixed right-6 z-[150] hidden sm:block lg:hidden"
+          style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+        >
+          {fabOpen && (
+            <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
               <button
-                onClick={() => { setFabOpen(false); onPasteImport(); }}
+                onClick={() => { setFabOpen(false); onNewSong(); }}
                 className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
               >
-                Paste chord sheet
+                New Song
               </button>
-            )}
-            <button
-              onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-            >
-              Import .md
-            </button>
-          </div>
-        )}
+              {onPasteImport && (
+                <button
+                  onClick={() => { setFabOpen(false); onPasteImport(); }}
+                  className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
+                >
+                  Paste chord sheet
+                </button>
+              )}
+              <button
+                onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
+                className="px-5 py-3 rounded-xl bg-[var(--bg-1)] border border-[var(--border-1)] shadow-lg cursor-pointer hover:border-[var(--border-3)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
+              >
+                Import .md
+              </button>
+            </div>
+          )}
 
-        <button
-          onClick={() => setFabOpen(!fabOpen)}
-          className="w-14 h-14 rounded-full bg-[var(--color-brand)] text-white shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
-        >
-          <svg
-            width="24" height="24" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
-            className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+          <button
+            onClick={() => setFabOpen(!fabOpen)}
+            className="w-14 h-14 rounded-full bg-[var(--color-brand)] text-white shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
           >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
-      </div>
+            <svg
+              width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round"
+              className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       <input
         ref={fileInputRef}
