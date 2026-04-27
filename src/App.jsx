@@ -167,6 +167,7 @@ export default function App() {
   const quotaWarnedRef = useRef(false);
   const prefsHydratedForUserRef = useRef(null);
   const prefsPushTimerRef = useRef(null);
+  const isSwitchingLibraryRef = useRef(false);
 
   // Fallback to personal if team is deleted/left
   useEffect(() => {
@@ -188,6 +189,7 @@ export default function App() {
   }, [activeLibrary]);
 
   const triggerSync = useCallback(async () => {
+    if (isSwitchingLibraryRef.current) return;
     const state = await getSyncState(activeLibrary);
     const providerId = activeLibrary !== 'personal' ? `supabase-team:${activeLibrary}` : state?.activeProvider;
     if (!providerId) return;
@@ -206,8 +208,18 @@ export default function App() {
 
   // Load data on mount or when active library changes
   useEffect(() => {
+    isSwitchingLibraryRef.current = true;
+    let ignore = false;
+    
+    // Clear stale data immediately to avoid "ghost" content during load
+    setSongs([]);
+    setSetlists([]);
+    setPreviewSongId(null);
+    setPreviewSetlistId(null);
+
     (async () => {
       const savedSongs = await loadSongs(activeLibrary);
+      if (ignore) return;
       if (savedSongs.length > 0) {
         setSongs(savedSongs);
       } else if (activeLibrary === 'personal') {
@@ -216,6 +228,7 @@ export default function App() {
           ...parseSongMd(md),
           id: generateId(),
         }));
+        if (ignore) return;
         setSongs(demos);
         await saveSongs(demos, 'personal');
       } else {
@@ -223,9 +236,11 @@ export default function App() {
       }
 
       const savedSetlists = await loadSetlists(activeLibrary);
+      if (ignore) return;
       setSetlists(savedSetlists || []);
 
       const savedTombstones = await loadTombstones(activeLibrary);
+      if (ignore) return;
       setTombstones(savedTombstones);
 
       // Settings remain global, so only load on initial mount
@@ -281,25 +296,32 @@ export default function App() {
           }).catch(err => console.error('Startup sync failed:', err));
         }
       }
+      
+      if (!ignore) {
+        isSwitchingLibraryRef.current = false;
+      }
     })();
+    return () => { ignore = true; };
   }, [activeLibrary]);
 
   // Auto-save when data changes + debounced sync push
   useEffect(() => {
-    if (loaded) {
+    if (loaded && !isSwitchingLibraryRef.current) {
       saveSongs(songs, activeLibrary);
       syncEngineRef.current?.debouncedPush(songs, setlists, tombstones, setTombstones);
       maybeWarnQuota(quotaWarnedRef);
     }
   }, [songs, loaded, activeLibrary]);
   useEffect(() => {
-    if (loaded) {
+    if (loaded && !isSwitchingLibraryRef.current) {
       saveSetlists(setlists, activeLibrary);
       syncEngineRef.current?.debouncedPush(songs, setlists, tombstones, setTombstones);
       maybeWarnQuota(quotaWarnedRef);
     }
   }, [setlists, loaded, activeLibrary]);
-  useEffect(() => { if (loaded) saveTombstones(tombstones, activeLibrary); }, [tombstones, loaded, activeLibrary]);
+  useEffect(() => { 
+    if (loaded && !isSwitchingLibraryRef.current) saveTombstones(tombstones, activeLibrary); 
+  }, [tombstones, loaded, activeLibrary]);
   useEffect(() => { if (loaded && settings) saveSettings(settings); }, [settings, loaded]);
 
   // Clean up Supabase auth tokens from the URL after magic-link / password

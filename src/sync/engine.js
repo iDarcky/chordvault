@@ -18,10 +18,10 @@ function sanitizeFilename(name) {
     .trim() || 'Untitled';
 }
 
-let debounceTimer = null;
 
 export function createSyncEngine(onStatusChange, libraryId = 'personal') {
   let syncing = false;
+  let debounceTimer = null;
 
   const setStatus = (state, extra = {}) => {
     onStatusChange?.({ state, ...extra });
