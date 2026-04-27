@@ -61,7 +61,7 @@ const SetlistOverview = lazy(() => import('./components/SetlistOverview'));
 const PerformanceView = lazy(() => import('./components/PerformanceView'));
 const PracticeView = lazy(() => import('./components/PracticeView'));
 const LydianShowcase = lazy(() => import('./components/LydianShowcase'));
-const SmartImportDialog = lazy(() => import('./components/SmartImportDialog'));
+const NewSongModal = lazy(() => import('./components/NewSongModal'));
 const HelpPage = lazy(() => import('./components/HelpPage'));
 const AuthScreen = lazy(() => import('./components/auth/AuthScreen'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
@@ -136,7 +136,8 @@ export default function App() {
   const [previewSetlistId, setPreviewSetlistId] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [authStartMode, setAuthStartMode] = useState('signin');
-  const [showSmartImport, setShowSmartImport] = useState(false);
+  const [newSongModal, setNewSongModal] = useState(null);
+  const [importQueue, setImportQueue] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerOpenKey, setDrawerOpenKey] = useState(0);
   const openDrawer = () => {
@@ -597,16 +598,39 @@ export default function App() {
     if (isNew && !settings?.firstSongAdded) {
       setSettings(prev => ({ ...prev, firstSongAdded: true }));
     }
-    // First-save account wall: only for new items, only when not signed in,
-    // only once per user. Tier-2 upsell follows the "Alma moment" — they
-    // already have something they don't want to lose.
-    // After save, pop the stale chart entry that was pushed when entering the editor,
-    // then navigate to chart with the updated song (no new history entry)
     historyRef.current.pop();
+
+    // Multi-file import queue: advance to the next song in the editor
+    // instead of jumping to chart view, so the user reviews/edits each.
+    if (importQueue && importQueue.remaining.length > 1) {
+      const next = importQueue.remaining.slice(1);
+      setImportQueue({ ...importQueue, remaining: next });
+      navigate('editor', { song: next[0], replace: true });
+      return;
+    }
+    if (importQueue) {
+      setImportQueue(null);
+      toast({ title: 'Import complete' });
+      navigate('library', { replace: true });
+      return;
+    }
+
     navigate('chart', { song, replace: true });
     if (isNew && !user && !settings?.seenSaveAccountWall) {
       openAccountWall({ kind: 'song', title: song.title || 'Untitled song' });
     }
+  };
+
+  const handleSkipQueueSong = () => {
+    if (!importQueue) { goBack(); return; }
+    if (importQueue.remaining.length > 1) {
+      const next = importQueue.remaining.slice(1);
+      setImportQueue({ ...importQueue, remaining: next });
+      navigate('editor', { song: next[0], replace: true });
+      return;
+    }
+    setImportQueue(null);
+    navigate('library', { replace: true });
   };
 
   const handleDeleteSong = (id) => {
@@ -620,24 +644,37 @@ export default function App() {
     goBack();
   };
 
-  const handleImportSong = (mdText) => {
-    try {
-      const song = { ...parseSongMd(mdText), id: generateId(), updatedAt: Date.now() };
-      setSongs(prev => [...prev, song]);
-    } catch {
-      toast({ title: 'Import failed', description: 'Could not parse .md file.', variant: 'error' });
-    }
-  };
-
   const handleSmartImport = (mdText) => {
     try {
       const song = { ...parseSongMd(mdText), id: generateId(), updatedAt: Date.now() };
       setSongs(prev => [...prev, song]);
-      setShowSmartImport(false);
+      setNewSongModal(null);
       navigate('editor', { song });
     } catch {
       toast({ title: 'Import failed', description: 'Could not parse converted chord sheet.', variant: 'error' });
     }
+  };
+
+  const handleImportParsedSongs = (parsedSongs) => {
+    if (!parsedSongs || parsedSongs.length === 0) return;
+    setNewSongModal(null);
+    if (parsedSongs.length === 1) {
+      navigate('editor', { song: parsedSongs[0] });
+      return;
+    }
+    // Queue the songs as drafts — each one only persists when the user
+    // hits Save in the editor; Skip drops it without writing to the library.
+    setImportQueue({ remaining: parsedSongs, total: parsedSongs.length });
+    navigate('editor', { song: parsedSongs[0] });
+  };
+
+  const handleImportSetlistFile = async (file) => {
+    setNewSongModal(null);
+    await handleImportSetlist(file);
+  };
+
+  const openNewSongModal = (initialTab = 'import') => {
+    setNewSongModal({ initialTab });
   };
 
   // Setlist CRUD
@@ -838,7 +875,7 @@ export default function App() {
               onOpenDrawer={openDrawer}
               onSelectSong={goChart}
               onSelectSetlist={goSetlistView}
-              onNewSong={() => goEditor()}
+              onNewSong={() => openNewSongModal('import')}
               onNewSetlist={() => goSetlistBuild()}
             />
           )}
@@ -848,7 +885,7 @@ export default function App() {
               setlists={setlists}
               settings={settings}
               onSelectSong={goChart}
-              onNewSong={() => goEditor()}
+              onNewSong={() => openNewSongModal('import')}
               onNewSetlist={() => goSetlistBuild()}
               onViewSetlist={goSetlistView}
               onPlaySetlist={goSetlistPerformance}
@@ -860,7 +897,7 @@ export default function App() {
                   const song = songs.find(s => s.title === 'Amazing Grace') || songs[0];
                   if (song) goChart(song);
                 },
-                newSong: () => goEditor(),
+                newSong: () => openNewSongModal('import'),
                 newSetlist: () => goSetlistBuild(),
                 signIn: () => { setAuthStartMode('signin'); navigate('signin'); },
               }}
@@ -872,8 +909,7 @@ export default function App() {
               songs={songs}
               loaded={loaded}
               onSelectSong={goChart}
-              onNewSong={() => goEditor()}
-              onImportSong={handleImportSong}
+              onNewSong={() => openNewSongModal('import')}
               previewSongId={previewSongId}
               onSelectPreview={setPreviewSongId}
               isFullscreen={isFullscreen}
@@ -888,7 +924,6 @@ export default function App() {
                 duplicateSections: settings?.duplicateSections || 'full',
                 chartLayout: settings?.chartLayout || 'columns',
               }}
-              onPasteImport={() => setShowSmartImport(true)}
             />
           )}
           {view === 'setlists' && (
@@ -946,8 +981,13 @@ export default function App() {
             <Editor
               song={currentSong}
               onSave={handleSaveSong}
-              onBack={goBack}
+              onBack={importQueue ? handleSkipQueueSong : goBack}
               onDelete={currentSong ? handleDeleteSong : null}
+              importProgress={importQueue ? {
+                current: importQueue.total - importQueue.remaining.length + 1,
+                total: importQueue.total,
+                onSkip: handleSkipQueueSong,
+              } : null}
             />
           )}
           {view === 'setlist-view' && currentSetlist && (
@@ -1114,11 +1154,17 @@ export default function App() {
           }}
         />
       )}
-      {showSmartImport && (
-        <SmartImportDialog
-          onClose={() => setShowSmartImport(false)}
-          onImport={handleSmartImport}
-        />
+      {newSongModal && (
+        <Suspense fallback={null}>
+          <NewSongModal
+            initialTab={newSongModal.initialTab}
+            onClose={() => setNewSongModal(null)}
+            onStartBlank={() => { setNewSongModal(null); goEditor(); }}
+            onImportSongs={handleImportParsedSongs}
+            onImportSetlistFile={handleImportSetlistFile}
+            onSmartImport={handleSmartImport}
+          />
+        </Suspense>
       )}
       {!['onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
 

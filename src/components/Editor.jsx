@@ -28,7 +28,7 @@ time: 4/4
 
 `;
 
-export default function Editor({ song, onSave, onBack, onDelete }) {
+export default function Editor({ song, onSave, onBack, onDelete, importProgress }) {
   const [md, setMd] = useState(song ? songToMd(song) : DEFAULT_MD);
   const [activeTab, setActiveTab] = useState('arrange');
   const [preview, setPreview] = useState(null);
@@ -109,6 +109,26 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
           <span className="text-heading-16 text-[var(--ds-gray-1000)] truncate max-w-[140px]">
             {preview?.title || (song ? 'Edit Song' : 'New Song')}
           </span>
+          {importProgress && (
+            <span
+              className="inline-flex items-center gap-2 rounded-full px-2.5 py-0.5 text-label-11 font-semibold border"
+              style={{
+                color: 'var(--color-brand-text)',
+                borderColor: 'var(--color-brand-border)',
+                background: 'var(--color-brand-soft)',
+              }}
+            >
+              Importing {importProgress.current} of {importProgress.total}
+              {importProgress.onSkip && (
+                <button
+                  onClick={importProgress.onSkip}
+                  className="bg-transparent border-none p-0 text-[var(--color-brand-text)] underline cursor-pointer text-label-11 font-semibold"
+                >
+                  Skip
+                </button>
+              )}
+            </span>
+          )}
 
           <div className="flex items-center gap-2 ml-auto">
             <select
