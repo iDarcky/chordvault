@@ -1,15 +1,30 @@
 import { useRef, useState } from 'react';
 import { Button } from '../ui/Button';
 import { parseSongMd, generateId } from '../../parser';
+import { smartImport } from '../../importer';
 
-const ACCEPT = '.md,.zip';
+const CHORDPRO_EXTS = ['.cho', '.chopro', '.chord', '.crd', '.pro', '.onsong'];
+const ACCEPT = ['.md', '.zip', '.xml', '.txt', ...CHORDPRO_EXTS].join(',');
 
-function isMd(file) {
-  return file.name.toLowerCase().endsWith('.md');
+function ext(file) {
+  const m = file.name.toLowerCase().match(/\.[^.]+$/);
+  return m ? m[0] : '';
 }
 
 function isZip(file) {
-  return file.name.toLowerCase().endsWith('.zip');
+  return ext(file) === '.zip';
+}
+
+// Pick a converter based on the file extension. Returns the format key for
+// smartImport, or 'native' for our own .md format. Unknown extensions fall
+// back to auto-detect.
+function detectFormatForFile(file) {
+  const e = ext(file);
+  if (e === '.md') return 'native';
+  if (e === '.xml') return 'opensong';
+  if (CHORDPRO_EXTS.includes(e)) return 'chordpro';
+  // .txt or anything else — let smartImport's detector decide.
+  return null;
 }
 
 function readText(file) {
@@ -32,32 +47,53 @@ export default function ImportTab({ onImportSongs, onImportSetlistFile, isMobile
     if (files.length === 0) return;
 
     const zips = files.filter(isZip);
-    const mds = files.filter(isMd);
+    const songFiles = files.filter(f => !isZip(f));
 
-    if (zips.length === 0 && mds.length === 0) {
-      setError('Only .md song files and .zip setlist bundles are supported.');
-      return;
-    }
-
+    // Setlist zips short-circuit — handled by the setlist importer.
     if (zips.length > 0) {
       onImportSetlistFile(zips[0]);
       return;
     }
 
+    if (songFiles.length === 0) {
+      setError('Pick .md, .cho/.chopro, .xml (OpenSong), or .zip files.');
+      return;
+    }
+
     try {
       const parsed = [];
-      for (const f of mds) {
+      const failed = [];
+      for (const f of songFiles) {
         const text = await readText(f);
-        const song = { ...parseSongMd(text), id: generateId(), updatedAt: Date.now() };
-        parsed.push(song);
+        try {
+          const fmt = detectFormatForFile(f);
+          let songMd;
+          if (fmt === 'native') {
+            // Native .md goes straight through parseSongMd below.
+            const song = { ...parseSongMd(text), id: generateId(), updatedAt: Date.now() };
+            parsed.push(song);
+            continue;
+          }
+          const result = smartImport(text, fmt);
+          songMd = result.md;
+          const song = { ...parseSongMd(songMd), id: generateId(), updatedAt: Date.now() };
+          parsed.push(song);
+        } catch {
+          failed.push(f.name);
+        }
       }
       if (parsed.length === 0) {
-        setError('No valid .md files were found.');
+        setError(failed.length > 0
+          ? `Could not parse: ${failed.join(', ')}.`
+          : 'No valid song files were found.');
         return;
+      }
+      if (failed.length > 0) {
+        setError(`Skipped: ${failed.join(', ')}.`);
       }
       onImportSongs(parsed);
     } catch {
-      setError('Could not read one or more files. Make sure they are valid .md files.');
+      setError('Could not read one or more files.');
     }
   };
 
@@ -99,7 +135,7 @@ export default function ImportTab({ onImportSongs, onImportSetlistFile, isMobile
             Drop files here
           </div>
           <div className="text-copy-13 text-[var(--ds-gray-700)] mb-4">
-            or click to browse — .md songs (multi-select) or .zip setlists
+            or click to browse — .md, ChordPro, OpenSong .xml, or .zip setlists
           </div>
           <Button variant="secondary" size="sm" onClick={() => inputRef.current?.click()}>
             Choose files
@@ -118,7 +154,7 @@ export default function ImportTab({ onImportSongs, onImportSetlistFile, isMobile
             Import a file
           </div>
           <div className="text-copy-13 text-[var(--ds-gray-700)] mb-4">
-            .md songs or .zip setlist bundles
+            .md, ChordPro, OpenSong .xml, or .zip setlist bundles
           </div>
           <Button variant="brand" size="sm" onClick={() => inputRef.current?.click()}>
             Choose file
@@ -133,9 +169,15 @@ export default function ImportTab({ onImportSongs, onImportSetlistFile, isMobile
       )}
 
       <ul className="mt-5 text-copy-12 text-[var(--ds-gray-600)] list-disc pl-5 space-y-1">
-        <li><code>.md</code> — Setlists MD song format. Pick multiple to import in a row.</li>
+        <li><code>.md</code> — Setlists MD native format.</li>
+        <li><code>.cho</code> / <code>.chopro</code> / <code>.crd</code> / <code>.pro</code> / <code>.onsong</code> — ChordPro / OnSong.</li>
+        <li><code>.xml</code> — OpenSong song.</li>
         <li><code>.zip</code> — exported setlist bundle. Adds the setlist plus any new songs.</li>
+        <li><code>.txt</code> — auto-detected (Ultimate Guitar–style chord-over-lyric, ChordPro, or plain).</li>
       </ul>
+      <p className="mt-2 text-copy-12 text-[var(--ds-gray-600)]">
+        Pick multiple files to import them one after another.
+      </p>
 
       <input
         ref={inputRef}
