@@ -68,7 +68,7 @@ begin
   end if;
 
   -- 3. Check if they are already in the team
-  select user_id into v_user_id from auth.users where email = p_email;
+  select id into v_user_id from auth.users where email = p_email;
   
   if v_user_id is not null then
     if exists (select 1 from team_members where team_id = p_team_id and user_id = v_user_id) then
