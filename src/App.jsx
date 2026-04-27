@@ -961,6 +961,7 @@ export default function App() {
               onSave={handleSaveSong}
               onBack={goBack}
               onDelete={currentSong ? handleDeleteSong : null}
+              simulateViewerRole={settings?.simulateViewerRole}
             />
           )}
           {view === 'setlist-view' && currentSetlist && (
@@ -985,6 +986,7 @@ export default function App() {
               onSave={handleSaveSetlist}
               onBack={goBack}
               onDelete={currentSetlist ? handleDeleteSetlist : null}
+              simulateViewerRole={settings?.simulateViewerRole}
             />
           )}
           {view === 'setlist-play' && currentSetlist && (

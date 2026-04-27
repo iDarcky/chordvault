@@ -10,7 +10,7 @@ import SetlistMetaForm from './setlist/SetlistMetaForm';
 import SetlistItemRow from './setlist/SetlistItemRow';
 import SetlistSongPicker from './setlist/SetlistSongPicker';
 
-export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete }) {
+export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete, simulateViewerRole = false }) {
   const [name, setName] = useState(setlist?.name || '');
   const [date, setDate] = useState(setlist?.date || new Date().toISOString().slice(0, 10));
   const [time, setTime] = useState(setlist?.time || '20:00');
@@ -168,14 +168,16 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
         title={setlist ? 'Edit Setlist' : 'New Setlist'}
         actions={
           <>
-            {setlist && onDelete && (
+            {setlist && onDelete && !simulateViewerRole && (
               <IconButton variant="error" size="sm" onClick={handleDelete} aria-label="Delete setlist">
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </IconButton>
             )}
-            <Button variant="brand" size="sm" onClick={handleSave}>Save</Button>
+            {!simulateViewerRole && (
+              <Button variant="brand" size="sm" onClick={handleSave}>Save</Button>
+            )}
           </>
         }
       />

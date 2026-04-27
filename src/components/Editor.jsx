@@ -28,7 +28,7 @@ time: 4/4
 
 `;
 
-export default function Editor({ song, onSave, onBack, onDelete }) {
+export default function Editor({ song, onSave, onBack, onDelete, simulateViewerRole = false }) {
   const [md, setMd] = useState(song ? songToMd(song) : DEFAULT_MD);
   const [activeTab, setActiveTab] = useState('arrange');
   const [preview, setPreview] = useState(null);
@@ -133,14 +133,16 @@ export default function Editor({ song, onSave, onBack, onDelete }) {
               {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
 
-            {song && onDelete && (
+            {song && onDelete && !simulateViewerRole && (
               <Button variant="error" size="xs" onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }}>
                 Delete
               </Button>
             )}
-            <Button variant="brand" size="xs" onClick={handleSave} disabled={!preview}>
-              Save
-            </Button>
+            {!simulateViewerRole && (
+              <Button variant="brand" size="xs" onClick={handleSave} disabled={!preview}>
+                Save
+              </Button>
+            )}
           </div>
         </div>
 
