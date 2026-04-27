@@ -399,6 +399,7 @@ function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemov
 // ── Main Screen ─────────────────────────────────────────────────────────────
 
 export default function TeamScreen({ onBack, onUpgrade }) {
+  const { user } = useAuth();
   const { team, members, invites, isAdmin, loading, createTeam, inviteMember, removeMember, cancelInvite, leaveTeam, deleteTeam, hasTeamPlan } = useTeam();
 
   return (
