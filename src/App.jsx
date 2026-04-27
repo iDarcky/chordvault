@@ -923,6 +923,7 @@ export default function App() {
               onSelectSetlist={goSetlistView}
               onNewSong={() => goEditor()}
               onNewSetlist={() => goSetlistBuild()}
+              simulateViewerRole={settings?.simulateViewerRole}
             />
           )}
           {view === 'home' && (
@@ -962,6 +963,7 @@ export default function App() {
               isFullscreen={isFullscreen}
               onToggleFullscreen={toggleFullscreen}
               onEditSong={(s) => goEditor(s)}
+              simulateViewerRole={settings?.simulateViewerRole}
               chartDefaults={{
                 defaultColumns: settings?.defaultColumns,
                 defaultFontSize: settings?.defaultFontSize,
@@ -988,6 +990,7 @@ export default function App() {
               isFullscreen={isFullscreen}
               onToggleFullscreen={toggleFullscreen}
               onEditSetlist={(sl) => goSetlistBuild(sl)}
+              simulateViewerRole={settings?.simulateViewerRole}
               onExportSetlistZip={(sl) => handleExportSetlist(sl)}
               onExportSetlistPdfOverview={(sl) => exportSetlistPdf(sl, songs, { mode: 'overview' })}
               onExportSetlistPdfFull={(sl) => exportSetlistPdf(sl, songs, { mode: 'full' })}
@@ -1007,6 +1010,7 @@ export default function App() {
               song={currentSong}
               onBack={goBack}
               onEdit={() => goEditor(currentSong)}
+              simulateViewerRole={settings?.simulateViewerRole}
               defaultColumns={settings?.defaultColumns}
               defaultFontSize={settings?.defaultFontSize}
               showInlineNotes={settings?.showInlineNotes !== false}
@@ -1044,6 +1048,7 @@ export default function App() {
               songs={songs}
               onBack={goBack}
               onEdit={() => goSetlistBuild(currentSetlist)}
+              simulateViewerRole={settings?.simulateViewerRole}
               onExportZip={() => handleExportSetlist(currentSetlist)}
               onExportPdfOverview={() => exportSetlistPdf(currentSetlist, songs, { mode: 'overview' })}
               onExportPdfFull={() => exportSetlistPdf(currentSetlist, songs, { mode: 'full' })}

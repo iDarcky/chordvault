@@ -27,6 +27,7 @@ export default function ChartView({
   chartLayout = 'columns',
   isFullscreen = false, onToggleFullscreen,
   onTransposed,
+  simulateViewerRole = false,
 }) {
   const initialFontSize = FONT_SIZES[defaultFontSize] || (typeof defaultFontSize === 'number' ? defaultFontSize : 16);
 
@@ -185,9 +186,11 @@ export default function ChartView({
                   <rect x="6" y="14" width="12" height="8" />
                 </svg>
               </IconButton>
-              <IconButton variant="default" size="sm" onClick={onEdit} aria-label="Edit chart">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-              </IconButton>
+              {!simulateViewerRole && (
+                <IconButton variant="default" size="sm" onClick={onEdit} aria-label="Edit chart">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                </IconButton>
+              )}
               {onToggleFullscreen && (
                 <IconButton
                   variant={isFullscreen ? 'active' : 'default'}

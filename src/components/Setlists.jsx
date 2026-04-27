@@ -54,6 +54,7 @@ export default function Setlists({
   isFullscreen = false,
   onToggleFullscreen,
   onEditSetlist,
+  simulateViewerRole = false,
   onExportSetlistZip,
   onExportSetlistPdfOverview,
   onExportSetlistPdfFull,
@@ -148,21 +149,23 @@ export default function Setlists({
             />
 
             {/* Desktop-only quick actions (FAB is hidden on lg+) */}
-            <div className="hidden lg:flex items-center gap-1 shrink-0">
-              <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .zip" title="Import .zip">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </IconButton>
-              <IconButton variant="default" size="sm" onClick={onNewSetlist} aria-label="New setlist" title="New setlist">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              </IconButton>
-            </div>
+            {!simulateViewerRole && (
+              <div className="hidden lg:flex items-center gap-1 shrink-0">
+                <IconButton variant="default" size="sm" onClick={() => fileInputRef.current?.click()} aria-label="Import .zip" title="Import .zip">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                </IconButton>
+                <IconButton variant="default" size="sm" onClick={onNewSetlist} aria-label="New setlist" title="New setlist">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </IconButton>
+              </div>
+            )}
           </div>
         </div>
 
@@ -246,10 +249,12 @@ export default function Setlists({
                     <p className="text-copy-14 text-[var(--modes-text-muted)] max-w-sm mb-5">
                       Organize your songs into setlists for rehearsals or live performances.
                     </p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      <Button variant="brand" onClick={onNewSetlist}>Create setlist</Button>
-                      <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .zip</Button>
-                    </div>
+                    {!simulateViewerRole && (
+                      <div className="flex flex-wrap justify-center gap-2">
+                        <Button variant="brand" onClick={onNewSetlist}>Create setlist</Button>
+                        <Button variant="secondary" onClick={() => fileInputRef.current?.click()}>Import .zip</Button>
+                      </div>
+                    )}
                   </div>
                 )
               )}
@@ -259,43 +264,45 @@ export default function Setlists({
       </div>
 
       {/* FAB Cluster — tablet only; mobile uses top-bar +, desktop uses header button */}
-      <div
-        ref={fabRef}
-        className="fixed right-6 z-[150] hidden sm:block lg:hidden"
-        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
-      >
-        {fabOpen && (
-          <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
-            <button
-              onClick={() => { setFabOpen(false); onNewSetlist(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-            >
-              Create Setlist
-            </button>
-            <button
-              onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
-              className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
-            >
-              Import Setlist
-            </button>
-          </div>
-        )}
-
-        <button
-          onClick={() => setFabOpen(!fabOpen)}
-          className="w-14 h-14 rounded-full bg-[var(--color-brand)] text-white shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
+      {!simulateViewerRole && (
+        <div
+          ref={fabRef}
+          className="fixed right-6 z-[150] hidden sm:block lg:hidden"
+          style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
         >
-          <svg
-            width="24" height="24" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
-            className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+          {fabOpen && (
+            <div className="absolute bottom-full right-0 mb-3 flex flex-col gap-2">
+              <button
+                onClick={() => { setFabOpen(false); onNewSetlist(); }}
+                className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
+              >
+                Create Setlist
+              </button>
+              <button
+                onClick={() => { setFabOpen(false); fileInputRef.current?.click(); }}
+                className="px-5 py-3 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] shadow-lg cursor-pointer hover:border-[var(--ds-gray-600)] transition-all duration-150 whitespace-nowrap text-label-14 text-[var(--text-1)] text-left"
+              >
+                Import Setlist
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() => setFabOpen(!fabOpen)}
+            className="w-14 h-14 rounded-full bg-[var(--color-brand)] text-white shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95 border-none"
           >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
-      </div>
+            <svg
+              width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round"
+              className={`transition-transform duration-200 ${fabOpen ? 'rotate-45' : ''}`}
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       <input
         ref={fileInputRef}

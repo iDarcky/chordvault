@@ -1,6 +1,7 @@
 import SyncSettings from './settings/SyncSettings';
 import ScreenHeader from './ui/ScreenHeader';
 import { Button } from './ui/Button';
+import { Switch } from './ui/Switch';
 
 // ─── Icons ───────────────────────────────────────────────────────────────
 
@@ -233,9 +234,15 @@ function SyncPanel({ syncState, onSyncStateChange, onSyncNow, onRequestSignIn, a
   );
 }
 
-function DataPanel({ songCount, setlistCount, onDownloadSongs, onClearAll }) {
+function DataPanel({ songCount, setlistCount, onDownloadSongs, onClearAll, settings, update }) {
   return (
     <Section subtitle={`${songCount} songs, ${setlistCount} setlists saved on this device.`}>
+      <Row label="Simulate Viewer Role" description="Hide edit/delete/create buttons as if you are a view-only member.">
+        <Switch
+          checked={settings?.simulateViewerRole || false}
+          onCheckedChange={(checked) => update('simulateViewerRole', checked)}
+        />
+      </Row>
       <Row label="Export library" description="Download every song as a separate .md file.">
         <Button size="sm" variant="secondary" onClick={onDownloadSongs}>Download all</Button>
       </Row>
@@ -386,6 +393,8 @@ export default function Settings({
             setlistCount={setlistCount}
             onDownloadSongs={onDownloadSongs}
             onClearAll={onClearAll}
+            settings={settings}
+            update={update}
           />
         )}
         {panel === 'about' && (
