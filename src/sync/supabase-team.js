@@ -124,15 +124,25 @@ export function createSupabaseTeamProvider(teamId) {
           updated_at: new Date().toISOString()
         };
 
+        let data, error;
         if (existing) {
-          payload.id = existing.id;
+          const res = await supabase
+            .from('team_songs')
+            .update(payload)
+            .eq('id', existing.id)
+            .select('id, title, updated_at')
+            .single();
+          data = res.data;
+          error = res.error;
+        } else {
+          const res = await supabase
+            .from('team_songs')
+            .insert(payload)
+            .select('id, title, updated_at')
+            .single();
+          data = res.data;
+          error = res.error;
         }
-
-        const { data, error } = await supabase
-          .from('team_songs')
-          .upsert(payload, { onConflict: 'id' })
-          .select('id, title, updated_at')
-          .single();
 
         if (error) throw error;
         
@@ -160,15 +170,25 @@ export function createSupabaseTeamProvider(teamId) {
           updated_at: new Date().toISOString()
         };
 
+        let data, error;
         if (existing) {
-          payload.id = existing.id;
+          const res = await supabase
+            .from('team_setlists')
+            .update(payload)
+            .eq('id', existing.id)
+            .select('id, name, updated_at')
+            .single();
+          data = res.data;
+          error = res.error;
+        } else {
+          const res = await supabase
+            .from('team_setlists')
+            .insert(payload)
+            .select('id, name, updated_at')
+            .single();
+          data = res.data;
+          error = res.error;
         }
-
-        const { data, error } = await supabase
-          .from('team_setlists')
-          .upsert(payload, { onConflict: 'id' })
-          .select('id, name, updated_at')
-          .single();
 
         if (error) throw error;
         
