@@ -2,7 +2,6 @@ import { useState } from 'react';
 import ScreenHeader from './ui/ScreenHeader';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
-import { SegmentedControl } from './ui/SegmentedControl';
 import { supabase } from '../auth/supabase';
 import { useAuth } from '../auth/useAuth';
 
@@ -37,8 +36,7 @@ function buildPersonalHook({ instruments = [], useCase }) {
   return 'Your library follows you to every device, with end-to-end encryption.';
 }
 
-function buildTiers({ billing }) {
-  const isYear = billing === 'yearly';
+function buildTiers() {
   return [
     {
       id: 'free',
@@ -47,77 +45,103 @@ function buildTiers({ billing }) {
       interval: '',
       tagline: 'For solo musicians and tinkerers',
       featured: false,
+      badge: null,
       features: [
-        'Full editor (Visual, Form, Raw)',
-        'Local storage on every device',
-        'Bring your own cloud (Drive, Dropbox, OneDrive)',
-        'ZIP import & export',
+        'Unlimited songs & setlists',
+        'Full chord chart renderer',
+        'Transpose + capo calculator',
+        'Role profiles',
+        'Bluetooth pedal support',
+        'Import ChordPro / OnSong / PDF',
+        'Offline / PWA — works without internet',
       ],
       cta: "I'm all set",
       ctaVariant: 'secondary',
       ctaAction: 'free',
     },
     {
-      id: 'private',
-      name: 'Private Sync',
-      price: isYear ? '$30' : '$3',
-      interval: isYear ? '/year' : '/month',
-      altPrice: isYear ? 'or $3/mo' : 'or $30/yr — save 17%',
-      tagline: 'For worship leaders and band members',
-      featured: true,
+      id: 'sync',
+      name: 'Sync',
+      price: '$9',
+      interval: ' one-time',
+      tagline: 'For worship leaders who want backup',
+      featured: false,
+      badge: '⭐ Best Value',
       features: [
-        'Setlists.md Cloud — instant sync, no Drive setup',
-        'End-to-end encryption (only you can read your files)',
+        'Google Drive / Dropbox / OneDrive sync',
+        'Files live in your own cloud folder',
+        'Setlist QR sharing',
         'Smart Import — Ultimate Guitar, ChordPro, plain text',
-        '30-day version history (undo accidental deletions)',
+        'No subscription — pay once, yours forever',
         'Everything in Free',
       ],
-      cta: 'Continue → Sign in',
+      cta: 'Get Sync',
       ctaVariant: 'brand',
-      ctaAction: 'private',
+      ctaAction: 'sync',
     },
     {
       id: 'team',
-      name: 'Team Sync',
-      price: isYear ? '$80' : '$8',
-      interval: isYear ? '/year' : '/month',
-      altPrice: isYear ? 'or $8/mo' : 'or $80/yr — save 17%',
-      tagline: 'For churches and bands',
-      featured: false,
+      name: 'Teams',
+      price: '$12',
+      interval: '/mo',
+      altPrice: 'up to 10 users',
+      tagline: 'For worship bands and small teams',
+      featured: true,
+      badge: '🔥 Most Popular',
       features: [
-        'Workspaces — separate "Sunday Service" and "Youth Band" libraries',
-        'Roles — Admin, Editor, Read-Only',
-        'Live Leader Mode — real-time page turns and key changes',
-        'Everything in Private Sync',
+        'Shared song library',
+        'Real-time setlist collaboration',
+        'End-to-end encryption',
+        'Admin dashboard & member roles',
+        'Priority support',
+        '14-day free trial',
+        'Everything in Sync',
       ],
-      cta: 'Talk to us',
-      ctaVariant: 'secondary',
+      cta: 'Start free trial',
+      ctaVariant: 'brand',
       ctaAction: 'team',
+    },
+    {
+      id: 'church',
+      name: 'Church',
+      price: '$24',
+      interval: '/mo',
+      altPrice: 'up to 30 users',
+      tagline: 'For churches with multiple services',
+      featured: false,
+      badge: null,
+      features: [
+        'Multi-service setlist management',
+        'Custom onboarding session',
+        'Volume seat add-ons ($5/20 seats)',
+        '14-day free trial',
+        'Everything in Teams',
+      ],
+      cta: 'Start free trial',
+      ctaVariant: 'secondary',
+      ctaAction: 'church',
     },
   ];
 }
 
 export default function PricingScreen({ onBack, onSignIn, settings }) {
   const { user } = useAuth();
-  const [billing, setBilling] = useState('yearly');
   const [email, setEmail] = useState(user?.email || '');
   const [busy, setBusy] = useState(false);
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState(null);
 
-  const tiers = buildTiers({ billing });
+  const tiers = buildTiers();
   const personalHook = buildPersonalHook({
     instruments: settings?.quizInstruments || [],
     useCase: settings?.quizUseCase,
   });
 
   const handleTierAction = (action) => {
-    if (action === 'private') {
+    if (action === 'sync' || action === 'team' || action === 'church') {
+      // All paid tiers require sign-in first. Billing will be wired
+      // to Stripe later — for now, direct to auth.
       onSignIn?.();
-      return;
-    }
-    if (action === 'team') {
-      window.location.href = 'mailto:hello@setlists.md?subject=Team%20Sync%20interest';
       return;
     }
     // Free — just go back to the app.
@@ -157,21 +181,10 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
             <p className="text-copy-15 text-[var(--modes-text-muted)] m-0 max-w-lg mx-auto">
               {personalHook}
             </p>
-
-            <div className="mt-4 flex justify-center">
-              <SegmentedControl
-                value={billing}
-                onValueChange={setBilling}
-                options={[
-                  { value: 'monthly', label: 'Monthly' },
-                  { value: 'yearly', label: 'Yearly · save 17%' },
-                ]}
-              />
-            </div>
           </div>
 
           {/* Tier cards */}
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map(tier => (
               <div
                 key={tier.id}
@@ -181,12 +194,12 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
                   boxShadow: '0 0 0 1px var(--color-brand), 0 8px 32px var(--color-brand-border)',
                 } : {}}
               >
-                {tier.featured && (
+                {(tier.featured || tier.badge) && (
                   <div
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-label-11 font-semibold uppercase tracking-widest"
-                    style={{ background: 'var(--color-brand)', color: 'white' }}
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-label-11 font-semibold uppercase tracking-widest whitespace-nowrap"
+                    style={{ background: tier.featured ? 'var(--color-brand)' : 'var(--modes-surface-strong)', color: tier.featured ? 'white' : 'var(--modes-text)' }}
                   >
-                    Most popular
+                    {tier.badge || 'Most Popular'}
                   </div>
                 )}
 

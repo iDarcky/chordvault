@@ -248,6 +248,20 @@ The theme is applied by an effect in `App.jsx` that sets/clears `document.docume
 The signed-in experience depends on a `profiles` table with columns:
 `id`, `email`, `display_name`, `plan`, `preferences` (JSONB), `updated_at`.
 
+The Teams/Church tier adds two more tables:
+
+- **`teams`** — `id`, `name`, `location`, `owner_id`, `plan` (team|church),
+  `max_seats` (10 for team, 30 for church), `created_at`, `updated_at`.
+- **`team_members`** — `id`, `team_id`, `user_id`, `role` (admin|member),
+  `invited_by`, `joined_at`. Unique constraint on `(team_id, user_id)`.
+
+RLS policies:
+- Members can view their own team and its roster.
+- The owner can create/update/delete the team.
+- Admins (and team owners on self-insert) can add members.
+- Admins can update member roles and remove members.
+- Any user can remove themselves (leave).
+
 Migrations live in `supabase/migrations/`. Apply them with the Supabase
 CLI (`supabase db push`) or copy/paste the SQL into the project's SQL editor.
 
@@ -256,9 +270,38 @@ CLI (`supabase db push`) or copy/paste the SQL into the project's SQL editor.
   gracefully falls back to the base profile select if this column is
   missing, so sign-in still works before the migration is applied, but
   cross-device pref sync is a no-op until it is.
+- `20260427_create_teams.sql` — creates the `teams` and `team_members`
+  tables with RLS policies. Required for Team/Church tier features.
 
 RLS must allow each user to `select`/`update` their own profile row
 (typical policy: `auth.uid() = id`).
+
+## Entitlements
+
+Feature gating uses `useEntitlement(feature)` from `hooks/useEntitlement.js`.
+It checks `profile?.plan` against a plan hierarchy (`free < sync < team < church`)
+and returns `{ allowed, requiredPlan, currentPlan }`.
+
+Gated features and their minimum plan:
+- `cloud-sync`, `smart-import` → `sync`
+- `team-create`, `team-library`, `team-collab`, `team-roles` → `team`
+- `multi-service` → `church`
+
+A non-hook version `checkEntitlement(plan, feature)` is available for use
+outside React components.
+
+The `UpgradeGate` component (`ui/UpgradeGate.jsx`) wraps gated content
+and shows a branded upgrade prompt when the user's plan is insufficient.
+
+### Team Provider
+
+`TeamProvider` (`auth/TeamProvider.jsx`) wraps the app tree inside
+`AuthProvider` (in `main.jsx`). It provides team state via `useTeam()`:
+`{ team, members, isAdmin, loading, hasTeamPlan, createTeam, inviteMember,
+removeMember, leaveTeam, updateTeam, deleteTeam }`.
+
+The provider only fetches from Supabase when the user has a `team` or
+`church` plan. For free/sync users, the context value is a no-op stub.
 
 ## Known Gotchas
 

@@ -70,13 +70,26 @@ const navButtonClass = (active) =>
       : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
   }`;
 
+const TeamNavIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
 export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications, notifications, onMarkRead, onNotificationAction, displayName = 'Guest', plan = 'Free' }) {
   const [trayOpen, setTrayOpen] = useState(false);
+
+  const planLower = plan.toLowerCase();
+  const hasTeamPlan = planLower === 'team' || planLower === 'church';
 
   const tabs = [
     { id: 'home', label: 'Dashboard', Icon: HomeIcon },
     { id: 'setlists', label: 'Setlists', Icon: SetlistsIcon },
     { id: 'library', label: 'Library', Icon: LibraryIcon },
+    ...(hasTeamPlan ? [{ id: 'team', label: 'Team', Icon: TeamNavIcon }] : []),
   ];
 
   return (

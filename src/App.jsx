@@ -68,6 +68,7 @@ const AuthScreen = lazy(() => import('./components/auth/AuthScreen'));
 const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
 const RecoveryScreen = lazy(() => import('./components/auth/RecoveryScreen'));
 const PricingScreen = lazy(() => import('./components/PricingScreen'));
+const TeamScreen = lazy(() => import('./components/TeamScreen'));
 const WakeLockExplainer = lazy(() => import('./components/WakeLockExplainer'));
 const AccountWall = lazy(() => import('./components/AccountWall'));
 const FounderNote = lazy(() => import('./components/FounderNote'));
@@ -584,6 +585,7 @@ export default function App() {
     navigate('setlist-performance', { setlist: sl });
   };
   const goSetlistPractice = (sl) => navigate('setlist-practice', { setlist: sl });
+  const goTeam = () => goToMainView('team');
 
   // Song CRUD
   const handleSaveSong = (song) => {
@@ -707,6 +709,10 @@ export default function App() {
     a.download = slugify(sl.name || 'setlist') + '.zip';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportSetlistPdf = (sl) => {
+    exportSetlistPdf(sl, songs);
   };
 
   const handleImportSetlist = async (file) => {
@@ -1064,7 +1070,13 @@ export default function App() {
               onSignOut={handleSignOut}
             />
           )}
-          {['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view) && (
+          {view === 'team' && (
+            <TeamScreen
+              onBack={goBack}
+              onUpgrade={() => navigate('upgrade')}
+            />
+          )}
+          {['home', 'library', 'setlists', 'settings', 'account', 'team', 'setlist-view'].includes(view) && (
             <BottomNav
               activeView={view === 'setlist-view' ? 'setlists' : view}
               onNavigate={goToMainView}
@@ -1094,6 +1106,7 @@ export default function App() {
           onUpgrade={() => { setDrawerOpen(false); navigate('upgrade'); }}
           onSignIn={() => { setDrawerOpen(false); setAuthStartMode('signin'); navigate('signin'); }}
           onCreateAccount={() => { setDrawerOpen(false); setAuthStartMode('signup'); navigate('signin'); }}
+          onOpenTeam={() => { setDrawerOpen(false); goTeam(); }}
           canInstall={canInstall}
           isIOS={isIOS}
           isStandalone={isStandalone}
