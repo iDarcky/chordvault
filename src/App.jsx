@@ -20,7 +20,7 @@ import NotificationTray from './components/NotificationTray';
 import FeedbackButton from './components/FeedbackButton';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './auth/useAuth';
-import { useTeam } from './auth/TeamProvider';
+import { useTeam } from './auth/useTeam';
 import { exportSetlistZip, importSetlistZip, slugify } from './setlist-io';
 import { exportSetlistPdf } from './pdf/exportSetlistPdf';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
