@@ -19,9 +19,9 @@ export function TeamProvider({ children }) {
   const plan = (profile?.plan || 'free').toLowerCase();
   const hasTeamPlan = plan === 'team' || plan === 'church';
 
-  // Load the user's team when their identity or plan changes.
+  // Load the user's team when their identity changes.
   useEffect(() => {
-    if (!supabase || !user?.id || !hasTeamPlan) {
+    if (!supabase || !user?.id) {
       setTeam(null);
       setMembers([]);
       setInvites([]);
@@ -97,7 +97,7 @@ export function TeamProvider({ children }) {
         setLoading(false);
       }
     })();
-  }, [user?.id, hasTeamPlan]);
+  }, [user?.id]);
 
   // Reset on sign-out.
   useEffect(() => {

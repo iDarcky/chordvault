@@ -115,7 +115,7 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
         </button>
 
         {/* Library Switcher */}
-        {hasTeamPlan && team && (
+        {team && (
           <div className="mb-6 xl:px-2 flex flex-col gap-2">
             <span className="hidden xl:block text-label-12 text-[var(--ds-gray-500)] font-semibold uppercase tracking-wider pl-1">
               Workspace

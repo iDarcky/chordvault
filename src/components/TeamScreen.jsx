@@ -406,19 +406,11 @@ export default function TeamScreen({ onBack, onUpgrade }) {
     <div className="flex flex-col h-full">
       <ScreenHeader onBack={onBack} title="Your Team" />
 
-      {/* Gate: must have team/church plan */}
-      {!hasTeamPlan ? (
-        <UpgradeGate feature="team-create" onUpgrade={onUpgrade}>
-          {/* Never renders — UpgradeGate shows the prompt */}
-          <div />
-        </UpgradeGate>
-      ) : loading ? (
+      {loading ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-copy-14 text-[var(--ds-gray-600)]">Loading team…</div>
         </div>
-      ) : !team ? (
-        <CreateTeamForm onCreate={createTeam} />
-      ) : (
+      ) : team ? (
         <TeamDashboard
           team={team}
           members={members}
@@ -436,6 +428,13 @@ export default function TeamScreen({ onBack, onUpgrade }) {
             await deleteTeam();
           }}
         />
+      ) : !hasTeamPlan ? (
+        <UpgradeGate feature="team-create" onUpgrade={onUpgrade}>
+          {/* Never renders — UpgradeGate shows the prompt */}
+          <div />
+        </UpgradeGate>
+      ) : (
+        <CreateTeamForm onCreate={createTeam} />
       )}
     </div>
   );
