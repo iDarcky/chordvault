@@ -77,7 +77,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   const [dragOverIdx, setDragOverIdx] = useState(null);
 
   const addSong = (song) => {
-    applyStructural(p => [...p, { songId: song.id, note: '', transpose: 0, capo: 0 }]);
+    applyStructural(p => [...p, { songId: song.id, songTitle: song.title, note: '', transpose: 0, capo: 0 }]);
   };
   const addBreak = () => {
     applyStructural(p => [...p, { type: 'break', label: '', note: '', duration: 0 }]);
@@ -91,7 +91,11 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     setItems(p => p.map((it, i) => i === idx ? { ...it, capo: val } : it));
   const updateBreakField = (idx, field, value) =>
     setItems(p => p.map((it, i) => i === idx ? { ...it, [field]: value } : it));
-  const getSong = (id) => songs.find(s => s.id === id);
+  const getSong = (id, title) => {
+    let s = songs.find(s => s.id === id);
+    if (!s && title) s = songs.find(s => s.title === title);
+    return s;
+  };
 
   // Drag handlers
   const handleDragStart = useCallback((idx) => {
@@ -240,7 +244,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
                       item={item}
                       idx={idx}
                       songNum={songNumberFor[idx]}
-                      song={item.type !== 'break' ? getSong(item.songId) : null}
+                      song={item.type !== 'break' ? getSong(item.songId, item.songTitle) : null}
                       onRemove={removeItem}
                       onUpdateNote={updateNote}
                       onUpdateTranspose={updateTranspose}

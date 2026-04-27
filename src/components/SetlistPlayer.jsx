@@ -16,7 +16,8 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
     return setlist.items
       .map(it => {
         if (it.type === 'break') return { ...it, isBreak: true };
-        const song = songs.find(s => s.id === it.songId);
+        let song = songs.find(s => s.id === it.songId);
+        if (!song && it.songTitle) song = songs.find(s => s.title === it.songTitle);
         if (!song) return null;
         acc.count += 1;
         return { ...it, song, songNum: acc.count };

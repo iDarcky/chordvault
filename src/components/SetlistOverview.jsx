@@ -5,7 +5,11 @@ import { IconButton } from './ui/IconButton';
 import ExportSetlistDialog from './ExportSetlistDialog';
 
 export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExportZip, onExportPdfOverview, onExportPdfFull, onPlay, onPractice, onDelete, isFullscreen = false, onToggleFullscreen }) {
-  const getSong = (id) => songs.find(s => s.id === id);
+  const getSong = (id, title) => {
+    let s = songs.find(s => s.id === id);
+    if (!s && title) s = songs.find(s => s.title === title);
+    return s;
+  };
   const [collapsed, setCollapsed] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
@@ -188,7 +192,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
               }
 
               /* ── Song row ── */
-              const song = getSong(item.songId);
+              const song = getSong(item.songId, item.songTitle);
               const num = String(songNumberByIdx[idx] || 0).padStart(2, '0');
 
               if (!song) {

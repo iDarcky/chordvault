@@ -19,7 +19,8 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
     setlist.items
       .map((it, rawIdx) => {
         if (it.type === 'break') return { ...it, isBreak: true, _rawIdx: rawIdx };
-        const song = songs.find(s => s.id === it.songId);
+        let song = songs.find(s => s.id === it.songId);
+        if (!song && it.songTitle) song = songs.find(s => s.title === it.songTitle);
         return song ? { ...it, song, _rawIdx: rawIdx } : null;
       })
       .filter(Boolean),
