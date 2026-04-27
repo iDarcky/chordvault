@@ -189,8 +189,23 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
 
               /* ── Song row ── */
               const song = getSong(item.songId);
-              if (!song) return null;
               const num = String(songNumberByIdx[idx] || 0).padStart(2, '0');
+
+              if (!song) {
+                return (
+                  <div key={idx} className="material-card flex items-center gap-3 px-4 py-3 opacity-60">
+                    <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
+                      {num}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-heading-14 text-[var(--ds-gray-700)] m-0 truncate italic">
+                        Missing Song (Waiting for sync)
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+
               const displayKey = transposeKey(song.key, item.transpose);
 
               return (

@@ -107,6 +107,7 @@ export function parseSongMd(text) {
   }
 
   return {
+    id: meta.id || null,
     title: meta.title || 'Untitled',
     artist: meta.artist || 'Unknown',
     key: meta.key || 'C',
@@ -126,6 +127,7 @@ export function parseSongMd(text) {
 // Convert a song object back to .md format
 export function songToMd(song) {
   let md = '---\n';
+  if (song.id) md += `id: ${song.id}\n`;
   md += `title: ${song.title}\n`;
   md += `artist: ${song.artist}\n`;
   md += `key: ${song.key}\n`;

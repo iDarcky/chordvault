@@ -118,7 +118,7 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
           }
         } else {
           // New song from remote
-          songId = generateId();
+          songId = parsed.id || generateId();
           updatedSongs.push({ ...parsed, id: songId });
         }
 
