@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Input } from '../ui/Input';
+import { useEntitlement } from '../../hooks/useEntitlement';
 
 const MAX_TAGS = 3;
 
 /**
- * Setlist metadata form — name, date, freeform tags.
+ * Setlist metadata form — name, date, freeform tags, and (Church tier only) service.
  */
-export default function SetlistMetaForm({ name, date, time = '20:00', location = '', tags, onNameChange, onDateChange, onTimeChange, onLocationChange, onTagsChange }) {
+export default function SetlistMetaForm({ name, date, time = '20:00', location = '', tags, service = '', onNameChange, onDateChange, onTimeChange, onLocationChange, onTagsChange, onServiceChange }) {
   const [tagInput, setTagInput] = useState('');
 
   const addTag = () => {
@@ -73,6 +74,23 @@ export default function SetlistMetaForm({ name, date, time = '20:00', location =
           placeholder="e.g. The Blue Note"
         />
       </div>
+
+      {/* Service — Church tier only */}
+      {useEntitlement('multi-service').allowed && onServiceChange && (
+        <div className="flex flex-col gap-1">
+          <label className="section-title px-0.5">
+            Service
+            <span className="ml-1.5 text-label-11 font-normal uppercase tracking-wider px-1.5 py-0.5 rounded-md" style={{ background: 'var(--color-brand-soft)', color: 'var(--color-brand)' }}>
+              Church
+            </span>
+          </label>
+          <Input
+            value={service}
+            onChange={e => onServiceChange(e.target.value)}
+            placeholder="e.g. 9am Traditional, 11am Contemporary"
+          />
+        </div>
+      )}
 
       {/* Tags */}
       <div className="flex flex-col gap-1">

@@ -22,6 +22,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     return [];
   });
   const [items, setItems] = useState(setlist?.items || []);
+  const [service, setService] = useState(setlist?.service || '');
 
   // Per-item song numbers (1-based, breaks excluded). Computed once per
   // items change so SetlistItemRow can render "01", "02", … on songs only.
@@ -147,9 +148,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
     }
     onSave({
       id: setlist?.id || generateId(),
-      name: name.trim(), date, time, location, tags, items,
-      // Keep service for backward compat
-      service: tags[0] || '',
+      name: name.trim(), date, time, location, tags, items, service,
       createdAt: setlist?.createdAt || Date.now(),
     });
   };
@@ -195,11 +194,13 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
               time={time}
               location={location}
               tags={tags}
+              service={service}
               onNameChange={setName}
               onDateChange={setDate}
               onTimeChange={setTime}
               onLocationChange={setLocation}
               onTagsChange={setTags}
+              onServiceChange={setService}
             />
 
             {/* Divider */}
