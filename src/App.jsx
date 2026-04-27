@@ -25,6 +25,7 @@ import { exportSetlistZip, importSetlistZip, slugify } from './setlist-io';
 import { exportSetlistPdf } from './pdf/exportSetlistPdf';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
+import { useTeamRealtime } from './hooks/useTeamRealtime';
 
 const QUOTA_WARN_THRESHOLD = 0.8;
 
@@ -205,6 +206,12 @@ export default function App() {
       notifyConflicts(result.conflicts);
     }
   }, [songs, setlists, tombstones, activeLibrary]);
+
+  // Subscribe to realtime changes for team libraries
+  useTeamRealtime(
+    activeLibrary !== 'personal' ? activeLibrary : null,
+    triggerSync
+  );
 
   // Load data on mount or when active library changes
   useEffect(() => {

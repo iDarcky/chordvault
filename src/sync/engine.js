@@ -96,7 +96,7 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
           tombstonesChanged = true;
         }
 
-        const content = await provider.downloadFile(file.id);
+        const content = await provider.downloadFile(file.id, SONGS_FOLDER);
         const parsed = parseSongMd(content);
 
         if (songId) {
@@ -161,7 +161,7 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
           tombstonesChanged = true;
         }
 
-        const content = await provider.downloadFile(file.id);
+        const content = await provider.downloadFile(file.id, SETLISTS_FOLDER);
         try {
           const remoteSetlist = JSON.parse(content);
           if (setlistId) {
@@ -250,7 +250,7 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
         }
 
         if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
-          const result = await provider.uploadFile(SONGS_FOLDER, fileName, md, 'text/markdown');
+          const result = await provider.uploadFile(SONGS_FOLDER, fileName, md, 'text/markdown', entry?.remoteId);
           manifest[song.id] = {
             remoteId: result.id,
             remoteName: result.name,
@@ -290,7 +290,7 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
         }
 
         if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
-          const result = await provider.uploadFile(SETLISTS_FOLDER, fileName, json, 'application/json');
+          const result = await provider.uploadFile(SETLISTS_FOLDER, fileName, json, 'application/json', entry?.remoteId);
           slManifest[sl.id] = {
             remoteId: result.id,
             remoteName: result.name,

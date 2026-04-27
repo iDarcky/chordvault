@@ -144,18 +144,20 @@ export function TeamProvider({ children }) {
         if (teamErr) throw teamErr;
 
         // Add the creator as admin.
-        const { error: memberErr } = await supabase
+        const { data: memberRow, error: memberErr } = await supabase
           .from('team_members')
           .insert({
             team_id: newTeam.id,
             user_id: user.id,
             role: 'admin',
-          });
+          })
+          .select('id')
+          .single();
 
         if (memberErr) throw memberErr;
 
         setTeam(newTeam);
-        setMembers([{ id: newTeam.id, user_id: user.id, role: 'admin', joined_at: new Date().toISOString() }]);
+        setMembers([{ id: memberRow.id, user_id: user.id, role: 'admin', joined_at: new Date().toISOString() }]);
         return newTeam;
       },
 

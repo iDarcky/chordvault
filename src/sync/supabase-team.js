@@ -73,27 +73,45 @@ export function createSupabaseTeamProvider(teamId) {
       return [];
     },
 
-    async downloadFile(fileId) {
-      // Because we map id to UUID, we first need to determine if it's a song or setlist
-      // The easiest way is to try both, or we can just try songs first.
-      // Wait, engine.js calls downloadFile(file.id). We know it's a UUID.
-      
-      let { data, error } = await supabase
+    async downloadFile(fileId, folder) {
+      // Use the folder hint to query the correct table directly.
+      // Falls back to trying both tables if no hint is provided.
+      const table = folder === SETLISTS_FOLDER ? 'team_setlists'
+                  : folder === SONGS_FOLDER ? 'team_songs'
+                  : null;
+
+      if (table) {
+        const { data, error } = await supabase
+          .from(table)
+          .select('content')
+          .eq('id', fileId)
+          .eq('team_id', teamId)
+          .maybeSingle();
+        if (error) throw new Error(error.message);
+        if (data?.content) {
+          const c = data.content;
+          return typeof c === 'string' ? c : JSON.stringify(c);
+        }
+        throw new Error(`File not found in ${table}: ${fileId}`);
+      }
+
+      // No folder hint — try songs, then setlists
+      const { data, error } = await supabase
         .from('team_songs')
         .select('content')
         .eq('id', fileId)
         .eq('team_id', teamId)
         .maybeSingle();
-
+      if (error) throw new Error(error.message);
       if (data?.content) return data.content;
 
-      // Try setlists
       const { data: slData, error: slError } = await supabase
         .from('team_setlists')
         .select('content')
         .eq('id', fileId)
         .eq('team_id', teamId)
         .maybeSingle();
+      if (slError) throw new Error(slError.message);
 
       if (slData?.content) {
         return typeof slData.content === 'string' ? slData.content : JSON.stringify(slData.content);
@@ -102,20 +120,13 @@ export function createSupabaseTeamProvider(teamId) {
       throw new Error(`File not found in Postgres: ${fileId}`);
     },
 
-    async uploadFile(folder, name, content, mimeType) {
+    async uploadFile(folder, name, content, mimeType, existingId) {
       // engine.js passes the raw content. For setlists it's JSON, for songs it's Markdown.
-      // We upsert based on title/name to match how the sync engine avoids duplicates.
+      // We use existingId (the manifest's remoteId) as the primary key for updates.
+      // Falls back to title/name lookup only for first-time uploads (no manifest entry yet).
       
       if (folder === SONGS_FOLDER) {
         const title = name.replace('.md', '');
-        
-        // Find if exists by title to update it instead of creating duplicate
-        const { data: existing } = await supabase
-          .from('team_songs')
-          .select('id')
-          .eq('team_id', teamId)
-          .eq('title', title)
-          .maybeSingle();
 
         const payload = {
           team_id: teamId,
@@ -125,23 +136,57 @@ export function createSupabaseTeamProvider(teamId) {
         };
 
         let data, error;
-        if (existing) {
+
+        if (existingId) {
+          // Update by UUID — the manifest already knows this row
           const res = await supabase
             .from('team_songs')
             .update(payload)
-            .eq('id', existing.id)
+            .eq('id', existingId)
+            .eq('team_id', teamId)
             .select('id, title, updated_at')
-            .single();
+            .maybeSingle();
           data = res.data;
           error = res.error;
+
+          // If the row was deleted remotely (e.g. another member removed it),
+          // fall through to insert a fresh row.
+          if (!error && !data) {
+            const ins = await supabase
+              .from('team_songs')
+              .insert(payload)
+              .select('id, title, updated_at')
+              .single();
+            data = ins.data;
+            error = ins.error;
+          }
         } else {
-          const res = await supabase
+          // First sync — check by title to avoid duplicates, then insert
+          const { data: existing } = await supabase
             .from('team_songs')
-            .insert(payload)
-            .select('id, title, updated_at')
-            .single();
-          data = res.data;
-          error = res.error;
+            .select('id')
+            .eq('team_id', teamId)
+            .eq('title', title)
+            .maybeSingle();
+
+          if (existing) {
+            const res = await supabase
+              .from('team_songs')
+              .update(payload)
+              .eq('id', existing.id)
+              .select('id, title, updated_at')
+              .single();
+            data = res.data;
+            error = res.error;
+          } else {
+            const res = await supabase
+              .from('team_songs')
+              .insert(payload)
+              .select('id, title, updated_at')
+              .single();
+            data = res.data;
+            error = res.error;
+          }
         }
 
         if (error) throw error;
@@ -155,39 +200,68 @@ export function createSupabaseTeamProvider(teamId) {
       
       if (folder === SETLISTS_FOLDER) {
         const slName = name.replace('.json', '');
-        
-        const { data: existing } = await supabase
-          .from('team_setlists')
-          .select('id')
-          .eq('team_id', teamId)
-          .eq('name', slName)
-          .maybeSingle();
+        let parsedContent;
+        try {
+          parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
+        } catch (e) {
+          throw new Error(`Invalid setlist JSON for "${slName}": ${e.message}`);
+        }
 
         const payload = {
           team_id: teamId,
           name: slName,
-          content: typeof content === 'string' ? JSON.parse(content) : content,
+          content: parsedContent,
           updated_at: new Date().toISOString()
         };
 
         let data, error;
-        if (existing) {
+
+        if (existingId) {
           const res = await supabase
             .from('team_setlists')
             .update(payload)
-            .eq('id', existing.id)
+            .eq('id', existingId)
+            .eq('team_id', teamId)
             .select('id, name, updated_at')
-            .single();
+            .maybeSingle();
           data = res.data;
           error = res.error;
+
+          if (!error && !data) {
+            const ins = await supabase
+              .from('team_setlists')
+              .insert(payload)
+              .select('id, name, updated_at')
+              .single();
+            data = ins.data;
+            error = ins.error;
+          }
         } else {
-          const res = await supabase
+          const { data: existing } = await supabase
             .from('team_setlists')
-            .insert(payload)
-            .select('id, name, updated_at')
-            .single();
-          data = res.data;
-          error = res.error;
+            .select('id')
+            .eq('team_id', teamId)
+            .eq('name', slName)
+            .maybeSingle();
+
+          if (existing) {
+            const res = await supabase
+              .from('team_setlists')
+              .update(payload)
+              .eq('id', existing.id)
+              .select('id, name, updated_at')
+              .single();
+            data = res.data;
+            error = res.error;
+          } else {
+            const res = await supabase
+              .from('team_setlists')
+              .insert(payload)
+              .select('id, name, updated_at')
+              .single();
+            data = res.data;
+            error = res.error;
+          }
         }
 
         if (error) throw error;
