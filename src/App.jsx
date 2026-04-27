@@ -5,7 +5,7 @@ import { parseSongMd, songToMd, generateId } from './parser';
 import { loadSongs, saveSongs, loadSetlists, saveSetlists, loadSettings, saveSettings, loadTombstones, saveTombstones, getStorageEstimate, clearAll } from './storage';
 import { DEMO_SONGS_MD } from './data/demos';
 import { createSyncEngine } from './sync/engine';
-import { getSyncState } from './sync/tokens';
+import { getSyncState, setActiveProvider } from './sync/tokens';
 import OnboardingFlow from './onboarding/OnboardingFlow';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
@@ -20,6 +20,7 @@ import NotificationTray from './components/NotificationTray';
 import FeedbackButton from './components/FeedbackButton';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './auth/useAuth';
+import { useTeam } from './auth/TeamProvider';
 import { exportSetlistZip, importSetlistZip, slugify } from './setlist-io';
 import { exportSetlistPdf } from './pdf/exportSetlistPdf';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
@@ -109,11 +110,13 @@ function prefsEqual(a, b) {
 
 export default function App() {
   const { user, profile, signOut, updateProfile } = useAuth();
+  const { team } = useTeam();
   // PWA update prompt — toast appears when a new SW is downloaded.
   usePWAUpdate();
   // Native + iOS install affordance.
   const { canInstall, isIOS, isStandalone, promptInstall } = useInstallPrompt();
   const [showIOSHint, setShowIOSHint] = useState(false);
+  const [activeLibrary, setActiveLibrary] = useState('personal');
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
   const [tombstones, setTombstones] = useState({ songs: [], setlists: [] });
@@ -165,16 +168,29 @@ export default function App() {
   const prefsHydratedForUserRef = useRef(null);
   const prefsPushTimerRef = useRef(null);
 
-  // Initialize sync engine
-  if (syncEngineRef.current == null) {
+  // Fallback to personal if team is deleted/left
+  useEffect(() => {
+    if (activeLibrary !== 'personal' && team && activeLibrary !== team.id) {
+      setActiveLibrary('personal');
+    } else if (activeLibrary !== 'personal' && !team) {
+      setActiveLibrary('personal');
+    }
+  }, [team, activeLibrary]);
+
+  // Initialize sync engine for the active library
+  useEffect(() => {
+    if (syncEngineRef.current) {
+      syncEngineRef.current.cancelDebounce();
+    }
     syncEngineRef.current = createSyncEngine((status) => {
       setSyncState(prev => ({ ...prev, ...status }));
-    });
-  }
+    }, activeLibrary);
+  }, [activeLibrary]);
 
   const triggerSync = useCallback(async () => {
-    const state = await getSyncState();
-    if (!state?.activeProvider) return;
+    const state = await getSyncState(activeLibrary);
+    const providerId = activeLibrary !== 'personal' ? `supabase-team:${activeLibrary}` : state?.activeProvider;
+    if (!providerId) return;
     const result = await syncEngineRef.current.fullSync(songs, setlists, tombstones);
     if (result.changed) {
       setSongs(result.songs);
@@ -186,52 +202,65 @@ export default function App() {
     if (result.conflicts?.length > 0) {
       notifyConflicts(result.conflicts);
     }
-  }, [songs, setlists, tombstones]);
+  }, [songs, setlists, tombstones, activeLibrary]);
 
-  // Load data on mount
+  // Load data on mount or when active library changes
   useEffect(() => {
     (async () => {
-      const savedSongs = await loadSongs();
+      const savedSongs = await loadSongs(activeLibrary);
       if (savedSongs.length > 0) {
         setSongs(savedSongs);
-      } else {
-        // First time — load demo songs
+      } else if (activeLibrary === 'personal') {
+        // First time in personal library — load demo songs
         const demos = DEMO_SONGS_MD.map(md => ({
           ...parseSongMd(md),
           id: generateId(),
         }));
         setSongs(demos);
-        await saveSongs(demos);
+        await saveSongs(demos, 'personal');
+      } else {
+        setSongs([]);
       }
 
-      const savedSetlists = await loadSetlists();
-      if (savedSetlists) setSetlists(savedSetlists);
+      const savedSetlists = await loadSetlists(activeLibrary);
+      setSetlists(savedSetlists || []);
 
-      const savedTombstones = await loadTombstones();
+      const savedTombstones = await loadTombstones(activeLibrary);
       setTombstones(savedTombstones);
 
-      const savedSettings = await loadSettings();
-      setSettings(savedSettings);
-
-      // Determine initial view based on onboarding state
-      if (!savedSettings.onboardingComplete && savedSongs.length === 0) {
-        setView('onboarding');
-      } else if (!savedSettings.onboardingComplete) {
-        // Existing user who predates onboarding — skip it, go to home
-        savedSettings.onboardingComplete = true;
+      // Settings remain global, so only load on initial mount
+      if (!loaded) {
+        const savedSettings = await loadSettings();
         setSettings(savedSettings);
-        await saveSettings(savedSettings);
-        setView('home');
-      } else {
-        setView('home');
+
+        // Determine initial view based on onboarding state
+        if (!savedSettings.onboardingComplete && savedSongs.length === 0) {
+          setView('onboarding');
+        } else if (!savedSettings.onboardingComplete) {
+          // Existing user who predates onboarding — skip it, go to home
+          savedSettings.onboardingComplete = true;
+          setSettings(savedSettings);
+          await saveSettings(savedSettings);
+          setView('home');
+        } else {
+          setView('home');
+        }
+
+        setLoaded(true);
       }
 
-      setLoaded(true);
-
       // Initialize sync state from storage and trigger initial pull
-      const storedSync = await getSyncState();
-      if (storedSync?.activeProvider) {
-        setSyncState({ state: 'idle', lastSync: storedSync.lastSyncTime, provider: storedSync.activeProvider });
+      const storedSync = await getSyncState(activeLibrary);
+      const isTeamLibrary = activeLibrary !== 'personal';
+      const providerId = isTeamLibrary ? `supabase-team:${activeLibrary}` : storedSync?.activeProvider;
+      
+      if (isTeamLibrary && storedSync?.activeProvider !== providerId) {
+        // Force the provider state for team libraries
+        await setActiveProvider(providerId, { connected: true }, activeLibrary);
+      }
+
+      if (providerId) {
+        setSyncState({ state: 'idle', lastSync: storedSync?.lastSyncTime, provider: providerId });
         // Pull from cloud on startup — but we need to pass the just-loaded data directly
         // since React state (songs/setlists) hasn't settled yet
         const engine = syncEngineRef.current;
@@ -253,24 +282,24 @@ export default function App() {
         }
       }
     })();
-  }, []);
+  }, [activeLibrary]);
 
   // Auto-save when data changes + debounced sync push
   useEffect(() => {
     if (loaded) {
-      saveSongs(songs);
+      saveSongs(songs, activeLibrary);
       syncEngineRef.current?.debouncedPush(songs, setlists, tombstones, setTombstones);
       maybeWarnQuota(quotaWarnedRef);
     }
-  }, [songs, loaded]);
+  }, [songs, loaded, activeLibrary]);
   useEffect(() => {
     if (loaded) {
-      saveSetlists(setlists);
+      saveSetlists(setlists, activeLibrary);
       syncEngineRef.current?.debouncedPush(songs, setlists, tombstones, setTombstones);
       maybeWarnQuota(quotaWarnedRef);
     }
-  }, [setlists, loaded]);
-  useEffect(() => { if (loaded) saveTombstones(tombstones); }, [tombstones, loaded]);
+  }, [setlists, loaded, activeLibrary]);
+  useEffect(() => { if (loaded) saveTombstones(tombstones, activeLibrary); }, [tombstones, loaded, activeLibrary]);
   useEffect(() => { if (loaded && settings) saveSettings(settings); }, [settings, loaded]);
 
   // Clean up Supabase auth tokens from the URL after magic-link / password
@@ -612,8 +641,55 @@ export default function App() {
     }
   };
 
+  const handleMoveSongToLibrary = async (songId, targetLibraryId) => {
+    try {
+      const song = songs.find(s => s.id === songId);
+      if (!song) return;
+
+      // Remove from current library
+      const nextSongs = songs.filter(s => s.id !== songId);
+      setSongs(nextSongs);
+      await saveSongs(nextSongs, activeLibrary);
+      // Generate a tombstone so other devices drop it from the old library
+      const nextTs = {
+        ...tombstones,
+        songs: [...tombstones.songs, { id: song.id, deletedAt: Date.now() }],
+      };
+      setTombstones(nextTs);
+      await saveTombstones(nextTs, activeLibrary);
+      syncEngineRef.current?.debouncedPush(nextSongs, setlists, nextTs, setTombstones);
+
+      // Add to target library
+      const targetSongs = await loadSongs(targetLibraryId);
+      // Clean up its old ID if it exists in the new library to avoid duplicates
+      const filteredTargetSongs = targetSongs.filter(s => s.id !== song.id);
+      filteredTargetSongs.push(song);
+      await saveSongs(filteredTargetSongs, targetLibraryId);
+
+      // Trigger a background sync on the target library so the cloud gets the file
+      if (syncEngineRef.current) {
+        // We can instantiate a temporary engine just to push to the target library
+        const tempEngine = createSyncEngine(() => {}, targetLibraryId);
+        // We need the tombstones of the target library to pass to push
+        const targetTombstones = await loadTombstones(targetLibraryId);
+        const targetSetlists = await loadSetlists(targetLibraryId);
+        tempEngine.debouncedPush(filteredTargetSongs, targetSetlists, targetTombstones, () => {});
+      }
+
+      toast({
+        title: 'Song moved',
+        description: `Successfully moved to ${targetLibraryId === 'personal' ? 'Personal' : 'Team'} library.`,
+      });
+      setView('library');
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Move failed', variant: 'error' });
+    }
+  };
+
   const handleDeleteSong = (id) => {
-    setSongs(prev => prev.filter(s => s.id !== id));
+    const nextSongs = songs.filter((s) => s.id !== id);
+    setSongs(nextSongs);
     setTombstones(prev => ({
       ...prev,
       songs: [...prev.songs.filter(t => t.id !== id), { id, deletedAt: Date.now() }],
@@ -957,6 +1033,9 @@ export default function App() {
               onSave={handleSaveSong}
               onBack={goBack}
               onDelete={currentSong ? handleDeleteSong : null}
+              onMove={currentSong && team ? (target) => handleMoveSongToLibrary(currentSong.id, target) : null}
+              activeLibrary={activeLibrary}
+              team={team}
             />
           )}
           {view === 'setlist-view' && currentSetlist && (
@@ -1052,6 +1131,8 @@ export default function App() {
               onRequestSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
               isSignedIn={isSignedIn}
               displayName={displayName}
+              activeLibrary={activeLibrary}
+              team={team}
             />
           )}
           {view === "account" && settings && (

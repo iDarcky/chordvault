@@ -3,11 +3,11 @@ import { get, set, del } from 'idb-keyval';
 const OLD_PREFIX = 'Setlists MD:';
 const NEW_PREFIX = 'setlists-md:';
 
-const SONGS_KEY = `${NEW_PREFIX}songs`;
-const SETLISTS_KEY = `${NEW_PREFIX}setlists`;
-const SETTINGS_KEY = `${NEW_PREFIX}settings`;
-const SYNC_KEY = `${NEW_PREFIX}sync`;
-const TOMBSTONES_KEY = `${NEW_PREFIX}tombstones`;
+const SONGS_KEY = (lib) => `${NEW_PREFIX}songs:${lib}`;
+const SETLISTS_KEY = (lib) => `${NEW_PREFIX}setlists:${lib}`;
+const SETTINGS_KEY = `${NEW_PREFIX}settings`; // Settings remain global
+const SYNC_KEY = (lib) => `${NEW_PREFIX}sync:${lib}`;
+const TOMBSTONES_KEY = (lib) => `${NEW_PREFIX}tombstones:${lib}`;
 
 /**
  * Migrates data from legacy 'Setlists MD:' keys to new 'setlists-md:' keys.
@@ -21,10 +21,10 @@ async function migrateLegacyKeys() {
     try {
       const oldData = await get(oldKey);
       if (oldData !== undefined) {
-        const newData = await get(newKey);
+        const newData = await get(k === 'settings' ? newKey : `${newKey}:personal`);
         // Only migrate if new key is empty
         if (newData === undefined) {
-          await set(newKey, oldData);
+          await set(k === 'settings' ? newKey : `${newKey}:personal`, oldData);
           await del(oldKey);
           console.log(`[storage] Migrated legacy key: ${oldKey} -> ${newKey}`);
         }
@@ -98,30 +98,30 @@ function sanitizeSetlists(raw) {
   return out;
 }
 
-export async function loadSongs() {
+export async function loadSongs(libraryId = 'personal') {
   try {
-    const raw = (await get(SONGS_KEY)) || [];
+    const raw = (await get(SONGS_KEY(libraryId))) || [];
     return sanitizeSongs(raw);
   } catch {
     return [];
   }
 }
 
-export async function saveSongs(songs) {
-  await set(SONGS_KEY, songs);
+export async function saveSongs(songs, libraryId = 'personal') {
+  await set(SONGS_KEY(libraryId), songs);
 }
 
-export async function loadSetlists() {
+export async function loadSetlists(libraryId = 'personal') {
   try {
-    const raw = (await get(SETLISTS_KEY)) || [];
+    const raw = (await get(SETLISTS_KEY(libraryId))) || [];
     return sanitizeSetlists(raw);
   } catch {
     return [];
   }
 }
 
-export async function saveSetlists(setlists) {
-  await set(SETLISTS_KEY, setlists);
+export async function saveSetlists(setlists, libraryId = 'personal') {
+  await set(SETLISTS_KEY(libraryId), setlists);
 }
 
 export const DEFAULT_SETTINGS = {
@@ -163,16 +163,16 @@ export async function saveSettings(settings) {
   await set(SETTINGS_KEY, settings);
 }
 
-export async function loadSyncState() {
+export async function loadSyncState(libraryId = 'personal') {
   try {
-    return (await get(SYNC_KEY)) || null;
+    return (await get(SYNC_KEY(libraryId))) || null;
   } catch {
     return null;
   }
 }
 
-export async function saveSyncState(state) {
-  await set(SYNC_KEY, state);
+export async function saveSyncState(state, libraryId = 'personal') {
+  await set(SYNC_KEY(libraryId), state);
 }
 
 // Returns null if the API is unavailable, otherwise { usage, quota, ratio }.
@@ -188,23 +188,23 @@ export async function getStorageEstimate() {
   }
 }
 
-export async function loadTombstones() {
+export async function loadTombstones(libraryId = 'personal') {
   try {
-    return pruneTombstones(await get(TOMBSTONES_KEY));
+    return pruneTombstones(await get(TOMBSTONES_KEY(libraryId)));
   } catch {
     return { songs: [], setlists: [] };
   }
 }
 
-export async function saveTombstones(tombstones) {
-  await set(TOMBSTONES_KEY, pruneTombstones(tombstones));
+export async function saveTombstones(tombstones, libraryId = 'personal') {
+  await set(TOMBSTONES_KEY(libraryId), pruneTombstones(tombstones));
 }
 
-export async function clearAll() {
-  await del(SONGS_KEY);
-  await del(SETLISTS_KEY);
-  await del(SETTINGS_KEY);
-  await del(SYNC_KEY);
-  await del(TOMBSTONES_KEY);
+export async function clearAll(libraryId = 'personal') {
+  await del(SONGS_KEY(libraryId));
+  await del(SETLISTS_KEY(libraryId));
+  await del(SETTINGS_KEY); // Global
+  await del(SYNC_KEY(libraryId));
+  await del(TOMBSTONES_KEY(libraryId));
 }
 

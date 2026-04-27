@@ -1,6 +1,7 @@
 import { createGoogleDriveProvider } from './google-drive';
 import { createDropboxProvider } from './dropbox';
 import { createOneDriveProvider } from './onedrive';
+import { createSupabaseTeamProvider } from './supabase-team';
 import { isProviderConfigured } from './constants';
 import { setActiveProvider, clearProvider, getSyncState } from './tokens';
 
@@ -31,6 +32,14 @@ const providers = {
 let cachedProviders = {};
 
 export function getProvider(name) {
+  if (name.startsWith('supabase-team:')) {
+    if (!cachedProviders[name]) {
+      const teamId = name.split(':')[1];
+      cachedProviders[name] = createSupabaseTeamProvider(teamId);
+    }
+    return cachedProviders[name];
+  }
+
   if (!providers[name]) {
     throw new Error(`Unknown sync provider: ${name}`);
   }

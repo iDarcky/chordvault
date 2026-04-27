@@ -8,46 +8,46 @@ const SYNC_DEFAULTS = {
   setlistManifest: {},
 };
 
-export async function getSyncState() {
-  const state = await loadSyncState();
+export async function getSyncState(libraryId = 'personal') {
+  const state = await loadSyncState(libraryId);
   return { ...SYNC_DEFAULTS, ...(state || {}) };
 }
 
-export async function setActiveProvider(providerName, tokens) {
-  const state = await getSyncState();
+export async function setActiveProvider(providerName, tokens, libraryId = 'personal') {
+  const state = await getSyncState(libraryId);
   state.activeProvider = providerName;
   state.tokens = tokens;
-  await saveSyncState(state);
+  await saveSyncState(state, libraryId);
   return state;
 }
 
-export async function clearProvider() {
-  const state = await getSyncState();
+export async function clearProvider(libraryId = 'personal') {
+  const state = await getSyncState(libraryId);
   state.activeProvider = null;
   state.tokens = null;
-  await saveSyncState(state);
+  await saveSyncState(state, libraryId);
   return state;
 }
 
-export async function updateTokens(tokens) {
-  const state = await getSyncState();
+export async function updateTokens(tokens, libraryId = 'personal') {
+  const state = await getSyncState(libraryId);
   state.tokens = { ...state.tokens, ...tokens };
-  await saveSyncState(state);
+  await saveSyncState(state, libraryId);
 }
 
-export async function updateSyncManifest(manifest) {
-  const state = await getSyncState();
+export async function updateSyncManifest(manifest, libraryId = 'personal') {
+  const state = await getSyncState(libraryId);
   state.syncManifest = manifest;
   state.lastSyncTime = new Date().toISOString();
-  await saveSyncState(state);
+  await saveSyncState(state, libraryId);
   return state;
 }
 
-export async function updateSetlistManifest(manifest) {
-  const state = await getSyncState();
+export async function updateSetlistManifest(manifest, libraryId = 'personal') {
+  const state = await getSyncState(libraryId);
   state.setlistManifest = manifest;
   state.lastSyncTime = new Date().toISOString();
-  await saveSyncState(state);
+  await saveSyncState(state, libraryId);
   return state;
 }
 

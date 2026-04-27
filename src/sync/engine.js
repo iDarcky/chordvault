@@ -20,7 +20,7 @@ function sanitizeFilename(name) {
 
 let debounceTimer = null;
 
-export function createSyncEngine(onStatusChange) {
+export function createSyncEngine(onStatusChange, libraryId = 'personal') {
   let syncing = false;
 
   const setStatus = (state, extra = {}) => {
@@ -34,7 +34,7 @@ export function createSyncEngine(onStatusChange) {
     if (isTokenExpired(syncState.tokens)) {
       try {
         const newTokens = await provider.refreshToken(syncState.tokens);
-        await updateTokens(newTokens);
+        await updateTokens(newTokens, libraryId);
         provider.setTokens(newTokens);
       } catch {
         setStatus('error');
@@ -44,7 +44,7 @@ export function createSyncEngine(onStatusChange) {
   }
 
   async function pull(songs, setlists, tombstones = { songs: [], setlists: [] }) {
-    const syncState = await getSyncState();
+    const syncState = await getSyncState(libraryId);
     if (!syncState.activeProvider) return { songs, setlists, tombstones, changed: false };
 
     const provider = getProvider(syncState.activeProvider);
@@ -203,8 +203,8 @@ export function createSyncEngine(onStatusChange) {
       }
     }
 
-    if (songsChanged) await updateSyncManifest(manifest);
-    if (setlistsChanged) await updateSetlistManifest(slManifest);
+    if (songsChanged) await updateSyncManifest(manifest, libraryId);
+    if (setlistsChanged) await updateSetlistManifest(slManifest, libraryId);
 
     const nextTombstones = tombstonesChanged
       ? {
@@ -224,7 +224,7 @@ export function createSyncEngine(onStatusChange) {
   }
 
   async function push(songs, setlists, tombstones = { songs: [], setlists: [] }) {
-    const syncState = await getSyncState();
+    const syncState = await getSyncState(libraryId);
     if (!syncState.activeProvider) return { tombstones, tombstonesChanged: false };
 
     const provider = getProvider(syncState.activeProvider);
@@ -272,7 +272,7 @@ export function createSyncEngine(onStatusChange) {
       }
     }
 
-    await updateSyncManifest(manifest);
+    await updateSyncManifest(manifest, libraryId);
 
     // Push setlists (each as individual .json file)
     for (const sl of setlists) {
@@ -312,7 +312,7 @@ export function createSyncEngine(onStatusChange) {
       }
     }
 
-    await updateSetlistManifest(slManifest);
+    await updateSetlistManifest(slManifest, libraryId);
 
     // Drop tombstones whose remote file has been fully deleted
     const prunedSongTs = (tombstones.songs || []).filter(t => manifest[t.id]);
@@ -339,7 +339,7 @@ export function createSyncEngine(onStatusChange) {
         const pushResult = await push(pullResult.songs, pullResult.setlists, pullResult.tombstones);
 
         const lastSync = new Date().toISOString();
-        const syncState = await getSyncState();
+        const syncState = await getSyncState(libraryId);
         setStatus('synced', { lastSync, provider: syncState.activeProvider });
 
         return {
@@ -359,7 +359,7 @@ export function createSyncEngine(onStatusChange) {
     debouncedPush(songs, setlists, tombstones = { songs: [], setlists: [] }, onTombstonesPruned) {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {
-        const syncState = await getSyncState();
+        const syncState = await getSyncState(libraryId);
         if (!syncState.activeProvider) return;
 
         setStatus('syncing');

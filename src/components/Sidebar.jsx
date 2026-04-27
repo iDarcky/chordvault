@@ -79,7 +79,7 @@ const TeamNavIcon = () => (
   </svg>
 );
 
-export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications, notifications, onMarkRead, onNotificationAction, displayName = 'Guest', plan = 'Free' }) {
+export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications, notifications, onMarkRead, onNotificationAction, displayName = 'Guest', plan = 'Free', activeLibrary, setActiveLibrary, team }) {
   const [trayOpen, setTrayOpen] = useState(false);
 
   const planLower = plan.toLowerCase();
@@ -113,6 +113,44 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
             <p className="text-label-12 text-[var(--ds-teal-800)] font-medium truncate uppercase tracking-widest text-[10px]">{plan} TIER</p>
           </div>
         </button>
+
+        {/* Library Switcher */}
+        {hasTeamPlan && team && (
+          <div className="mb-6 xl:px-2 flex flex-col gap-2">
+            <span className="hidden xl:block text-label-12 text-[var(--ds-gray-500)] font-semibold uppercase tracking-wider pl-1">
+              Workspace
+            </span>
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={() => setActiveLibrary('personal')}
+                className={`flex items-center justify-center xl:justify-start gap-2 h-10 w-10 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none ${
+                  activeLibrary === 'personal'
+                    ? 'bg-[var(--ds-gray-900)] text-white'
+                    : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)]'
+                }`}
+                title="Personal Library"
+              >
+                <UserIcon />
+                <span className={`hidden xl:block text-label-14 ${activeLibrary === 'personal' ? 'font-bold' : 'font-medium'}`}>Personal</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveLibrary(team.id)}
+                className={`flex items-center justify-center xl:justify-start gap-2 h-10 w-10 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none ${
+                  activeLibrary === team.id
+                    ? 'bg-[var(--ds-gray-900)] text-white'
+                    : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)]'
+                }`}
+                title={team.name}
+              >
+                <TeamNavIcon />
+                <span className={`hidden xl:block text-label-14 truncate ${activeLibrary === team.id ? 'font-bold' : 'font-medium'}`}>
+                  {team.name}
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Nav Menu */}
         <nav className="flex-1 min-h-0 flex flex-col gap-1 overflow-hidden">

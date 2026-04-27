@@ -209,7 +209,20 @@ function ChartPanel({ settings, update }) {
   );
 }
 
-function SyncPanel({ syncState, onSyncStateChange, onSyncNow, onRequestSignIn }) {
+function SyncPanel({ syncState, onSyncStateChange, onSyncNow, onRequestSignIn, activeLibrary, team }) {
+  if (activeLibrary !== 'personal') {
+    return (
+      <Section subtitle={`This workspace is automatically synced with your team "${team?.name || 'Team'}".`}>
+        <Row label="Provider" description="Team Cloud (Supabase Postgres)">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[var(--ds-green-500)]" />
+            <span className="text-copy-13 font-medium text-[var(--ds-green-700)]">Connected</span>
+          </div>
+        </Row>
+      </Section>
+    );
+  }
+
   return (
     <SyncSettings
       syncState={syncState || { state: 'idle', lastSync: null, provider: null }}
@@ -283,6 +296,7 @@ function chartSummary(s) {
 function syncSummary(syncState) {
   if (!syncState?.provider) return 'Off';
   const provider = syncState.provider;
+  if (provider.startsWith('supabase-team:')) return 'Team Cloud';
   return provider.charAt(0).toUpperCase() + provider.slice(1);
 }
 
@@ -305,6 +319,8 @@ export default function Settings({
   // Sub-panel state lives in App.jsx so it participates in the back stack.
   panel = 'hub',
   onChangePanel = () => {},
+  activeLibrary = 'personal',
+  team = null,
 }) {
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
 
@@ -360,6 +376,8 @@ export default function Settings({
             onSyncStateChange={onSyncStateChange}
             onSyncNow={onSyncNow}
             onRequestSignIn={onRequestSignIn}
+            activeLibrary={activeLibrary}
+            team={team}
           />
         )}
         {panel === 'data' && (
