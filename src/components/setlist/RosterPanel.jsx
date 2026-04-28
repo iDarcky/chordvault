@@ -105,7 +105,7 @@ export default function RosterPanel({ setlistId, onClose }) {
 
               {setlistSchedules.map(schedule => {
                 const member = members.find(m => m.user_id === schedule.user_id);
-                const displayName = member?.profile?.display_name || schedule.profile?.display_name || schedule.profile?.email || 'Unknown User';
+                const displayName = member?.profile?.display_name || schedule.profiles?.display_name || schedule.profiles?.email || 'Unknown User';
                 
                 return (
                   <div key={schedule.id} className="p-3 rounded-xl bg-[var(--ds-background-200)] border border-[var(--ds-gray-300)] flex flex-col gap-2">

@@ -17,7 +17,7 @@ export function useTeamSchedules(teamId) {
         .from('team_schedules')
         .select(`
           *,
-          profile:user_id ( id, display_name, email )
+          profiles:user_id ( id, display_name, email )
         `)
         .eq('team_id', teamId);
       
@@ -88,7 +88,7 @@ export function useTeamSchedules(teamId) {
         })
         .select(`
           *,
-          profile:user_id ( id, display_name, email )
+          profiles:user_id ( id, display_name, email )
         `)
         .single();
       

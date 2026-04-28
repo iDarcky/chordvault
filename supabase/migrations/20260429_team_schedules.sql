@@ -5,7 +5,7 @@ create table if not exists public.team_schedules (
   id uuid primary key default gen_random_uuid(),
   team_id uuid not null references public.teams(id) on delete cascade,
   setlist_id uuid not null references public.team_setlists(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
   availability text not null default 'pending'
     check (availability in ('pending', 'available', 'unavailable', 'maybe')),
   role text,
