@@ -143,7 +143,7 @@ export function TeamProvider({ children }) {
 
         if (teamErr) throw teamErr;
 
-        // Add the creator as admin.
+        // Add the creator as admin (if not already added by a trigger).
         const { data: memberRow, error: memberErr } = await supabase
           .from('team_members')
           .insert({
@@ -152,12 +152,25 @@ export function TeamProvider({ children }) {
             role: 'admin',
           })
           .select('id')
-          .single();
+          .maybeSingle();
 
-        if (memberErr) throw memberErr;
+        // If it failed due to unique violation (e.g. trigger already added them),
+        // we can ignore it and just fetch the row.
+        if (memberErr && memberErr.code !== '23505') throw memberErr;
+        
+        let finalMemberId = memberRow?.id;
+        if (!finalMemberId) {
+          const { data: existing } = await supabase
+            .from('team_members')
+            .select('id')
+            .eq('team_id', newTeam.id)
+            .eq('user_id', user.id)
+            .single();
+          finalMemberId = existing?.id;
+        }
 
         setTeam(newTeam);
-        setMembers([{ id: memberRow.id, user_id: user.id, role: 'admin', joined_at: new Date().toISOString() }]);
+        setMembers([{ id: finalMemberId, user_id: user.id, role: 'admin', joined_at: new Date().toISOString() }]);
         return newTeam;
       },
 
