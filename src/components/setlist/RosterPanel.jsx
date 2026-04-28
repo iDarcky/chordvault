@@ -4,6 +4,7 @@ import { useTeamSchedules } from '../../hooks/useTeamSchedules';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { IconButton } from '../ui/IconButton';
+import { toast } from '../ui/use-toast';
 
 const PREDEFINED_ROLES = [
   "Acoustic Guitar", 
@@ -22,17 +23,24 @@ export default function RosterPanel({ setlistId, onClose }) {
   
   const [addingMemberId, setAddingMemberId] = useState('');
   const [customRole, setCustomRole] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
 
   // Filter schedules for this specific setlist
   const setlistSchedules = schedules.filter(s => s.setlist_id === setlistId);
 
   const handleAddMember = async (userId) => {
-    if (!userId) return;
+    if (!userId || isAdding) return;
+    setIsAdding(true);
+    setAddingMemberId(userId);
     try {
       await createSchedule(setlistId, userId, "Vocals", "pending");
-      setAddingMemberId('');
+      toast({ title: 'Added to roster', description: 'Member has been scheduled.' });
     } catch (err) {
       console.error(err);
+      toast({ title: 'Error', description: err.message || 'Could not add member to roster.', variant: 'error' });
+    } finally {
+      setIsAdding(false);
+      setAddingMemberId('');
     }
   };
 
@@ -79,7 +87,13 @@ export default function RosterPanel({ setlistId, onClose }) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
-        {/* Current Roster */}
+        {loading && schedules.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <span className="text-copy-14 text-[var(--ds-gray-500)]">Loading roster...</span>
+          </div>
+        ) : (
+          <>
+            {/* Current Roster */}
         <div className="flex flex-col gap-3">
           <p className="text-label-12 text-[var(--ds-gray-600)] uppercase tracking-wider font-bold">Scheduled Team</p>
           
@@ -91,7 +105,7 @@ export default function RosterPanel({ setlistId, onClose }) {
 
           {setlistSchedules.map(schedule => {
             const member = members.find(m => m.user_id === schedule.user_id);
-            const displayName = member?.profile?.display_name || schedule.user?.email || 'Unknown User';
+            const displayName = member?.profile?.display_name || schedule.profile?.display_name || schedule.profile?.email || 'Unknown User';
             
             return (
               <div key={schedule.id} className="p-3 rounded-xl bg-[var(--ds-background-200)] border border-[var(--ds-gray-300)] flex flex-col gap-2">
@@ -168,14 +182,21 @@ export default function RosterPanel({ setlistId, onClose }) {
                     </div>
                     <span className="text-copy-14">{member.profile?.display_name || member.profile?.email || 'Member'}</span>
                   </div>
-                  <Button size="xs" variant="ghost" className="opacity-0 group-hover:opacity-100">Add</Button>
+                  <Button 
+                    size="xs" 
+                    variant="ghost" 
+                    className={isAdding && addingMemberId === member.user_id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
+                    disabled={isAdding && addingMemberId === member.user_id}
+                  >
+                    {isAdding && addingMemberId === member.user_id ? 'Adding...' : 'Add'}
+                  </Button>
                 </div>
               ))
             ) : (
               <p className="text-copy-13 text-[var(--ds-gray-500)] py-2">All members are scheduled.</p>
-            )}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="p-4 border-t border-[var(--ds-gray-300)] bg-[var(--ds-background-200)]">

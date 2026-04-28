@@ -17,7 +17,7 @@ export function useTeamSchedules(teamId) {
         .from('team_schedules')
         .select(`
           *,
-          user:user_id ( id, raw_user_meta_data, email )
+          profile:user_id ( id, display_name, email )
         `)
         .eq('team_id', teamId);
       
@@ -56,10 +56,11 @@ export function useTeamSchedules(teamId) {
   }, [teamId, fetchSchedules]);
 
   const updateSchedule = async (id, updates) => {
+    if (!id) return;
     try {
       const { error: updateErr } = await supabase
         .from('team_schedules')
-        .update(updates)
+        .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id);
       if (updateErr) throw updateErr;
       // Optimistic update
@@ -71,6 +72,10 @@ export function useTeamSchedules(teamId) {
   };
 
   const createSchedule = async (setlistId, userId, role = null, availability = 'pending') => {
+    if (!teamId) throw new Error("Team context missing. Please try refreshing.");
+    if (!setlistId) throw new Error("Setlist ID is missing.");
+    if (!userId) throw new Error("User ID is missing.");
+
     try {
       const { data, error: insertErr } = await supabase
         .from('team_schedules')
@@ -83,7 +88,7 @@ export function useTeamSchedules(teamId) {
         })
         .select(`
           *,
-          user:user_id ( id, raw_user_meta_data, email )
+          profile:user_id ( id, display_name, email )
         `)
         .single();
       
