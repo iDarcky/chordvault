@@ -196,8 +196,30 @@ export default function App() {
     if (!providerId) return;
     const result = await syncEngineRef.current.fullSync(songs, setlists, tombstones);
     if (result.changed) {
-      setSongs(result.songs);
-      setSetlists(result.setlists);
+      setSongs(prev => {
+        const next = [...prev];
+        for (const id of result.pulledSongIds || []) {
+          const pulled = result.songs.find(s => s.id === id);
+          if (pulled) {
+            const idx = next.findIndex(s => s.id === id);
+            if (idx >= 0) next[idx] = pulled;
+            else next.push(pulled);
+          }
+        }
+        return next;
+      });
+      setSetlists(prev => {
+        const next = [...prev];
+        for (const id of result.pulledSetlistIds || []) {
+          const pulled = result.setlists.find(s => s.id === id);
+          if (pulled) {
+            const idx = next.findIndex(s => s.id === id);
+            if (idx >= 0) next[idx] = pulled;
+            else next.push(pulled);
+          }
+        }
+        return next;
+      });
     }
     if (result.tombstonesChanged) {
       setTombstones(result.tombstones);
@@ -291,8 +313,30 @@ export default function App() {
           const currentSetlists = savedSetlists || [];
           engine.fullSync(currentSongs, currentSetlists, savedTombstones).then(result => {
             if (result.changed) {
-              setSongs(result.songs);
-              setSetlists(result.setlists);
+              setSongs(prev => {
+                const next = [...prev];
+                for (const id of result.pulledSongIds || []) {
+                  const pulled = result.songs.find(s => s.id === id);
+                  if (pulled) {
+                    const idx = next.findIndex(s => s.id === id);
+                    if (idx >= 0) next[idx] = pulled;
+                    else next.push(pulled);
+                  }
+                }
+                return next;
+              });
+              setSetlists(prev => {
+                const next = [...prev];
+                for (const id of result.pulledSetlistIds || []) {
+                  const pulled = result.setlists.find(s => s.id === id);
+                  if (pulled) {
+                    const idx = next.findIndex(s => s.id === id);
+                    if (idx >= 0) next[idx] = pulled;
+                    else next.push(pulled);
+                  }
+                }
+                return next;
+              });
             }
             if (result.tombstonesChanged) {
               setTombstones(result.tombstones);

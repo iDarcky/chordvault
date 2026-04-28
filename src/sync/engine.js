@@ -63,6 +63,8 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
     let tombstonesChanged = false;
     // Track items where local had unsynced edits that were overwritten by remote
     const conflicts = [];
+    const pulledSongIds = new Set();
+    const pulledSetlistIds = new Set();
 
     // Pull songs from Songs subfolder
     const songFiles = await provider.listFiles(SONGS_FOLDER);
@@ -129,6 +131,7 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
           lastSyncedTime: file.modifiedTime,
         };
         songsChanged = true;
+        pulledSongIds.add(songId);
       }
     }
 
@@ -197,6 +200,7 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
             lastSyncedTime: file.modifiedTime,
           };
           setlistsChanged = true;
+          pulledSetlistIds.add(setlistId);
         } catch (err) {
           console.error(`Failed to parse setlist JSON "${file.name}":`, err);
         }
@@ -219,6 +223,8 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal') {
       tombstones: nextTombstones,
       tombstonesChanged,
       conflicts,
+      pulledSongIds,
+      pulledSetlistIds,
       changed: songsChanged || setlistsChanged,
     };
   }

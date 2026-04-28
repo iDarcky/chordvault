@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../auth/supabase';
 import { useTeam } from '../auth/useTeam';
 import { useAuth } from '../auth/useAuth';
 import ScreenHeader from './ui/ScreenHeader';
@@ -292,7 +293,158 @@ function InviteForm({ onInvite, seatsLeft }) {
   );
 }
 
-function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemove, onInvite, onCancelInvite, onLeave, onDelete }) {
+// ── Team Stats ──────────────────────────────────────────────────────────────
+
+function TeamStats({ teamId }) {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { count: songCount } = await supabase
+          .from('team_songs')
+          .select('id', { count: 'exact', head: true })
+          .eq('team_id', teamId);
+
+        const { data: setlists } = await supabase
+          .from('team_setlists')
+          .select('id, name, date, content')
+          .eq('team_id', teamId)
+          .order('date', { ascending: false });
+
+        const setlistCount = setlists?.length || 0;
+        
+        let songCounts = {};
+        let recentSongs = [];
+        
+        if (setlists) {
+          setlists.forEach((sl, index) => {
+            const items = sl.content?.items || [];
+            items.forEach(item => {
+              if (item.type !== 'break' && item.songTitle) {
+                songCounts[item.songTitle] = (songCounts[item.songTitle] || 0) + 1;
+                if (index < 5 && !recentSongs.find(s => s.title === item.songTitle)) {
+                  recentSongs.push({ title: item.songTitle, date: sl.date });
+                }
+              }
+            });
+          });
+        }
+        
+        const popularSongs = Object.entries(songCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([title, count]) => ({ title, count }));
+
+        setStats({
+          songCount: songCount || 0,
+          setlistCount,
+          popularSongs,
+          recentSongs: recentSongs.slice(0, 5)
+        });
+      } catch (err) {
+        console.error('Failed to load team stats', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [teamId]);
+
+  if (loading) return <div className="text-copy-13 text-[var(--ds-gray-500)] py-4">Loading statistics…</div>;
+
+  return (
+    <div className="flex flex-col gap-6 mt-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl p-4" style={{ background: 'var(--ds-background-200)', border: '1px solid var(--ds-gray-300)' }}>
+          <div className="text-label-12 text-[var(--ds-gray-600)] uppercase tracking-wider font-semibold mb-1">Songs</div>
+          <div className="text-heading-24 text-[var(--ds-gray-1000)] m-0 leading-none">{stats?.songCount || 0}</div>
+        </div>
+        <div className="rounded-xl p-4" style={{ background: 'var(--ds-background-200)', border: '1px solid var(--ds-gray-300)' }}>
+          <div className="text-label-12 text-[var(--ds-gray-600)] uppercase tracking-wider font-semibold mb-1">Setlists</div>
+          <div className="text-heading-24 text-[var(--ds-gray-1000)] m-0 leading-none">{stats?.setlistCount || 0}</div>
+        </div>
+      </div>
+      
+      {stats?.popularSongs?.length > 0 && (
+        <div>
+          <h3 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold mb-3 px-1">Most Popular Songs</h3>
+          <div className="flex flex-col gap-2">
+            {stats.popularSongs.map((song, i) => (
+              <div key={i} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: 'var(--ds-background-200)', border: '1px solid var(--ds-gray-300)' }}>
+                <span className="text-copy-14 font-medium text-[var(--ds-gray-900)] truncate">{song.title}</span>
+                <span className="text-label-12 text-[var(--ds-gray-500)]">{song.count} plays</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {stats?.recentSongs?.length > 0 && (
+        <div>
+          <h3 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold mb-3 px-1">Recently Played</h3>
+          <div className="flex flex-col gap-2">
+            {stats.recentSongs.map((song, i) => (
+              <div key={i} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: 'var(--ds-background-200)', border: '1px solid var(--ds-gray-300)' }}>
+                <span className="text-copy-14 font-medium text-[var(--ds-gray-900)] truncate">{song.title}</span>
+                <span className="text-label-12 text-[var(--ds-gray-500)]">{new Date(song.date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Edit Team Form ──────────────────────────────────────────────────────────
+
+function EditTeamForm({ team, onUpdate }) {
+  const [name, setName] = useState(team.name || '');
+  const [location, setLocation] = useState(team.location || '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setBusy(true);
+    setError(null);
+    setSuccess(false);
+    try {
+      await onUpdate({ name: name.trim(), location: location.trim() || null });
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(err.message || 'Could not update team.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4 rounded-xl mt-4" style={{ background: 'var(--ds-background-200)', border: '1px solid var(--ds-gray-300)' }}>
+      <h3 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold mb-1">Team Settings</h3>
+      <label className="flex flex-col gap-1">
+        <span className="text-label-12 text-[var(--ds-gray-700)]">Team Name</span>
+        <Input type="text" required value={name} onChange={e => setName(e.target.value)} />
+      </label>
+      <label className="flex flex-col gap-1">
+        <span className="text-label-12 text-[var(--ds-gray-700)]">Location (optional)</span>
+        <Input type="text" value={location} onChange={e => setLocation(e.target.value)} />
+      </label>
+      {error && <div className="text-copy-13 text-[var(--ds-red-1000)] bg-[var(--ds-red-100)] px-3 py-2 rounded-lg">{error}</div>}
+      {success && <div className="text-copy-13 text-[var(--ds-teal-1000)] bg-[var(--ds-teal-100)] px-3 py-2 rounded-lg">Team updated successfully.</div>}
+      <Button type="submit" variant="brand" size="md" disabled={busy || !name.trim()}>
+        {busy ? 'Saving…' : 'Save changes'}
+      </Button>
+    </form>
+  );
+}
+
+function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemove, onInvite, onCancelInvite, onLeave, onDelete, onUpdate }) {
+  const [activeTab, setActiveTab] = useState('members');
   const seatsLeft = (team.max_seats || 10) - members.length - (invites?.length || 0);
 
   return (
@@ -300,10 +452,10 @@ function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemov
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
         {/* Team header */}
         <div
-          className="rounded-2xl p-6"
+          className="rounded-2xl p-6 pb-0 overflow-hidden"
           style={{ background: 'var(--ds-background-100)', border: '1px solid var(--ds-gray-400)' }}
         >
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 mb-6">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
               style={{ background: 'var(--color-brand-soft)', color: 'var(--color-brand)' }}
@@ -328,69 +480,104 @@ function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemov
               </div>
             </div>
           </div>
+
+          {/* Tabs */}
+          <div className="flex items-center gap-6 border-b border-[var(--ds-gray-300)]">
+            <button
+              onClick={() => setActiveTab('members')}
+              className={`pb-3 text-label-14 font-semibold border-b-2 transition-colors cursor-pointer bg-transparent px-1 ${
+                activeTab === 'members'
+                  ? 'border-[var(--color-brand)] text-[var(--ds-gray-1000)]'
+                  : 'border-transparent text-[var(--ds-gray-500)] hover:text-[var(--ds-gray-800)]'
+              }`}
+            >
+              Members
+            </button>
+            <button
+              onClick={() => setActiveTab('info')}
+              className={`pb-3 text-label-14 font-semibold border-b-2 transition-colors cursor-pointer bg-transparent px-1 ${
+                activeTab === 'info'
+                  ? 'border-[var(--color-brand)] text-[var(--ds-gray-1000)]'
+                  : 'border-transparent text-[var(--ds-gray-500)] hover:text-[var(--ds-gray-800)]'
+              }`}
+            >
+              Info & Stats
+            </button>
+          </div>
         </div>
 
-        {/* Invite (admin only) */}
-        {isAdmin && (
-          <InviteForm onInvite={onInvite} seatsLeft={seatsLeft} />
+        {/* Tab Content */}
+        {activeTab === 'members' && (
+          <div className="flex flex-col gap-6">
+            {isAdmin && (
+              <InviteForm onInvite={onInvite} seatsLeft={seatsLeft} />
+            )}
+            <div>
+              <h3 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold mb-3 px-1">
+                Members ({members.length})
+              </h3>
+              <div className="flex flex-col gap-2">
+                {members.map(member => (
+                  <MemberRow
+                    key={member.id}
+                    member={member}
+                    isCurrentUser={member.user_id === currentUserId}
+                    isAdmin={isAdmin}
+                    onRemove={onRemove}
+                  />
+                ))}
+                {invites?.map(invite => (
+                  <InviteRow
+                    key={invite.id}
+                    invite={invite}
+                    isAdmin={isAdmin}
+                    onCancel={onCancelInvite}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* Members list */}
-        <div>
-          <h3 className="text-label-12 text-[var(--ds-gray-700)] uppercase tracking-wider font-semibold mb-3 px-1">
-            Members ({members.length})
-          </h3>
-          <div className="flex flex-col gap-2">
-            {members.map(member => (
-              <MemberRow
-                key={member.id}
-                member={member}
-                isCurrentUser={member.user_id === currentUserId}
-                isAdmin={isAdmin}
-                onRemove={onRemove}
-              />
-            ))}
-            {invites?.map(invite => (
-              <InviteRow
-                key={invite.id}
-                invite={invite}
-                isAdmin={isAdmin}
-                onCancel={onCancelInvite}
-              />
-            ))}
-          </div>
-        </div>
+        {activeTab === 'info' && (
+          <div className="flex flex-col gap-6">
+            <TeamStats teamId={team.id} />
 
-        {/* Danger zone */}
-        <div
-          className="rounded-xl p-4 mt-4"
-          style={{ background: 'var(--ds-background-200)', border: '1px solid var(--ds-gray-300)' }}
-        >
-          <h3 className="text-label-12 text-[var(--ds-red-700)] uppercase tracking-wider font-semibold mb-3">
-            Danger zone
-          </h3>
-          <div className="flex flex-col sm:flex-row gap-2">
-            {!isAdmin && (
-              <Button variant="secondary" size="sm" onClick={onLeave}>
-                Leave team
-              </Button>
-            )}
             {isAdmin && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  if (window.confirm(`Delete "${team.name}"? This removes all members and cannot be undone.`)) {
-                    onDelete();
-                  }
-                }}
-                className="text-[var(--ds-red-700)]"
-              >
-                Delete team
-              </Button>
+              <EditTeamForm team={team} onUpdate={onUpdate} />
             )}
+
+            <div
+              className="rounded-xl p-4 mt-2"
+              style={{ background: 'var(--ds-background-200)', border: '1px solid var(--ds-gray-300)' }}
+            >
+              <h3 className="text-label-12 text-[var(--ds-red-700)] uppercase tracking-wider font-semibold mb-3">
+                Danger zone
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-2">
+                {!isAdmin && (
+                  <Button variant="secondary" size="sm" onClick={onLeave}>
+                    Leave team
+                  </Button>
+                )}
+                {isAdmin && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm(`Delete "${team.name}"? This removes all members and cannot be undone.`)) {
+                        onDelete();
+                      }
+                    }}
+                    className="text-[var(--ds-red-700)]"
+                  >
+                    Delete team
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -400,7 +587,7 @@ function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemov
 
 export default function TeamScreen({ onBack, onUpgrade }) {
   const { user } = useAuth();
-  const { team, members, invites, isAdmin, loading, createTeam, inviteMember, removeMember, cancelInvite, leaveTeam, deleteTeam, hasTeamPlan } = useTeam();
+  const { team, members, invites, isAdmin, loading, createTeam, inviteMember, removeMember, cancelInvite, leaveTeam, deleteTeam, hasTeamPlan, updateTeam } = useTeam();
 
   return (
     <div className="flex flex-col h-full">
@@ -420,6 +607,7 @@ export default function TeamScreen({ onBack, onUpgrade }) {
           onRemove={removeMember}
           onInvite={inviteMember}
           onCancelInvite={cancelInvite}
+          onUpdate={updateTeam}
           onLeave={async () => {
             await leaveTeam();
             onBack?.();
