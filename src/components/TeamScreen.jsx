@@ -585,9 +585,16 @@ function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemov
 
 // ── Main Screen ─────────────────────────────────────────────────────────────
 
-export default function TeamScreen({ onBack, onUpgrade }) {
+export default function TeamScreen({ onBack, onUpgrade, onSwitchLibrary }) {
   const { user } = useAuth();
   const { team, members, invites, isAdmin, loading, createTeam, inviteMember, removeMember, cancelInvite, leaveTeam, deleteTeam, hasTeamPlan, updateTeam } = useTeam();
+
+  const handleCreateTeam = async (data) => {
+    const newTeam = await createTeam(data);
+    if (newTeam && onSwitchLibrary) {
+      onSwitchLibrary(newTeam.id);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -622,7 +629,7 @@ export default function TeamScreen({ onBack, onUpgrade }) {
           <div />
         </UpgradeGate>
       ) : (
-        <CreateTeamForm onCreate={createTeam} />
+        <CreateTeamForm onCreate={handleCreateTeam} />
       )}
     </div>
   );

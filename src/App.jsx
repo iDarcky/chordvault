@@ -1229,7 +1229,8 @@ export default function App() {
           {view === 'team' && (
             <TeamScreen
               onBack={goBack}
-              onUpgrade={() => navigate('upgrade')}
+              onUpgrade={() => navigate('pricing')}
+              onSwitchLibrary={setActiveLibrary}
             />
           )}
           {['home', 'library', 'setlists', 'settings', 'account', 'team', 'setlist-view'].includes(view) && (
