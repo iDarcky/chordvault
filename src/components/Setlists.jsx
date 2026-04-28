@@ -47,6 +47,7 @@ export default function Setlists({
   loaded = true,
   onViewSetlist,
   onPlaySetlist,
+  onPracticeSetlist,
   onNewSetlist,
   onImportSetlist,
   previewSetlistId = null,
@@ -327,6 +328,7 @@ export default function Setlists({
               onExportPdfOverview={() => onExportSetlistPdfOverview?.(previewSetlist)}
               onExportPdfFull={() => onExportSetlistPdfFull?.(previewSetlist)}
               onPlay={() => onPlaySetlist(previewSetlist)}
+              onPractice={() => onPracticeSetlist?.(previewSetlist)}
               onDelete={() => onDeleteSetlist?.(previewSetlist.id)}
               isFullscreen={isFullscreen}
               onToggleFullscreen={onToggleFullscreen}

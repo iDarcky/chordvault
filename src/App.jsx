@@ -1054,6 +1054,7 @@ export default function App() {
               loaded={loaded}
               onViewSetlist={goSetlistView}
               onPlaySetlist={goSetlistPerformance}
+              onPracticeSetlist={(sl) => goSetlistPractice(sl)}
               onNewSetlist={() => goSetlistBuild()}
               onImportSetlist={handleImportSetlist}
               previewSetlistId={previewSetlistId}
