@@ -9,8 +9,9 @@ const UNDO_STACK_LIMIT = 50;
 import SetlistMetaForm from './setlist/SetlistMetaForm';
 import SetlistItemRow from './setlist/SetlistItemRow';
 import SetlistSongPicker from './setlist/SetlistSongPicker';
+import RosterPanel from './setlist/RosterPanel';
 
-export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete }) {
+export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelete, isTeamContext }) {
   const [name, setName] = useState(setlist?.name || '');
   const [date, setDate] = useState(setlist?.date || new Date().toISOString().slice(0, 10));
   const [time, setTime] = useState(setlist?.time || '20:00');
@@ -23,6 +24,7 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
   });
   const [items, setItems] = useState(setlist?.items || []);
   const [service, setService] = useState(setlist?.service || '');
+  const [showRoster, setShowRoster] = useState(false);
 
   // Per-item song numbers (1-based, breaks excluded). Computed once per
   // items change so SetlistItemRow can render "01", "02", … on songs only.
@@ -172,15 +174,27 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
         title={setlist ? 'Edit Setlist' : 'New Setlist'}
         actions={
           <>
-            {setlist && onDelete && (
-              <IconButton variant="error" size="sm" onClick={handleDelete} aria-label="Delete setlist">
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+             {setlist && onDelete && (
+               <IconButton variant="error" size="sm" onClick={handleDelete} aria-label="Delete setlist">
+                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                 </svg>
+               </IconButton>
+             )}
+             {isTeamContext && setlist && (
+               <Button 
+                variant={showRoster ? "brand" : "secondary"} 
+                size="sm" 
+                onClick={() => setShowRoster(!showRoster)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-              </IconButton>
-            )}
-            <Button variant="brand" size="sm" onClick={handleSave}>Save</Button>
-          </>
+                Roster
+              </Button>
+             )}
+             <Button variant="brand" size="sm" onClick={handleSave}>Save</Button>
+           </>
         }
       />
 
@@ -293,6 +307,18 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
 
         </div>
       </div>
+
+      {/* Roster Overlay / Side Panel */}
+      {showRoster && setlist && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-[2px]" onClick={() => setShowRoster(false)}>
+          <div className="h-full" onClick={e => e.stopPropagation()}>
+            <RosterPanel 
+              setlistId={setlist.id} 
+              onClose={() => setShowRoster(false)} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

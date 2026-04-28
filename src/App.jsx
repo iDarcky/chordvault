@@ -1133,6 +1133,7 @@ export default function App() {
               onSave={handleSaveSetlist}
               onBack={goBack}
               onDelete={currentSetlist ? handleDeleteSetlist : null}
+              isTeamContext={activeLibrary !== 'personal'}
             />
           )}
           {view === 'setlist-play' && currentSetlist && (
