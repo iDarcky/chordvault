@@ -22,6 +22,7 @@ create index if not exists idx_team_schedules_setlist on public.team_schedules(s
 -- RLS
 alter table public.team_schedules enable row level security;
 
+drop policy if exists "Team members can view schedules" on public.team_schedules;
 create policy "Team members can view schedules"
   on public.team_schedules for select
   using (
@@ -29,6 +30,7 @@ create policy "Team members can view schedules"
     or team_id in (select id from public.teams where owner_id = auth.uid())
   );
 
+drop policy if exists "Team members can insert schedules" on public.team_schedules;
 create policy "Team members can insert schedules"
   on public.team_schedules for insert
   with check (
@@ -36,6 +38,7 @@ create policy "Team members can insert schedules"
     or team_id in (select id from public.teams where owner_id = auth.uid())
   );
 
+drop policy if exists "Team members can update schedules" on public.team_schedules;
 create policy "Team members can update schedules"
   on public.team_schedules for update
   using (
@@ -43,6 +46,7 @@ create policy "Team members can update schedules"
     or team_id in (select id from public.teams where owner_id = auth.uid())
   );
 
+drop policy if exists "Team members can delete schedules" on public.team_schedules;
 create policy "Team members can delete schedules"
   on public.team_schedules for delete
   using (
