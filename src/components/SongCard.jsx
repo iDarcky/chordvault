@@ -22,7 +22,7 @@ export default function SongCard({ song, onClick, variant = 'card', showTags = f
         onClick={onClick}
         className={cn(
           "flex items-center justify-between px-5 py-4 cursor-pointer transition-[background-color,transform] duration-150 hover:bg-[var(--bg-2)] active:scale-[0.99]",
-          selected && "bg-[var(--ds-teal-100)] hover:bg-[var(--ds-teal-100)]",
+          selected && "bg-[var(--ds-gray-200)] hover:bg-[var(--ds-gray-200)]",
         )}
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >
@@ -69,7 +69,7 @@ export default function SongCard({ song, onClick, variant = 'card', showTags = f
   return (
     <Card
       onClick={onClick}
-      className="cursor-pointer flex flex-col gap-2"
+      className="cursor-pointer flex flex-col gap-2 border border-[var(--ds-gray-200)] rounded-xl p-4 transition-colors hover:bg-[var(--ds-gray-100)]"
     >
       <h3 className="text-heading-18 text-[var(--text-1)] m-0 leading-tight truncate">
         {song.title}
