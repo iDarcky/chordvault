@@ -41,6 +41,7 @@ function SkeletonCards() {
   );
 }
 
+/* eslint-disable no-unused-vars */
 export default function Setlists({
   songs,
   setlists,
@@ -61,10 +62,6 @@ export default function Setlists({
   onDeleteSetlist,
 }) {
   const isDesktop = useIsDesktop();
-  const previewSetlist = useMemo(
-    () => setlists.find(s => s.id === previewSetlistId) || null,
-    [setlists, previewSetlistId],
-  );
 
   const handleView = (sl) => {
     if (isDesktop && onSelectPreview) onSelectPreview(sl.id);
@@ -121,14 +118,11 @@ export default function Setlists({
   }, [filtered]);
 
   return (
-    <div className="flex flex-col lg:flex-row lg:h-screen">
+    <div className="flex flex-col lg:flex-row lg:h-[100dvh] w-full max-w-5xl mx-auto">
       <div
-        data-theme-variant="modes"
         className={cn(
-          "relative min-w-0 pb-8",
-          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--ds-gray-200)]",
-          "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
-          isFullscreen && "lg:hidden",
+          "relative min-w-0 pb-8 flex-1",
+          "lg:h-[100dvh] lg:overflow-y-auto"
         )}
       >
       <div className="hidden sm:block">
@@ -189,7 +183,7 @@ export default function Setlists({
                       <SetlistCard
                         key={sl.id}
                         setlist={sl}
-                        selected={isDesktop && sl.id === previewSetlistId}
+                        selected={false}
                         onPlay={() => onPlaySetlist(sl)}
                         onView={() => handleView(sl)}
                       />
@@ -214,7 +208,7 @@ export default function Setlists({
                       <SetlistCard
                         key={sl.id}
                         setlist={sl}
-                        selected={isDesktop && sl.id === previewSetlistId}
+                        selected={false}
                         onPlay={() => onPlaySetlist(sl)}
                         onView={() => handleView(sl)}
                       />
@@ -311,47 +305,6 @@ export default function Setlists({
       />
       </div>
 
-      {/* Preview pane — desktop only */}
-      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)] lg:overflow-y-auto">
-        {previewSetlist ? (
-          <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
-            <SetlistOverview
-              key={previewSetlist.id}
-              setlist={previewSetlist}
-              songs={songs}
-              onBack={() => {
-                if (isFullscreen) onToggleFullscreen?.();
-                onSelectPreview?.(null);
-              }}
-              onEdit={() => onEditSetlist?.(previewSetlist)}
-              onExportZip={() => onExportSetlistZip?.(previewSetlist)}
-              onExportPdfOverview={() => onExportSetlistPdfOverview?.(previewSetlist)}
-              onExportPdfFull={() => onExportSetlistPdfFull?.(previewSetlist)}
-              onPlay={() => onPlaySetlist(previewSetlist)}
-              onPractice={() => onPracticeSetlist?.(previewSetlist)}
-              onDelete={() => onDeleteSetlist?.(previewSetlist.id)}
-              isFullscreen={isFullscreen}
-              onToggleFullscreen={onToggleFullscreen}
-            />
-          </Suspense>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center gap-3 px-8 py-16">
-            <div className="w-14 h-14 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
-                <line x1="8" y1="6" x2="21" y2="6" />
-                <line x1="8" y1="12" x2="21" y2="12" />
-                <line x1="8" y1="18" x2="21" y2="18" />
-                <line x1="3" y1="6" x2="3.01" y2="6" />
-                <line x1="3" y1="12" x2="3.01" y2="12" />
-                <line x1="3" y1="18" x2="3.01" y2="18" />
-              </svg>
-            </div>
-            <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-xs">
-              Select a setlist from the list to preview it here.
-            </p>
           </div>
-        )}
-      </div>
-    </div>
   );
 }

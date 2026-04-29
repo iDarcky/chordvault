@@ -106,7 +106,7 @@ export default function Dashboard({
   return (
     <div
       className="min-h-screen pb-[140px] sm:pb-8"
-      data-theme-variant="modes"
+
     >
 
       {/* Dashboard Header: Welcome + Search + Actions */}

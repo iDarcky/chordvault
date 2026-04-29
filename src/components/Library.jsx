@@ -106,6 +106,7 @@ function SkeletonRows() {
 const INITIAL_VISIBLE = 100;
 const VISIBLE_PAGE_SIZE = 100;
 
+/* eslint-disable no-unused-vars */
 export default function Library({
   songs,
   loaded = true,
@@ -121,17 +122,9 @@ export default function Library({
   chartDefaults = {},
 }) {
   const isDesktop = useIsDesktop();
-  const previewSong = useMemo(
-    () => songs.find(s => s.id === previewSongId) || null,
-    [songs, previewSongId],
-  );
 
   const handleRowClick = (song) => {
-    if (isDesktop && onSelectPreview) {
-      onSelectPreview(song.id);
-    } else {
-      onSelectSong(song);
-    }
+    onSelectSong(song);
   };
 
   const [query, setQuery] = useState('');
@@ -237,14 +230,11 @@ export default function Library({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row lg:h-screen">
+    <div className="flex flex-col lg:flex-row lg:h-screen w-full max-w-5xl mx-auto">
       <div
-        data-theme-variant="modes"
         className={cn(
-          "relative min-w-0 pb-8",
-          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--ds-gray-200)]",
-          "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
-          isFullscreen && "lg:hidden",
+          "relative min-w-0 pb-8 flex-1",
+          "lg:h-[100dvh] lg:overflow-y-auto"
         )}
       >
       <div className="hidden sm:block">
@@ -435,7 +425,7 @@ export default function Library({
                         song={song}
                         variant="row"
                         showTags={true}
-                        selected={isDesktop && song.id === previewSongId}
+                        selected={false}
                         onClick={() => handleRowClick(song)}
                       />
                     ))}
@@ -543,38 +533,6 @@ export default function Library({
       />
       </div>
 
-      {/* Preview pane — desktop only */}
-      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)]">
-        {previewSong ? (
-          <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
-            <ChartView
-              key={previewSong.id}
-              song={previewSong}
-              onBack={() => {
-                if (isFullscreen) onToggleFullscreen?.();
-                onSelectPreview?.(null);
-              }}
-              onEdit={() => onEditSong?.(previewSong)}
-              isFullscreen={isFullscreen}
-              onToggleFullscreen={onToggleFullscreen}
-              {...chartDefaults}
-            />
-          </Suspense>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center gap-3 px-8 py-16">
-            <div className="w-14 h-14 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
-                <path d="M9 18V5l12-2v13" />
-                <circle cx="6" cy="18" r="3" />
-                <circle cx="18" cy="16" r="3" />
-              </svg>
-            </div>
-            <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-xs">
-              Select a song from the library to preview it here.
-            </p>
           </div>
-        )}
-      </div>
-    </div>
   );
 }
