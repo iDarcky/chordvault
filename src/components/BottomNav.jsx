@@ -89,15 +89,14 @@ export default function BottomNav({ activeView, onNavigate }) {
         className="fixed left-0 right-0 z-[99] h-10 pointer-events-none sm:hidden"
         style={{
           bottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)',
-          background: 'linear-gradient(to top, var(--ds-background-100) 0%, transparent 100%)',
+          /* gradient removed for cleaner glass effect */
         }}
       />
       <nav
         ref={containerRef}
-        className="fixed bottom-0 left-0 right-0 z-[100] sm:hidden"
+        className="fixed bottom-0 left-0 right-0 z-[100] sm:hidden backdrop-blur-xl bg-[var(--header-bg-blur)] border-t border-[var(--ds-gray-200)]"
         style={{
-          background: 'var(--ds-background-100)',
-          paddingLeft: '12px',
+                    paddingLeft: '12px',
           paddingRight: '12px',
           paddingTop: '10px',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 10px)',

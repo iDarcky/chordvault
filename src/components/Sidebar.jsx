@@ -66,7 +66,7 @@ const CheckCircleIcon = () => (
 const navButtonClass = (active) =>
   `group flex items-center justify-center xl:justify-start xl:gap-3 h-11 w-11 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] ${
     active
-      ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]'
+      ? 'bg-[var(--ds-gray-200)] text-[var(--ds-gray-1000)] font-semibold'
       : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
   }`;
 
@@ -94,14 +94,14 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
 
   return (
     <>
-      <aside className="h-[100dvh] hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
+      <aside className="h-[100dvh] hidden sm:flex flex-col bg-[var(--ds-background-100)] border-r border-[var(--ds-gray-200)] transition-all duration-300 w-[80px] xl:w-[260px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
         {/* Profile */}
         <button
           onClick={() => onNavigate('account')}
           aria-label="Account"
           className={`flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0 bg-transparent border-none cursor-pointer rounded-lg py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] transition-colors text-left ${
             activeView === 'account'
-              ? 'bg-[var(--ds-teal-100)]'
+              ? 'bg-[var(--ds-gray-200)]'
               : 'hover:bg-[var(--ds-gray-200)]'
           }`}
         >

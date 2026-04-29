@@ -106,16 +106,16 @@ export default function Dashboard({
   return (
     <div
       className="min-h-screen pb-[140px] sm:pb-8"
-      data-theme-variant="modes"
+
     >
 
       {/* Dashboard Header: Welcome + Search + Actions */}
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 pt-6 sm:pt-10 pb-4 sm:pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-heading-40 text-[var(--modes-text)] m-0">
-            Welcome, <span className="italic font-serif text-[var(--modes-text)]">{userName}</span>
+          <h1 className="text-heading-40 text-[var(--ds-gray-1000)] m-0">
+            Welcome, <span className="italic font-serif text-[var(--ds-gray-1000)]">{userName}</span>
           </h1>
-          <p className="text-copy-16 text-[var(--modes-text-muted)] mt-1">
+          <p className="text-copy-16 text-[var(--ds-gray-900)] mt-1">
             {dateStr}
           </p>
         </div>
@@ -199,7 +199,7 @@ export default function Dashboard({
         {/* Pending Requests */}
         {user && schedules?.filter(s => s.user_id === user.id && s.availability === 'pending').length > 0 && (
           <section className="flex flex-col gap-3 sm:gap-4">
-            <h2 className="text-heading-20 font-bold text-[var(--modes-text)]">
+            <h2 className="text-heading-20 font-bold text-[var(--ds-gray-1000)]">
               Pending Requests
             </h2>
             <div className="flex flex-col gap-3">
@@ -211,11 +211,11 @@ export default function Dashboard({
                   return (
                     <div 
                       key={schedule.id}
-                      className="modes-card p-4 flex items-center justify-between"
+                      className="border border-[var(--ds-gray-200)] rounded-xl bg-[var(--ds-background-100)] p-4 flex items-center justify-between"
                     >
                       <div className="flex flex-col">
                         <span className="text-copy-16 font-bold">{sl.name}</span>
-                        <span className="text-label-13 text-[var(--modes-text-muted)]">
+                        <span className="text-label-13 text-[var(--ds-gray-900)]">
                           {new Date(sl.date + 'T' + (sl.time || '00:00')).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} • {schedule.role}
                         </span>
                       </div>
@@ -245,7 +245,7 @@ export default function Dashboard({
         {/* Upcoming Setlists */}
         <section className="flex flex-col gap-3 sm:gap-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-heading-20 font-bold text-[var(--modes-text)]">
+            <h2 className="text-heading-20 font-bold text-[var(--ds-gray-1000)]">
               Upcoming Setlists
             </h2>
             <Button
@@ -261,7 +261,7 @@ export default function Dashboard({
           <div>
             {upcomingSetlists.length > 0 ? (
               <div
-                className="modes-card-strong flex flex-col md:flex-row w-full overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35)] h-auto md:h-64 cursor-pointer group transition-transform duration-150 active:scale-[0.99]"
+                className="border border-[var(--ds-gray-200)] rounded-xl bg-[var(--ds-background-100)]-strong flex flex-col md:flex-row w-full overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35)] h-auto md:h-64 cursor-pointer group transition-transform duration-150 active:scale-[0.99]"
                 onClick={() => onViewSetlist(upcomingSetlists[0])}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
@@ -288,12 +288,12 @@ export default function Dashboard({
                   </div>
 
                   {/* Setlist Name */}
-                  <h3 className="text-heading-24 md:text-[32px] md:leading-[36px] font-bold text-[var(--modes-text)] m-0 mb-3 tracking-tight">
+                  <h3 className="text-heading-24 md:text-[32px] md:leading-[36px] font-bold text-[var(--ds-gray-1000)] m-0 mb-3 tracking-tight">
                     {upcomingSetlists[0].name || "Untitled Setlist"}
                   </h3>
 
                   {/* Time & Location */}
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-[var(--modes-text-muted)] mb-6 font-medium">
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-[var(--ds-gray-900)] mb-6 font-medium">
                     <div className="flex items-center gap-2">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                       {formatDateFriendly(upcomingSetlists[0].date)} • {formatTimeFriendly(upcomingSetlists[0].time)}
@@ -314,15 +314,15 @@ export default function Dashboard({
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M8 5v14l11-7z"/></svg>
                       Play Live
                     </Button>
-                    <div className="text-label-13 text-[var(--modes-text-dim)] font-medium">
+                    <div className="text-label-13 text-[var(--ds-gray-700)] font-medium">
                       {upcomingSetlists[0].items.length} Songs • 1h 45m
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="modes-card py-14 text-center flex flex-col items-center gap-3 border-dashed">
-                <p className="text-copy-14 text-[var(--modes-text-muted)] font-medium">
+              <div className="border border-[var(--ds-gray-200)] rounded-xl bg-[var(--ds-background-100)] py-14 text-center flex flex-col items-center gap-3 border-dashed">
+                <p className="text-copy-14 text-[var(--ds-gray-900)] font-medium">
                   No upcoming setlists.
                 </p>
               </div>
@@ -333,7 +333,7 @@ export default function Dashboard({
         {/* Recently Edited */}
         <section className="flex flex-col gap-3 sm:gap-4 sm:mt-2">
           <div className="flex justify-between items-center text-left">
-            <h2 className="text-heading-20 font-bold text-[var(--modes-text)]">
+            <h2 className="text-heading-20 font-bold text-[var(--ds-gray-1000)]">
               Recently Edited
             </h2>
             <Button
@@ -346,7 +346,7 @@ export default function Dashboard({
             </Button>
           </div>
 
-          <div className="modes-card overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
+          <div className="border border-[var(--ds-gray-200)] rounded-xl bg-[var(--ds-background-100)] overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
             {latestSongs.map(song => (
               <SongCard
                 key={song.id}
@@ -357,7 +357,7 @@ export default function Dashboard({
             ))}
             {latestSongs.length === 0 && (
               <div className="py-14 text-center flex flex-col items-center gap-3">
-                <p className="text-copy-14 text-[var(--modes-text-muted)] font-medium">
+                <p className="text-copy-14 text-[var(--ds-gray-900)] font-medium">
                   Your library is empty.
                 </p>
                 <Button variant="brand" size="sm" onClick={onNewSong}>

@@ -17,7 +17,7 @@ export default function DesktopLayout({ children, activeView, onNavigate, isFull
 
   const cols = isFullscreen
     ? 'grid-cols-1'
-    : 'grid-cols-1 sm:grid-cols-[80px_1fr] xl:grid-cols-[280px_1fr]';
+    : 'grid-cols-1 sm:grid-cols-[80px_1fr] xl:grid-cols-[260px_1fr]';
   return (
     <div className={cn('w-full h-[100dvh] grid overflow-hidden', cols)}>
       {!isFullscreen && <Sidebar activeView={activeView} onNavigate={onNavigate} hasUnreadNotifications={hasUnreadNotifications} onNotificationClick={onNotificationClick} notifications={notifications} onMarkRead={onMarkRead} onNotificationAction={onNotificationAction} displayName={displayName} plan={plan} activeLibrary={activeLibrary} setActiveLibrary={setActiveLibrary} team={team} />}

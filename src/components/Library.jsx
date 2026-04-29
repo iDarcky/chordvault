@@ -82,17 +82,17 @@ function SkeletonRows() {
     <div className="flex flex-col gap-8">
       {[1, 2, 3].map(g => (
         <div key={g} className="flex flex-col gap-3">
-          <div className="h-5 w-8 bg-[var(--modes-surface-strong)] rounded animate-pulse mx-1" />
-          <div className="modes-card overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
+          <div className="h-5 w-8 bg-[var(--ds-gray-200)] rounded animate-pulse mx-1" />
+          <div className="overflow-hidden divide-y border border-[var(--ds-gray-200)] rounded-xl bg-[var(--ds-background-100)]" >
             {[1, 2, 3].map(r => (
               <div key={r} className="flex items-center justify-between px-5 py-4">
                 <div className="flex flex-col gap-2 flex-1">
-                  <div className="h-4 w-40 bg-[var(--modes-surface-strong)] rounded animate-pulse" />
-                  <div className="h-3 w-24 bg-[var(--modes-surface-strong)] rounded animate-pulse" />
+                  <div className="h-4 w-40 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-3 w-24 bg-[var(--ds-gray-200)] rounded animate-pulse" />
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <div className="h-3 w-6 bg-[var(--modes-surface-strong)] rounded animate-pulse" />
-                  <div className="h-3 w-14 bg-[var(--modes-surface-strong)] rounded animate-pulse" />
+                  <div className="h-3 w-6 bg-[var(--ds-gray-200)] rounded animate-pulse" />
+                  <div className="h-3 w-14 bg-[var(--ds-gray-200)] rounded animate-pulse" />
                 </div>
               </div>
             ))}
@@ -106,6 +106,7 @@ function SkeletonRows() {
 const INITIAL_VISIBLE = 100;
 const VISIBLE_PAGE_SIZE = 100;
 
+/* eslint-disable no-unused-vars */
 export default function Library({
   songs,
   loaded = true,
@@ -121,17 +122,9 @@ export default function Library({
   chartDefaults = {},
 }) {
   const isDesktop = useIsDesktop();
-  const previewSong = useMemo(
-    () => songs.find(s => s.id === previewSongId) || null,
-    [songs, previewSongId],
-  );
 
   const handleRowClick = (song) => {
-    if (isDesktop && onSelectPreview) {
-      onSelectPreview(song.id);
-    } else {
-      onSelectSong(song);
-    }
+    onSelectSong(song);
   };
 
   const [query, setQuery] = useState('');
@@ -237,14 +230,11 @@ export default function Library({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row lg:h-screen">
+    <div className="flex flex-col lg:flex-row lg:h-screen w-full max-w-5xl mx-auto">
       <div
-        data-theme-variant="modes"
         className={cn(
-          "relative min-w-0 pb-8",
-          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--modes-border)]",
-          "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
-          isFullscreen && "lg:hidden",
+          "relative min-w-0 pb-8 flex-1",
+          "lg:h-[100dvh] lg:overflow-y-auto"
         )}
       >
       <div className="hidden sm:block">
@@ -254,7 +244,7 @@ export default function Library({
       <div className="flex flex-col gap-0">
 
         {/* Sticky Search + Tags + Filters — full-width bg */}
-        <div className="sticky top-0 z-20 backdrop-blur-md bg-[color-mix(in_srgb,var(--ds-background-100)_80%,transparent)] border-b border-[var(--modes-border)]">
+        <div className="sticky top-0 z-20 backdrop-blur-md bg-[color-mix(in_srgb,var(--ds-background-100)_80%,transparent)] border-b border-[var(--ds-gray-200)]">
           <div className="a4-container pt-4 sm:pt-6 pb-4 flex flex-col gap-4">
           {/* Search Bar + Tags */}
           <div className="flex gap-3 items-stretch">
@@ -278,7 +268,7 @@ export default function Library({
                     text-label-14 transition-all duration-150
                     ${selectedTags.length > 0
                       ? 'border-[var(--color-brand)] text-[var(--color-brand)] bg-[var(--modes-surface)]'
-                      : 'border-[var(--modes-border)] text-[var(--modes-text)] bg-[var(--modes-surface)] hover:bg-[var(--modes-surface-strong)]'
+                      : 'border-[var(--ds-gray-200)] text-[var(--ds-gray-1000)] bg-[var(--modes-surface)] hover:bg-[var(--ds-gray-200)]'
                     }
                   `}
                 >
@@ -297,7 +287,7 @@ export default function Library({
                 </button>
 
                 {tagsOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--modes-border)] bg-[var(--ds-background-100)] shadow-lg z-50 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 w-[220px] rounded-xl border border-[var(--ds-gray-200)] bg-[var(--ds-background-100)] shadow-lg z-50 overflow-hidden">
                     {allTags.length > 5 && (
                       <div className="px-3 pt-3 pb-2">
                         <input
@@ -374,7 +364,7 @@ export default function Library({
                   transition-all duration-150 border-none flex items-center gap-1.5
                   ${sortMode === mode.key
                     ? 'bg-[var(--ds-gray-100)] text-[var(--color-brand)]'
-                    : 'bg-transparent text-[var(--modes-text-muted)] hover:bg-[var(--modes-surface)]'
+                    : 'bg-transparent text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]'
                   }
                 `}
               >
@@ -421,21 +411,21 @@ export default function Library({
               {sortedKeys.map(groupKey => (
                 <div key={groupKey} className="flex flex-col gap-3">
                   <div className="flex items-baseline gap-2 px-1">
-                    <h3 className="text-heading-20 font-bold text-[var(--modes-text)] m-0">
+                    <h3 className="text-heading-20 font-bold text-[var(--ds-gray-1000)] m-0">
                       {groupKey}
                     </h3>
-                    <span className="text-label-12 text-[var(--modes-text-dim)]">
+                    <span className="text-label-12 text-[var(--ds-gray-700)]">
                       {groups[groupKey].length}
                     </span>
                   </div>
-                  <div className="modes-card overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
+                  <div className="overflow-hidden divide-y border border-[var(--ds-gray-200)] rounded-xl bg-[var(--ds-background-100)]" >
                     {groups[groupKey].map(song => (
                       <SongCard
                         key={song.id}
                         song={song}
                         variant="row"
                         showTags={true}
-                        selected={isDesktop && song.id === previewSongId}
+                        selected={false}
                         onClick={() => handleRowClick(song)}
                       />
                     ))}
@@ -443,28 +433,28 @@ export default function Library({
                 </div>
               ))}
               {hasMore && (
-                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--modes-text-dim)]">
+                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--ds-gray-700)]">
                   Loading more… ({truncated.length} of {filtered.length})
                 </div>
               )}
             </div>
           ) : query || selectedTags.length > 0 ? (
-            <div className="modes-card py-14 text-center flex flex-col items-center gap-3 border-dashed">
-              <p className="text-copy-14 text-[var(--modes-text-muted)] font-medium">
+            <div className="py-14 text-center flex flex-col items-center gap-3 border border-dashed border-[var(--ds-gray-200)] rounded-xl bg-[var(--ds-background-100)]">
+              <p className="text-copy-14 text-[var(--ds-gray-900)] font-medium">
                 No songs matching your filters.
               </p>
             </div>
           ) : (
-            <div className="modes-card py-16 px-6 flex flex-col items-center text-center border-dashed">
-              <div className="w-14 h-14 mb-4 rounded-full bg-[var(--modes-surface-strong)] border border-[var(--modes-border)] flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--modes-text-muted)]">
+            <div className="py-16 px-6 flex flex-col items-center text-center border border-dashed border-[var(--ds-gray-200)] rounded-xl bg-[var(--ds-background-100)]">
+              <div className="w-14 h-14 mb-4 rounded-full bg-[var(--ds-gray-200)] border border-[var(--ds-gray-200)] flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-900)]">
                   <path d="M9 18V5l12-2v13" />
                   <circle cx="6" cy="18" r="3" />
                   <circle cx="18" cy="16" r="3" />
                 </svg>
               </div>
-              <h2 className="text-heading-20 text-[var(--modes-text)] m-0 mb-1.5">Your library is empty</h2>
-              <p className="text-copy-14 text-[var(--modes-text-muted)] max-w-sm mb-5">
+              <h2 className="text-heading-20 text-[var(--ds-gray-1000)] m-0 mb-1.5">Your library is empty</h2>
+              <p className="text-copy-14 text-[var(--ds-gray-900)] max-w-sm mb-5">
                 Create a new chord chart or import one from a .md file you already have.
               </p>
               <div className="flex flex-wrap justify-center gap-2">
@@ -543,38 +533,6 @@ export default function Library({
       />
       </div>
 
-      {/* Preview pane — desktop only */}
-      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)]">
-        {previewSong ? (
-          <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
-            <ChartView
-              key={previewSong.id}
-              song={previewSong}
-              onBack={() => {
-                if (isFullscreen) onToggleFullscreen?.();
-                onSelectPreview?.(null);
-              }}
-              onEdit={() => onEditSong?.(previewSong)}
-              isFullscreen={isFullscreen}
-              onToggleFullscreen={onToggleFullscreen}
-              {...chartDefaults}
-            />
-          </Suspense>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center gap-3 px-8 py-16">
-            <div className="w-14 h-14 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
-                <path d="M9 18V5l12-2v13" />
-                <circle cx="6" cy="18" r="3" />
-                <circle cx="18" cy="16" r="3" />
-              </svg>
-            </div>
-            <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-xs">
-              Select a song from the library to preview it here.
-            </p>
           </div>
-        )}
-      </div>
-    </div>
   );
 }
