@@ -152,9 +152,25 @@ Planned (highest-value first):
 - [ ] **Reset to defaults button** — one-click revert if the user has
       tweaked everything into something unprintable.
 
-## 8. Native Apps Expansion (v4)
-- [ ] Capacitor wrappers for dedicated iOS/Android distributions.
-- [ ] Underlying SQLite data conversions (instead of IndexedDB mapping).
-- [ ] Native Bluetooth driver mapping (overriding Web Bluetooth hooks).
-- [ ] Application-level Background Sync & Push Notifications.
+## 8. Native Apps Expansion (v3.5)
+- [ ] **Capacitor Integration** — Wrap the React build for iOS/Android native distributions.
+- [ ] **Native OAuth Mapping** — Hook `@capacitor/apple-auth` and Google into existing AuthProvider.
+- [ ] **Native Bluetooth Driver** — Support for physical foot pedals (AirTurn/PageTurner) via native plugins.
+- [ ] **Safe-Area UI Audit** — Dynamic padding for iPhone "Notch" and "Home Bar" across all views.
+- [ ] **Store Deployment** — Generate screenshots, app icons, and submit to App Store/Google Play.
+
+## 9. Legality, Compliance & Migration (New)
+- [ ] **Migration Hub UI** — Dedicated "Onboarding" screen for PCO, OnSong, and PDF imports.
+- [ ] **Planning Center (PCO) Bridge** — OAuth integration to pull SongSelect content via PCO arrangements.
+- [ ] **OnSong Archive Import** — Direct ingestion of `.onsong` and OnSong backup bundles.
+- [ ] **PDF-to-Markdown Engine** — Best-effort text extraction from SongSelect/Publisher PDFs.
+- [ ] **Transient Sharing (48h)** — Unlisted, non-indexed setlist links that expire after a set time for guest musicians.
+- [ ] **Safe Harbor Compliance** — Implementation of "Notice and Takedown" infrastructure (Designated Agent email).
+- [ ] **Public Domain Starter Pack** — A library of ~20 classic hymns (PD) for new users to test the app safely.
+- [ ] **Privacy-First Storage** — Maintain non-monitoring policy of user-private libraries to preserve DMCA Safe Harbor status.
+- [ ] **International Legal Compliance (Eastern Europe)** — Localize disclaimer and verify alignment with religious-use exceptions in RO (Art. 35), HU (Art. 38), UA, RS, and BG.
+- [ ] **GDPR "Right to be Forgotten"** — Implement "Delete Account" flow that wipes all user data from Supabase/Auth.
+- [ ] **Privacy & ToS Pages** — Draft and publish standard legal terms covering user-owned data and storage providers (Supabase).
+- [ ] **Cookie Transparency** — Add a footer link/notice about strictly necessary storage usage (no tracking cookies).
+- [ ] **Account Termination Guardrails** — Handle "orphan teams": prevent owner deletion if team has members; require ownership transfer or team deletion first.
 

@@ -4,6 +4,7 @@ import SectionBlock from './SectionBlock';
 import { StructureRibbon } from './StructureRibbon';
 import FloatingNavPill from './ui/FloatingNavPill';
 import { IconButton } from './ui/IconButton';
+import { Button } from './ui/Button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/Select';
 
 export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onUpdateSetlist }) {
@@ -12,6 +13,7 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
   const [fontSize, setFontSize] = useState(18);
   const [columns, setColumns] = useState(1);
   const [showOverflow, setShowOverflow] = useState(false);
+  const [showStructureEditor, setShowStructureEditor] = useState(false);
   const overflowRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -106,6 +108,15 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
     });
   }, [cur, setlist, onUpdateSetlist]);
 
+  // Save structure update → persists to song
+  const handleUpdateStructure = useCallback((newStructure) => {
+    if (!cur || cur.isBreak) return;
+    onUpdateSong?.({
+      ...cur.song,
+      structure: newStructure,
+    });
+  }, [cur, onUpdateSong]);
+
   if (!resolved.length) {
     return (
       <div className="p-10 text-center text-[var(--ds-gray-600)] text-copy-14">
@@ -158,6 +169,11 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
                   })}
                 </SelectContent>
               </Select>
+              {cur.capo > 0 && (
+                <span className="text-label-12 font-bold text-[var(--color-brand)] whitespace-nowrap bg-[var(--color-brand-soft)] px-1.5 py-0.5 rounded border border-[var(--color-brand-border)]">
+                  Capo {cur.capo}
+                </span>
+              )}
               {cur.song.tempo && (
                 <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap">
                   ♩ {cur.song.tempo}
@@ -233,15 +249,33 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
 
         {/* Structure ribbon — only for songs */}
         {!cur.isBreak && cur.song.sections?.length > 0 && (
-          <div className="a4-container pb-2 pt-0">
-            <StructureRibbon
-              structure={cur.song.sections.map(s => s.type)}
-              compact
-              onSelect={(i) => {
-                const el = document.getElementById(`practice-section-${i}`);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-            />
+          <div className="a4-container pb-2 pt-0 flex items-center gap-2">
+            <div className="flex-1 overflow-x-auto no-scrollbar">
+              <StructureRibbon
+                structure={cur.song.structure || cur.song.sections.map(s => s.type)}
+                compact
+                onSelect={(i) => {
+                  const struct = cur.song.structure || cur.song.sections.map(s => s.type);
+                  const name = struct[i];
+                  const sectionIdx = cur.song.sections.findIndex(s => s.type === name);
+                  if (sectionIdx !== -1) {
+                    const el = document.getElementById(`practice-section-${sectionIdx}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              />
+            </div>
+            <IconButton
+              size="xs"
+              variant="ghost"
+              onClick={() => setShowStructureEditor(true)}
+              title="Edit structure"
+              className="shrink-0 text-[var(--ds-gray-500)] hover:text-[var(--ds-gray-900)]"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </IconButton>
           </div>
         )}
       </div>
@@ -259,6 +293,7 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
           <PracticeChart
             song={cur.song}
             selectedKey={displayKey}
+            capo={cur.capo || 0}
             fontSize={fontSize}
             columns={columns}
             onSaveCue={handleSaveCue}
@@ -286,13 +321,129 @@ export default function PracticeView({ setlist, songs, onBack, onUpdateSong, onU
         hasPrev={idx > 0}
         hasNext={idx < resolved.length - 1}
       />
+
+      {showStructureEditor && (
+        <StructureEditor
+          structure={cur.song.structure || cur.song.sections.map(s => s.type)}
+          availableSections={[...new Set(cur.song.sections.map(s => s.type))]}
+          onUpdate={(newStruct) => {
+            handleUpdateStructure(newStruct);
+            setShowStructureEditor(false);
+          }}
+          onClose={() => setShowStructureEditor(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// Modal for editing the song's structure flow
+function StructureEditor({ structure, availableSections, onUpdate, onClose }) {
+  const [draft, setDraft] = useState([...structure]);
+
+  const move = (idx, dir) => {
+    const next = [...draft];
+    const target = idx + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[idx], next[target]] = [next[target], next[idx]];
+    setDraft(next);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+        <div className="p-4 border-b border-[var(--ds-gray-300)] flex items-center justify-between bg-[var(--ds-background-100)]">
+          <h2 className="text-heading-18 m-0 text-[var(--ds-gray-1000)]">Edit Song Flow</h2>
+          <IconButton variant="ghost" size="sm" onClick={onClose} aria-label="Close">✕</IconButton>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-8">
+          {/* Current Structure */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-label-12 text-[var(--ds-gray-600)] uppercase tracking-wider font-bold">
+                Current Flow
+              </label>
+              <button 
+                onClick={() => setDraft([])}
+                className="text-label-11 font-bold text-[var(--ds-red-900)] hover:underline"
+              >
+                Clear All
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              {draft.map((name, i) => (
+                <div 
+                  key={i}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] group"
+                >
+                  <span className="w-5 text-label-11-mono text-[var(--ds-gray-400)] font-bold">{i + 1}</span>
+                  <span className="flex-1 text-label-14 font-bold text-[var(--ds-gray-900)]">{name}</span>
+                  
+                  <div className="flex items-center gap-1">
+                    <IconButton 
+                      size="xs" 
+                      variant="ghost" 
+                      onClick={() => move(i, -1)} 
+                      disabled={i === 0}
+                      className="h-7 w-7"
+                    >↑</IconButton>
+                    <IconButton 
+                      size="xs" 
+                      variant="ghost" 
+                      onClick={() => move(i, 1)} 
+                      disabled={i === draft.length - 1}
+                      className="h-7 w-7"
+                    >↓</IconButton>
+                    <IconButton 
+                      size="xs" 
+                      variant="ghost" 
+                      onClick={() => setDraft(p => p.filter((_, idx) => idx !== i))}
+                      className="h-7 w-7 text-[var(--ds-red-900)] hover:bg-[var(--ds-red-100)]"
+                    >✕</IconButton>
+                  </div>
+                </div>
+              ))}
+              {draft.length === 0 && (
+                <div className="py-8 text-center border-2 border-dashed border-[var(--ds-gray-300)] rounded-xl text-copy-13 text-[var(--ds-gray-500)] italic">
+                  Flow is empty. Add sections below.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Add Sections */}
+          <div>
+            <label className="text-label-12 text-[var(--ds-gray-600)] uppercase tracking-wider font-bold mb-4 block">
+              Add Section to Flow
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {availableSections.map((name, i) => (
+                <button
+                  key={i}
+                  onClick={() => setDraft(p => [...p, name])}
+                  className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] text-label-13 font-bold text-[var(--ds-gray-900)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-all"
+                >
+                  {name}
+                  <span className="text-heading-18 leading-none opacity-40">+</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 bg-[var(--ds-gray-100)] border-t border-[var(--ds-gray-300)] flex justify-end gap-3">
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="brand" onClick={() => onUpdate(draft)}>Apply Changes</Button>
+        </div>
+      </div>
     </div>
   );
 }
 
 // Chart with editable cue cards between sections
-function PracticeChart({ song, selectedKey, fontSize, columns, onSaveCue }) {
-  const transpose = semitonesBetween(song.key, selectedKey);
+function PracticeChart({ song, selectedKey, capo, fontSize, columns, onSaveCue }) {
+  const transpose = semitonesBetween(song.key, selectedKey) - (capo || 0);
 
   const sectionModOffsets = useMemo(() => {
     const acc = { total: 0 };

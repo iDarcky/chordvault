@@ -119,7 +119,11 @@ export function parseSongMd(text) {
     youtube: meta.youtube || '',
     capo: meta.capo || 0,
     notes: meta.notes || '',
-    structure: meta.structure || sections.map(s => s.type),
+    structure: Array.isArray(meta.structure)
+      ? meta.structure
+      : (typeof meta.structure === 'string'
+        ? meta.structure.split(',').map(s => s.trim()).filter(Boolean)
+        : sections.map(s => s.type)),
     sections,
   };
 }
@@ -139,10 +143,13 @@ export function songToMd(song) {
   if (song.youtube) md += `youtube: ${song.youtube}\n`;
   if (song.capo) md += `capo: ${song.capo}\n`;
   if (song.notes) md += `notes: ${song.notes}\n`;
-  // Always derive structure from actual sections — keeps frontmatter in sync
-  const derivedStructure = song.sections.map(s => s.type);
-  if (derivedStructure.length) {
-    md += `structure: [${derivedStructure.join(', ')}]\n`;
+  // Use explicit structure if present, otherwise fallback to section order
+  const structure = (song.structure && song.structure.length > 0)
+    ? song.structure
+    : song.sections.map(s => s.type);
+
+  if (structure.length) {
+    md += `structure: [${structure.join(', ')}]\n`;
   }
   md += '---\n\n';
 

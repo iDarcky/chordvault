@@ -124,6 +124,11 @@ export default function PerformanceView({ setlist, songs, onBack }) {
                   })}
                 </SelectContent>
               </Select>
+              {cur.capo > 0 && (
+                <span className="text-label-12 font-bold text-[var(--color-brand)] whitespace-nowrap bg-[var(--color-brand-soft)] px-1.5 py-0.5 rounded border border-[var(--color-brand-border)]">
+                  Capo {cur.capo}
+                </span>
+              )}
               {cur.song.tempo && (
                 <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap">
                   ♩ {cur.song.tempo}
@@ -196,11 +201,16 @@ export default function PerformanceView({ setlist, songs, onBack }) {
         {!cur.isBreak && cur.song.sections?.length > 0 && (
           <div className="a4-container pb-2 pt-0">
             <StructureRibbon
-              structure={cur.song.sections.map(s => s.type)}
+              structure={cur.song.structure || cur.song.sections.map(s => s.type)}
               compact
               onSelect={(i) => {
-                const el = document.getElementById(`perf-section-${i}`);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const struct = cur.song.structure || cur.song.sections.map(s => s.type);
+                const name = struct[i];
+                const sectionIdx = cur.song.sections.findIndex(s => s.type === name);
+                if (sectionIdx !== -1) {
+                  const el = document.getElementById(`perf-section-${sectionIdx}`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
               }}
             />
           </div>
@@ -220,6 +230,7 @@ export default function PerformanceView({ setlist, songs, onBack }) {
           <SongChart
             song={cur.song}
             selectedKey={displayKey}
+            capo={cur.capo || 0}
             fontSize={fontSize}
             columns={columns}
           />
@@ -240,8 +251,8 @@ export default function PerformanceView({ setlist, songs, onBack }) {
   );
 }
 
-function SongChart({ song, selectedKey, fontSize, columns }) {
-  const transpose = semitonesBetween(song.key, selectedKey);
+function SongChart({ song, selectedKey, capo, fontSize, columns }) {
+  const transpose = semitonesBetween(song.key, selectedKey) - (capo || 0);
 
   const sectionModOffsets = useMemo(() => {
     const acc = { total: 0 };
