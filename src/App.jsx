@@ -163,6 +163,20 @@ export default function App() {
   // Wake-lock explainer is now state-driven (was render-condition-driven) so
   // it can participate in the history stack.
   const [showWakeLockExplainer, setShowWakeLockExplainer] = useState(false);
+
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   const syncEngineRef = useRef(null);
   const historyRef = useRef([]);
   const quotaWarnedRef = useRef(false);
@@ -1008,6 +1022,8 @@ export default function App() {
           setActiveLibrary={setActiveLibrary} 
           team={team} 
           onChangeWorkspace={goTeam}
+          syncState={syncState}
+          isOnline={isOnline}
           hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}
         >
           {['home', 'library', 'setlists'].includes(view) && (

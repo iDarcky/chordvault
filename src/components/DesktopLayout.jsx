@@ -21,7 +21,9 @@ export default function DesktopLayout({
   activeLibrary, 
   setActiveLibrary, 
   team,
-  onChangeWorkspace
+  onChangeWorkspace,
+  syncState,
+  isOnline
 }) {
   const mainRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 639.98px)');
@@ -70,6 +72,8 @@ export default function DesktopLayout({
             activeLibrary={activeLibrary} 
             setActiveLibrary={setActiveLibrary} 
             team={team} 
+            syncState={syncState}
+            isOnline={isOnline}
           />
         )}
         {/*

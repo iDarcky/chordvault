@@ -79,11 +79,42 @@ const TeamNavIcon = () => (
   </svg>
 );
 
-export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications, notifications, onMarkRead, onNotificationAction, displayName = 'Guest', plan = 'Free', activeLibrary, setActiveLibrary, team }) {
+export default function Sidebar({ 
+  activeView, 
+  onNavigate, 
+  hasUnreadNotifications, 
+  notifications, 
+  onMarkRead, 
+  onNotificationAction, 
+  displayName = 'Guest', 
+  plan = 'Free', 
+  activeLibrary, 
+  setActiveLibrary, 
+  team,
+  syncState,
+  isOnline 
+}) {
   const [trayOpen, setTrayOpen] = useState(false);
 
   const planLower = plan.toLowerCase();
   const hasTeamPlan = planLower === 'team' || planLower === 'church';
+
+  // Determine sync label and color
+  let syncLabel = 'Local Only';
+  let syncColor = 'text-[var(--ds-gray-500)]';
+  let isSyncing = false;
+
+  if (syncState?.state === 'syncing') {
+    syncLabel = 'Syncing...';
+    syncColor = 'text-[var(--ds-blue-700)]';
+    isSyncing = true;
+  } else if (syncState?.state === 'error') {
+    syncLabel = 'Sync Error';
+    syncColor = 'text-[var(--ds-red-600)]';
+  } else if (syncState?.provider || activeLibrary !== 'personal') {
+    syncLabel = 'Cloud Synced';
+    syncColor = 'text-[var(--ds-green-700)]';
+  }
 
   const tabs = [
     { id: 'home', label: 'Dashboard', Icon: HomeIcon },
@@ -195,15 +226,19 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
           </button>
         </div>
 
-        {/* Sync Status Dummy — expanded only */}
-        <div className="hidden xl:flex flex-col gap-2 text-[var(--ds-gray-500)] text-label-12 uppercase font-semibold shrink-0">
-          <div className="flex items-center gap-2">
-            <CloudIcon />
-            <span>Cloud Synced</span>
+        {/* Sync Status — expanded only */}
+        <div className="hidden xl:flex flex-col gap-2 text-label-12 uppercase font-semibold shrink-0">
+          <div className={cn("flex items-center gap-2", syncColor)}>
+            <div className={cn("shrink-0", isSyncing && "animate-spin")}>
+              <CloudIcon />
+            </div>
+            <span>{syncLabel}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon />
-            <span>Offline Ready</span>
+          <div className={cn("flex items-center gap-2", isOnline ? "text-[var(--ds-green-700)]" : "text-[var(--ds-amber-600)]")}>
+            <div className="shrink-0">
+              <CheckCircleIcon />
+            </div>
+            <span>{isOnline ? 'Online' : 'Offline Mode'}</span>
           </div>
         </div>
       </aside>
