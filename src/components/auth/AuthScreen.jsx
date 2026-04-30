@@ -79,7 +79,7 @@ export default function AuthScreen({ onBack, onSignedIn, defaultMode = 'signin' 
   } = useAuth();
 
   const [mode, setMode] = useState(defaultMode); // 'signin' | 'signup'
-  const [emailMode, setEmailMode] = useState('magic'); // 'magic' | 'password'
+  const [emailMode, setEmailMode] = useState('password'); // 'magic' | 'password'
   const [email, setEmail] = useState(() => {
     if (typeof window === 'undefined') return '';
     try { return window.localStorage.getItem(LAST_EMAIL_KEY) || ''; } catch { return ''; }

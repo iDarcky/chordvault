@@ -984,7 +984,23 @@ export default function App() {
         />
       )}
       {!['onboarding', 'signin', 'upgrade'].includes(view) && (
-        <DesktopLayout activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} onNavigate={goToMainView} isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || (isFullscreen && (view === 'library' || view === 'setlists'))} hasUnreadNotifications={hasUnreadNotifications} notifications={settings?.notifications || []} onMarkRead={handleMarkNotificationRead} onNotificationAction={handleNotificationAction} drawerOpen={drawerOpen} displayName={displayName} plan={plan} activeLibrary={activeLibrary} setActiveLibrary={setActiveLibrary} team={team} hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}>
+        <DesktopLayout 
+          activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} 
+          onNavigate={goToMainView} 
+          isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || (isFullscreen && (view === 'library' || view === 'setlists'))} 
+          hasUnreadNotifications={hasUnreadNotifications} 
+          notifications={settings?.notifications || []} 
+          onMarkRead={handleMarkNotificationRead} 
+          onNotificationAction={handleNotificationAction} 
+          drawerOpen={drawerOpen} 
+          displayName={displayName} 
+          plan={plan} 
+          activeLibrary={activeLibrary} 
+          setActiveLibrary={setActiveLibrary} 
+          team={team} 
+          onChangeWorkspace={goTeam}
+          hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}
+        >
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar
               key={view}
@@ -996,6 +1012,9 @@ export default function App() {
               onSelectSetlist={goSetlistView}
               onNewSong={() => goEditor()}
               onNewSetlist={() => goSetlistBuild()}
+              activeLibrary={activeLibrary}
+              team={team}
+              onChangeWorkspace={openDrawer}
             />
           )}
           {view === 'home' && (
