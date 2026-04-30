@@ -3,7 +3,7 @@ import { cn } from '../lib/utils';
 
 /**
  * A strip bar shown at the top of the screen when viewing a team workspace.
- * Premium orange aesthetic with a direct action to switch workspaces.
+ * Refined, narrower aesthetic with a frosted amber-400 glass effect.
  */
 export default function TeamBanner({ teamName, onChangeWorkspace, className }) {
   if (!teamName) return null;
@@ -11,24 +11,30 @@ export default function TeamBanner({ teamName, onChangeWorkspace, className }) {
   return (
     <div 
       className={cn(
-        "w-full bg-[var(--ds-amber-700)] text-white px-4 py-2.5 flex items-center justify-center text-label-13 sm:text-label-14 font-medium shadow-sm animate-in fade-in slide-in-from-top duration-300",
+        "w-full px-4 py-1.5 flex items-center justify-center text-label-12 sm:text-label-13 font-semibold shadow-sm animate-in fade-in slide-in-from-top duration-300",
         className
       )}
       style={{
         zIndex: 100,
-        background: 'linear-gradient(90deg, var(--ds-amber-700) 0%, var(--ds-amber-600) 100%)',
+        backgroundColor: 'color-mix(in srgb, var(--ds-amber-400), transparent 15%)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        color: 'var(--ds-amber-950)',
+        borderBottom: '1px solid color-mix(in srgb, var(--ds-amber-500), transparent 60%)',
       }}
     >
-      <div className="flex items-center gap-1.5 max-w-full overflow-hidden">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-90">
+      <div className="flex items-center gap-2 max-w-full overflow-hidden">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-80">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
           <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
         
-        <span className="opacity-90 whitespace-nowrap">You're viewing</span>
-        <span className="font-bold truncate">{teamName}</span>
+        <div className="flex items-center gap-1.5 truncate">
+          <span className="opacity-80 whitespace-nowrap">Viewing</span>
+          <span className="font-bold truncate">{teamName}</span>
+        </div>
         
         <button 
           onClick={(e) => {
@@ -36,7 +42,7 @@ export default function TeamBanner({ teamName, onChangeWorkspace, className }) {
             e.stopPropagation();
             onChangeWorkspace?.();
           }}
-          className="ml-1 bg-white/20 hover:bg-white/30 active:scale-95 px-2.5 py-1 rounded-lg text-label-11 sm:text-label-12 transition-all border-none cursor-pointer text-white font-bold backdrop-blur-sm"
+          className="ml-1 bg-black/5 hover:bg-black/10 active:scale-95 px-2 py-0.5 rounded-md text-label-11 transition-all border-none cursor-pointer text-[var(--ds-amber-950)] font-bold"
         >
           change
         </button>
