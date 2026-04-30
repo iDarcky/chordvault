@@ -94,7 +94,7 @@ export default function Sidebar({ activeView, onNavigate, hasUnreadNotifications
 
   return (
     <>
-      <aside className="h-[100dvh] hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
+      <aside className="h-full hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
         {/* Profile */}
         <button
           onClick={() => onNavigate('account')}
