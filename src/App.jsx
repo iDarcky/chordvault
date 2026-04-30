@@ -129,7 +129,7 @@ export default function App() {
     // anything else.
     if (typeof window !== 'undefined') {
       if (window.location.pathname === '/auth/callback') return 'auth-callback';
-      if (/type=recovery/.test(window.location.hash)) return 'recovery';
+      if (/(type=recovery|#access_token=.*type=recovery)/.test(window.location.hash + window.location.search)) return 'recovery';
     }
     return 'loading';
   });
@@ -278,7 +278,10 @@ export default function App() {
         setSettings(savedSettings);
 
         // Determine initial view based on onboarding state
-        if (!savedSettings.onboardingComplete && savedSongs.length === 0) {
+        const isAuthFlow = view === 'recovery' || view === 'auth-callback';
+        if (isAuthFlow) {
+          // Keep the current auth view
+        } else if (!savedSettings.onboardingComplete && savedSongs.length === 0) {
           setView('onboarding');
         } else if (!savedSettings.onboardingComplete) {
           // Existing user who predates onboarding — skip it, go to home
@@ -983,7 +986,13 @@ export default function App() {
           }}
         />
       )}
-      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
+      {view === 'recovery' && (
+        <RecoveryScreen
+          onBack={() => setView('signin')}
+          onDone={() => setView('home')}
+        />
+      )}
+      {!['onboarding', 'signin', 'upgrade', 'recovery'].includes(view) && (
         <DesktopLayout 
           activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} 
           onNavigate={goToMainView} 
@@ -1260,10 +1269,10 @@ export default function App() {
           )}
         </DesktopLayout>
       )}
-      {!['onboarding', 'signin', 'upgrade'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
+      {!['onboarding', 'signin', 'upgrade', 'recovery'].includes(view) && ['home', 'library', 'setlists'].includes(view) && !drawerOpen && (
         <EdgeSwipeHotspot onOpen={openDrawer} />
       )}
-      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
+      {!['onboarding', 'signin', 'upgrade', 'recovery'].includes(view) && (
         <MobileDrawer
           open={drawerOpen}
           openKey={drawerOpenKey}
@@ -1299,7 +1308,7 @@ export default function App() {
           }}
         />
       )}
-      {!['onboarding', 'signin', 'upgrade'].includes(view) && (
+      {!['onboarding', 'signin', 'upgrade', 'recovery'].includes(view) && (
         <NotificationTray
           open={notifTrayOpen}
           onClose={() => setNotifTrayOpen(false)}
@@ -1317,7 +1326,7 @@ export default function App() {
           onImport={handleSmartImport}
         />
       )}
-      {!['onboarding', 'signin', 'upgrade'].includes(view) && <FeedbackButton />}
+      {!['onboarding', 'signin', 'upgrade', 'recovery'].includes(view) && <FeedbackButton />}
 
       {/* One-time pre-permission explainer for stage mode — render is
           state-driven now so the modal participates in the back stack. */}
