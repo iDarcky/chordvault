@@ -16,16 +16,16 @@ export default function TeamBanner({ teamName, onChangeWorkspace, className }) {
       )}
       style={{
         zIndex: 100,
-        backgroundColor: 'color-mix(in srgb, var(--ds-amber-400), transparent 15%)',
+        backgroundColor: 'var(--color-brand-soft)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        color: 'var(--ds-amber-950)',
-        borderBottom: '1px solid color-mix(in srgb, var(--ds-amber-500), transparent 70%)',
+        color: 'var(--color-brand-text)',
+        borderBottom: '1px solid var(--color-brand-border)',
       }}
     >
       <div className="flex items-center gap-3 max-w-full overflow-hidden">
         <div className="flex items-center gap-2 truncate">
-          <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.1em] opacity-60 whitespace-nowrap font-bold">
+          <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.1em] opacity-70 whitespace-nowrap font-bold">
             Viewing
           </span>
           <span className="text-label-12 sm:text-label-13 font-bold truncate">
@@ -42,7 +42,7 @@ export default function TeamBanner({ teamName, onChangeWorkspace, className }) {
             e.stopPropagation();
             onChangeWorkspace?.();
           }}
-          className="bg-transparent hover:opacity-60 active:scale-95 px-1 py-0.5 rounded-md text-label-11 transition-all border-none cursor-pointer text-current font-bold underline underline-offset-4 decoration-2 decoration-current/20 hover:decoration-current"
+          className="bg-transparent hover:opacity-60 active:scale-95 px-1 py-0.5 rounded-md text-label-11 transition-all border-none cursor-pointer text-current font-bold underline underline-offset-4 decoration-2 decoration-current/30 hover:decoration-current"
         >
           Change
         </button>
