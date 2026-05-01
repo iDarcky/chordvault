@@ -8,10 +8,18 @@ import {
   getAvailableProviders,
 } from '../../sync/provider';
 
+function isStandaloneMode() {
+  return (
+    window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches
+  );
+}
+
 export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow, onRequestSignIn }) {
   const { user } = useAuth();
   const providers = getAvailableProviders();
   const [busy, setBusy] = useState(null); // provider name or null
+  const standalone = isStandaloneMode();
 
   const handleConnect = async (name) => {
     setBusy(name);
@@ -97,6 +105,25 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow, 
           </div>
         </div>
 
+        {standalone && !activeName && (
+          <div className="p-4 flex flex-col gap-2 bg-[var(--ds-amber-100)]" style={{ borderColor: 'var(--modes-border)' }}>
+            <p className="text-copy-13 text-[var(--ds-amber-900)] m-0 font-medium">
+              Cloud sync setup requires a browser window.
+            </p>
+            <p className="text-copy-13 text-[var(--ds-amber-800)] m-0">
+              Open this page in Safari, connect your provider there, then return to the app — your connection will carry over automatically.
+            </p>
+            <a
+              href={window.location.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-copy-13 font-semibold text-[var(--ds-amber-900)] underline self-start"
+            >
+              Open in Safari →
+            </a>
+          </div>
+        )}
+
         {providers.map(p => {
           const isActive = activeName === p.name;
           const isBusy = busy === p.name;
@@ -112,7 +139,9 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow, 
                     ? 'Not configured on this build.'
                     : isActive
                       ? 'Connected. Syncing enabled.'
-                      : 'Tap Connect to enable sync with this provider.'}
+                      : standalone
+                        ? 'Use Safari to connect (see above).'
+                        : 'Tap Connect to enable sync with this provider.'}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-2 sm:mt-0">
@@ -131,7 +160,7 @@ export default function SyncSettings({ syncState, onSyncStateChange, onSyncNow, 
                     variant="brand"
                     onClick={() => handleConnect(p.name)}
                     loading={isBusy}
-                    disabled={!p.configured || (activeName && activeName !== p.name) || busy != null}
+                    disabled={!p.configured || standalone || (activeName && activeName !== p.name) || busy != null}
                   >
                     Connect
                   </Button>

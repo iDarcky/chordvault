@@ -11,6 +11,7 @@
 
 import { transposeChord, transposeKey, sectionStyle } from '../music';
 import { parseLine, serializeTabBlock } from '../parser';
+import { openPrintWindow, readInitialPrefs } from './pdfDocument';
 
 // Print-friendly section accent colors (CMYK-safe approximations of the Geist
 // palette used in-app — we can't rely on CSS vars in the popup window).
@@ -800,41 +801,9 @@ function buildDocument(song, transpose, initialPrefs = {}) {
 </html>`;
 }
 
-const PREFS_KEY = 'setlists-md:pdf-prefs';
-
-function readInitialPrefs() {
-  try {
-    const raw = localStorage.getItem(PREFS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
 export function exportSongPdf(song, opts = {}) {
   if (!song) return;
   const transpose = Number.isFinite(opts.transpose) ? opts.transpose : 0;
   const html = buildDocument(song, transpose, readInitialPrefs());
-
-  // IMPORTANT: do NOT pass `noopener` / `noreferrer` in the features string.
-  // Those flags cause browsers to return `null` from window.open(), which
-  // would leave us unable to write HTML into the popup. We need a live
-  // handle to the new window.
-  const w = window.open('about:blank', '_blank', 'width=900,height=1100,resizable=yes,scrollbars=yes');
-  if (!w || w.closed || typeof w.document === 'undefined') {
-    // Popup blocked. Don't fall back to printing the current page (that's
-    // exactly the bug we're fixing). Instead, alert the user.
-    alert('Could not open the print window. Please allow popups for this site and try again.');
-    return;
-  }
-  try {
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-  } catch (err) {
-    console.error('[exportSongPdf] failed to populate popup window', err);
-    try { w.close(); } catch { /* ignore */ }
-    alert('Could not render the printable view. Please try again.');
-  }
+  openPrintWindow(html);
 }

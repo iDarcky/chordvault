@@ -18,6 +18,7 @@ import {
   escapeHtml,
   buildSongBody,
 } from './exportSongPdf';
+import { openPrintWindow, readInitialPrefs } from './pdfDocument';
 
 const PDF_STYLES = `
   @page {
@@ -886,19 +887,8 @@ function buildSetlistDocument(setlist, songs, mode, initialPrefs = {}) {
 </html>`;
 }
 
-const PREFS_KEY = 'setlists-md:pdf-prefs';
-
-function readInitialPrefs() {
-  try {
-    const raw = localStorage.getItem(PREFS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
 /**
- * Open a print-friendly window for a setlist.
+ * Open a print-friendly view for a setlist.
  *
  * @param {object} setlist - The setlist (name, date, time, location, tags, items).
  * @param {Array}  songs   - All songs (used to look up each item.songId).
@@ -908,20 +898,5 @@ export function exportSetlistPdf(setlist, songs, opts = {}) {
   if (!setlist) return;
   const mode = opts.mode === 'full' ? 'full' : 'overview';
   const html = buildSetlistDocument(setlist, songs || [], mode, readInitialPrefs());
-
-  const w = window.open('about:blank', '_blank', 'width=900,height=1100,resizable=yes,scrollbars=yes');
-  if (!w || w.closed || typeof w.document === 'undefined') {
-    alert('Could not open the print window. Please allow popups for this site and try again.');
-    return;
-  }
-  try {
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-  } catch (err) {
-    console.error('[exportSetlistPdf] failed to populate popup window', err);
-    try { w.close(); } catch { /* ignore */ }
-    alert('Could not render the printable view. Please try again.');
-  }
+  openPrintWindow(html);
 }

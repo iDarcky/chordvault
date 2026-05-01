@@ -19,12 +19,87 @@ export function readInitialPrefs() {
   }
 }
 
-// Open a new window and write a fully-rendered HTML document into it. The
-// caller is responsible for triggering `buildPdfDocument` to produce the html.
+function isStandaloneMode() {
+  return (
+    window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches
+  );
+}
+
+// In standalone PWA mode (iOS home-screen app), window.open is blocked.
+// We inject a full-screen overlay with an iframe instead — same-origin srcdoc
+// so localStorage prefs work, and interactive controls inside the iframe still
+// function normally before the user prints.
+function openPrintOverlay(html) {
+  document.getElementById('pdf-print-overlay')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'pdf-print-overlay';
+  overlay.style.cssText =
+    'position:fixed;inset:0;z-index:999999;background:#fff;display:flex;flex-direction:column;' +
+    'font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;';
+
+  const safeTop = 'env(safe-area-inset-top, 0px)';
+  const header = document.createElement('div');
+  header.style.cssText =
+    `display:flex;align-items:center;justify-content:space-between;` +
+    `padding-top:${safeTop};padding-left:16px;padding-right:16px;padding-bottom:0;` +
+    `background:#fff;border-bottom:1px solid #e5e7eb;flex-shrink:0;min-height:52px;`;
+
+  const doneBtn = document.createElement('button');
+  doneBtn.textContent = 'Done';
+  doneBtn.style.cssText =
+    'background:none;border:none;cursor:pointer;font-size:15px;font-weight:600;' +
+    'color:#6366f1;padding:8px 4px;';
+  doneBtn.onclick = () => overlay.remove();
+
+  const titleEl = document.createElement('span');
+  titleEl.textContent = 'Print Preview';
+  titleEl.style.cssText = 'font-weight:600;font-size:16px;color:#111;';
+
+  const printBtn = document.createElement('button');
+  printBtn.textContent = 'Print…';
+  printBtn.style.cssText =
+    'background:#6366f1;border:none;cursor:pointer;font-size:15px;font-weight:600;' +
+    'color:#fff;padding:8px 14px;border-radius:8px;';
+  printBtn.onclick = () => {
+    const frame = document.getElementById('pdf-print-frame');
+    frame?.contentWindow?.print();
+  };
+
+  header.appendChild(doneBtn);
+  header.appendChild(titleEl);
+  header.appendChild(printBtn);
+
+  const hint = document.createElement('p');
+  hint.textContent =
+    'Adjust layout options below, then tap Print… — or use the Share ↑ button for more options.';
+  hint.style.cssText =
+    'margin:0;padding:6px 16px;font-size:12px;color:#6b7280;' +
+    'background:#f9fafb;border-bottom:1px solid #e5e7eb;flex-shrink:0;';
+
+  const frame = document.createElement('iframe');
+  frame.id = 'pdf-print-frame';
+  frame.style.cssText = 'flex:1;border:none;width:100%;background:#fff;';
+  frame.srcdoc = html;
+
+  overlay.appendChild(header);
+  overlay.appendChild(hint);
+  overlay.appendChild(frame);
+  document.body.appendChild(overlay);
+}
+
+// Open the print preview. On desktop/regular browser this uses a popup window;
+// on iOS standalone PWA it falls back to an in-app full-screen overlay so the
+// user isn't hit with a broken "allow popups" error.
 export function openPrintWindow(html) {
-  // IMPORTANT: do NOT pass `noopener` / `noreferrer` in the features string.
-  // Those flags cause browsers to return `null` from window.open(), which
-  // would leave us unable to write HTML into the popup.
+  if (isStandaloneMode()) {
+    openPrintOverlay(html);
+    return null;
+  }
+  // Desktop / regular browser: popup so the interactive toolbar doesn't
+  // occlude the current page. Do NOT pass noopener/noreferrer — that causes
+  // window.open to return null and prevents document.write.
   const w = window.open('about:blank', '_blank', 'width=900,height=1100,resizable=yes,scrollbars=yes');
   if (!w || w.closed || typeof w.document === 'undefined') {
     alert('Could not open the print window. Please allow popups for this site and try again.');
