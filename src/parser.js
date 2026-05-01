@@ -271,7 +271,6 @@ export function parseTabPositions(content) {
         positions.push({ fret, pos: charOffset + i - (fretStr.length - 1), measure: mi, technique });
       }
       i++;
-      charOffset;
     }
     charOffset += measure.length + 1; // +1 for the | separator
   }
