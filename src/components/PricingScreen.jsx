@@ -16,7 +16,7 @@ const CHECK = (
 // pricing page.
 function buildPersonalHook({ instruments = [], useCase }) {
   if (instruments.includes('guitar')) {
-    return "We'll pull tabs straight from Ultimate Guitar — bring your existing songbook in minutes.";
+    return 'Paste from ChordPro, OpenSong, or chord-over-lyric text and your songbook imports in minutes.';
   }
   if (instruments.includes('piano') || instruments.includes('keys')) {
     return 'ChordPro and plain-text scores convert into clean Setlists.md charts automatically.';
@@ -50,7 +50,7 @@ function buildTiers() {
       features: [
         'Google Drive / Dropbox / OneDrive sync',
         'Files live in your own cloud folder',
-        'Smart Import — Ultimate Guitar, ChordPro',
+        'Smart Import — ChordPro, OpenSong, chord-over-lyric',
         'Setlist QR sharing',
         'Pay once, yours forever',
         'Everything in Free',
