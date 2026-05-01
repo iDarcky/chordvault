@@ -165,6 +165,21 @@ export function AuthProvider({ children }) {
         setProfile(data ?? null);
         return data;
       },
+      // Permanently delete the current user's account. Calls the
+      // `delete-account` Supabase Edge Function which uses the service-role
+      // key to remove the auth user and cascades to profiles/team_members
+      // via foreign-key ON DELETE CASCADE. The caller is responsible for
+      // wiping any device-local data (IndexedDB) and signing out.
+      deleteAccount: async () => {
+        guard();
+        const uid = session?.user?.id;
+        if (!uid) throw new Error('No user signed in.');
+        const { data, error } = await supabase.functions.invoke('delete-account');
+        if (error) {
+          throw new Error(error.message || 'Account deletion failed.');
+        }
+        return data;
+      },
     };
   }, [session, profile, loading]);
 

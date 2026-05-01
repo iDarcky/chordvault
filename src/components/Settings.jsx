@@ -253,25 +253,56 @@ function DataPanel({ songCount, setlistCount, onDownloadSongs, onClearAll }) {
 }
 
 function AboutPanel({ isSignedIn, displayName }) {
+  const linkClass = 'hover:text-[var(--modes-text)] transition-colors underline-offset-4 underline decoration-[var(--modes-border)]';
+  const docBase = 'https://github.com/iDarcky/setlists-md/blob/master/docs';
   return (
-    <div className="modes-card p-5 flex flex-col gap-2">
-      <h2 className="text-heading-20 text-[var(--modes-text)] m-0">
-        {isSignedIn && displayName ? displayName : 'Setlists.md'}
-      </h2>
-      <p className="text-copy-14 text-[var(--modes-text-muted)] leading-relaxed">
-        A minimalist, offline-first chord chart app built for speed. Your songs belong to you as plain Markdown files — open them in any text editor, forever.
-      </p>
-      <div className="mt-3 flex items-center gap-3 text-label-12 text-[var(--modes-text-muted)] font-medium">
-        <span>v1.2.0</span>
-        <span className="text-[var(--modes-text-dim)]">·</span>
-        <a
-          href="https://github.com/iDarcky/setlists-md"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-[var(--modes-text)] transition-colors underline-offset-4 underline decoration-[var(--modes-border)]"
-        >
-          GitHub
-        </a>
+    <div className="flex flex-col gap-4">
+      <div className="modes-card p-5 flex flex-col gap-2">
+        <h2 className="text-heading-20 text-[var(--modes-text)] m-0">
+          {isSignedIn && displayName ? displayName : 'Setlists.md'}
+        </h2>
+        <p className="text-copy-14 text-[var(--modes-text-muted)] leading-relaxed">
+          A workspace for music teams. Your songs belong to you as plain Markdown files — open them in any text editor, forever.
+        </p>
+        <div className="mt-3 flex items-center gap-3 text-label-12 text-[var(--modes-text-muted)] font-medium">
+          <span>v1.2.0</span>
+          <span className="text-[var(--modes-text-dim)]">·</span>
+          <a
+            href="https://github.com/iDarcky/setlists-md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            GitHub
+          </a>
+        </div>
+      </div>
+
+      <div className="modes-card p-5 flex flex-col gap-3">
+        <h3 className="text-label-12 font-semibold uppercase tracking-widest text-[var(--modes-text-dim)] m-0">
+          Legal &amp; Copyright
+        </h3>
+        <p className="text-copy-13 text-[var(--modes-text-muted)] leading-relaxed m-0">
+          Setlists.md is a private workspace; you are responsible for licensing
+          the content you import. We act on valid copyright takedown notices.
+        </p>
+        <div className="flex flex-col gap-2 mt-1 text-copy-14">
+          <a href={`${docBase}/PRIVACY.md`} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Privacy Policy
+          </a>
+          <a href={`${docBase}/TERMS.md`} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Terms of Service
+          </a>
+          <a href={`${docBase}/COPYRIGHT.md`} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            Copyright Policy &amp; DMCA
+          </a>
+          <a
+            href="mailto:legal@setlists.md?subject=Content%20report"
+            className={linkClass}
+          >
+            Report content (legal@setlists.md)
+          </a>
+        </div>
       </div>
     </div>
   );

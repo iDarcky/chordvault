@@ -20,9 +20,11 @@ Our service may contain links to third-party websites (e.g., Planning Center, CC
 
 ## 5. User Content & Copyright
 *   **Ownership:** You retain all ownership rights to the content (songs, charts, setlists) you create or import into ChordVault.
-*   **Responsibility:** You are solely responsible for the content you upload. 
+*   **Responsibility:** You are solely responsible for the content you upload.
 *   **Copyright Warranty:** By importing songs or lyrics, you represent and warrant that you have the legal right to do so (e.g., through a **CCLI**, **SongSelect**, or **PraiseCharts** license).
-*   **Takedown Policy:** We respond to notices of alleged copyright infringement according to the DMCA (USA) and EU Copyright Directive. If we receive a valid notice, we may remove infringing content without notice.
+*   **Takedown Policy:** We respond to notices of alleged copyright infringement according to the DMCA (USA) and EU Copyright Directive. If we receive a valid notice, we may remove infringing content without notice. See our full [Copyright Policy](./COPYRIGHT.md) for how to submit a notice.
+*   **Repeat-Infringer Policy:** In compliance with 17 U.S.C. § 512 and applicable EU law, we will terminate the accounts of users who are the subject of repeated valid infringement notices.
+*   **Designated Agent:** Our designated agent for receiving notices of alleged copyright infringement is reachable at **legal@setlists.md**. The agent's contact details are also published on our [Copyright Policy](./COPYRIGHT.md) page.
 
 ## 6. Prohibited Use
 You agree not to:
