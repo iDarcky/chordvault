@@ -43,6 +43,7 @@ function buildTiers() {
       name: 'Free',
       price: '$0',
       interval: '',
+      altPrice: 'always free',
       tagline: 'Local-only, no account needed',
       featured: false,
       badge: null,
@@ -63,7 +64,8 @@ function buildTiers() {
       id: 'pro',
       name: 'Pro',
       price: '$29',
-      interval: ' one-time',
+      interval: '',
+      altPrice: 'one-time payment',
       tagline: 'Your cloud, your files, forever',
       featured: false,
       badge: '⭐ Best Value',
@@ -190,7 +192,7 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
       <ScreenHeader onBack={onBack} title="Setlists.md plans" />
 
       <div className="flex-1 flex items-start justify-center px-4 py-6 sm:py-10 pb-20">
-        <div className="w-full max-w-3xl flex flex-col gap-6">
+        <div className="w-full max-w-5xl flex flex-col gap-6">
           {/* Hero */}
           <div className="modes-card-strong p-6 sm:p-8 flex flex-col gap-3 text-center">
             <h1 className="text-heading-32 font-bold text-[var(--modes-text)] m-0 leading-tight">
@@ -201,8 +203,46 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
             </p>
           </div>
 
+          {/* Early access — billing isn't live yet, capture intent */}
+          <div className="modes-card p-5">
+            <div className="text-label-11 font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--color-brand)' }}>
+              Early access
+            </div>
+            <h3 className="text-heading-18 text-[var(--modes-text)] m-0 mb-1 font-semibold">
+              Billing goes live in v1.1
+            </h3>
+            <p className="text-copy-13 text-[var(--modes-text-muted)] m-0 mb-4">
+              Drop your email — first 200 sign-ups lock in 50% off when billing goes live.
+            </p>
+
+            {joined ? (
+              <div className="text-copy-14 text-[var(--modes-text)]">
+                You're on the list. We'll email <strong>{email}</strong> the moment billing ships.
+              </div>
+            ) : (
+              <form onSubmit={submitWaitlist} className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="flex-1"
+                />
+                <Button type="submit" variant="brand" disabled={busy || !email}>
+                  {busy ? 'Joining…' : 'Notify me'}
+                </Button>
+              </form>
+            )}
+            {error && (
+              <div className="text-copy-13 mt-2 px-3 py-2 rounded-lg" style={{ background: 'var(--ds-red-100)', color: 'var(--ds-red-1000)' }}>
+                {error}
+              </div>
+            )}
+          </div>
+
           {/* Tier cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             {tiers.map(tier => (
               <div
                 key={tier.id}
@@ -226,15 +266,17 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
                   <div className="text-label-12 text-[var(--modes-text-muted)] mt-0.5">{tier.tagline}</div>
                 </div>
 
-                <div className="flex items-baseline gap-1">
-                  <span className="text-heading-32 font-bold text-[var(--modes-text)]">{tier.price}</span>
-                  {tier.interval && (
-                    <span className="text-copy-14 text-[var(--modes-text-muted)]">{tier.interval}</span>
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-heading-32 font-bold text-[var(--modes-text)]">{tier.price}</span>
+                    {tier.interval && (
+                      <span className="text-copy-14 text-[var(--modes-text-muted)]">{tier.interval}</span>
+                    )}
+                  </div>
+                  {tier.altPrice && (
+                    <div className="text-label-11 text-[var(--modes-text-dim)] mt-0.5">{tier.altPrice}</div>
                   )}
                 </div>
-                {tier.altPrice && (
-                  <div className="text-label-11 text-[var(--modes-text-dim)] -mt-3">{tier.altPrice}</div>
-                )}
 
                 <div className="flex flex-col gap-2.5">
                   {tier.features.map((f, i) => (
@@ -265,43 +307,6 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
             ))}
           </div>
 
-          {/* Early access — billing isn't live yet, capture intent */}
-          <div className="modes-card p-5">
-            <div className="text-label-11 font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--color-brand)' }}>
-              Early access
-            </div>
-            <h3 className="text-heading-18 text-[var(--modes-text)] m-0 mb-1 font-semibold">
-              Billing goes live in v1.1
-            </h3>
-            <p className="text-copy-13 text-[var(--modes-text-muted)] m-0 mb-4">
-              Drop your email — first 200 sign-ups get 50% off their first year and a private Slack channel with the team.
-            </p>
-
-            {joined ? (
-              <div className="text-copy-14 text-[var(--modes-text)]">
-                You're on the list. We'll email <strong>{email}</strong> the moment Pro ships.
-              </div>
-            ) : (
-              <form onSubmit={submitWaitlist} className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="flex-1"
-                />
-                <Button type="submit" variant="brand" disabled={busy || !email}>
-                  {busy ? 'Joining…' : 'Notify me'}
-                </Button>
-              </form>
-            )}
-            {error && (
-              <div className="text-copy-13 mt-2 px-3 py-2 rounded-lg" style={{ background: 'var(--ds-red-100)', color: 'var(--ds-red-1000)' }}>
-                {error}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
