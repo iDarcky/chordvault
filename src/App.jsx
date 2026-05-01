@@ -598,7 +598,15 @@ export default function App() {
     if (isNew && !settings?.firstSongAdded) {
       setSettings(prev => ({ ...prev, firstSongAdded: true }));
     }
-    historyRef.current.pop();
+
+    // If the user entered the editor via "chart → Edit" (existing song),
+    // pop that stale chart snapshot so back from the just-saved chart
+    // lands on the list. New-song flows have the list directly under
+    // the editor; popping there would erase it and break back navigation.
+    const top = historyRef.current[historyRef.current.length - 1];
+    if (top?.view === 'chart' && top?.song?.id === song.id) {
+      historyRef.current.pop();
+    }
 
     // Multi-file import queue: advance to the next song in the editor
     // instead of jumping to chart view, so the user reviews/edits each.
@@ -611,7 +619,10 @@ export default function App() {
     if (importQueue) {
       setImportQueue(null);
       toast({ title: 'Import complete' });
-      navigate('library', { replace: true });
+      // Reaching library at the end of a multi-import is functionally a
+      // top-level destination; reset history so back from here behaves
+      // like back from any tab.
+      goToMainView('library');
       return;
     }
 
@@ -630,7 +641,7 @@ export default function App() {
       return;
     }
     setImportQueue(null);
-    navigate('library', { replace: true });
+    goToMainView('library');
   };
 
   const handleDeleteSong = (id) => {
@@ -639,8 +650,13 @@ export default function App() {
       ...prev,
       songs: [...prev.songs.filter(t => t.id !== id), { id, deletedAt: Date.now() }],
     }));
-    // After delete, go back two steps (skip the chart for the deleted song)
-    historyRef.current.pop(); // discard the chart entry
+    // If the entry below the editor is a chart of the deleted song, pop it
+    // so we don't try to view a tombstoned song after goBack. Otherwise the
+    // editor was opened directly from a list and goBack alone is correct.
+    const top = historyRef.current[historyRef.current.length - 1];
+    if (top?.view === 'chart' && top?.song?.id === id) {
+      historyRef.current.pop();
+    }
     goBack();
   };
 
@@ -721,7 +737,14 @@ export default function App() {
       ...prev,
       setlists: [...prev.setlists.filter(t => t.id !== id), { id, deletedAt: Date.now() }],
     }));
-    historyRef.current.pop();
+    // If the entry below is the overview of the deleted setlist, pop it so
+    // we don't land on an orphaned overview after goBack. Otherwise (e.g.
+    // delete invoked from the overview itself with the list directly below)
+    // a single goBack is correct.
+    const top = historyRef.current[historyRef.current.length - 1];
+    if (top?.view === 'setlist-view' && top?.setlist?.id === id) {
+      historyRef.current.pop();
+    }
     goBack();
   };
 
@@ -1042,7 +1065,7 @@ export default function App() {
             />
           )}
           {view === "design" && (
-            <LydianShowcase onBack={() => setView("settings")} />
+            <LydianShowcase onBack={goBack} />
           )}
           {view === "help" && (
             <HelpPage
