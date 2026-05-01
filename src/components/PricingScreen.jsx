@@ -40,82 +40,103 @@ function buildTiers() {
   return [
     {
       id: 'free',
-      name: 'Free Forever',
+      name: 'Free',
       price: '$0',
       interval: '',
-      tagline: 'For solo musicians and tinkerers',
+      tagline: 'Local-only, no account needed',
       featured: false,
       badge: null,
       features: [
         'Unlimited songs & setlists',
         'Full chord chart renderer',
         'Transpose + capo calculator',
-        'Role profiles',
         'Bluetooth pedal support',
-        'Import ChordPro / OnSong / PDF',
+        'Import ChordPro / OnSong',
         'Offline / PWA — works without internet',
+        'Export to .zip (manual backup)',
       ],
-      cta: "I'm all set",
+      cta: "Start free",
       ctaVariant: 'secondary',
       ctaAction: 'free',
     },
     {
-      id: 'sync',
-      name: 'Sync',
-      price: '$9',
+      id: 'pro',
+      name: 'Pro',
+      price: '$29',
       interval: ' one-time',
-      tagline: 'For worship leaders who want backup',
+      tagline: 'Your cloud, your files, forever',
       featured: false,
       badge: '⭐ Best Value',
       features: [
         'Google Drive / Dropbox / OneDrive sync',
         'Files live in your own cloud folder',
+        'Smart Import — Ultimate Guitar, ChordPro',
         'Setlist QR sharing',
-        'Smart Import — Ultimate Guitar, ChordPro, plain text',
-        'No subscription — pay once, yours forever',
+        'Pay once, yours forever',
         'Everything in Free',
       ],
-      cta: 'Get Sync',
+      cta: 'Buy Pro',
       ctaVariant: 'brand',
-      ctaAction: 'sync',
+      ctaAction: 'pro',
     },
     {
-      id: 'team',
-      name: 'Teams',
-      price: '$12',
+      id: 'sync-plus',
+      name: 'Sync+',
+      price: '$7',
       interval: '/mo',
-      altPrice: 'up to 10 users',
-      tagline: 'For worship bands and small teams',
-      featured: true,
-      badge: '🔥 Most Popular',
+      altPrice: 'or $49/yr',
+      tagline: 'Hosted cloud — just works',
+      featured: false,
+      badge: null,
       features: [
-        'Shared song library',
-        'Real-time setlist collaboration',
-        'End-to-end encryption',
-        'Admin dashboard & member roles',
+        'Hosted cloud — zero setup',
+        'Automatic backups',
+        'Web access from any browser',
         'Priority support',
         '14-day free trial',
-        'Everything in Sync',
+        'Everything in Pro',
       ],
       cta: 'Start free trial',
       ctaVariant: 'brand',
-      ctaAction: 'team',
+      ctaAction: 'sync-plus',
+    },
+    {
+      id: 'band',
+      name: 'Band',
+      price: '$15',
+      interval: '/mo',
+      altPrice: 'up to 10 members · or $120/yr',
+      tagline: 'Shared library for your whole band',
+      featured: true,
+      badge: '🔥 Most Popular',
+      features: [
+        'Shared song library (up to 10 members)',
+        'Real-time setlist push',
+        'Rehearsal mode',
+        'Admin dashboard & member roles',
+        '14-day free trial',
+        'Everything in Sync+',
+      ],
+      cta: 'Start free trial',
+      ctaVariant: 'brand',
+      ctaAction: 'band',
     },
     {
       id: 'church',
       name: 'Church',
-      price: '$24',
+      price: '$49',
       interval: '/mo',
-      altPrice: 'up to 30 users',
-      tagline: 'For churches with multiple services',
+      altPrice: 'up to 30 members',
+      tagline: 'Full suite for multi-service churches',
       featured: false,
       badge: null,
       features: [
+        'Up to 30 members',
         'Multi-service setlist management',
         'Custom onboarding session',
-        'Volume seat add-ons ($5/20 seats)',
+        'Extra seat packs available',
         '14-day free trial',
-        'Everything in Teams',
+        'Everything in Band',
       ],
       cta: 'Start free trial',
       ctaVariant: 'secondary',
@@ -138,13 +159,10 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
   });
 
   const handleTierAction = (action) => {
-    if (action === 'sync' || action === 'team' || action === 'church') {
-      // All paid tiers require sign-in first. Billing will be wired
-      // to Stripe later — for now, direct to auth.
+    if (action === 'pro' || action === 'sync-plus' || action === 'band' || action === 'church') {
       onSignIn?.();
       return;
     }
-    // Free — just go back to the app.
     onBack?.();
   };
 
@@ -184,7 +202,7 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
           </div>
 
           {/* Tier cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {tiers.map(tier => (
               <div
                 key={tier.id}
@@ -256,7 +274,7 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
               Billing goes live in v1.1
             </h3>
             <p className="text-copy-13 text-[var(--modes-text-muted)] m-0 mb-4">
-              Drop your email — first 200 sign-ups get 50% off year one and a private slack channel with the team.
+              Drop your email — first 200 sign-ups get 50% off their first year and a private Slack channel with the team.
             </p>
 
             {joined ? (
