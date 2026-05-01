@@ -11,16 +11,19 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   const [showHelp, setShowHelp] = useState(false);
   const songBarRef = useRef(null);
 
-  const resolved = useMemo(() =>
-    setlist.items
+  const resolved = useMemo(() => {
+    const acc = { count: 0 };
+    return setlist.items
       .map(it => {
         if (it.type === 'break') return { ...it, isBreak: true };
-        const song = songs.find(s => s.id === it.songId);
-        return song ? { ...it, song } : null;
+        let song = songs.find(s => s.id === it.songId);
+        if (!song && it.songTitle) song = songs.find(s => s.title === it.songTitle);
+        if (!song) return null;
+        acc.count += 1;
+        return { ...it, song, songNum: acc.count };
       })
-      .filter(Boolean),
-    [setlist, songs]
-  );
+      .filter(Boolean);
+  }, [setlist, songs]);
 
   const goNext = useCallback(() => setIdx(p => Math.min(resolved.length - 1, p + 1)), [resolved.length]);
   const goPrev = useCallback(() => setIdx(p => Math.max(0, p - 1)), []);
@@ -126,14 +129,20 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
             <button
               key={i}
               onClick={() => setIdx(i)}
-              className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border cursor-pointer transition-all duration-150 bg-transparent ${
-                active ? 'border-[var(--ds-gray-500)] bg-[var(--ds-gray-200)]' : 'border-[var(--ds-gray-300)]'
+              aria-label={`Break: ${r.label || 'Break'}`}
+              className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-dashed cursor-pointer transition-all duration-150 bg-transparent ${
+                active ? 'border-[var(--ds-gray-600)] bg-[var(--ds-gray-200)]' : 'border-[var(--ds-gray-400)]'
               }`}
               style={{ minHeight: 'auto' }}
             >
-              <span className={`text-label-11-mono font-bold ${active ? 'text-[var(--ds-gray-700)]' : 'text-[var(--ds-gray-500)]'}`}>
-                {i + 1}
-              </span>
+              <svg
+                width="11" height="11" viewBox="0 0 24 24" fill="currentColor"
+                className={active ? 'text-[var(--ds-gray-700)]' : 'text-[var(--ds-gray-500)]'}
+                aria-hidden="true"
+              >
+                <rect x="6" y="5" width="4" height="14" rx="1" />
+                <rect x="14" y="5" width="4" height="14" rx="1" />
+              </svg>
               <span className={`text-copy-11 whitespace-nowrap italic ${active ? 'font-semibold text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'}`}>
                 {r.label || 'Break'}
               </span>
@@ -158,7 +167,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
               className="text-label-11-mono font-bold"
               style={{ color: active ? s.d : 'var(--ds-gray-500)' }}
             >
-              {i + 1}
+              {String(r.songNum || (i + 1)).padStart(2, '0')}
             </span>
             <span className={`text-copy-11 whitespace-nowrap ${active ? 'font-semibold text-[var(--ds-gray-1000)]' : 'text-[var(--ds-gray-600)]'}`}>
               {r.song.title}

@@ -4,6 +4,10 @@ import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Chip } from './ui/Chip';
 import ProgressChecklist from '../onboarding/ProgressChecklist';
+import { CalendarWidget } from './ui/CalendarWidget';
+import { useTeam } from '../auth/useTeam';
+import { useTeamSchedules } from '../hooks/useTeamSchedules';
+import { useAuth } from '../auth/useAuth';
 
 export default function Dashboard({
   songs,
@@ -20,6 +24,10 @@ export default function Dashboard({
   checklistActions,
   onDismissChecklist,
 }) {
+  const { team } = useTeam();
+  const { user } = useAuth();
+  const { schedules, updateSchedule } = useTeamSchedules(team?.id);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef(null);
@@ -174,6 +182,64 @@ export default function Dashboard({
             actions={checklistActions}
             onDismiss={onDismissChecklist}
           />
+        )}
+
+        {/* My Schedule Calendar Widget */}
+        {user && (
+          <section className="flex flex-col gap-3 sm:gap-4 -mt-2 mb-2">
+            <CalendarWidget 
+              setlists={setlists} 
+              schedules={schedules} 
+              userId={user.id} 
+              onDateClick={onViewSetlist}
+            />
+          </section>
+        )}
+
+        {/* Pending Requests */}
+        {user && schedules?.filter(s => s.user_id === user.id && s.availability === 'pending').length > 0 && (
+          <section className="flex flex-col gap-3 sm:gap-4">
+            <h2 className="text-heading-20 font-bold text-[var(--modes-text)]">
+              Pending Requests
+            </h2>
+            <div className="flex flex-col gap-3">
+              {schedules
+                .filter(s => s.user_id === user.id && s.availability === 'pending')
+                .map(schedule => {
+                  const sl = setlists.find(l => l.id === schedule.setlist_id);
+                  if (!sl) return null;
+                  return (
+                    <div 
+                      key={schedule.id}
+                      className="modes-card p-4 flex items-center justify-between"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-copy-16 font-bold">{sl.name}</span>
+                        <span className="text-label-13 text-[var(--modes-text-muted)]">
+                          {new Date(sl.date + 'T' + (sl.time || '00:00')).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} • {schedule.role}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="secondary"
+                          onClick={() => updateSchedule(schedule.id, { availability: 'unavailable' })}
+                        >
+                          Decline
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="brand"
+                          onClick={() => updateSchedule(schedule.id, { availability: 'available' })}
+                        >
+                          Accept
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </section>
         )}
 
         {/* Upcoming Setlists */}

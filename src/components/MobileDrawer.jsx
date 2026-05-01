@@ -46,6 +46,15 @@ const InstallIcon = () => (
   </svg>
 );
 
+const TeamDrawerIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
 function Row({ icon: Icon, label, onClick, accessory }) {
   return (
     <button
@@ -78,10 +87,14 @@ export default function MobileDrawer({
   onSignIn,
   onCreateAccount,
   onSignOut,
+  onOpenTeam,
   canInstall = false,
   isIOS = false,
   isStandalone = false,
   onInstall,
+  team,
+  activeLibrary,
+  setActiveLibrary,
 }) {
   const panelRef = useRef(null);
   const [dragX, setDragX] = useState(0);
@@ -209,6 +222,37 @@ export default function MobileDrawer({
           </div>
         )}
 
+        {/* Workspace Switcher */}
+        {team && (
+          <div className="px-5 mt-4">
+            <span className="text-label-12 text-[var(--drawer-text-muted)] font-semibold uppercase tracking-wider mb-2 block">
+              Workspace
+            </span>
+            <div className="flex bg-[var(--drawer-close-bg)] rounded-xl p-1">
+              <button
+                onClick={() => { setActiveLibrary('personal'); onClose(); }}
+                className={`flex-1 py-2 text-label-14 rounded-lg transition-colors ${
+                  activeLibrary === 'personal'
+                    ? 'bg-white text-[var(--ds-gray-900)] shadow-sm'
+                    : 'text-[var(--drawer-text-muted)]'
+                }`}
+              >
+                Personal
+              </button>
+              <button
+                onClick={() => { setActiveLibrary(team.id); onClose(); }}
+                className={`flex-1 py-2 text-label-14 rounded-lg transition-colors ${
+                  activeLibrary === team.id
+                    ? 'bg-[var(--color-brand)] text-white shadow-sm'
+                    : 'text-[var(--drawer-text-muted)]'
+                }`}
+              >
+                {team.name}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Plan */}
         <div className={`px-5 ${isSignedIn ? 'mt-5' : ''}`}>
           <PlanLabel plan={plan} tone="drawer" />
@@ -233,6 +277,9 @@ export default function MobileDrawer({
 
         {/* Nav rows */}
         <div className="px-5 mt-6 flex flex-col gap-2">
+          {isSignedIn && team && onOpenTeam && (
+            <Row icon={TeamDrawerIcon} label="Your Team" onClick={onOpenTeam} />
+          )}
           <Row icon={SettingsIcon} label="Preferences" onClick={onOpenSettings} />
           <Row icon={HelpIcon} label="Help" onClick={onOpenHelp} />
           {!isStandalone && (canInstall || isIOS) && onInstall && (

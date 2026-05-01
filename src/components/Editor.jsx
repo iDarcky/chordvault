@@ -28,7 +28,7 @@ time: 4/4
 
 `;
 
-export default function Editor({ song, onSave, onBack, onDelete, importProgress }) {
+export default function Editor({ song, onSave, onBack, onDelete, onMove, activeLibrary, team, importProgress }) {
   const [md, setMd] = useState(song ? songToMd(song) : DEFAULT_MD);
   const [activeTab, setActiveTab] = useState('arrange');
   const [preview, setPreview] = useState(null);
@@ -152,6 +152,22 @@ export default function Editor({ song, onSave, onBack, onDelete, importProgress 
             >
               {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
+
+            {song && onMove && team && (
+              <Button
+                variant="secondary"
+                size="xs"
+                onClick={() => {
+                  const target = activeLibrary === 'personal' ? team.id : 'personal';
+                  const label = activeLibrary === 'personal' ? team.name : 'Personal Library';
+                  if (confirm(`Move to ${label}?`)) {
+                    onMove(target);
+                  }
+                }}
+              >
+                Move to {activeLibrary === 'personal' ? 'Team' : 'Personal'}
+              </Button>
+            )}
 
             {song && onDelete && (
               <Button variant="error" size="xs" onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }}>

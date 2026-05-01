@@ -47,6 +47,7 @@ export default function Setlists({
   loaded = true,
   onViewSetlist,
   onPlaySetlist,
+  onPracticeSetlist,
   onNewSetlist,
   onImportSetlist,
   previewSetlistId = null,
@@ -54,7 +55,9 @@ export default function Setlists({
   isFullscreen = false,
   onToggleFullscreen,
   onEditSetlist,
-  onExportSetlist,
+  onExportSetlistZip,
+  onExportSetlistPdfOverview,
+  onExportSetlistPdfFull,
   onDeleteSetlist,
 }) {
   const isDesktop = useIsDesktop();
@@ -321,8 +324,11 @@ export default function Setlists({
                 onSelectPreview?.(null);
               }}
               onEdit={() => onEditSetlist?.(previewSetlist)}
-              onExport={() => onExportSetlist?.(previewSetlist)}
+              onExportZip={() => onExportSetlistZip?.(previewSetlist)}
+              onExportPdfOverview={() => onExportSetlistPdfOverview?.(previewSetlist)}
+              onExportPdfFull={() => onExportSetlistPdfFull?.(previewSetlist)}
               onPlay={() => onPlaySetlist(previewSetlist)}
+              onPractice={() => onPracticeSetlist?.(previewSetlist)}
               onDelete={() => onDeleteSetlist?.(previewSetlist.id)}
               isFullscreen={isFullscreen}
               onToggleFullscreen={onToggleFullscreen}

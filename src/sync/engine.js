@@ -18,10 +18,10 @@ function sanitizeFilename(name) {
     .trim() || 'Untitled';
 }
 
-let debounceTimer = null;
 
-export function createSyncEngine(onStatusChange) {
+export function createSyncEngine(onStatusChange, libraryId = 'personal') {
   let syncing = false;
+  let debounceTimer = null;
 
   const setStatus = (state, extra = {}) => {
     onStatusChange?.({ state, ...extra });
@@ -34,7 +34,7 @@ export function createSyncEngine(onStatusChange) {
     if (isTokenExpired(syncState.tokens)) {
       try {
         const newTokens = await provider.refreshToken(syncState.tokens);
-        await updateTokens(newTokens);
+        await updateTokens(newTokens, libraryId);
         provider.setTokens(newTokens);
       } catch {
         setStatus('error');
@@ -44,7 +44,7 @@ export function createSyncEngine(onStatusChange) {
   }
 
   async function pull(songs, setlists, tombstones = { songs: [], setlists: [] }) {
-    const syncState = await getSyncState();
+    const syncState = await getSyncState(libraryId);
     if (!syncState.activeProvider) return { songs, setlists, tombstones, changed: false };
 
     const provider = getProvider(syncState.activeProvider);
@@ -63,6 +63,8 @@ export function createSyncEngine(onStatusChange) {
     let tombstonesChanged = false;
     // Track items where local had unsynced edits that were overwritten by remote
     const conflicts = [];
+    const pulledSongIds = new Set();
+    const pulledSetlistIds = new Set();
 
     // Pull songs from Songs subfolder
     const songFiles = await provider.listFiles(SONGS_FOLDER);
@@ -96,7 +98,7 @@ export function createSyncEngine(onStatusChange) {
           tombstonesChanged = true;
         }
 
-        const content = await provider.downloadFile(file.id);
+        const content = await provider.downloadFile(file.id, SONGS_FOLDER);
         const parsed = parseSongMd(content);
 
         if (songId) {
@@ -118,7 +120,7 @@ export function createSyncEngine(onStatusChange) {
           }
         } else {
           // New song from remote
-          songId = generateId();
+          songId = parsed.id || generateId();
           updatedSongs.push({ ...parsed, id: songId });
         }
 
@@ -129,6 +131,7 @@ export function createSyncEngine(onStatusChange) {
           lastSyncedTime: file.modifiedTime,
         };
         songsChanged = true;
+        pulledSongIds.add(songId);
       }
     }
 
@@ -161,7 +164,7 @@ export function createSyncEngine(onStatusChange) {
           tombstonesChanged = true;
         }
 
-        const content = await provider.downloadFile(file.id);
+        const content = await provider.downloadFile(file.id, SETLISTS_FOLDER);
         try {
           const remoteSetlist = JSON.parse(content);
           if (setlistId) {
@@ -197,14 +200,15 @@ export function createSyncEngine(onStatusChange) {
             lastSyncedTime: file.modifiedTime,
           };
           setlistsChanged = true;
+          pulledSetlistIds.add(setlistId);
         } catch (err) {
           console.error(`Failed to parse setlist JSON "${file.name}":`, err);
         }
       }
     }
 
-    if (songsChanged) await updateSyncManifest(manifest);
-    if (setlistsChanged) await updateSetlistManifest(slManifest);
+    if (songsChanged) await updateSyncManifest(manifest, libraryId);
+    if (setlistsChanged) await updateSetlistManifest(slManifest, libraryId);
 
     const nextTombstones = tombstonesChanged
       ? {
@@ -219,12 +223,14 @@ export function createSyncEngine(onStatusChange) {
       tombstones: nextTombstones,
       tombstonesChanged,
       conflicts,
+      pulledSongIds,
+      pulledSetlistIds,
       changed: songsChanged || setlistsChanged,
     };
   }
 
   async function push(songs, setlists, tombstones = { songs: [], setlists: [] }) {
-    const syncState = await getSyncState();
+    const syncState = await getSyncState(libraryId);
     if (!syncState.activeProvider) return { tombstones, tombstonesChanged: false };
 
     const provider = getProvider(syncState.activeProvider);
@@ -250,7 +256,7 @@ export function createSyncEngine(onStatusChange) {
         }
 
         if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
-          const result = await provider.uploadFile(SONGS_FOLDER, fileName, md, 'text/markdown');
+          const result = await provider.uploadFile(SONGS_FOLDER, fileName, md, 'text/markdown', entry?.remoteId);
           manifest[song.id] = {
             remoteId: result.id,
             remoteName: result.name,
@@ -272,7 +278,7 @@ export function createSyncEngine(onStatusChange) {
       }
     }
 
-    await updateSyncManifest(manifest);
+    await updateSyncManifest(manifest, libraryId);
 
     // Push setlists (each as individual .json file)
     for (const sl of setlists) {
@@ -290,7 +296,7 @@ export function createSyncEngine(onStatusChange) {
         }
 
         if (!entry || entry.lastSyncedHash !== hash || entry.remoteName !== fileName) {
-          const result = await provider.uploadFile(SETLISTS_FOLDER, fileName, json, 'application/json');
+          const result = await provider.uploadFile(SETLISTS_FOLDER, fileName, json, 'application/json', entry?.remoteId);
           slManifest[sl.id] = {
             remoteId: result.id,
             remoteName: result.name,
@@ -312,7 +318,7 @@ export function createSyncEngine(onStatusChange) {
       }
     }
 
-    await updateSetlistManifest(slManifest);
+    await updateSetlistManifest(slManifest, libraryId);
 
     // Drop tombstones whose remote file has been fully deleted
     const prunedSongTs = (tombstones.songs || []).filter(t => manifest[t.id]);
@@ -339,7 +345,7 @@ export function createSyncEngine(onStatusChange) {
         const pushResult = await push(pullResult.songs, pullResult.setlists, pullResult.tombstones);
 
         const lastSync = new Date().toISOString();
-        const syncState = await getSyncState();
+        const syncState = await getSyncState(libraryId);
         setStatus('synced', { lastSync, provider: syncState.activeProvider });
 
         return {
@@ -359,7 +365,7 @@ export function createSyncEngine(onStatusChange) {
     debouncedPush(songs, setlists, tombstones = { songs: [], setlists: [] }, onTombstonesPruned) {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {
-        const syncState = await getSyncState();
+        const syncState = await getSyncState(libraryId);
         if (!syncState.activeProvider) return;
 
         setStatus('syncing');
