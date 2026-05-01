@@ -90,6 +90,17 @@ export default function NewSongModal({
           <Tabs tabs={TABS} activeTab={tab} onTabChange={setTab} />
         </div>
 
+        {(tab === 'import' || tab === 'paste') && (
+          <div
+            className="px-5 py-2 border-b border-[var(--ds-gray-300)] text-label-11 text-[var(--ds-gray-700)]"
+            style={{ background: 'var(--ds-gray-100)' }}
+          >
+            You're responsible for ensuring you have a license to copy the
+            content you import (e.g. CCLI, SongSelect, PraiseCharts, or original
+            material).
+          </div>
+        )}
+
         {tab === 'import' && (
           <ImportTab
             isMobile={isMobile}

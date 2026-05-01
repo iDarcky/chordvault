@@ -6,14 +6,14 @@ const FORMAT_OPTIONS = [
   { value: 'auto', label: 'Auto-detect' },
   { value: 'chordpro', label: 'ChordPro' },
   { value: 'opensong', label: 'OpenSong' },
-  { value: 'ultimate-guitar', label: 'Ultimate Guitar' },
+  { value: 'ultimate-guitar', label: 'Chord-over-lyric' },
   { value: 'plain', label: 'Plain lyrics' },
 ];
 
 const FORMAT_LABEL = {
   chordpro: 'ChordPro',
   opensong: 'OpenSong',
-  'ultimate-guitar': 'Ultimate Guitar',
+  'ultimate-guitar': 'Chord-over-lyric',
   plain: 'Plain lyrics',
 };
 

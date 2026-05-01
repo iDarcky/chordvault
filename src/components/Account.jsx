@@ -9,6 +9,7 @@ import {
   StatCards,
 } from './account/AccountPanel';
 import { useAuth } from '../auth/useAuth';
+import { clearAll } from '../storage';
 
 const NAME_MAX = 15;
 
@@ -26,7 +27,7 @@ export default function Account({
   onCreateAccount,
   onSignOut,
 }) {
-  const { profile, updateProfile, updatePassword } = useAuth();
+  const { profile, updateProfile, updatePassword, deleteAccount } = useAuth();
   // Prefer the cloud display_name so the input matches what the rest of the UI
   // shows for signed-in users; fall back to the local userName for guests.
   const savedName = (isSignedIn ? profile?.display_name : settings?.userName) || settings?.userName || '';
@@ -35,6 +36,11 @@ export default function Account({
   const [newPassword, setNewPassword] = useState('');
   const [passBusy, setPassBusy] = useState(false);
   const [passMessage, setPassMessage] = useState(null);
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
     setDraftName(savedName);
@@ -50,6 +56,27 @@ export default function Account({
       } catch (err) {
         console.warn('[account] display_name sync failed:', err?.message || err);
       }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm.trim().toLowerCase() !== (displayEmail || '').trim().toLowerCase()) {
+      setDeleteError('Email does not match.');
+      return;
+    }
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount();
+      // Wipe any device-local library so a different user signing in on this
+      // device doesn't inherit the deleted account's songs/setlists.
+      try { await clearAll(); } catch { /* best-effort */ }
+      try { localStorage.removeItem('setlists-md:last-email'); } catch { /* ignore */ }
+      // Sign out — server-side session is already invalid.
+      try { await onSignOut?.(); } catch { /* ignore */ }
+    } catch (err) {
+      setDeleteError(err.message || 'Could not delete account. Email legal@setlists.md for help.');
+      setDeleteBusy(false);
     }
   };
 
@@ -191,6 +218,97 @@ export default function Account({
           )}
         </div>
         <StatCards songCount={songCount} setlistCount={setlistCount} tone="drawer" />
+
+        {isSignedIn && (
+          <div
+            className="rounded-xl border p-4 flex flex-col gap-3"
+            style={{ background: 'var(--drawer-surface)', borderColor: 'var(--ds-red-border, var(--drawer-border))' }}
+          >
+            <div className="flex flex-col">
+              <span className="text-copy-14 font-medium" style={{ color: 'var(--drawer-text)' }}>
+                Delete account
+              </span>
+              <span className="text-copy-13" style={{ color: 'var(--drawer-text-muted)' }}>
+                Permanently removes your account, profile, team memberships, and any
+                cloud-synced data. Local files on this device are also wiped. This
+                cannot be undone.
+              </span>
+            </div>
+            {!deleteOpen ? (
+              <button
+                onClick={() => { setDeleteOpen(true); setDeleteConfirm(''); setDeleteError(null); }}
+                className="self-start h-8 px-3 rounded-lg text-copy-13 font-medium border cursor-pointer"
+                style={{
+                  background: 'transparent',
+                  borderColor: 'var(--ds-red-border, var(--drawer-border))',
+                  color: 'var(--ds-red-1000, var(--drawer-text))',
+                }}
+              >
+                Delete my account…
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <span className="text-copy-13" style={{ color: 'var(--drawer-text)' }}>
+                  Type <strong>{displayEmail || 'your email'}</strong> to confirm.
+                </span>
+                <input
+                  type="email"
+                  value={deleteConfirm}
+                  onChange={e => setDeleteConfirm(e.target.value)}
+                  placeholder={displayEmail || 'you@example.com'}
+                  autoComplete="off"
+                  className="h-8 px-3 rounded-lg border outline-none text-copy-14"
+                  style={{
+                    background: 'var(--drawer-surface)',
+                    borderColor: 'var(--drawer-border)',
+                    color: 'var(--drawer-text)',
+                  }}
+                />
+                {deleteError && (
+                  <div
+                    className="text-copy-12 px-2 py-1 rounded"
+                    style={{ background: 'var(--ds-red-100)', color: 'var(--ds-red-1000)' }}
+                  >
+                    {deleteError}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleteBusy}
+                    className="h-8 px-3 rounded-lg text-copy-13 font-medium border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ background: 'var(--ds-red-1000, #b00020)', color: '#fff' }}
+                  >
+                    {deleteBusy ? 'Deleting…' : 'Permanently delete'}
+                  </button>
+                  <button
+                    onClick={() => { setDeleteOpen(false); setDeleteConfirm(''); setDeleteError(null); }}
+                    disabled={deleteBusy}
+                    className="h-8 px-3 rounded-lg text-copy-13 font-medium border cursor-pointer"
+                    style={{
+                      background: 'transparent',
+                      borderColor: 'var(--drawer-border)',
+                      color: 'var(--drawer-text)',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="text-label-11" style={{ color: 'var(--drawer-text-muted)' }}>
+              Prefer to delete via email? Write to{' '}
+              <a
+                href="mailto:legal@setlists.md?subject=Account%20deletion%20request"
+                className="underline underline-offset-4"
+                style={{ color: 'var(--drawer-text)' }}
+              >
+                legal@setlists.md
+              </a>
+              .
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
