@@ -104,7 +104,7 @@ function buildTiers() {
     {
       id: 'church',
       name: 'Church',
-      price: '$49',
+      price: '$24',
       interval: '/mo',
       altPrice: 'up to 30 members',
       tagline: 'Full suite for multi-service churches',
