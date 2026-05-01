@@ -39,28 +39,6 @@ function buildPersonalHook({ instruments = [], useCase }) {
 function buildTiers() {
   return [
     {
-      id: 'free',
-      name: 'Free',
-      price: '$0',
-      interval: '',
-      altPrice: 'always free',
-      tagline: 'Local-only, no account needed',
-      featured: false,
-      badge: null,
-      features: [
-        'Unlimited songs & setlists',
-        'Full chord chart renderer',
-        'Transpose + capo calculator',
-        'Bluetooth pedal support',
-        'Import ChordPro / OnSong',
-        'Offline / PWA — works without internet',
-        'Export to .zip (manual backup)',
-      ],
-      cta: "Start free",
-      ctaVariant: 'secondary',
-      ctaAction: 'free',
-    },
-    {
       id: 'pro',
       name: 'Pro',
       price: '$29',
@@ -196,7 +174,7 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
           {/* Hero */}
           <div className="modes-card-strong p-6 sm:p-8 flex flex-col gap-3 text-center">
             <h1 className="text-heading-32 font-bold text-[var(--modes-text)] m-0 leading-tight">
-              Pick the plan that fits your stage.
+              Upgrade your plan.
             </h1>
             <p className="text-copy-15 text-[var(--modes-text-muted)] m-0 max-w-lg mx-auto">
               {personalHook}
@@ -212,7 +190,7 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
               Billing goes live in v1.1
             </h3>
             <p className="text-copy-13 text-[var(--modes-text-muted)] m-0 mb-4">
-              Drop your email — first 200 sign-ups lock in 50% off when billing goes live.
+              Billing isn't live yet. Drop your email and we'll let you know the moment it is.
             </p>
 
             {joined ? (
@@ -242,7 +220,7 @@ export default function PricingScreen({ onBack, onSignIn, settings }) {
           </div>
 
           {/* Tier cards */}
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {tiers.map(tier => (
               <div
                 key={tier.id}
