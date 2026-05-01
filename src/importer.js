@@ -4,6 +4,8 @@
 // Supported formats:
 //  - ChordPro (CCLI / OnSong / most worship apps) — bracketed inline chords,
 //    directive-based metadata and section markers.
+//  - OpenSong — XML wrapper with a `<lyrics>` block using `.chord` / ` lyric`
+//    column-aligned lines and `[V1]` / `[C]` section markers.
 //  - Ultimate Guitar "above-the-lyrics" — chord line followed by lyric line.
 //  - Plain lyrics — fallback. One section, no chords, user adds chords later.
 
@@ -174,6 +176,11 @@ export function chordLineOnly(chordLine) {
 
 export function detectFormat(text) {
   if (!text || !text.trim()) return 'plain';
+
+  // OpenSong is XML with a <song> root and a <lyrics> child.
+  if (/<song[\s>][\s\S]*<lyrics[\s>]/i.test(text)) {
+    return 'opensong';
+  }
 
   // Strong ChordPro markers.
   if (/\{(title|artist|key|tempo|composer|capo|time|album|ccli|comment|c|sov|soc|sob|sot|start_of_verse|start_of_chorus|start_of_bridge|start_of_tab)\s*[:\s}]/im.test(text)) {
@@ -450,6 +457,152 @@ export function convertPlain(text) {
   }) + bodyText;
 }
 
+// ─── OpenSong (XML) ────────────────────────────────────────────────
+
+// OpenSong section codes → our canonical section base names.
+const OPENSONG_SECTION_MAP = {
+  V: 'Verse',
+  C: 'Chorus',
+  B: 'Bridge',
+  P: 'Pre Chorus',
+  T: 'Tag',
+  I: 'Intro',
+  E: 'Ending',
+  IN: 'Interlude',
+  O: 'Other',
+};
+
+// Tiny regex-based XML reader for OpenSong files. The format is a flat
+// `<song>` root with leaf-text children, so a full DOM parser is overkill —
+// and DOMParser isn't available in the node test environment.
+function decodeXmlEntities(s) {
+  return s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
+    .replace(/&amp;/g, '&');
+}
+
+function readXmlField(text, tag) {
+  const re = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
+  const m = text.match(re);
+  if (!m) return '';
+  // Strip optional CDATA wrapper, decode entities.
+  const inner = m[1].replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/i, '$1');
+  return decodeXmlEntities(inner).trim();
+}
+
+export function convertOpenSong(text) {
+  // Cheap structural validation: must contain <song> root and <lyrics> body.
+  if (!/<song[\s>]/i.test(text) || !/<lyrics[\s>]/i.test(text) || !/<\/lyrics>/i.test(text)) {
+    throw new Error('Invalid OpenSong XML');
+  }
+
+  const meta = {
+    title: readXmlField(text, 'title'),
+    artist: readXmlField(text, 'author'),
+    key: readXmlField(text, 'key'),
+    tempo: readXmlField(text, 'tempo'),
+    time: readXmlField(text, 'time_sig'),
+    capo: readXmlField(text, 'capo'),
+    ccli: readXmlField(text, 'ccli'),
+  };
+
+  const lyricsRaw = readXmlField(text, 'lyrics');
+  const lines = lyricsRaw.split('\n');
+  const body = [];
+  const typeCounts = {};
+  let currentSection = null;
+
+  const nextSectionLabel = (base) => {
+    typeCounts[base] = (typeCounts[base] || 0) + 1;
+    const needsNumber = ['Verse', 'Chorus', 'Bridge', 'Pre Chorus'].includes(base);
+    return needsNumber ? `${base} ${typeCounts[base]}` : base;
+  };
+
+  const ensureSection = () => {
+    if (currentSection) return;
+    const label = nextSectionLabel('Verse');
+    body.push('', `## ${label}`);
+    currentSection = label;
+  };
+
+  // Strip the leading marker char (`.` for chord, ` ` for lyric) so column
+  // positions still line up with each other after the strip.
+  const stripChord = (l) => l.replace(/^\./, '');
+  const stripLyric = (l) => l.replace(/^[ \t]/, '');
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const trimmed = raw.trim();
+
+    if (!trimmed) {
+      if (body.length > 0 && body[body.length - 1] !== '') body.push('');
+      continue;
+    }
+
+    // OpenSong section marker: [V1], [C], [B 1], [O]
+    const section = trimmed.match(/^\[([A-Za-z]+)\s*(\d+)?\s*\]$/);
+    if (section) {
+      const code = section[1].toUpperCase();
+      const base = OPENSONG_SECTION_MAP[code] || OPENSONG_SECTION_MAP[code[0]] || 'Verse';
+      const label = nextSectionLabel(base);
+      body.push('', `## ${label}`);
+      currentSection = label;
+      continue;
+    }
+
+    // Comment line.
+    if (trimmed.startsWith(';')) {
+      ensureSection();
+      body.push(`> ${trimmed.slice(1).trim()}`);
+      continue;
+    }
+
+    // Chord line — pair with the next ` ` or digit-prefixed lyric line.
+    if (raw.startsWith('.')) {
+      const chordLine = stripChord(raw);
+      const next = lines[i + 1] ?? '';
+      // OpenSong lyric lines start with a space or a digit (verse number).
+      if (next && (next.startsWith(' ') || /^\d/.test(next)) && !next.startsWith('.')) {
+        const lyricLine = stripLyric(next.replace(/^\d+/, ' '));
+        ensureSection();
+        body.push(mergeChordAndLyric(chordLine, lyricLine));
+        i++;
+        continue;
+      }
+      ensureSection();
+      body.push(chordLineOnly(chordLine));
+      continue;
+    }
+
+    // Lyric line — leading space or per-verse digit prefix.
+    if (raw.startsWith(' ') || /^\d/.test(raw)) {
+      ensureSection();
+      body.push(stripLyric(raw.replace(/^\d+/, ' ')));
+      continue;
+    }
+
+    // Unknown line — drop into the section as-is.
+    ensureSection();
+    body.push(trimmed);
+  }
+
+  const bodyText = body.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+  return frontmatter({
+    title: meta.title || 'Untitled',
+    artist: meta.artist || '',
+    key: meta.key || 'C',
+    tempo: meta.tempo || 120,
+    time: meta.time || '4/4',
+    capo: meta.capo,
+    ccli: meta.ccli,
+  }) + bodyText;
+}
+
 // ─── Entry point ───────────────────────────────────────────────────
 
 export function smartImport(text, formatOverride = null) {
@@ -458,6 +611,7 @@ export function smartImport(text, formatOverride = null) {
 
   let md;
   if (format === 'chordpro') md = convertChordPro(text);
+  else if (format === 'opensong') md = convertOpenSong(text);
   else if (format === 'ultimate-guitar') md = convertUltimateGuitar(text);
   else md = convertPlain(text);
 

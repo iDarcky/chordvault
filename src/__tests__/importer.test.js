@@ -10,6 +10,7 @@ import {
   convertChordPro,
   convertUltimateGuitar,
   convertPlain,
+  convertOpenSong,
   smartImport,
 } from '../importer';
 import { parseSongMd } from '../parser';
@@ -267,6 +268,85 @@ Hook line`;
     const md = convertPlain(src);
     expect(md).toContain('## Verse 1');
     expect(md).toContain('## Chorus');
+  });
+});
+
+describe('detectFormat — OpenSong', () => {
+  it('detects an OpenSong XML body', () => {
+    const xml = `<?xml version="1.0"?>
+<song>
+  <title>Test</title>
+  <lyrics>[V1]
+.G    D
+ hello world
+</lyrics>
+</song>`;
+    expect(detectFormat(xml)).toBe('opensong');
+  });
+});
+
+describe('convertOpenSong', () => {
+  it('extracts metadata + chord/lyric pairs', () => {
+    const xml = `<?xml version="1.0"?>
+<song>
+  <title>Amazing Grace</title>
+  <author>John Newton</author>
+  <key>G</key>
+  <tempo>72</tempo>
+  <time_sig>3/4</time_sig>
+  <ccli>22025</ccli>
+  <lyrics>[V1]
+.G          D          Em        C
+ Amazing grace, how sweet the sound
+.G       D         G
+ That saved a wretch like me
+
+[C]
+.C         G
+ My chains are gone
+</lyrics>
+</song>`;
+    const md = convertOpenSong(xml);
+    const song = parseSongMd(md);
+    expect(song.title).toBe('Amazing Grace');
+    expect(song.artist).toBe('John Newton');
+    expect(song.key).toBe('G');
+    expect(song.tempo).toBe(72);
+    expect(song.time).toBe('3/4');
+    expect(song.ccli).toBe('22025');
+    const labels = song.sections.map(s => s.label || s.type);
+    expect(labels).toContain('Verse 1');
+    expect(labels).toContain('Chorus 1');
+    // Inline chords made it through.
+    expect(md).toMatch(/\[G\]/);
+    expect(md).toMatch(/\[D\]/);
+  });
+
+  it('maps section letter codes', () => {
+    const xml = `<song><title>T</title><lyrics>[B 2]
+ bridge line
+[T]
+ tag line
+[I]
+ intro line
+</lyrics></song>`;
+    const md = convertOpenSong(xml);
+    expect(md).toMatch(/## Bridge/);
+    expect(md).toMatch(/## Tag/);
+    expect(md).toMatch(/## Intro/);
+  });
+
+  it('preserves comments as band cues', () => {
+    const xml = `<song><title>T</title><lyrics>[V1]
+;Soft, slow build
+ the lyric line
+</lyrics></song>`;
+    const md = convertOpenSong(xml);
+    expect(md).toMatch(/> Soft, slow build/);
+  });
+
+  it('throws on malformed XML', () => {
+    expect(() => convertOpenSong('<song><lyrics>oops')).toThrow();
   });
 });
 
