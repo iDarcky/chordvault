@@ -979,6 +979,7 @@ export default function App() {
           )}
           {view === 'editor' && (
             <Editor
+              key={currentSong?.id || 'new'}
               song={currentSong}
               onSave={handleSaveSong}
               onBack={importQueue ? handleSkipQueueSong : goBack}
