@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SongCard from './SongCard';
+import { DesktopLibraryTable } from './DesktopLibraryTable';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Chip } from './ui/Chip';
@@ -108,17 +109,16 @@ export default function Dashboard({
 
   return (
     <div
-      className="min-h-screen pb-[140px] sm:pb-8"
-      data-theme-variant="modes"
+      className="min-h-screen pb-[140px] sm:pb-8 sm:bg-[var(--notion-bg)] sm:text-[var(--notion-text-main)]"
     >
 
       {/* Dashboard Header: Welcome + Search + Actions */}
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 pt-6 sm:pt-10 pb-4 sm:pb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-heading-40 text-[var(--modes-text)] m-0">
-            Welcome, <span className="italic font-serif text-[var(--modes-text)]">{userName}</span>
+          <h1 className="text-heading-40 text-[var(--modes-text)] sm:text-[var(--notion-text-main)] m-0">
+            Welcome, <span className="italic font-serif text-[var(--modes-text)] sm:text-[var(--notion-text-main)]">{userName}</span>
           </h1>
-          <p className="text-copy-16 text-[var(--modes-text-muted)] mt-1">
+          <p className="text-copy-16 text-[var(--modes-text-muted)] sm:text-[var(--notion-text-dim)] mt-1">
             {dateStr}
           </p>
         </div>
@@ -132,6 +132,7 @@ export default function Dashboard({
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
+              className="sm:bg-[var(--notion-bg-hover)] sm:border-[var(--notion-border)] sm:text-[var(--notion-text-main)] sm:placeholder:text-[var(--notion-text-dim)]"
               prefix={
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
                   <circle cx="11" cy="11" r="8" />
@@ -204,7 +205,7 @@ export default function Dashboard({
         {/* Pending Requests */}
         {user && schedules?.filter(s => s.user_id === user.id && s.availability === 'pending').length > 0 && (
           <section className="flex flex-col gap-3 sm:gap-4">
-            <h2 className="text-heading-20 font-bold text-[var(--modes-text)]">
+            <h2 className="text-heading-20 font-bold text-[var(--modes-text)] sm:text-[var(--notion-text-main)]">
               Pending Requests
             </h2>
             <div className="flex flex-col gap-3">
@@ -216,11 +217,12 @@ export default function Dashboard({
                   return (
                     <div 
                       key={schedule.id}
-                      className="modes-card p-4 flex items-center justify-between"
+                      className="modes-card sm:border sm:rounded-lg sm:bg-[var(--notion-bg)] p-4 flex items-center justify-between"
+                      style={{ borderColor: 'var(--notion-border)' }}
                     >
                       <div className="flex flex-col">
-                        <span className="text-copy-16 font-bold">{sl.name}</span>
-                        <span className="text-label-13 text-[var(--modes-text-muted)]">
+                        <span className="text-copy-16 font-bold sm:text-[var(--notion-text-main)]">{sl.name}</span>
+                        <span className="text-label-13 text-[var(--modes-text-muted)] sm:text-[var(--notion-text-dim)]">
                           {new Date(sl.date + 'T' + (sl.time || '00:00')).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} • {schedule.role}
                         </span>
                       </div>
@@ -250,14 +252,14 @@ export default function Dashboard({
         {/* Upcoming Setlists */}
         <section className="flex flex-col gap-3 sm:gap-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-heading-20 font-bold text-[var(--modes-text)]">
+            <h2 className="text-heading-20 font-bold text-[var(--modes-text)] sm:text-[var(--notion-text-main)]">
               Upcoming Setlists
             </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onGoSetlists}
-              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-white/5"
+              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-[var(--notion-bg-hover)] border-none"
             >
               View All
             </Button>
@@ -266,39 +268,49 @@ export default function Dashboard({
           <div>
             {upcomingSetlists.length > 0 ? (
               <div
-                className="modes-card-strong flex flex-col md:flex-row w-full overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35)] h-auto md:h-64 cursor-pointer group transition-transform duration-150 active:scale-[0.99]"
+                className="modes-card-strong sm:border sm:rounded-lg flex flex-col md:flex-row w-full overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35)] sm:shadow-none sm:bg-[var(--notion-bg)] h-auto md:h-64 cursor-pointer group transition-transform duration-150 active:scale-[0.99] sm:active:scale-100"
                 onClick={() => onViewSetlist(upcomingSetlists[0])}
-                style={{ WebkitTapHighlightColor: 'transparent' }}
+                style={{ WebkitTapHighlightColor: 'transparent', borderColor: 'var(--notion-border)' }}
               >
-                {/* Left part (Branded Gradient) */}
-                <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#3a1a3b] h-28 md:h-full relative overflow-hidden">
-                   <div className="absolute inset-0 bg-black/10"></div>
+                {/* Left part (Branded Gradient - Mobile only, image placeholder desktop) */}
+                <div className="w-full md:w-1/3 bg-gradient-to-br from-[var(--color-brand)] to-[#3a1a3b] sm:bg-none sm:bg-[var(--notion-bg-hover)] h-28 md:h-full relative overflow-hidden flex items-center justify-center border-r border-[var(--notion-border)]">
+                   <div className="absolute inset-0 bg-black/10 sm:hidden"></div>
+                   <div className="hidden sm:flex items-center justify-center text-[var(--notion-text-dim)]">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6" />
+                        <line x1="8" y1="12" x2="21" y2="12" />
+                        <line x1="8" y1="18" x2="21" y2="18" />
+                        <line x1="3" y1="6" x2="3.01" y2="6" />
+                        <line x1="3" y1="12" x2="3.01" y2="12" />
+                        <line x1="3" y1="18" x2="3.01" y2="18" />
+                      </svg>
+                   </div>
                 </div>
 
                 {/* Right part (Details) */}
-                <div className="flex-1 p-5 md:p-8 flex flex-col justify-center group-hover:bg-white/[0.02] transition-colors">
+                <div className="flex-1 p-5 md:p-8 flex flex-col justify-center sm:hover:bg-[var(--notion-bg-hover)] group-hover:bg-white/[0.02] transition-colors">
                   {/* Tags */}
                   <div className="flex items-center gap-2 mb-3">
                     {upcomingSetlists[0].tags && upcomingSetlists[0].tags.length > 0 ? (
                       upcomingSetlists[0].tags.slice(0,2).map(tag => (
-                        <Chip key={tag} variant="success" size="sm">
+                        <Chip key={tag} variant="success" size="sm" className="sm:bg-[var(--notion-bg-hover)] sm:text-[var(--notion-text-dim)] sm:border sm:border-[var(--notion-border)]">
                           {tag}
                         </Chip>
                       ))
                     ) : (
-                      <Chip variant="success" size="sm">
+                      <Chip variant="success" size="sm" className="sm:bg-[var(--notion-bg-hover)] sm:text-[var(--notion-text-dim)] sm:border sm:border-[var(--notion-border)]">
                         Live Show
                       </Chip>
                     )}
                   </div>
 
                   {/* Setlist Name */}
-                  <h3 className="text-heading-24 md:text-[32px] md:leading-[36px] font-bold text-[var(--modes-text)] m-0 mb-3 tracking-tight">
+                  <h3 className="text-heading-24 md:text-[32px] md:leading-[36px] font-bold text-[var(--modes-text)] sm:text-[var(--notion-text-main)] m-0 mb-3 tracking-tight">
                     {upcomingSetlists[0].name || "Untitled Setlist"}
                   </h3>
 
                   {/* Time & Location */}
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-[var(--modes-text-muted)] mb-6 font-medium">
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-14 text-[var(--modes-text-muted)] sm:text-[var(--notion-text-dim)] mb-6 font-medium">
                     <div className="flex items-center gap-2">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                       {formatDateFriendly(upcomingSetlists[0].date)} • {formatTimeFriendly(upcomingSetlists[0].time)}
@@ -319,15 +331,15 @@ export default function Dashboard({
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="mr-2"><path d="M8 5v14l11-7z"/></svg>
                       Play Live
                     </Button>
-                    <div className="text-label-13 text-[var(--modes-text-dim)] font-medium">
+                    <div className="text-label-13 text-[var(--modes-text-dim)] sm:text-[var(--notion-text-dim)] font-medium">
                       {upcomingSetlists[0].items.length} Songs • 1h 45m
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="modes-card py-14 text-center flex flex-col items-center gap-3 border-dashed">
-                <p className="text-copy-14 text-[var(--modes-text-muted)] font-medium">
+              <div className="modes-card sm:border sm:rounded-lg sm:bg-[var(--notion-bg)] py-14 text-center flex flex-col items-center gap-3 border-dashed" style={{ borderColor: 'var(--notion-border)' }}>
+                <p className="text-copy-14 text-[var(--modes-text-muted)] sm:text-[var(--notion-text-dim)] font-medium">
                   No upcoming setlists.
                 </p>
               </div>
@@ -338,20 +350,44 @@ export default function Dashboard({
         {/* Recently Edited */}
         <section className="flex flex-col gap-3 sm:gap-4 sm:mt-2">
           <div className="flex justify-between items-center text-left">
-            <h2 className="text-heading-20 font-bold text-[var(--modes-text)]">
+            <h2 className="text-heading-20 font-bold text-[var(--modes-text)] sm:text-[var(--notion-text-main)]">
               Recently Edited
             </h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onGoLibrary}
-              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-white/5"
+              className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-[var(--notion-bg-hover)] border-none"
             >
               Full Library
             </Button>
           </div>
 
-          <div className="modes-card overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
+          <div className="hidden sm:block border rounded-lg overflow-hidden" style={{ borderColor: 'var(--notion-border)' }}>
+            {latestSongs.length > 0 ? (
+              <DesktopLibraryTable
+                songs={latestSongs}
+                onSelectSong={onSelectSong}
+                sortMode="date"
+                sortAsc={false}
+                onSortToggle={() => {}}
+                selectedIds={[]}
+                onSelectIds={() => {}}
+                hideCheckboxes={true}
+              />
+            ) : (
+              <div className="py-14 text-center flex flex-col items-center gap-3 bg-[var(--notion-bg)]">
+                <p className="text-copy-14 text-[var(--notion-text-dim)] font-medium">
+                  Your library is empty.
+                </p>
+                <Button variant="brand" size="sm" onClick={onNewSong}>
+                  Add Your First Song
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="sm:hidden modes-card overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
             {latestSongs.map(song => (
               <SongCard
                 key={song.id}

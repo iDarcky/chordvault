@@ -83,7 +83,7 @@ const Row = ({ label, children, description }) => (
 
 // ─── Hub row — drills into a sub-panel ───────────────────────────────────
 
-function HubRow({ icon: Icon, label, value, onClick }) {
+function HubRow({ label, value, onClick }) {
   return (
     <button
       type="button"
@@ -92,7 +92,6 @@ function HubRow({ icon: Icon, label, value, onClick }) {
       style={{ background: 'transparent', WebkitTapHighlightColor: 'transparent' }}
     >
       <span className="text-[var(--modes-text-muted)] shrink-0">
-        <Icon />
       </span>
       <span className="flex-1 min-w-0 flex flex-col">
         <span className="text-copy-15 text-[var(--modes-text)] font-medium">{label}</span>
@@ -168,6 +167,24 @@ function AppearancePanel({ settings, update, isSignedIn }) {
 function ChartPanel({ settings, update }) {
   return (
     <Section subtitle="How charts are laid out and which elements are visible by default.">
+      <Row label="Header Style" description="Choose the top header layout.">
+        <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
+          {[
+            { key: 'classic', label: 'Classic' },
+            { key: 'notion', label: 'Document' },
+          ].map(({ key, label }) => (
+            <Button
+              key={key}
+              size="sm"
+              variant={settings.headerStyle === key ? 'secondary' : 'ghost'}
+              onClick={() => update('headerStyle', key)}
+              className={settings.headerStyle === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+      </Row>
       <Row label="Chart Flow" description="How sections fill when using 2 columns.">
         <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
           {[

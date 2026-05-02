@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import TeamBanner from './TeamBanner';
 import { cn } from '../lib/utils';
@@ -36,28 +36,14 @@ export default function DesktopLayout({
     }
   }, [activeView]);
 
-  const cols = isFullscreen
-    ? 'grid-cols-1'
-    : 'grid-cols-1 sm:grid-cols-[80px_1fr] xl:grid-cols-[280px_1fr]';
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // We are removing the sm/xl grid cols and instead controlling layout with flex and sidebar width
   const showBanner = activeLibrary !== 'personal' && team;
 
   return (
     <div className="w-full h-[100dvh] flex flex-col overflow-hidden">
-      {/* 
-        The banner sits at the very top of the entire app viewport.
-        Only visible on desktop here; mobile handles it inside MobileTopBar 
-        to ensure it stays above the search bar as requested.
-      */}
-      {showBanner && (
-        <TeamBanner 
-          teamName={team.name} 
-          onChangeWorkspace={onChangeWorkspace}
-          className="hidden sm:flex" 
-        />
-      )}
-
-      <div className={cn('flex-1 w-full grid overflow-hidden', cols)}>
+      <div className="flex-1 w-full flex overflow-hidden">
         {!isFullscreen && (
           <Sidebar 
             activeView={activeView} 
@@ -74,6 +60,8 @@ export default function DesktopLayout({
             team={team} 
             syncState={syncState}
             isOnline={isOnline}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
           />
         )}
         {/*
@@ -86,7 +74,7 @@ export default function DesktopLayout({
         */}
         <main
           ref={mainRef}
-          className="h-full overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] relative w-full transition-transform duration-300 ease-out"
+          className="flex-1 min-w-0 h-full overflow-y-auto overscroll-contain bg-[var(--ds-background-100)] relative transition-transform duration-300 ease-out"
           style={{
             transform: applyDrawerTransform ? 'translateX(72%) scale(0.92)' : undefined,
             transformOrigin: 'left center',
@@ -95,6 +83,21 @@ export default function DesktopLayout({
             boxShadow: applyDrawerTransform ? '0 30px 60px rgba(0,0,0,0.45)' : undefined,
           }}
         >
+          {/* Hamburger Menu for expanding sidebar when collapsed - Desktop Only */}
+          {!isFullscreen && !sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="absolute top-4 left-4 z-50 p-2 hidden sm:flex items-center justify-center rounded-md text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] transition-colors cursor-pointer border-none bg-transparent"
+              aria-label="Expand sidebar"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+          )}
+
           {children}
           {/* Mobile Spacer: Guaranteed scrollable space to prevent bottom-nav obstruction */}
           {!hideBottomSpacer && (

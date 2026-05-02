@@ -91,6 +91,7 @@ const PORTABLE_PREF_KEYS = [
   'displayRole',
   'duplicateSections',
   'chartLayout',
+  'headerStyle',
   'userName',
 ];
 
@@ -1149,6 +1150,7 @@ export default function App() {
                 displayRole: settings?.displayRole || 'leader',
                 duplicateSections: settings?.duplicateSections || 'full',
                 chartLayout: settings?.chartLayout || 'columns',
+                headerStyle: settings?.headerStyle || 'notion',
               }}
             />
           )}
@@ -1193,6 +1195,7 @@ export default function App() {
               displayRole={settings?.displayRole || 'leader'}
               duplicateSections={settings?.duplicateSections || 'full'}
               chartLayout={settings?.chartLayout || 'columns'}
+              headerStyle={settings?.headerStyle || 'notion'}
               onTransposed={() => {
                 if (!settings?.firstTransposed) {
                   setSettings(prev => ({ ...prev, firstTransposed: true }));

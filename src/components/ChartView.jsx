@@ -25,6 +25,7 @@ export default function ChartView({
   showInlineNotes = true, inlineNoteStyle = 'dashes',
   displayRole = 'leader', duplicateSections = 'full',
   chartLayout = 'columns',
+  headerStyle = 'notion', // 'classic' or 'notion'
   isFullscreen = false, onToggleFullscreen,
   onTransposed,
 }) {
@@ -45,6 +46,7 @@ export default function ChartView({
   const scrollContainerRef = useRef(null);
 
   const transpose = semitonesBetween(song.key, selectedKey);
+  const isNotion = headerStyle === 'notion';
 
   // Notify parent the first time a user transposes this song. Used by the
   // onboarding checklist to mark the "Transpose a song" task complete.
@@ -118,22 +120,32 @@ export default function ChartView({
     <div
       ref={scrollContainerRef}
       className={cn(
-        "h-screen overflow-y-auto overflow-x-hidden bg-[var(--ds-background-100)]",
+        "h-full overflow-y-auto overscroll-contain w-full text-left font-sans transition-colors duration-200",
+        isNotion ? "bg-[var(--notion-bg)]" : "bg-[var(--ds-background-100)]",
         isPreview && "h-auto overflow-visible bg-transparent"
       )}
     >
       {/* ── Sticky Header ── */}
       {!isPreview && (
-        <div className="material-header transition-all duration-200">
+        <div className={cn(
+          "transition-all duration-200 z-10 sticky top-0",
+          isNotion ? "bg-[var(--notion-bg)] border-b" : "material-header"
+        )} style={{ borderColor: isNotion ? 'var(--notion-border)' : undefined }}>
           {/* Line 1: Title + meta (compact) or Title only (expanded) + buttons */}
           <div className="a4-container flex items-center justify-between pt-3 pb-1 gap-3">
             <div className="min-w-0 flex-1 flex items-center gap-3">
-              <h1 className={cn(
-                "text-[var(--text-1)] m-0 truncate transition-all duration-200",
-                scrolled ? "text-heading-16" : "text-heading-24"
-              )}>{song.title}</h1>
-              {/* Inline meta — visible only in compact mode */}
-              {scrolled && (
+              {!isNotion ? (
+                <h1 className={cn(
+                  "text-[var(--text-1)] m-0 truncate transition-all duration-200",
+                  scrolled ? "text-heading-16" : "text-heading-24"
+                )}>{song.title}</h1>
+              ) : (
+                <div className={cn("transition-all duration-200", scrolled ? "opacity-100" : "opacity-0")}>
+                  <h1 className="text-[var(--notion-text-main)] m-0 text-heading-16 font-bold truncate">{song.title}</h1>
+                </div>
+              )}
+              {/* Inline meta — visible only in compact mode (or scrolled in Notion) */}
+              {scrolled && !isNotion && (
                 <div className="flex items-center gap-2 flex-shrink-0 text-label-12 text-[var(--text-2)]">
                   <span className="text-[var(--text-2)] text-[12px] opacity-60">•</span>
                   <span className="font-bold text-[var(--text-1)]">{selectedKey}</span>
@@ -193,8 +205,8 @@ export default function ChartView({
                   variant={isFullscreen ? 'active' : 'default'}
                   size="sm"
                   onClick={onToggleFullscreen}
-                  aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                  title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                  aria-label={isFullscreen ? 'Exit fullscreen' : 'Expand to full screen'}
+                  title={isFullscreen ? 'Exit fullscreen' : 'Expand to full screen'}
                 >
                   {isFullscreen ? (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -205,10 +217,10 @@ export default function ChartView({
                     </svg>
                   ) : (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 8V3h5" />
-                      <path d="M21 8V3h-5" />
-                      <path d="M3 16v5h5" />
-                      <path d="M21 16v5h-5" />
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <polyline points="9 21 3 21 3 15"></polyline>
+                      <line x1="21" y1="3" x2="14" y2="10"></line>
+                      <line x1="3" y1="21" x2="10" y2="14"></line>
                     </svg>
                   )}
                 </IconButton>
@@ -222,42 +234,44 @@ export default function ChartView({
           </div>
 
           {/* Line 2: Artist + Key / Tempo / Time — collapses when scrolled */}
-          <div className={cn(
-            "a4-container flex flex-wrap items-center gap-3 transition-all duration-200 overflow-hidden",
-            scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-12 opacity-100 pb-1.5"
-          )}>
-            <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
-            <div className="w-px h-3.5 bg-[var(--border-1)]" />
-            <Select value={selectedKey} onValueChange={setSelectedKey}>
-              <SelectTrigger className="h-6 px-1.5 border-transparent bg-transparent text-label-14 font-bold text-[var(--text-1)] hover:bg-[var(--bg-2)] gap-1 min-w-0 w-auto focus:ring-0">
-                <span className="text-label-12 font-semibold text-[var(--text-2)] mr-0.5">Key</span>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ALL_KEYS.map(k => {
-                  const st = semitonesBetween(song.key, k);
-                  const display = st > 6 ? st - 12 : st;
-                  return (
-                    <SelectItem key={k} value={k}>
-                      {k} {st !== 0 && `(${display > 0 ? '+' : ''}${display})`}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            {song.tempo && (
-              <span className="text-label-14 text-[var(--text-2)]">
-                <span className="text-label-12 font-semibold mr-0.5">Tempo</span>
-                <span className="font-bold">{song.tempo}</span>
-              </span>
-            )}
-            {song.time && (
-              <span className="text-label-14 text-[var(--text-2)]">
-                <span className="text-label-12 font-semibold mr-0.5">Time</span>
-                <span className="font-bold">{song.time}</span>
-              </span>
-            )}
-          </div>
+          {!isNotion && (
+            <div className={cn(
+              "a4-container flex flex-wrap items-center gap-3 transition-all duration-200 overflow-hidden",
+              scrolled ? "max-h-0 opacity-0 pb-0" : "max-h-12 opacity-100 pb-1.5"
+            )}>
+              <span className="text-copy-14 text-[var(--text-2)]">{song.artist}</span>
+              <div className="w-px h-3.5 bg-[var(--border-1)]" />
+              <Select value={selectedKey} onValueChange={setSelectedKey}>
+                <SelectTrigger className="h-6 px-1.5 border-transparent bg-transparent text-label-14 font-bold text-[var(--text-1)] hover:bg-[var(--bg-2)] gap-1 min-w-0 w-auto focus:ring-0">
+                  <span className="text-label-12 font-semibold text-[var(--text-2)] mr-0.5">Key</span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ALL_KEYS.map(k => {
+                    const st = semitonesBetween(song.key, k);
+                    const display = st > 6 ? st - 12 : st;
+                    return (
+                      <SelectItem key={k} value={k}>
+                        {k} {st !== 0 && `(${display > 0 ? '+' : ''}${display})`}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              {song.tempo && (
+                <span className="text-label-14 text-[var(--text-2)]">
+                  <span className="text-label-12 font-semibold mr-0.5">Tempo</span>
+                  <span className="font-bold">{song.tempo}</span>
+                </span>
+              )}
+              {song.time && (
+                <span className="text-label-14 text-[var(--text-2)]">
+                  <span className="text-label-12 font-semibold mr-0.5">Time</span>
+                  <span className="font-bold">{song.time}</span>
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Structure ribbon — always visible */}
           <div className="a4-container pb-2">
@@ -359,6 +373,56 @@ export default function ChartView({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Notion Document Header */}
+      {isNotion && !isPreview && (
+        <div className="a4-container pt-12 pb-8 flex flex-col gap-6">
+          <h1 className="text-heading-56 font-bold m-0 tracking-tight" style={{ color: 'var(--notion-text-main)' }}>
+            {song.title}
+          </h1>
+
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-label-14 font-semibold w-16" style={{ color: 'var(--notion-text-dim)' }}>Artist</span>
+              <span className="text-label-14" style={{ color: 'var(--notion-text-main)' }}>{song.artist || 'Unknown'}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-label-14 font-semibold w-16" style={{ color: 'var(--notion-text-dim)' }}>Key</span>
+              <Select value={selectedKey} onValueChange={setSelectedKey}>
+                <SelectTrigger className="h-7 px-2 border-transparent bg-[var(--notion-bg-hover)] text-label-14 font-medium text-[var(--notion-text-main)] hover:opacity-80 gap-1 min-w-0 w-auto focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ALL_KEYS.map(k => {
+                    const st = semitonesBetween(song.key, k);
+                    const display = st > 6 ? st - 12 : st;
+                    return (
+                      <SelectItem key={k} value={k}>
+                        {k} {st !== 0 && `(${display > 0 ? '+' : ''}${display})`}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {song.tempo && (
+              <div className="flex items-center gap-2">
+                <span className="text-label-14 font-semibold w-16" style={{ color: 'var(--notion-text-dim)' }}>Tempo</span>
+                <span className="text-label-14" style={{ color: 'var(--notion-text-main)' }}>{song.tempo}</span>
+              </div>
+            )}
+
+            {song.time && (
+              <div className="flex items-center gap-2">
+                <span className="text-label-14 font-semibold w-16" style={{ color: 'var(--notion-text-dim)' }}>Time</span>
+                <span className="text-label-14" style={{ color: 'var(--notion-text-main)' }}>{song.time}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
