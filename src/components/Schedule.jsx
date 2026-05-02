@@ -5,9 +5,17 @@ import RecurringPicker from './schedule/RecurringPicker';
 import ScheduleListView from './schedule/ScheduleListView';
 import ScheduleCalendarView from './schedule/ScheduleCalendarView';
 import RosterPanel from './setlist/RosterPanel';
+import DateStatusModal from './schedule/DateStatusModal';
 import { useTeam } from '../auth/useTeam';
 import { useAuth } from '../auth/useAuth';
 import { useTeamAvailability } from '../hooks/useTeamAvailability';
+
+function toLocalDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 const MOBILE_QUERY = '(max-width: 639px)';
 
@@ -34,17 +42,37 @@ export default function Schedule({ setlists, onBack, onOpenSetlist }) {
   const [userPick, setUserPick] = useState(null); // null = follow screen size
   const [weeksAhead, setWeeksAhead] = useState(8);
   const [rosterSetlist, setRosterSetlist] = useState(null);
+  const [pickerDate, setPickerDate] = useState(null);
 
   // Default tracks the screen size; user's explicit pick wins once made.
   const viewMode = userPick ?? (isMobile ? 'list' : 'calendar');
   const handleSetView = (next) => setUserPick(next);
 
-  const handleCycleStatus = async (date, next) => {
+  const pickerDateStr = pickerDate ? toLocalDateStr(pickerDate) : null;
+  const pickerStatus = pickerDateStr
+    ? availability.find(a => a.user_id === user?.id && a.date === pickerDateStr)?.status || null
+    : null;
+  const pickerAvailableCount = pickerDateStr
+    ? availability.filter(a => a.date === pickerDateStr && a.status === 'available').length
+    : 0;
+
+  const handleSetStatus = async (status) => {
+    if (!pickerDate) return;
     try {
-      if (next) await setStatus(date, next);
-      else await clearStatus(date);
+      await setStatus(pickerDate, status);
+      setPickerDate(null);
     } catch (err) {
-      console.error('[schedule] cycle availability failed:', err);
+      console.error('[schedule] set availability failed:', err);
+    }
+  };
+
+  const handleClearStatus = async () => {
+    if (!pickerDate) return;
+    try {
+      await clearStatus(pickerDate);
+      setPickerDate(null);
+    } catch (err) {
+      console.error('[schedule] clear availability failed:', err);
     }
   };
 
@@ -98,7 +126,7 @@ export default function Schedule({ setlists, onBack, onOpenSetlist }) {
             members={members}
             userId={user?.id}
             isAdmin={isAdmin}
-            onCycleStatus={handleCycleStatus}
+            onSelectDate={(date) => setPickerDate(date)}
             onOpenSetlist={(sl) => onOpenSetlist?.(sl)}
             onOpenRoster={(sl) => setRosterSetlist(sl)}
           />
@@ -109,7 +137,7 @@ export default function Schedule({ setlists, onBack, onOpenSetlist }) {
             members={members}
             userId={user?.id}
             isAdmin={isAdmin}
-            onCycleStatus={handleCycleStatus}
+            onSelectDate={(date) => setPickerDate(date)}
             onOpenSetlist={(sl) => onOpenSetlist?.(sl)}
             onOpenRoster={(sl) => setRosterSetlist(sl)}
           />
@@ -130,6 +158,18 @@ export default function Schedule({ setlists, onBack, onOpenSetlist }) {
             />
           </div>
         </div>
+      )}
+
+      {pickerDate && (
+        <DateStatusModal
+          date={pickerDate}
+          currentStatus={pickerStatus}
+          availableCount={pickerAvailableCount}
+          totalMembers={members.length}
+          onSetStatus={handleSetStatus}
+          onClear={handleClearStatus}
+          onClose={() => setPickerDate(null)}
+        />
       )}
     </div>
   );

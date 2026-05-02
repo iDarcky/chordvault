@@ -10,12 +10,6 @@ function toLocalDateStr(date) {
   return `${y}-${m}-${d}`;
 }
 
-function nextStatus(curr) {
-  if (curr === 'available') return 'unavailable';
-  if (curr === 'unavailable') return null;
-  return 'available';
-}
-
 function statusDotClass(status) {
   if (status === 'available') return 'bg-[var(--ds-green-600)]';
   if (status === 'unavailable') return 'bg-[var(--ds-gray-500)]';
@@ -42,8 +36,8 @@ function buildMonthGrid(year, monthIdx) {
 
 /**
  * Renders the schedule as a month grid with prev/next chevrons.
- * Past dates are visible but read-only. Tap a day to cycle the user's
- * own availability; tap the setlist pill to open it / edit roster.
+ * Past dates are visible but read-only. Tap a day to open the
+ * status picker; tap the setlist pill to open it / edit roster.
  */
 export default function ScheduleCalendarView({
   setlists,
@@ -51,7 +45,7 @@ export default function ScheduleCalendarView({
   members,
   userId,
   isAdmin,
-  onCycleStatus,
+  onSelectDate,
   onOpenSetlist,
   onOpenRoster,
 }) {
@@ -129,7 +123,7 @@ export default function ScheduleCalendarView({
               key={idx}
               type="button"
               disabled={!interactive}
-              onClick={() => interactive ? onCycleStatus(date, nextStatus(myStatus)) : null}
+              onClick={() => interactive ? onSelectDate(date) : null}
               className={`relative aspect-square flex flex-col items-stretch justify-between rounded-lg border p-1.5 text-left transition-colors ${cellBg} ${opacity} ${interactive ? 'hover:bg-[var(--ds-gray-100)] cursor-pointer' : 'cursor-default'}`}
             >
               <div className="flex items-center justify-between">

@@ -21,12 +21,6 @@ function statusLabel(status) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-function nextStatus(curr) {
-  if (curr === 'available') return 'unavailable';
-  if (curr === 'unavailable') return null;
-  return 'available';
-}
-
 function relativeLabel(date, today) {
   const days = Math.round((date - today) / (1000 * 60 * 60 * 24));
   if (days === 0) return 'Today';
@@ -49,7 +43,7 @@ export default function ScheduleListView({
   members,
   userId,
   isAdmin,
-  onCycleStatus,
+  onSelectDate,
   onOpenSetlist,
   onOpenRoster,
 }) {
@@ -88,7 +82,6 @@ export default function ScheduleListView({
         const rel = relativeLabel(date, today);
         const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
         const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const next = nextStatus(myStatus);
 
         return (
           <div
@@ -98,9 +91,9 @@ export default function ScheduleListView({
             <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={() => onCycleStatus(date, next)}
+                onClick={() => onSelectDate(date)}
                 className="flex items-center gap-3 text-left bg-transparent border-none p-0 cursor-pointer min-w-0 flex-1"
-                aria-label={`Mark ${dayLabel} ${next || 'unset'}`}
+                aria-label={`Set availability for ${dayLabel}`}
               >
                 <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-[var(--ds-background-200)] border border-[var(--ds-gray-300)] shrink-0">
                   <span className="text-label-11 uppercase tracking-wider text-[var(--ds-gray-600)] leading-none">
@@ -119,11 +112,13 @@ export default function ScheduleListView({
                   </span>
                 </div>
               </button>
-              <span
-                className={`text-label-12 px-2.5 py-1 rounded-full border shrink-0 ${statusPillClasses(myStatus)}`}
+              <button
+                type="button"
+                onClick={() => onSelectDate(date)}
+                className={`text-label-12 px-2.5 py-1 rounded-full border shrink-0 cursor-pointer hover:opacity-80 transition-opacity ${statusPillClasses(myStatus)}`}
               >
                 {statusLabel(myStatus)}
-              </span>
+              </button>
             </div>
 
             {slOnDay.map(sl => (

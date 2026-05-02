@@ -2,11 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../auth/supabase';
 import { useAuth } from '../auth/useAuth';
 
-// Convert a Date or YYYY-MM-DD string to YYYY-MM-DD.
+// Convert a Date or YYYY-MM-DD string to YYYY-MM-DD using LOCAL components.
+// `Date#toISOString()` shifts to UTC, which silently writes to the previous
+// day for users in any positive timezone — see the UTC-shift bug fixed
+// in 50e71a2's follow-up.
 function toDateStr(d) {
   if (!d) return null;
   if (typeof d === 'string') return d.slice(0, 10);
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function useTeamAvailability(teamId) {
