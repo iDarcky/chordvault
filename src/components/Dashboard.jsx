@@ -21,6 +21,7 @@ export default function Dashboard({
   onPlaySetlist,
   onGoLibrary,
   onGoSetlists,
+  onOpenSchedule,
   hasCloud,
   checklistActions,
   onDismissChecklist,
@@ -28,15 +29,7 @@ export default function Dashboard({
   const { team } = useTeam();
   const { user } = useAuth();
   const { schedules, updateSchedule } = useTeamSchedules(team?.id);
-  const { availability, setStatus, clearStatus } = useTeamAvailability(team?.id);
-
-  const handleToggleAvailability = (date, next) => {
-    if (next) {
-      setStatus(date, next).catch(err => console.error(err));
-    } else {
-      clearStatus(date).catch(err => console.error(err));
-    }
-  };
+  const { availability } = useTeamAvailability(team?.id);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -203,7 +196,7 @@ export default function Dashboard({
               userId={user.id}
               onDateClick={onViewSetlist}
               availability={team ? availability : null}
-              onToggleAvailability={team ? handleToggleAvailability : undefined}
+              onOpenSchedule={team ? onOpenSchedule : undefined}
             />
           </section>
         )}

@@ -71,6 +71,7 @@ const AuthCallback = lazy(() => import('./components/auth/AuthCallback'));
 const RecoveryScreen = lazy(() => import('./components/auth/RecoveryScreen'));
 const PricingScreen = lazy(() => import('./components/PricingScreen'));
 const TeamScreen = lazy(() => import('./components/TeamScreen'));
+const Schedule = lazy(() => import('./components/Schedule'));
 const WakeLockExplainer = lazy(() => import('./components/WakeLockExplainer'));
 const AccountWall = lazy(() => import('./components/AccountWall'));
 const FounderNote = lazy(() => import('./components/FounderNote'));
@@ -706,6 +707,7 @@ export default function App() {
   };
   const goSetlistPractice = (sl) => navigate('setlist-practice', { setlist: sl });
   const goTeam = () => goToMainView('team');
+  const goSchedule = () => navigate('schedule');
 
   // Song CRUD
   const handleSaveSong = (song) => {
@@ -1068,7 +1070,7 @@ export default function App() {
       )}
       {!['onboarding', 'signin', 'upgrade', 'recovery'].includes(view) && (
         <DesktopLayout 
-          activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view} 
+          activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view === 'schedule' ? 'home' : view}
           onNavigate={goToMainView} 
           isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || (isFullscreen && (view === 'library' || view === 'setlists'))} 
           hasUnreadNotifications={hasUnreadNotifications} 
@@ -1114,6 +1116,7 @@ export default function App() {
               onPlaySetlist={goSetlistPerformance}
               onGoLibrary={goLibrary}
               onGoSetlists={goSetlists}
+              onOpenSchedule={goSchedule}
               hasCloud={!!syncState?.provider}
               checklistActions={{
                 openFirstSong: () => {
@@ -1339,6 +1342,13 @@ export default function App() {
               onBack={goBack}
               onUpgrade={() => navigate('pricing')}
               onSwitchLibrary={setActiveLibrary}
+            />
+          )}
+          {view === 'schedule' && (
+            <Schedule
+              setlists={setlists}
+              onBack={goBack}
+              onOpenSetlist={goSetlistView}
             />
           )}
           {['home', 'library', 'setlists', 'settings', 'account', 'team', 'setlist-view'].includes(view) && (

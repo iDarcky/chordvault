@@ -1,15 +1,7 @@
 import React, { useRef } from 'react';
 import { Button } from './Button';
 
-// Cycle: none → available → unavailable → none
-function nextAvailability(curr) {
-  if (curr === 'available') return 'unavailable';
-  if (curr === 'unavailable') return null;
-  return 'available';
-}
-
 function toLocalDateStr(date) {
-  // Use local date (not UTC) so "today" matches the user's calendar.
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
@@ -22,7 +14,7 @@ export function CalendarWidget({
   userId,
   onDateClick,
   availability,
-  onToggleAvailability,
+  onOpenSchedule,
 }) {
   const scrollRef = useRef(null);
 
@@ -47,15 +39,10 @@ export function CalendarWidget({
   // Helper to get schedules and setlists for a specific date
   const getDataForDate = (date) => {
     const dateStr = toLocalDateStr(date);
-
-    // Find all setlists on this date
     const daySetlists = setlists.filter(sl => sl.date === dateStr);
-
-    // Find any user schedules tied to these setlists
     const daySchedules = schedules?.filter(s =>
       s.user_id === userId && daySetlists.some(sl => sl.id === s.setlist_id)
     ) || [];
-
     return { daySetlists, daySchedules };
   };
 
@@ -67,21 +54,27 @@ export function CalendarWidget({
     if (scrollRef.current) scrollRef.current.scrollBy({ left: 200, behavior: 'smooth' });
   };
 
-  const canMarkAvailability = typeof onToggleAvailability === 'function';
-
   return (
     <div className="w-full flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="text-heading-20 font-bold text-[var(--modes-text)]">
           My Schedule
         </h2>
-        <div className="flex items-center gap-1 hidden sm:flex">
-          <Button variant="ghost" size="sm" onClick={scrollLeft} className="px-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-          </Button>
-          <Button variant="ghost" size="sm" onClick={scrollRight} className="px-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-          </Button>
+        <div className="flex items-center gap-1">
+          {onOpenSchedule && (
+            <Button variant="ghost" size="sm" onClick={onOpenSchedule} className="text-[var(--color-brand)] hover:text-[var(--color-brand)] hover:bg-white/5">
+              View full schedule
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-1"><path d="m9 18 6-6-6-6"/></svg>
+            </Button>
+          )}
+          <div className="hidden sm:flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={scrollLeft} className="px-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={scrollRight} className="px-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -97,9 +90,10 @@ export function CalendarWidget({
             const myAvail = myAvailabilityFor(date);
             const hasSetlist = daySetlists.length > 0;
 
-            // Determine status (setlist takes priority over availability)
-            let status = 'none'; // none, pending, available, playing, avail-yes, avail-no
-            let roles = [];
+            // Determine status. Setlist takes priority; otherwise show
+            // standalone availability so members get a visual confirmation
+            // that their declared availability "stuck".
+            let status = 'none';
 
             if (hasSetlist) {
               if (daySchedules.length > 0) {
@@ -107,12 +101,7 @@ export function CalendarWidget({
                 if (s.availability === 'pending') status = 'pending';
                 else if (s.availability === 'available') status = 'playing';
                 else if (s.availability === 'maybe') status = 'maybe';
-                if (s.role) roles.push(s.role);
               } else {
-                // Setlist exists but user isn't explicitly scheduled.
-                // In personal mode, they are "playing" their own setlists.
-                // In team mode, maybe they aren't on the roster.
-                // We'll mark as 'playing' if no schedules are passed in at all (personal mode)
                 status = schedules ? 'none' : 'playing';
               }
             } else if (myAvail === 'available') {
@@ -121,7 +110,6 @@ export function CalendarWidget({
               status = 'avail-no';
             }
 
-            // Visual styling based on status
             let bgClass = "bg-[var(--ds-background-200)] border-[var(--ds-gray-300)]";
             let textClass = "text-[var(--ds-gray-900)]";
             let dotClass = "bg-transparent";
@@ -146,28 +134,11 @@ export function CalendarWidget({
               dotClass = "bg-[var(--ds-gray-500)]";
             }
 
-            const handleClick = () => {
-              if (hasSetlist) {
-                if (onDateClick) onDateClick(daySetlists[0]);
-              } else if (canMarkAvailability) {
-                onToggleAvailability(date, nextAvailability(myAvail));
-              }
-            };
-
-            const interactive = hasSetlist || canMarkAvailability;
-
             return (
               <button
                 key={i}
-                onClick={handleClick}
-                className={`snap-start shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-2xl border transition-transform duration-150 active:scale-95 ${bgClass} ${interactive ? 'cursor-pointer hover:shadow-md' : 'cursor-default opacity-80'}`}
-                title={
-                  hasSetlist
-                    ? 'Open setlist'
-                    : canMarkAvailability
-                      ? (myAvail === 'available' ? 'Mark unavailable' : myAvail === 'unavailable' ? 'Clear availability' : 'Mark available')
-                      : ''
-                }
+                onClick={() => hasSetlist && onDateClick ? onDateClick(daySetlists[0]) : null}
+                className={`snap-start shrink-0 flex flex-col items-center justify-center w-16 h-20 rounded-2xl border transition-transform duration-150 active:scale-95 ${bgClass} ${hasSetlist ? 'cursor-pointer hover:shadow-md' : 'cursor-default opacity-80'}`}
               >
                 <span className={`text-label-12 font-semibold uppercase tracking-wider mb-1 ${status !== 'none' ? textClass : 'text-[var(--ds-gray-500)]'}`}>
                   {date.toLocaleDateString('en-US', { weekday: 'short' })}
@@ -189,28 +160,6 @@ export function CalendarWidget({
         <div className="absolute top-0 bottom-4 left-0 w-8 bg-gradient-to-r from-[var(--ds-background-100)] to-transparent pointer-events-none sm:hidden"></div>
         <div className="absolute top-0 bottom-4 right-0 w-8 bg-gradient-to-l from-[var(--ds-background-100)] to-transparent pointer-events-none"></div>
       </div>
-
-      {canMarkAvailability && (
-        <div className="flex items-center gap-3 text-label-11 text-[var(--ds-gray-600)] flex-wrap">
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-brand)]"></span>
-            Playing
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--ds-green-600)]"></span>
-            Available
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--ds-orange-600)]"></span>
-            Pending
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--ds-gray-500)]"></span>
-            Unavailable
-          </span>
-          <span className="opacity-70 ml-auto">Tap an empty day to mark availability</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,0 +1,179 @@
+import { useMemo, useState } from 'react';
+import { Button } from '../ui/Button';
+
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function toLocalDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function nextStatus(curr) {
+  if (curr === 'available') return 'unavailable';
+  if (curr === 'unavailable') return null;
+  return 'available';
+}
+
+function statusDotClass(status) {
+  if (status === 'available') return 'bg-[var(--ds-green-600)]';
+  if (status === 'unavailable') return 'bg-[var(--ds-gray-500)]';
+  if (status === 'maybe') return 'bg-[var(--ds-orange-600)]';
+  return 'bg-transparent';
+}
+
+/**
+ * Generate the 6-row × 7-col grid (42 cells) for a given month.
+ * Includes leading/trailing days from adjacent months so the grid is whole.
+ */
+function buildMonthGrid(year, monthIdx) {
+  const firstOfMonth = new Date(year, monthIdx, 1);
+  const start = new Date(firstOfMonth);
+  start.setDate(start.getDate() - firstOfMonth.getDay()); // Sunday-aligned
+  const cells = [];
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    cells.push(d);
+  }
+  return cells;
+}
+
+/**
+ * Renders the schedule as a month grid with prev/next chevrons.
+ * Past dates are visible but read-only. Tap a day to cycle the user's
+ * own availability; tap the setlist pill to open it / edit roster.
+ */
+export default function ScheduleCalendarView({
+  setlists,
+  availability,
+  members,
+  userId,
+  isAdmin,
+  onCycleStatus,
+  onOpenSetlist,
+  onOpenRoster,
+}) {
+  const today = useMemo(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }, []);
+
+  const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const cells = useMemo(
+    () => buildMonthGrid(cursor.getFullYear(), cursor.getMonth()),
+    [cursor],
+  );
+
+  const monthLabel = cursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const prev = () => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1));
+  const next = () => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1));
+  const goToday = () => setCursor(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const myAvailFor = (dateStr) =>
+    availability?.find(a => a.user_id === userId && a.date === dateStr)?.status || null;
+
+  const setlistsFor = (dateStr) => setlists.filter(sl => sl.date === dateStr);
+
+  const availableCountFor = (dateStr) =>
+    availability?.filter(a => a.date === dateStr && a.status === 'available').length || 0;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" onClick={prev} aria-label="Previous month" className="px-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+        </Button>
+        <div className="flex items-center gap-2">
+          <h3 className="text-heading-18 m-0 text-[var(--ds-gray-1000)]">
+            {monthLabel}
+          </h3>
+          <Button variant="ghost" size="xs" onClick={goToday}>Today</Button>
+        </div>
+        <Button variant="ghost" size="sm" onClick={next} aria-label="Next month" className="px-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 text-center">
+        {WEEKDAY_LABELS.map(label => (
+          <span key={label} className="text-label-11 uppercase tracking-wider text-[var(--ds-gray-600)] py-2">
+            {label}
+          </span>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((date, idx) => {
+          const dateStr = toLocalDateStr(date);
+          const inMonth = date.getMonth() === cursor.getMonth();
+          const isPast = date < today;
+          const isToday = date.getTime() === today.getTime();
+          const myStatus = myAvailFor(dateStr);
+          const slOnDay = setlistsFor(dateStr);
+          const availCount = availableCountFor(dateStr);
+
+          const cellBg = isToday
+            ? 'border-[var(--color-brand)] bg-[var(--ds-background-100)]'
+            : 'border-[var(--ds-gray-200)] bg-[var(--ds-background-100)]';
+
+          const opacity = inMonth ? '' : 'opacity-40';
+          const interactive = !isPast;
+
+          return (
+            <button
+              key={idx}
+              type="button"
+              disabled={!interactive}
+              onClick={() => interactive ? onCycleStatus(date, nextStatus(myStatus)) : null}
+              className={`relative aspect-square flex flex-col items-stretch justify-between rounded-lg border p-1.5 text-left transition-colors ${cellBg} ${opacity} ${interactive ? 'hover:bg-[var(--ds-gray-100)] cursor-pointer' : 'cursor-default'}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className={`text-label-13 ${isToday ? 'font-bold text-[var(--color-brand)]' : 'text-[var(--ds-gray-1000)]'}`}>
+                  {date.getDate()}
+                </span>
+                {myStatus && (
+                  <span className={`w-2 h-2 rounded-full ${statusDotClass(myStatus)}`} aria-label={myStatus} />
+                )}
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                {slOnDay.length > 0 && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isAdmin) onOpenRoster(slOnDay[0]);
+                      else onOpenSetlist(slOnDay[0]);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.stopPropagation();
+                        if (isAdmin) onOpenRoster(slOnDay[0]);
+                        else onOpenSetlist(slOnDay[0]);
+                      }
+                    }}
+                    className="block text-label-10 px-1 py-0.5 rounded bg-[var(--color-brand)] text-white truncate cursor-pointer hover:opacity-90"
+                    title={slOnDay[0].name}
+                  >
+                    {slOnDay[0].name || 'Setlist'}
+                  </span>
+                )}
+                {isAdmin && availCount > 0 && (
+                  <span className="text-label-10 text-[var(--ds-gray-600)]">
+                    {availCount}/{members.length} avail
+                  </span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

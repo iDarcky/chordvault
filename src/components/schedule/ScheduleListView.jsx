@@ -1,0 +1,177 @@
+import { useMemo } from 'react';
+import { Button } from '../ui/Button';
+import { Chip } from '../ui/Chip';
+
+function toLocalDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function statusPillClasses(status) {
+  if (status === 'available') return 'bg-[var(--ds-green-100)] text-[var(--ds-green-800)] border-[var(--ds-green-300)]';
+  if (status === 'unavailable') return 'bg-[var(--ds-red-100)] text-[var(--ds-red-800)] border-[var(--ds-red-300)]';
+  if (status === 'maybe') return 'bg-[var(--ds-orange-100)] text-[var(--ds-orange-800)] border-[var(--ds-orange-300)]';
+  return 'bg-[var(--ds-gray-100)] text-[var(--ds-gray-700)] border-[var(--ds-gray-300)]';
+}
+
+function statusLabel(status) {
+  if (!status) return 'Set status';
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function nextStatus(curr) {
+  if (curr === 'available') return 'unavailable';
+  if (curr === 'unavailable') return null;
+  return 'available';
+}
+
+function relativeLabel(date, today) {
+  const days = Math.round((date - today) / (1000 * 60 * 60 * 24));
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  if (days === -1) return 'Yesterday';
+  if (days > 0 && days < 7) return `In ${days} days`;
+  if (days < 0 && days > -7) return `${-days} days ago`;
+  return null;
+}
+
+/**
+ * Renders the schedule as a vertical list of upcoming dates.
+ * Defaults to 8 weeks ahead; "Load more" extends in 8-week chunks.
+ */
+export default function ScheduleListView({
+  weeksAhead,
+  onLoadMore,
+  setlists,
+  availability,
+  members,
+  userId,
+  isAdmin,
+  onCycleStatus,
+  onOpenSetlist,
+  onOpenRoster,
+}) {
+  const today = useMemo(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }, []);
+
+  const dates = useMemo(() => {
+    const arr = [];
+    for (let i = 0; i < weeksAhead * 7; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      arr.push(d);
+    }
+    return arr;
+  }, [today, weeksAhead]);
+
+  const myAvailFor = (dateStr) =>
+    availability?.find(a => a.user_id === userId && a.date === dateStr)?.status || null;
+
+  const setlistsFor = (dateStr) => setlists.filter(sl => sl.date === dateStr);
+
+  const availableCountFor = (dateStr) =>
+    availability?.filter(a => a.date === dateStr && a.status === 'available').length || 0;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {dates.map((date, idx) => {
+        const dateStr = toLocalDateStr(date);
+        const myStatus = myAvailFor(dateStr);
+        const slOnDay = setlistsFor(dateStr);
+        const availCount = availableCountFor(dateStr);
+        const isToday = date.getTime() === today.getTime();
+        const rel = relativeLabel(date, today);
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+        const dayLabel = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const next = nextStatus(myStatus);
+
+        return (
+          <div
+            key={idx}
+            className={`p-3 rounded-xl border bg-[var(--ds-background-100)] flex flex-col gap-2 ${isToday ? 'border-[var(--color-brand)]' : 'border-[var(--ds-gray-300)]'}`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => onCycleStatus(date, next)}
+                className="flex items-center gap-3 text-left bg-transparent border-none p-0 cursor-pointer min-w-0 flex-1"
+                aria-label={`Mark ${dayLabel} ${next || 'unset'}`}
+              >
+                <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-[var(--ds-background-200)] border border-[var(--ds-gray-300)] shrink-0">
+                  <span className="text-label-11 uppercase tracking-wider text-[var(--ds-gray-600)] leading-none">
+                    {date.toLocaleDateString('en-US', { month: 'short' })}
+                  </span>
+                  <span className="text-heading-18 leading-none mt-0.5">
+                    {date.getDate()}
+                  </span>
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-copy-14 font-semibold text-[var(--ds-gray-1000)]">
+                    {weekday}
+                  </span>
+                  <span className="text-copy-12 text-[var(--ds-gray-600)]">
+                    {rel || dayLabel}
+                  </span>
+                </div>
+              </button>
+              <span
+                className={`text-label-12 px-2.5 py-1 rounded-full border shrink-0 ${statusPillClasses(myStatus)}`}
+              >
+                {statusLabel(myStatus)}
+              </span>
+            </div>
+
+            {slOnDay.map(sl => (
+              <div
+                key={sl.id}
+                className="flex items-center justify-between gap-3 pl-15 border-t border-dashed border-[var(--ds-gray-300)] pt-2"
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Chip variant="success" size="sm">Setlist</Chip>
+                  <span className="text-copy-13 text-[var(--ds-gray-1000)] font-medium truncate">
+                    {sl.name || 'Untitled Setlist'}
+                  </span>
+                  {sl.time && (
+                    <span className="text-copy-12 text-[var(--ds-gray-600)] shrink-0">
+                      {new Date(`1970-01-01T${sl.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' })}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => isAdmin ? onOpenRoster(sl) : onOpenSetlist(sl)}
+                >
+                  {isAdmin ? 'Edit roster' : 'Open'} →
+                </Button>
+              </div>
+            ))}
+
+            {isAdmin && (
+              <div className="text-label-12 text-[var(--ds-gray-600)] flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                {availCount} of {members.length} available
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <div className="flex justify-center pt-4">
+        <Button variant="secondary" size="sm" onClick={onLoadMore}>
+          Load 8 more weeks
+        </Button>
+      </div>
+    </div>
+  );
+}
