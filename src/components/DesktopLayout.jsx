@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import TeamBanner from './TeamBanner';
 import { cn } from '../lib/utils';
