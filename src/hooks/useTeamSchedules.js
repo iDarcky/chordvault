@@ -15,12 +15,9 @@ export function useTeamSchedules(teamId) {
     try {
       const { data, error: fetchErr } = await supabase
         .from('team_schedules')
-        .select(`
-          *,
-          profiles:user_id ( id, display_name, email )
-        `)
+        .select('*')
         .eq('team_id', teamId);
-      
+
       if (fetchErr) throw fetchErr;
       setSchedules(data || []);
     } catch (err) {
@@ -86,10 +83,7 @@ export function useTeamSchedules(teamId) {
           role,
           availability
         })
-        .select(`
-          *,
-          profiles:user_id ( id, display_name, email )
-        `)
+        .select('*')
         .single();
       
       if (insertErr) throw insertErr;
