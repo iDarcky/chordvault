@@ -58,11 +58,25 @@ export function TeamProvider({ children }) {
 
         if (teamRow) setTeam(teamRow);
 
-        // Load all members.
-        const { data: memberRows } = await supabase
-          .from('team_members')
-          .select('id, user_id, role, joined_at')
-          .eq('team_id', membership.team_id);
+        // Load all members. The instruments column is optional — if the
+        // 20260502_team_planning migration hasn't been applied yet, fall back
+        // to the base select so sign-in continues to work.
+        let memberRows = null;
+        {
+          const { data, error } = await supabase
+            .from('team_members')
+            .select('id, user_id, role, joined_at, instruments')
+            .eq('team_id', membership.team_id);
+          if (error) {
+            const fallback = await supabase
+              .from('team_members')
+              .select('id, user_id, role, joined_at')
+              .eq('team_id', membership.team_id);
+            memberRows = fallback.data;
+          } else {
+            memberRows = data;
+          }
+        }
 
         let membersWithProfiles = memberRows || [];
 
@@ -303,6 +317,28 @@ export function TeamProvider({ children }) {
         if (error) throw error;
         setTeam(data);
         return data;
+      },
+
+      /**
+       * Update the current user's instruments on this team.
+       * @param {string[]} instruments
+       */
+      updateMyInstruments: async (instruments) => {
+        guard();
+        if (!team) throw new Error('No team exists.');
+        const clean = Array.isArray(instruments)
+          ? Array.from(new Set(instruments.map(s => String(s).trim()).filter(Boolean)))
+          : [];
+        const { error } = await supabase
+          .from('team_members')
+          .update({ instruments: clean })
+          .eq('team_id', team.id)
+          .eq('user_id', user.id);
+        if (error) throw error;
+        setMembers(prev => prev.map(m =>
+          m.user_id === user.id ? { ...m, instruments: clean } : m
+        ));
+        return clean;
       },
 
       /**

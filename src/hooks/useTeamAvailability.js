@@ -1,0 +1,128 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../auth/supabase';
+import { useAuth } from '../auth/useAuth';
+
+// Convert a Date or YYYY-MM-DD string to YYYY-MM-DD.
+function toDateStr(d) {
+  if (!d) return null;
+  if (typeof d === 'string') return d.slice(0, 10);
+  return d.toISOString().split('T')[0];
+}
+
+export function useTeamAvailability(teamId) {
+  const { user } = useAuth();
+  const [availability, setAvailability] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchAvailability = useCallback(async () => {
+    if (!teamId || !user || !supabase) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error: fetchErr } = await supabase
+        .from('team_availability')
+        .select('*')
+        .eq('team_id', teamId);
+      if (fetchErr) throw fetchErr;
+      setAvailability(data || []);
+    } catch (err) {
+      console.error('Error fetching availability:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [teamId, user]);
+
+  useEffect(() => {
+    fetchAvailability();
+  }, [fetchAvailability]);
+
+  useEffect(() => {
+    if (!teamId || !supabase) return;
+    const channel = supabase.channel(`team_availability_${teamId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'team_availability', filter: `team_id=eq.${teamId}` },
+        () => { fetchAvailability(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [teamId, fetchAvailability]);
+
+  const setStatus = useCallback(async (date, status) => {
+    if (!teamId || !user) throw new Error('Not signed in to a team.');
+    const dateStr = toDateStr(date);
+    if (!dateStr) throw new Error('Invalid date.');
+    const row = {
+      team_id: teamId,
+      user_id: user.id,
+      date: dateStr,
+      status,
+      updated_at: new Date().toISOString(),
+    };
+    // Optimistic update
+    setAvailability(prev => {
+      const idx = prev.findIndex(a => a.user_id === user.id && a.date === dateStr);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], status };
+        return next;
+      }
+      return [...prev, { id: 'tmp-' + dateStr, ...row }];
+    });
+    const { data, error: upsertErr } = await supabase
+      .from('team_availability')
+      .upsert(row, { onConflict: 'team_id,user_id,date' })
+      .select('*')
+      .single();
+    if (upsertErr) {
+      console.error('Error setting availability:', upsertErr);
+      fetchAvailability();
+      throw upsertErr;
+    }
+    setAvailability(prev => {
+      const idx = prev.findIndex(a => a.user_id === user.id && a.date === dateStr);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = data;
+        return next;
+      }
+      return [...prev, data];
+    });
+    return data;
+  }, [teamId, user, fetchAvailability]);
+
+  const clearStatus = useCallback(async (date) => {
+    if (!teamId || !user) return;
+    const dateStr = toDateStr(date);
+    if (!dateStr) return;
+    setAvailability(prev => prev.filter(a => !(a.user_id === user.id && a.date === dateStr)));
+    const { error: delErr } = await supabase
+      .from('team_availability')
+      .delete()
+      .eq('team_id', teamId)
+      .eq('user_id', user.id)
+      .eq('date', dateStr);
+    if (delErr) {
+      console.error('Error clearing availability:', delErr);
+      fetchAvailability();
+      throw delErr;
+    }
+  }, [teamId, user, fetchAvailability]);
+
+  const getStatus = useCallback((userId, date) => {
+    const dateStr = toDateStr(date);
+    return availability.find(a => a.user_id === userId && a.date === dateStr)?.status || null;
+  }, [availability]);
+
+  return {
+    availability,
+    loading,
+    error,
+    setStatus,
+    clearStatus,
+    getStatus,
+    refresh: fetchAvailability,
+  };
+}

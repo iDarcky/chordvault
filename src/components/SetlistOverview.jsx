@@ -3,8 +3,12 @@ import { transposeKey } from '../music';
 import { Chip } from './ui/Chip';
 import { IconButton } from './ui/IconButton';
 import ExportSetlistDialog from './ExportSetlistDialog';
+import { useTeam } from '../auth/useTeam';
+import RosterPanel from './setlist/RosterPanel';
 
 export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExportZip, onExportPdfOverview, onExportPdfFull, onPlay, onPractice, onDelete, isFullscreen = false, onToggleFullscreen }) {
+  const { team, isAdmin } = useTeam();
+  const [showRoster, setShowRoster] = useState(false);
   const getSong = (id, title) => {
     let s = songs.find(s => s.id === id);
     if (!s && title) s = songs.find(s => s.title === title);
@@ -52,6 +56,19 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
 
   const actionIcons = (
     <div className="flex items-center gap-1 shrink-0">
+      {team && (
+        <IconButton
+          variant={showRoster ? 'active' : 'ghost'}
+          size="sm"
+          onClick={() => setShowRoster(true)}
+          aria-label="View roster"
+          title="View roster"
+        >
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m6-2.13a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm6 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm-12 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Z" />
+          </svg>
+        </IconButton>
+      )}
       <IconButton variant="ghost" size="sm" onClick={() => setExportOpen(true)} aria-label="Export setlist">
         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -306,6 +323,19 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
           onExportPdfOverview={() => { setExportOpen(false); onExportPdfOverview?.(); }}
           onExportPdfFull={() => { setExportOpen(false); onExportPdfFull?.(); }}
         />
+      )}
+
+      {showRoster && team && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-[2px]" onClick={() => setShowRoster(false)}>
+          <div className="h-full" onClick={e => e.stopPropagation()}>
+            <RosterPanel
+              setlistId={setlist.id}
+              setlistDate={setlist.date}
+              onClose={() => setShowRoster(false)}
+              readOnly={!isAdmin}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

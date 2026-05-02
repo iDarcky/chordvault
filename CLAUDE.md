@@ -248,12 +248,29 @@ The theme is applied by an effect in `App.jsx` that sets/clears `document.docume
 The signed-in experience depends on a `profiles` table with columns:
 `id`, `email`, `display_name`, `plan`, `preferences` (JSONB), `updated_at`.
 
-The Teams/Church tier adds two more tables:
+The Teams/Church tier adds these additional tables:
 
 - **`teams`** — `id`, `name`, `location`, `owner_id`, `plan` (team|church),
   `max_seats` (10 for team, 30 for church), `created_at`, `updated_at`.
 - **`team_members`** — `id`, `team_id`, `user_id`, `role` (admin|member),
-  `invited_by`, `joined_at`. Unique constraint on `(team_id, user_id)`.
+  `invited_by`, `joined_at`, `instruments` (text[], default `{}`).
+  Unique constraint on `(team_id, user_id)`. The `instruments` column is the
+  per-team list of what the member plays (e.g. `{Drums, Vocals}`); used by the
+  leader's roster picker to filter and to default a new schedule's role.
+- **`team_schedules`** — `id`, `team_id`, `setlist_id`, `user_id`,
+  `availability` (pending|available|unavailable|maybe), `role`.
+  Unique constraint on `(setlist_id, user_id)`. **Do not** use a nested
+  PostgREST select on `user_id` (e.g. `profiles:user_id(...)`); the
+  relationship isn't exposed in the schema cache. Read with plain
+  `select('*')` and join client-side against `members` from `TeamProvider`
+  (which already enriches each row with `profile`).
+- **`team_availability`** — `id`, `team_id`, `user_id`, `date`,
+  `status` (available|unavailable|maybe), `notes`. Unique on
+  `(team_id, user_id, date)`. Standalone date-based availability,
+  independent of any setlist. Members write only their own row; any team
+  member can read everyone's. Used by `CalendarWidget` (member opts in by
+  tapping empty days) and by `RosterPanel` (leader sorts/filters candidates
+  by who's available on the setlist's date).
 
 RLS policies:
 - Members can view their own team and its roster.
@@ -272,6 +289,12 @@ CLI (`supabase db push`) or copy/paste the SQL into the project's SQL editor.
   cross-device pref sync is a no-op until it is.
 - `20260427_create_teams.sql` — creates the `teams` and `team_members`
   tables with RLS policies. Required for Team/Church tier features.
+- `20260502_team_planning.sql` — adds `team_members.instruments` (text[])
+  and creates the `team_availability` table with RLS. The `TeamProvider`
+  member load gracefully falls back to selecting without `instruments` if
+  the column is missing, so the team library still works before this
+  migration is applied — but the roster picker won't see instruments and
+  the dashboard calendar's availability marking is a no-op.
 
 RLS must allow each user to `select`/`update` their own profile row
 (typical policy: `auth.uid() = id`).

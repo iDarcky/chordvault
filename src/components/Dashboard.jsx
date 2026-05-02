@@ -7,6 +7,7 @@ import ProgressChecklist from '../onboarding/ProgressChecklist';
 import { CalendarWidget } from './ui/CalendarWidget';
 import { useTeam } from '../auth/useTeam';
 import { useTeamSchedules } from '../hooks/useTeamSchedules';
+import { useTeamAvailability } from '../hooks/useTeamAvailability';
 import { useAuth } from '../auth/useAuth';
 
 export default function Dashboard({
@@ -27,6 +28,15 @@ export default function Dashboard({
   const { team } = useTeam();
   const { user } = useAuth();
   const { schedules, updateSchedule } = useTeamSchedules(team?.id);
+  const { availability, setStatus, clearStatus } = useTeamAvailability(team?.id);
+
+  const handleToggleAvailability = (date, next) => {
+    if (next) {
+      setStatus(date, next).catch(err => console.error(err));
+    } else {
+      clearStatus(date).catch(err => console.error(err));
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -187,11 +197,13 @@ export default function Dashboard({
         {/* My Schedule Calendar Widget */}
         {user && (
           <section className="flex flex-col gap-3 sm:gap-4 -mt-2 mb-2">
-            <CalendarWidget 
-              setlists={setlists} 
-              schedules={schedules} 
-              userId={user.id} 
+            <CalendarWidget
+              setlists={setlists}
+              schedules={schedules}
+              userId={user.id}
               onDateClick={onViewSetlist}
+              availability={team ? availability : null}
+              onToggleAvailability={team ? handleToggleAvailability : undefined}
             />
           </section>
         )}

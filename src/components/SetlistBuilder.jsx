@@ -322,9 +322,10 @@ export default function SetlistBuilder({ songs, setlist, onSave, onBack, onDelet
       {showRoster && setlist && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-[2px]" onClick={() => setShowRoster(false)}>
           <div className="h-full" onClick={e => e.stopPropagation()}>
-            <RosterPanel 
-              setlistId={setlist.id} 
-              onClose={() => setShowRoster(false)} 
+            <RosterPanel
+              setlistId={setlist.id}
+              setlistDate={date}
+              onClose={() => setShowRoster(false)}
             />
           </div>
         </div>
