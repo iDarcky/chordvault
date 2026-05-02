@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '../lib/utils';
 
-export function DesktopLibraryTable({ songs, onSelectSong, sortMode, sortAsc, onSortToggle, selectedIds, onSelectIds, onEditSongTitle, onEditSongArtist, onEditSongKey }) {
+export function DesktopLibraryTable({ songs, onSelectSong, sortMode, sortAsc, onSortToggle, selectedIds, onSelectIds, onEditSongTitle, onEditSongArtist, onEditSongKey, hideCheckboxes = false }) {
   const [hoveredId, setHoveredId] = useState(null);
 
   // Track editing state
@@ -99,15 +99,20 @@ export function DesktopLibraryTable({ songs, onSelectSong, sortMode, sortAsc, on
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-[40px_minmax(200px,2fr)_minmax(150px,1.5fr)_80px_minmax(150px,1fr)] gap-4 px-4 py-2 border-b" style={{ borderColor: 'var(--notion-border)' }}>
-        <div className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            checked={songs.length > 0 && selectedIds.length === songs.length}
-            onChange={toggleAll}
-            className="w-4 h-4 rounded border-[var(--notion-border)] cursor-pointer accent-[var(--color-brand)]"
-          />
-        </div>
+      <div className={cn(
+        "grid gap-4 px-4 py-2 border-b",
+        hideCheckboxes ? "grid-cols-[minmax(200px,2fr)_minmax(150px,1.5fr)_80px_minmax(150px,1fr)]" : "grid-cols-[40px_minmax(200px,2fr)_minmax(150px,1.5fr)_80px_minmax(150px,1fr)]"
+      )} style={{ borderColor: 'var(--notion-border)' }}>
+        {!hideCheckboxes && (
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              checked={songs.length > 0 && selectedIds.length === songs.length}
+              onChange={toggleAll}
+              className="w-4 h-4 rounded border-[var(--notion-border)] cursor-pointer accent-[var(--color-brand)]"
+            />
+          </div>
+        )}
         <button className="flex items-center text-[12px] font-semibold uppercase tracking-wider text-[var(--notion-text-dim)] bg-transparent border-none cursor-pointer hover:text-[var(--notion-text-main)] transition-colors text-left" onClick={() => onSortToggle('title')}>
           Title {renderSortIcon('title')}
         </button>
@@ -134,21 +139,24 @@ export function DesktopLibraryTable({ songs, onSelectSong, sortMode, sortAsc, on
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => onSelectSong(song)}
               className={cn(
-                "grid grid-cols-[40px_minmax(200px,2fr)_minmax(150px,1.5fr)_80px_minmax(150px,1fr)] gap-4 px-4 py-2.5 border-b cursor-pointer transition-colors group",
+                "grid gap-4 px-4 py-2.5 border-b cursor-pointer transition-colors group",
+                hideCheckboxes ? "grid-cols-[minmax(200px,2fr)_minmax(150px,1.5fr)_80px_minmax(150px,1fr)]" : "grid-cols-[40px_minmax(200px,2fr)_minmax(150px,1.5fr)_80px_minmax(150px,1fr)]",
                 isSelected ? "bg-[var(--notion-bg-hover)]" : "hover:bg-[var(--notion-bg-hover)]"
               )}
               style={{ borderColor: 'var(--notion-border)' }}
             >
-              <div className="flex items-center justify-center h-full" onClick={(e) => e.stopPropagation()}>
-                <div className={cn("transition-opacity duration-150", (isHovered || isSelected) ? "opacity-100" : "opacity-0")}>
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleOne(song.id)}
-                    className="w-4 h-4 rounded border-[var(--notion-border)] cursor-pointer accent-[var(--color-brand)]"
-                  />
+              {!hideCheckboxes && (
+                <div className="flex items-center justify-center h-full" onClick={(e) => e.stopPropagation()}>
+                  <div className={cn("transition-opacity duration-150", (isHovered || isSelected) ? "opacity-100" : "opacity-0")}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleOne(song.id)}
+                      className="w-4 h-4 rounded border-[var(--notion-border)] cursor-pointer accent-[var(--color-brand)]"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="flex items-center overflow-hidden" title="Double click to edit">
                 {renderCell(song, 'title', song.title, 'Untitled', onEditSongTitle)}
               </div>
