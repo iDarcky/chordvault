@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import PageHeader from './PageHeader';
 import SongCard from './SongCard';
+import { DesktopLibraryTable } from './DesktopLibraryTable';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Input } from './ui/Input';
@@ -139,6 +140,7 @@ export default function Library({
   const [tagsOpen, setTagsOpen] = useState(false);
   const [tagQuery, setTagQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const tagsRef = useRef(null);
   const fabRef = useRef(null);
@@ -231,21 +233,39 @@ export default function Library({
     }
   };
 
+  // Handlers for inline editing (which use onEditSong to update the full song object)
+  const handleInlineEditTitle = (song, newTitle) => {
+    if (onEditSong) {
+      onEditSong({ ...song, title: newTitle });
+    }
+  };
+
+  const handleInlineEditArtist = (song, newArtist) => {
+    if (onEditSong) {
+      onEditSong({ ...song, artist: newArtist });
+    }
+  };
+
+  const handleInlineEditKey = (song, newKey) => {
+    if (onEditSong) {
+      onEditSong({ ...song, key: newKey });
+    }
+  };
+
+  // We split the rendering between mobile (existing modes-card based view)
+  // and desktop (Notion-style data table view) to preserve mobile as-is.
+
   return (
-    <div className="flex flex-col lg:flex-row lg:h-screen">
+    <div className="flex flex-col lg:flex-row lg:h-screen bg-[var(--ds-background-100)] lg:bg-[var(--notion-bg)]" style={{ color: 'var(--notion-text-main)' }}>
+      {/* Mobile / Tablet View (Preserved) */}
       <div
         data-theme-variant="modes"
         className={cn(
-          "relative min-w-0 pb-8",
-          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--modes-border)]",
-          "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
-          isFullscreen && "lg:hidden",
+          "relative min-w-0 pb-8 lg:hidden",
+          "flex-1",
+          isFullscreen && "hidden",
         )}
       >
-      <div className="hidden sm:block">
-        <PageHeader title="Song Library" />
-      </div>
-
       <div className="flex flex-col gap-0">
 
         {/* Sticky Search + Tags + Filters — full-width bg */}
@@ -487,8 +507,81 @@ export default function Library({
       </div>
       </div>
 
-      {/* Preview pane — desktop only */}
-      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)]">
+      {/* Desktop View (Notion-style Table) */}
+      <div className={cn(
+        "hidden lg:flex flex-col relative h-screen w-full transition-all duration-300",
+        previewSong ? "lg:w-[calc(100%-400px)] xl:w-[calc(100%-500px)]" : "w-full"
+      )}>
+        {/* Header Area */}
+        <div className="pt-8 pb-4 px-8 border-b" style={{ borderColor: 'var(--notion-border)' }}>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-heading-32 m-0 font-bold" style={{ color: 'var(--notion-text-main)' }}>Songs</h1>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onNewSong}
+                className="flex items-center gap-2 h-9 px-4 rounded-md text-label-13 font-semibold bg-[var(--color-brand)] text-white border-none cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                New
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Input
+                placeholder="Search database..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                prefix={<SearchIcon />}
+                className="w-full bg-[var(--notion-bg-hover)] border-none text-[var(--notion-text-main)]"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Database Table */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {!loaded ? (
+            <div className="p-8">Loading database...</div>
+          ) : (
+            <div className="pb-16 px-4">
+              <DesktopLibraryTable
+                songs={truncated}
+                onSelectSong={handleRowClick}
+                sortMode={sortMode}
+                sortAsc={sortAsc}
+                onSortToggle={handleSortClick}
+                selectedIds={selectedIds}
+                onSelectIds={setSelectedIds}
+                onEditSongTitle={handleInlineEditTitle}
+                onEditSongArtist={handleInlineEditArtist}
+                onEditSongKey={handleInlineEditKey}
+              />
+              {hasMore && (
+                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--notion-text-dim)]">
+                  Loading more… ({truncated.length} of {filtered.length})
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Side-Peek Modal — Desktop only */}
+      <div
+        className={cn(
+          "hidden lg:flex fixed top-0 right-0 h-screen bg-[var(--ds-background-100)] border-l shadow-2xl transition-all duration-300 ease-in-out z-[100]",
+          previewSong ? "translate-x-0" : "translate-x-full"
+        )}
+        style={{
+          width: isFullscreen ? '100vw' : 'min(500px, 40vw)',
+          borderColor: 'var(--notion-border)'
+        }}
+      >
         {previewSong ? (
           <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
             <ChartView
@@ -498,26 +591,13 @@ export default function Library({
                 if (isFullscreen) onToggleFullscreen?.();
                 onSelectPreview?.(null);
               }}
-              onEdit={() => onEditSong?.(previewSong)}
+              onEdit={() => onOpenEditorInModal?.(previewSong)}
               isFullscreen={isFullscreen}
               onToggleFullscreen={onToggleFullscreen}
               {...chartDefaults}
             />
           </Suspense>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center gap-3 px-8 py-16">
-            <div className="w-14 h-14 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-700)]">
-                <path d="M9 18V5l12-2v13" />
-                <circle cx="6" cy="18" r="3" />
-                <circle cx="18" cy="16" r="3" />
-              </svg>
-            </div>
-            <p className="text-copy-14 text-[var(--ds-gray-700)] max-w-xs">
-              Select a song from the library to preview it here.
-            </p>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

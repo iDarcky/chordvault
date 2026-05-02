@@ -62,14 +62,6 @@ const CheckCircleIcon = () => (
   </svg>
 );
 
-// Button shell shared by every nav row. Collapsed (< xl) centers a single
-// 44×44 icon hit-area; expanded (xl+) becomes a padded row with label.
-const navButtonClass = (active) =>
-  `group flex items-center justify-center xl:justify-start xl:gap-3 h-11 w-11 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] ${
-    active
-      ? 'bg-[var(--ds-teal-100)] text-[var(--ds-teal-900)]'
-      : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] hover:text-[var(--ds-gray-1000)]'
-  }`;
 
 const TeamNavIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -93,7 +85,9 @@ export default function Sidebar({
   setActiveLibrary, 
   team,
   syncState,
-  isOnline 
+  isOnline,
+  sidebarOpen,
+  setSidebarOpen
 }) {
   const [trayOpen, setTrayOpen] = useState(false);
 
@@ -124,63 +118,79 @@ export default function Sidebar({
     ...(hasTeamPlan ? [{ id: 'team', label: 'Team', Icon: TeamNavIcon }] : []),
   ];
 
+  // If sidebar is closed, render nothing on desktop (handled by a hamburger menu in Layout to open it)
+  if (!sidebarOpen) {
+    return null;
+  }
+
+  // Adjusted nav button class for Notion-style sidebar where everything is left-aligned and compact
+  const notionNavButtonClass = (active) =>
+    `group flex items-center justify-start gap-3 h-9 w-full px-3 mx-0 rounded-md cursor-pointer transition-colors duration-200 border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--notion-border)] ${
+      active
+        ? 'bg-[var(--notion-bg-hover)] text-[var(--notion-text-main)] font-semibold'
+        : 'bg-transparent text-[var(--notion-text-dim)] hover:bg-[var(--notion-bg-hover)] hover:text-[var(--notion-text-main)]'
+    }`;
+
   return (
     <>
-      <aside className="h-full hidden sm:flex flex-col bg-[var(--ds-background-200)] transition-all duration-300 w-[80px] xl:w-[280px] py-6 px-3 xl:px-4 overflow-hidden overscroll-contain">
-        {/* Profile */}
-        <button
-          onClick={() => onNavigate('account')}
-          aria-label="Account"
-          className={`flex items-center justify-center xl:justify-start gap-3 mb-8 xl:px-2 shrink-0 bg-transparent border-none cursor-pointer rounded-lg py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-teal-600)] transition-colors text-left ${
-            activeView === 'account'
-              ? 'bg-[var(--ds-teal-100)]'
-              : 'hover:bg-[var(--ds-gray-200)]'
-          }`}
-        >
-          <div className="w-9 h-9 rounded-full bg-[var(--ds-gray-300)] flex items-center justify-center shrink-0">
-            <UserIcon />
-          </div>
-          <div className="hidden xl:block overflow-hidden">
-            <p className="text-label-14 font-semibold text-[var(--ds-gray-1000)] truncate">{displayName}</p>
-            <p className="text-label-12 text-[var(--ds-teal-800)] font-medium truncate uppercase tracking-widest text-[10px]">{plan} TIER</p>
-          </div>
-        </button>
+      <aside
+        className="h-full hidden sm:flex flex-col transition-all duration-300 w-[240px] py-4 px-2 overflow-hidden overscroll-contain border-r"
+        style={{
+          backgroundColor: 'var(--notion-bg)',
+          borderColor: 'var(--notion-border)'
+        }}
+      >
+        {/* Header Actions: Collapse Sidebar & Profile */}
+        <div className="flex items-center justify-between mb-6 px-2">
+          <button
+            onClick={() => onNavigate('account')}
+            aria-label="Account"
+            className="flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-md focus:outline-none hover:bg-[var(--notion-bg-hover)] py-1 px-1 transition-colors text-left flex-1 min-w-0"
+          >
+            <div className="w-6 h-6 rounded-full bg-[var(--ds-gray-300)] flex items-center justify-center shrink-0">
+              <UserIcon />
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-label-13 font-semibold text-[var(--notion-text-main)] truncate m-0 leading-tight">{displayName}</p>
+            </div>
+          </button>
+
+          {/* Close Sidebar Button */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-1.5 rounded-md text-[var(--notion-text-dim)] hover:bg-[var(--notion-bg-hover)] hover:text-[var(--notion-text-main)] transition-colors cursor-pointer border-none bg-transparent"
+            aria-label="Close sidebar"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
 
         {/* Library Switcher */}
         {team && (
-          <div className="mb-6 xl:px-2 flex flex-col gap-2">
-            <span className="hidden xl:block text-label-12 text-[var(--ds-gray-500)] font-semibold uppercase tracking-wider pl-1">
+          <div className="mb-6 flex flex-col gap-1">
+            <span className="text-[11px] text-[var(--notion-text-dim)] font-semibold uppercase tracking-wider px-3 mb-1">
               Workspace
             </span>
-            <div className="flex flex-col gap-1">
-              <button
-                onClick={() => setActiveLibrary('personal')}
-                className={`flex items-center justify-center xl:justify-start gap-2 h-10 w-10 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none ${
-                  activeLibrary === 'personal'
-                    ? 'bg-[var(--ds-gray-900)] text-white'
-                    : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)]'
-                }`}
-                title="Personal Library"
-              >
-                <UserIcon />
-                <span className={`hidden xl:block text-label-14 ${activeLibrary === 'personal' ? 'font-bold' : 'font-medium'}`}>Personal</span>
-              </button>
-              
-              <button
-                onClick={() => setActiveLibrary(team.id)}
-                className={`flex items-center justify-center xl:justify-start gap-2 h-10 w-10 xl:w-full xl:px-3 mx-auto xl:mx-0 rounded-lg cursor-pointer transition-colors duration-200 border-none focus:outline-none ${
-                  activeLibrary === team.id
-                    ? 'bg-[var(--ds-gray-900)] text-white'
-                    : 'bg-transparent text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)]'
-                }`}
-                title={team.name}
-              >
-                <TeamNavIcon />
-                <span className={`hidden xl:block text-label-14 truncate ${activeLibrary === team.id ? 'font-bold' : 'font-medium'}`}>
-                  {team.name}
-                </span>
-              </button>
-            </div>
+            <button
+              onClick={() => setActiveLibrary('personal')}
+              className={notionNavButtonClass(activeLibrary === 'personal')}
+              title="Personal Library"
+            >
+              <UserIcon />
+              <span className="text-label-13 truncate">Personal</span>
+            </button>
+
+            <button
+              onClick={() => setActiveLibrary(team.id)}
+              className={notionNavButtonClass(activeLibrary === team.id)}
+              title={team.name}
+            >
+              <TeamNavIcon />
+              <span className="text-label-13 truncate">{team.name}</span>
+            </button>
           </div>
         )}
 
@@ -192,43 +202,41 @@ export default function Sidebar({
               <button
                 key={id}
                 onClick={() => onNavigate(id)}
-                className={navButtonClass(active)}
+                className={notionNavButtonClass(active)}
               >
-                <Icon />
-                <span className={`hidden xl:block text-label-14 text-left ${active ? 'font-bold' : 'font-medium'}`}>
-                  {label}
-                </span>
+                <div className="scale-90 opacity-70 group-hover:opacity-100 transition-opacity"><Icon /></div>
+                <span className="text-label-13 text-left">{label}</span>
               </button>
             );
           })}
         </nav>
 
         {/* Secondary Nav */}
-        <div className="mt-auto flex flex-col gap-1 pt-6 mb-6 border-t border-[var(--ds-gray-200)] shrink-0">
+        <div className="mt-auto flex flex-col gap-1 pt-4 mb-4 shrink-0">
           <button
             onClick={() => setTrayOpen(true)}
-            className={navButtonClass(false)}
+            className={notionNavButtonClass(false)}
           >
-            <span className="relative flex items-center justify-center">
+            <span className="relative flex items-center justify-center scale-90 opacity-70 group-hover:opacity-100 transition-opacity">
               <BellIcon />
               {hasUnreadNotifications && (
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--ds-red-600)]" />
               )}
             </span>
-            <span className="hidden xl:block text-label-14 text-left font-medium">Notifications</span>
+            <span className="text-label-13 text-left">Notifications</span>
           </button>
 
           <button
             onClick={() => onNavigate('settings')}
-            className={navButtonClass(activeView === 'settings')}
+            className={notionNavButtonClass(activeView === 'settings')}
           >
-            <SettingsIcon />
-            <span className={`hidden xl:block text-label-14 text-left ${activeView === 'settings' ? 'font-bold' : 'font-medium'}`}>Preferences</span>
+            <div className="scale-90 opacity-70 group-hover:opacity-100 transition-opacity"><SettingsIcon /></div>
+            <span className="text-label-13 text-left">Settings</span>
           </button>
         </div>
 
-        {/* Sync Status — expanded only */}
-        <div className="hidden xl:flex flex-col gap-2 text-label-12 uppercase font-semibold shrink-0">
+        {/* Sync Status */}
+        <div className="flex flex-col gap-2 text-[11px] uppercase font-semibold shrink-0 px-3">
           <div className={cn("flex items-center gap-2", syncColor)}>
             <div className={cn("shrink-0", isSyncing && "animate-spin")}>
               <CloudIcon />

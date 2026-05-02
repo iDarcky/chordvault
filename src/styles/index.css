@@ -271,6 +271,13 @@
   --dashboard-hero-hover: hsl(0, 0%, 6%);
   --dashboard-row-odd-bg: hsl(0, 0%, 4%);
   --dashboard-row-even-bg: hsl(0, 0%, 0%);
+
+  /* Notion Theme Overrides (Dark Mode fallback) */
+  --notion-bg: #191919;
+  --notion-bg-hover: #202020;
+  --notion-border: #2f2f2f;
+  --notion-text-main: #ffffff;
+  --notion-text-dim: rgba(255, 255, 255, 0.44);
 }
 
 @layer base {
@@ -485,6 +492,13 @@
               --chord: #b45309;
     --header-bg: rgba(255, 255, 255, 0.92);
     --header-bg-blur: rgba(255, 255, 255, 0.65);
+
+    /* Notion Theme Overrides (Light Mode) */
+    --notion-bg: #ffffff;
+    --notion-bg-hover: #f1f1f0;
+    --notion-border: #e9e9e7;
+    --notion-text-main: #37352f;
+    --notion-text-dim: #9a9a97;
   }
 
   * {

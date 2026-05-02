@@ -193,8 +193,8 @@ export default function ChartView({
                   variant={isFullscreen ? 'active' : 'default'}
                   size="sm"
                   onClick={onToggleFullscreen}
-                  aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                  title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                  aria-label={isFullscreen ? 'Exit fullscreen' : 'Expand to full screen'}
+                  title={isFullscreen ? 'Exit fullscreen' : 'Expand to full screen'}
                 >
                   {isFullscreen ? (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -205,10 +205,10 @@ export default function ChartView({
                     </svg>
                   ) : (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 8V3h5" />
-                      <path d="M21 8V3h-5" />
-                      <path d="M3 16v5h5" />
-                      <path d="M21 16v5h-5" />
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <polyline points="9 21 3 21 3 15"></polyline>
+                      <line x1="21" y1="3" x2="14" y2="10"></line>
+                      <line x1="3" y1="21" x2="10" y2="14"></line>
                     </svg>
                   )}
                 </IconButton>
