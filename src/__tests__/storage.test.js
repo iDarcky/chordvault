@@ -3,7 +3,7 @@ import { isValidSong, isValidSetlist } from '../storage';
 
 describe('isValidSong', () => {
   it('accepts a minimal valid song (parsed shape)', () => {
-    expect(isValidSong({ id: 'abc', title: 'T', sections: [] })).toBe(true);
+    expect(isValidSong({ id: 'abc', title: 'T', artist: 'A', sections: [] })).toBe(true);
   });
 
   it('rejects null / non-objects', () => {
