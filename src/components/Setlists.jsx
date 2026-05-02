@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import PageHeader from './PageHeader';
 import SetlistCard from './SetlistCard';
+import { DesktopSetlistsTable } from './DesktopSetlistsTable';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Input } from './ui/Input';
@@ -121,20 +122,16 @@ export default function Setlists({
   }, [filtered]);
 
   return (
-    <div className="flex flex-col lg:flex-row lg:h-screen">
+    <div className="flex flex-col lg:flex-row lg:h-screen bg-[var(--ds-background-100)] lg:bg-[var(--notion-bg)]" style={{ color: 'var(--notion-text-main)' }}>
+      {/* Mobile / Tablet View (Preserved) */}
       <div
         data-theme-variant="modes"
         className={cn(
-          "relative min-w-0 pb-8",
-          "lg:h-screen lg:overflow-y-auto lg:border-r lg:border-[var(--modes-border)]",
-          "flex-1 lg:flex-none lg:w-[480px] xl:w-[560px]",
-          isFullscreen && "lg:hidden",
+          "relative min-w-0 pb-8 lg:hidden",
+          "flex-1",
+          isFullscreen && "hidden",
         )}
       >
-      <div className="hidden sm:block">
-        <PageHeader title="Setlists" />
-      </div>
-
       <div className="flex flex-col gap-0">
 
         {/* Sticky Search — hidden on mobile (global top-bar covers it) */}
@@ -311,8 +308,98 @@ export default function Setlists({
       />
       </div>
 
-      {/* Preview pane — desktop only */}
-      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:h-screen lg:flex-col lg:bg-[var(--ds-background-100)] lg:overflow-y-auto">
+      {/* Desktop View (Notion-style Table) */}
+      <div className={cn(
+        "hidden lg:flex flex-col relative h-screen w-full transition-all duration-300",
+        previewSetlist ? "lg:w-[calc(100%-400px)] xl:w-[calc(100%-500px)]" : "w-full"
+      )}>
+        {/* Header Area */}
+        <div className="pt-8 pb-4 px-8 border-b" style={{ borderColor: 'var(--notion-border)' }}>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-heading-32 m-0 font-bold" style={{ color: 'var(--notion-text-main)' }}>Setlists</h1>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 h-9 px-4 rounded-md text-label-13 font-semibold bg-[var(--notion-bg-hover)] text-[var(--notion-text-main)] border-none cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Import
+              </button>
+              <button
+                onClick={onNewSetlist}
+                className="flex items-center gap-2 h-9 px-4 rounded-md text-label-13 font-semibold bg-[var(--color-brand)] text-white border-none cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                New
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Input
+                placeholder="Search setlists..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                prefix={<SearchIcon />}
+                className="w-full bg-[var(--notion-bg-hover)] border-none text-[var(--notion-text-main)]"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Database Table */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {!loaded ? (
+            <div className="p-8">Loading database...</div>
+          ) : (
+            <div className="pb-16 px-4 py-4 flex flex-col gap-8">
+              {upcoming.length > 0 && (
+                <section>
+                  <h2 className="text-heading-20 font-bold px-4 mb-2" style={{ color: 'var(--notion-text-main)' }}>Upcoming</h2>
+                  <DesktopSetlistsTable
+                    setlists={upcoming}
+                    onSelectSetlist={handleView}
+                  />
+                </section>
+              )}
+              {past.length > 0 && (
+                <section>
+                  <h2 className="text-heading-20 font-bold px-4 mb-2" style={{ color: 'var(--notion-text-main)' }}>Past</h2>
+                  <DesktopSetlistsTable
+                    setlists={past}
+                    onSelectSetlist={handleView}
+                  />
+                </section>
+              )}
+              {filtered.length === 0 && (
+                <div className="p-8 text-center text-copy-14" style={{ color: 'var(--notion-text-dim)' }}>
+                  No setlists found.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Side-Peek Modal — Desktop only */}
+      <div
+        className={cn(
+          "hidden lg:flex fixed top-0 right-0 h-screen bg-[var(--ds-background-100)] border-l shadow-2xl transition-all duration-300 ease-in-out z-[100] overflow-y-auto",
+          previewSetlist ? "translate-x-0" : "translate-x-full"
+        )}
+        style={{
+          width: isFullscreen ? '100vw' : 'min(500px, 40vw)',
+          borderColor: 'var(--notion-border)'
+        }}
+      >
         {previewSetlist ? (
           <Suspense fallback={<div className="p-8 text-copy-14 text-[var(--ds-gray-700)]">Loading…</div>}>
             <SetlistOverview
