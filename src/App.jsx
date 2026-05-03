@@ -1088,6 +1088,7 @@ export default function App() {
           syncState={syncState}
           isOnline={isOnline}
           hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}
+          onSignOut={handleSignOut}
         >
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar

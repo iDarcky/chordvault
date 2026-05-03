@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
-import Sidebar from './Sidebar';
 import TeamBanner from './TeamBanner';
+import TopHeader from './TopHeader';
 import { cn } from '../lib/utils';
 import { useMediaQuery } from '../lib/useMediaQuery';
 
@@ -23,7 +23,8 @@ export default function DesktopLayout({
   team,
   onChangeWorkspace,
   syncState,
-  isOnline
+  isOnline,
+  onSignOut
 }) {
   const mainRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 639.98px)');
@@ -36,39 +37,26 @@ export default function DesktopLayout({
     }
   }, [activeView]);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  // We are removing the sm/xl grid cols and instead controlling layout with flex and sidebar width
-  const showBanner = activeLibrary !== 'personal' && team;
-
   return (
     <div className="w-full h-[100dvh] flex flex-col overflow-hidden">
+      {!isFullscreen && (
+        <TopHeader
+          activeView={activeView}
+          onNavigate={onNavigate}
+          hasUnreadNotifications={hasUnreadNotifications}
+          notifications={notifications}
+          onMarkRead={onMarkRead}
+          onNotificationAction={onNotificationAction}
+          displayName={displayName}
+          activeLibrary={activeLibrary}
+          setActiveLibrary={setActiveLibrary}
+          team={team}
+          onSignOut={onSignOut}
+        />
+      )}
       <div className="flex-1 w-full flex overflow-hidden">
-        {!isFullscreen && (
-          <Sidebar 
-            activeView={activeView} 
-            onNavigate={onNavigate} 
-            hasUnreadNotifications={hasUnreadNotifications} 
-            onNotificationClick={onNotificationClick} 
-            notifications={notifications} 
-            onMarkRead={onMarkRead} 
-            onNotificationAction={onNotificationAction} 
-            displayName={displayName} 
-            plan={plan} 
-            activeLibrary={activeLibrary} 
-            setActiveLibrary={setActiveLibrary} 
-            team={team} 
-            syncState={syncState}
-            isOnline={isOnline}
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-          />
-        )}
         {/*
-          The main content area owns its scroll; the sidebar stays rigidly pinned
-          to the viewport so iPad can't drag it. h-[100dvh] tracks iOS Safari's
-          dynamic viewport so the layout never extends under the address bar.
-
+          The main content area owns its scroll.
           When the mobile drawer is open, the main content scales down and
           shifts right — mimicking an iOS-style push drawer.
         */}
@@ -83,21 +71,6 @@ export default function DesktopLayout({
             boxShadow: applyDrawerTransform ? '0 30px 60px rgba(0,0,0,0.45)' : undefined,
           }}
         >
-          {/* Hamburger Menu for expanding sidebar when collapsed - Desktop Only */}
-          {!isFullscreen && !sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="absolute top-4 left-4 z-50 p-2 hidden sm:flex items-center justify-center rounded-md text-[var(--ds-gray-700)] hover:bg-[var(--ds-gray-200)] transition-colors cursor-pointer border-none bg-transparent"
-              aria-label="Expand sidebar"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
-          )}
-
           {children}
           {/* Mobile Spacer: Guaranteed scrollable space to prevent bottom-nav obstruction */}
           {!hideBottomSpacer && (
