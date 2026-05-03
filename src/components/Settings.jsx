@@ -50,32 +50,30 @@ const ChevronRight = () => (
 // ─── Shared bits used inside sub-panels ──────────────────────────────────
 
 const Section = ({ title, subtitle, children }) => (
-  <section className="flex flex-col gap-4">
+  <section className="flex flex-col mb-6">
     {(title || subtitle) && (
-      <div className="flex flex-col gap-1 px-2">
+      <div className="px-1 pb-3 flex flex-col gap-1">
         {title && (
-          <h2 className="text-label-12 text-[var(--modes-text-dim)] uppercase tracking-wider font-semibold m-0">
-            {title}
-          </h2>
+          <h2 className="text-heading-16 font-bold text-[var(--notion-text-dim)] m-0 uppercase tracking-widest">{title}</h2>
         )}
         {subtitle && (
-          <p className="text-copy-13 text-[var(--modes-text-muted)] m-0">{subtitle}</p>
+          <p className="text-copy-14 text-[var(--notion-text-dim)] m-0">{subtitle}</p>
         )}
       </div>
     )}
-    <div className="modes-card flex flex-col p-0 overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
+    <div className="flex flex-col bg-[var(--notion-bg)] border border-[var(--notion-border)] rounded-lg overflow-hidden divide-y divide-[var(--notion-border)]">
       {children}
     </div>
   </section>
 );
 
 const Row = ({ label, children, description }) => (
-  <div className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:justify-between">
-    <div className="flex flex-col">
-      <span className="text-copy-14 text-[var(--modes-text)] font-medium">{label}</span>
-      {description && <span className="text-copy-13 text-[var(--modes-text-muted)]">{description}</span>}
+  <div className="flex flex-col gap-1.5 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col flex-1 min-w-0 pr-4">
+      <span className="text-copy-15 text-[var(--notion-text-main)] font-medium">{label}</span>
+      {description && <span className="text-copy-13 text-[var(--notion-text-dim)] mt-0.5">{description}</span>}
     </div>
-    <div className="flex items-center gap-2 mt-2 sm:mt-0">
+    <div className="flex items-center gap-2 mt-2 sm:mt-0 shrink-0">
       {children}
     </div>
   </div>
@@ -88,19 +86,19 @@ function HubRow({ icon: Icon, label, value, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center gap-4 p-4 cursor-pointer border-none text-left hover:bg-[var(--modes-surface)] transition-colors"
-      style={{ background: 'transparent', WebkitTapHighlightColor: 'transparent' }}
+      className="w-full flex items-center gap-4 p-4 cursor-pointer border-none text-left bg-[var(--notion-bg)] hover:bg-[var(--notion-bg-hover)] transition-colors active:bg-[var(--notion-bg-hover)]"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
     >
-      <span className="text-[var(--modes-text-muted)] shrink-0">
+      <span className="text-[var(--notion-text-dim)] shrink-0 flex items-center justify-center w-6 h-6">
         {Icon && <Icon />}
       </span>
       <span className="flex-1 min-w-0 flex flex-col">
-        <span className="text-copy-15 text-[var(--modes-text)] font-medium">{label}</span>
+        <span className="text-copy-15 text-[var(--notion-text-main)] font-medium">{label}</span>
         {value && (
-          <span className="text-label-12 text-[var(--modes-text-muted)] mt-0.5 truncate">{value}</span>
+          <span className="text-copy-13 text-[var(--notion-text-dim)] mt-0.5 truncate">{value}</span>
         )}
       </span>
-      <span className="text-[var(--modes-text-dim)] shrink-0">
+      <span className="text-[var(--notion-text-dim)] shrink-0 opacity-50">
         <ChevronRight />
       </span>
     </button>
@@ -128,7 +126,7 @@ function AppearancePanel({ settings, update, isSignedIn }) {
         : 'Sign in to sync these preferences to every device you use.'}
     >
       <Row label="Theme" description="System follows your device preference.">
-        <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
+        <div className="flex p-1 bg-[var(--notion-bg-hover)] border border-[var(--notion-border)] rounded-lg">
           {[
             { key: 'default', label: 'System' },
             { key: 'light', label: 'Light' },
@@ -139,7 +137,7 @@ function AppearancePanel({ settings, update, isSignedIn }) {
               size="sm"
               variant={settings.theme === key ? 'secondary' : 'ghost'}
               onClick={() => update('theme', key)}
-              className={settings.theme === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+              className={settings.theme === key ? "bg-[var(--notion-bg)] shadow-sm text-[var(--notion-text-main)]" : "text-[var(--notion-text-dim)] hover:text-[var(--notion-text-main)]"}
             >
               {label}
             </Button>
@@ -147,14 +145,14 @@ function AppearancePanel({ settings, update, isSignedIn }) {
         </div>
       </Row>
       <Row label="Library Layout" description="Number of columns for the library view.">
-        <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
+        <div className="flex p-1 bg-[var(--notion-bg-hover)] border border-[var(--notion-border)] rounded-lg">
           {['auto', 1, 2].map(v => (
             <Button
               key={v}
               size="sm"
               variant={settings.defaultColumns === v ? 'secondary' : 'ghost'}
               onClick={() => update('defaultColumns', v)}
-              className={settings.defaultColumns === v ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+              className={settings.defaultColumns === v ? "bg-[var(--notion-bg)] shadow-sm text-[var(--notion-text-main)]" : "text-[var(--notion-text-dim)] hover:text-[var(--notion-text-main)]"}
             >
               {v === 'auto' ? 'Auto' : `${v}col`}
             </Button>
@@ -169,7 +167,7 @@ function ChartPanel({ settings, update }) {
   return (
     <Section subtitle="How charts are laid out and which elements are visible by default.">
       <Row label="Header Style" description="Choose the top header layout.">
-        <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
+        <div className="flex p-1 bg-[var(--notion-bg-hover)] border border-[var(--notion-border)] rounded-lg">
           {[
             { key: 'classic', label: 'Classic' },
             { key: 'notion', label: 'Document' },
@@ -179,7 +177,7 @@ function ChartPanel({ settings, update }) {
               size="sm"
               variant={settings.headerStyle === key ? 'secondary' : 'ghost'}
               onClick={() => update('headerStyle', key)}
-              className={settings.headerStyle === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+              className={settings.headerStyle === key ? "bg-[var(--notion-bg)] shadow-sm text-[var(--notion-text-main)]" : "text-[var(--notion-text-dim)] hover:text-[var(--notion-text-main)]"}
             >
               {label}
             </Button>
@@ -187,7 +185,7 @@ function ChartPanel({ settings, update }) {
         </div>
       </Row>
       <Row label="Chart Flow" description="How sections fill when using 2 columns.">
-        <div className="flex p-1 bg-[var(--modes-surface-strong)] rounded-lg">
+        <div className="flex p-1 bg-[var(--notion-bg-hover)] border border-[var(--notion-border)] rounded-lg">
           {[
             { key: 'columns', label: 'Top ↓ Down' },
             { key: 'rows', label: 'Left → Right' },
@@ -197,7 +195,7 @@ function ChartPanel({ settings, update }) {
               size="sm"
               variant={settings.chartLayout === key ? 'secondary' : 'ghost'}
               onClick={() => update('chartLayout', key)}
-              className={settings.chartLayout === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+              className={settings.chartLayout === key ? "bg-[var(--notion-bg)] shadow-sm text-[var(--notion-text-main)]" : "text-[var(--notion-text-dim)] hover:text-[var(--notion-text-main)]"}
             >
               {label}
             </Button>
@@ -205,7 +203,7 @@ function ChartPanel({ settings, update }) {
         </div>
       </Row>
       <Row label="Display Mode" description="Control which elements are visible by default.">
-        <div className="flex p-1 bg-[var(--ds-gray-200)] rounded-lg flex-wrap">
+        <div className="flex p-1 bg-[var(--notion-bg-hover)] border border-[var(--notion-border)] rounded-lg flex-wrap">
           {[
             { key: 'leader', label: 'Full' },
             { key: 'vocalist', label: 'Vocals' },
@@ -216,7 +214,7 @@ function ChartPanel({ settings, update }) {
               size="sm"
               variant={settings.displayRole === key ? 'secondary' : 'ghost'}
               onClick={() => update('displayRole', key)}
-              className={settings.displayRole === key ? "bg-[var(--ds-background-100)] shadow-sm" : "text-[var(--ds-gray-900)]"}
+              className={settings.displayRole === key ? "bg-[var(--notion-bg)] shadow-sm text-[var(--notion-text-main)]" : "text-[var(--notion-text-dim)] hover:text-[var(--notion-text-main)]"}
             >
               {label}
             </Button>
@@ -271,20 +269,20 @@ function DataPanel({ songCount, setlistCount, onDownloadSongs, onClearAll }) {
 }
 
 function AboutPanel({ isSignedIn, displayName }) {
-  const linkClass = 'hover:text-[var(--modes-text)] transition-colors underline-offset-4 underline decoration-[var(--modes-border)]';
+  const linkClass = 'hover:text-[var(--notion-text-main)] text-[var(--notion-text-dim)] transition-colors underline-offset-4 underline decoration-[var(--notion-border)]';
   const docBase = 'https://github.com/iDarcky/setlists-md/blob/master/docs';
   return (
-    <div className="flex flex-col gap-4">
-      <div className="modes-card p-5 flex flex-col gap-2">
-        <h2 className="text-heading-20 text-[var(--modes-text)] m-0">
+    <div className="flex flex-col gap-6">
+      <div className="border border-[var(--notion-border)] rounded-lg bg-[var(--notion-bg)] p-5 flex flex-col gap-2">
+        <h2 className="text-heading-20 text-[var(--notion-text-main)] m-0 font-bold tracking-tight">
           {isSignedIn && displayName ? displayName : 'Setlists.md'}
         </h2>
-        <p className="text-copy-14 text-[var(--modes-text-muted)] leading-relaxed">
+        <p className="text-copy-14 text-[var(--notion-text-dim)] leading-relaxed">
           A workspace for music teams. Your songs belong to you as plain Markdown files — open them in any text editor, forever.
         </p>
-        <div className="mt-3 flex items-center gap-3 text-label-12 text-[var(--modes-text-muted)] font-medium">
+        <div className="mt-3 flex items-center gap-3 text-label-12 text-[var(--notion-text-dim)] font-medium">
           <span>v1.2.0</span>
-          <span className="text-[var(--modes-text-dim)]">·</span>
+          <span className="text-[var(--notion-text-dim)] opacity-50">·</span>
           <a
             href="https://github.com/iDarcky/setlists-md"
             target="_blank"
@@ -296,11 +294,11 @@ function AboutPanel({ isSignedIn, displayName }) {
         </div>
       </div>
 
-      <div className="modes-card p-5 flex flex-col gap-3">
-        <h3 className="text-label-12 font-semibold uppercase tracking-widest text-[var(--modes-text-dim)] m-0">
+      <div className="border border-[var(--notion-border)] rounded-lg bg-[var(--notion-bg)] p-5 flex flex-col gap-3">
+        <h3 className="text-label-12 font-semibold uppercase tracking-widest text-[var(--notion-text-dim)] m-0">
           Legal &amp; Copyright
         </h3>
-        <p className="text-copy-13 text-[var(--modes-text-muted)] leading-relaxed m-0">
+        <p className="text-copy-13 text-[var(--notion-text-dim)] leading-relaxed m-0">
           Setlists.md is a private workspace; you are responsible for licensing
           the content you import. We act on valid copyright takedown notices.
         </p>
@@ -374,12 +372,12 @@ export default function Settings({
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
 
   return (
-    <div data-theme-variant="modes" className="flex flex-col">
+    <div className="flex flex-col min-h-screen bg-[var(--notion-bg)]">
       <ScreenHeader onBack={onBack} title={PANEL_TITLES[panel]} />
 
       <div className="a4-container py-6 pb-20 flex flex-col gap-6">
         {panel === 'hub' && (
-          <div className="modes-card flex flex-col p-0 overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
+          <div className="flex flex-col bg-[var(--notion-bg)] border border-[var(--notion-border)] rounded-lg overflow-hidden divide-y divide-[var(--notion-border)]">
             <HubRow
               icon={AppearanceIcon}
               label="Appearance"
