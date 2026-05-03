@@ -478,7 +478,7 @@ export default function App() {
     const theme = settings.theme;
 
     const setThemeColor = (mode) => {
-      const color = mode === 'light' ? '#ffffff' : '#14161e';
+      const color = mode === 'light' ? '#ffffff' : '#1a1a1a';
       // Remove the media-scoped tags so the single active tag wins everywhere.
       document.querySelectorAll('meta[name="theme-color"][media]').forEach(m => m.remove());
       let tag = document.querySelector('meta[name="theme-color"]:not([media])');
@@ -1088,6 +1088,7 @@ export default function App() {
           syncState={syncState}
           isOnline={isOnline}
           hideBottomSpacer={!['home', 'library', 'setlists', 'settings', 'account', 'setlist-view'].includes(view)}
+          onSignOut={handleSignOut}
         >
           {['home', 'library', 'setlists'].includes(view) && (
             <MobileTopBar

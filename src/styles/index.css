@@ -27,8 +27,8 @@
   --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Roboto Mono, Menlo, Monaco, Libration Mono, Courier New, monospace;
 
   /* Page Backgrounds (Dark Mode fallback) */
-  --ds-background-100: #14161e;
-  --ds-background-200: #0e1017;
+  --ds-background-100: #1a1a1a;
+  --ds-background-200: #141414;
 
     /* Geist Gray Scale (Dark Mode) */
   --ds-gray-100-value: 0, 0%, 10%;
