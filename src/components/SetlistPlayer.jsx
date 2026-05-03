@@ -9,6 +9,7 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
   useWakeLock(true);
   const [idx, setIdx] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+  const [barsCollapsed, setBarsCollapsed] = useState(false);
   const songBarRef = useRef(null);
 
   const resolved = useMemo(() => {
@@ -186,15 +187,26 @@ export default function SetlistPlayer({ setlist, songs, onBack, defaultColumns, 
 
   return (
     <div style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      {/* Back button for the whole player */}
+      {/* Back + setlist name + collapse toggle */}
       <div className="flex items-center gap-2.5 px-5 pt-2.5">
         <Button variant="ghost" size="xs" onClick={onBack}>← Back</Button>
-        <span className="text-label-13 font-semibold text-[var(--ds-gray-600)]">
+        <span className="text-label-13 font-semibold text-[var(--ds-gray-600)] flex-1 min-w-0 truncate">
           {setlist.name}
         </span>
+        <IconButton
+          size="xs"
+          variant="ghost"
+          onClick={() => setBarsCollapsed(c => !c)}
+          aria-label={barsCollapsed ? 'Expand performance bars' : 'Collapse performance bars'}
+          className="shrink-0 text-[var(--ds-gray-500)] hover:text-[var(--ds-gray-900)]"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d={barsCollapsed ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7'} />
+          </svg>
+        </IconButton>
       </div>
-      {progress}
-      {songBar}
+      {!barsCollapsed && progress}
+      {!barsCollapsed && songBar}
       {cur.note && (
         <div className="px-5 pt-1">
           <div className="px-3 py-1.5 rounded-md bg-[var(--ds-warning-soft)] border border-[var(--ds-warning-border)] text-label-12 text-[var(--ds-warning-900)]">
