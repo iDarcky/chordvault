@@ -20,7 +20,7 @@ function formatTimeFriendly(timeStr) {
   return new Date(`1970-01-01T${timeStr}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
 }
 
-export default function SetlistCard({ setlist, onPlay, onView, selected = false }) {
+export default function SetlistCard({ setlist, onPlay, onView, selected = false, variant = 'card' }) {
   const songCount = setlist.items?.filter(it => it.type !== 'break').length || 0;
 
   const displayTags = setlist.tags?.length
@@ -31,6 +31,54 @@ export default function SetlistCard({ setlist, onPlay, onView, selected = false 
 
   const timeStr = formatTimeFriendly(setlist.time);
   const dateLabel = `${formatDateFriendly(setlist.date)}${timeStr ? ` • ${timeStr}` : ''}`;
+
+  if (variant === 'row') {
+    return (
+      <div
+        onClick={onView}
+        className={cn(
+          "flex items-center justify-between px-5 py-4 cursor-pointer transition-colors duration-150 hover:bg-[var(--notion-bg-hover)] active:bg-[var(--notion-bg-hover)] border-b border-[var(--notion-border)] last:border-b-0",
+          selected && "bg-[var(--notion-bg-hover)]"
+        )}
+        style={{ WebkitTapHighlightColor: 'transparent' }}
+      >
+        <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+          <span className="text-copy-16 font-bold text-[var(--notion-text-main)] truncate">
+            {setlist.name || 'Untitled Setlist'}
+          </span>
+          <div className="flex items-center gap-2 text-copy-13 text-[var(--notion-text-dim)] truncate">
+            <span>{dateLabel}</span>
+            {setlist.location && (
+              <>
+                <span>•</span>
+                <span className="truncate">{setlist.location}</span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1.5 shrink-0 ml-4">
+          <div className="flex items-center gap-1.5">
+            {displayTags.length > 0 && (
+              <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded border border-[var(--notion-border)] bg-[var(--notion-bg-hover)] text-[var(--notion-text-dim)]">
+                {displayTags[0]}
+              </span>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-8 h-8 p-0 min-w-0 rounded-full text-[var(--color-brand)] border border-[var(--notion-border)]"
+              onClick={(e) => { e.stopPropagation(); onPlay(); }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </Button>
+          </div>
+          <span className="text-copy-12 text-[var(--notion-text-dim)] tabular-nums">
+            {songCount} {songCount === 1 ? 'song' : 'songs'}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

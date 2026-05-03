@@ -421,22 +421,19 @@ export default function Library({
         </div>
 
         {/* Content */}
-        <div className="a4-container py-4">
+        <div className="a4-container py-4 pb-20">
           {!loaded ? (
             <SkeletonRows />
           ) : sortedKeys.length > 0 ? (
             <div className="flex flex-col gap-10">
               {sortedKeys.map(groupKey => (
-                <div key={groupKey} className="flex flex-col gap-3">
-                  <div className="flex items-baseline gap-2 px-1">
-                    <h3 className="text-heading-20 font-bold text-[var(--modes-text)] m-0">
+                <div key={groupKey} className="flex flex-col">
+                  <div className="flex items-baseline gap-2 px-4 mb-2">
+                    <h3 className="text-heading-16 font-bold text-[var(--notion-text-dim)] m-0 uppercase tracking-widest">
                       {groupKey}
                     </h3>
-                    <span className="text-label-12 text-[var(--modes-text-dim)]">
-                      {groups[groupKey].length}
-                    </span>
                   </div>
-                  <div className="modes-card overflow-hidden divide-y" style={{ borderColor: 'var(--modes-border)' }}>
+                  <div className="flex flex-col bg-[var(--notion-bg)]">
                     {groups[groupKey].map(song => (
                       <SongCard
                         key={song.id}
@@ -445,34 +442,35 @@ export default function Library({
                         showTags={true}
                         selected={isDesktop && song.id === previewSongId}
                         onClick={() => handleRowClick(song)}
+                        className="border-b border-[var(--notion-border)] last:border-b-0"
                       />
                     ))}
                   </div>
                 </div>
               ))}
               {hasMore && (
-                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--modes-text-dim)]">
+                <div ref={sentinelRef} className="py-6 text-center text-copy-12 text-[var(--notion-text-dim)]">
                   Loading more… ({truncated.length} of {filtered.length})
                 </div>
               )}
             </div>
           ) : query || selectedTags.length > 0 ? (
-            <div className="modes-card py-14 text-center flex flex-col items-center gap-3 border-dashed">
-              <p className="text-copy-14 text-[var(--modes-text-muted)] font-medium">
+            <div className="py-14 text-center flex flex-col items-center gap-3">
+              <p className="text-copy-14 text-[var(--notion-text-dim)] font-medium">
                 No songs matching your filters.
               </p>
             </div>
           ) : (
-            <div className="modes-card py-16 px-6 flex flex-col items-center text-center border-dashed">
-              <div className="w-14 h-14 mb-4 rounded-full bg-[var(--modes-surface-strong)] border border-[var(--modes-border)] flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--modes-text-muted)]">
+            <div className="py-16 px-6 flex flex-col items-center text-center">
+              <div className="w-14 h-14 mb-4 rounded-full bg-[var(--notion-bg-hover)] border border-[var(--notion-border)] flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--notion-text-dim)]">
                   <path d="M9 18V5l12-2v13" />
                   <circle cx="6" cy="18" r="3" />
                   <circle cx="18" cy="16" r="3" />
                 </svg>
               </div>
-              <h2 className="text-heading-20 text-[var(--modes-text)] m-0 mb-1.5">Your library is empty</h2>
-              <p className="text-copy-14 text-[var(--modes-text-muted)] max-w-sm mb-5">
+              <h2 className="text-heading-20 text-[var(--notion-text-main)] m-0 mb-1.5">Your library is empty</h2>
+              <p className="text-copy-14 text-[var(--notion-text-dim)] max-w-sm mb-5">
                 Create a new chord chart or import one from a .md file you already have.
               </p>
               <div className="flex flex-wrap justify-center gap-2">
