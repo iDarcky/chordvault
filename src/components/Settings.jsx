@@ -83,7 +83,7 @@ const Row = ({ label, children, description }) => (
 
 // ─── Hub row — drills into a sub-panel ───────────────────────────────────
 
-function HubRow({ label, value, onClick }) {
+function HubRow({ icon: Icon, label, value, onClick }) {
   return (
     <button
       type="button"
@@ -92,6 +92,7 @@ function HubRow({ label, value, onClick }) {
       style={{ background: 'transparent', WebkitTapHighlightColor: 'transparent' }}
     >
       <span className="text-[var(--modes-text-muted)] shrink-0">
+        {Icon && <Icon />}
       </span>
       <span className="flex-1 min-w-0 flex flex-col">
         <span className="text-copy-15 text-[var(--modes-text)] font-medium">{label}</span>
