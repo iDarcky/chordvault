@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import NotificationTray from './NotificationTray';
 import { cn } from '../lib/utils';
+import { Avatar, AvatarFallback } from './ui/Avatar';
 
 const HomeIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -112,12 +113,12 @@ export default function TopHeader({
 
                 {/* Active Brand Indicator */}
                 {active && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--color-brand)] rounded-t-sm" />
+                  <div className="absolute top-0 left-0 right-0 h-[4px] bg-[var(--color-brand)] rounded-b-md" />
                 )}
 
                 {/* Hover Indicator */}
                 {!active && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--ds-gray-300)] opacity-0 group-hover:opacity-100 transition-opacity rounded-t-sm" />
+                  <div className="absolute top-0 left-0 right-0 h-[4px] bg-[var(--ds-gray-300)] opacity-0 group-hover:opacity-100 transition-opacity rounded-b-md" />
                 )}
               </button>
             );
@@ -138,28 +139,27 @@ export default function TopHeader({
           <button
             onClick={() => onNavigate('settings')}
             className={cn(
-              "flex items-center gap-2 p-2 rounded-md transition-colors cursor-pointer border-none bg-transparent",
+              "flex items-center justify-center p-2 rounded-full transition-colors cursor-pointer border-none bg-transparent",
               activeView === 'settings'
                 ? "text-[var(--ds-gray-1000)] bg-[var(--ds-gray-200)]"
                 : "text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]"
             )}
+            title="Settings"
           >
             <SettingsIcon />
-            <span className="text-[14px] font-medium">Settings</span>
           </button>
 
           <div className="relative flex items-center h-full" ref={dropdownRef}>
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className={cn(
-                "flex items-center gap-2 p-2 rounded-md transition-colors cursor-pointer border-none bg-transparent",
-                profileDropdownOpen
-                  ? "text-[var(--ds-gray-1000)] bg-[var(--ds-gray-200)]"
-                  : "text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]"
-              )}
+              className="flex items-center justify-center p-1 rounded-full transition-colors cursor-pointer border-none bg-transparent hover:ring-2 hover:ring-[var(--ds-gray-300)] outline-none"
+              title="Profile"
             >
-              <UserIcon />
-              <span className="text-[14px] font-medium">Profile</span>
+              <Avatar className="w-8 h-8">
+                <AvatarFallback className="bg-[var(--ds-gray-200)] text-[var(--ds-gray-900)]">
+                  {displayName.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
             </button>
 
             {profileDropdownOpen && (
