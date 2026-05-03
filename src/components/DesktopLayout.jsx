@@ -4,26 +4,27 @@ import TeamBanner from './TeamBanner';
 import { cn } from '../lib/utils';
 import { useMediaQuery } from '../lib/useMediaQuery';
 
-export default function DesktopLayout({ 
-  children, 
-  activeView, 
-  onNavigate, 
-  isFullscreen = false, 
-  hasUnreadNotifications, 
-  onNotificationClick, 
-  notifications, 
-  onMarkRead, 
-  onNotificationAction, 
-  drawerOpen = false, 
-  displayName, 
-  plan, 
-  hideBottomSpacer = false, 
-  activeLibrary, 
-  setActiveLibrary, 
+export default function DesktopLayout({
+  children,
+  activeView,
+  onNavigate,
+  isFullscreen = false,
+  hasUnreadNotifications,
+  onNotificationClick,
+  notifications,
+  onMarkRead,
+  onNotificationAction,
+  drawerOpen = false,
+  displayName,
+  plan,
+  hideBottomSpacer = false,
+  activeLibrary,
+  setActiveLibrary,
   team,
   onChangeWorkspace,
   syncState,
-  isOnline
+  isOnline,
+  hideBanner = false,
 }) {
   const mainRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 639.98px)');
@@ -40,7 +41,7 @@ export default function DesktopLayout({
     ? 'grid-cols-1'
     : 'grid-cols-1 sm:grid-cols-[80px_1fr] xl:grid-cols-[280px_1fr]';
 
-  const showBanner = activeLibrary !== 'personal' && team;
+  const showBanner = !hideBanner && activeLibrary !== 'personal' && team;
 
   return (
     <div className="w-full h-[100dvh] flex flex-col overflow-hidden">

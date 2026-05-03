@@ -14,6 +14,7 @@ export default function PerformanceView({ setlist, songs, onBack }) {
   const [fontSize, setFontSize] = useState(18);
   const [columns, setColumns] = useState(1);
   const [showOverflow, setShowOverflow] = useState(false);
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
   const overflowRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -92,127 +93,143 @@ export default function PerformanceView({ setlist, songs, onBack }) {
     >
       {/* ── Minimal sticky header ── */}
       <div className="material-header" style={{ zIndex: 50 }}>
-        <div className="a4-container flex items-center gap-2 py-3">
-          {/* Back */}
-          <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Back">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
-            </svg>
-          </IconButton>
-
-          {/* Title */}
-          <h1 className="text-heading-16 text-[var(--ds-gray-1000)] m-0 flex-1 min-w-0 truncate">
-            {cur.isBreak ? (cur.label || 'Break') : cur.song.title}
-          </h1>
-
-          {/* Meta: key picker + tempo + time */}
-          {!cur.isBreak && displayKey && (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Select value={displayKey} onValueChange={setSelectedKey}>
-                <SelectTrigger className="h-7 px-2 border border-[var(--ds-gray-400)] bg-[var(--ds-background-200)] rounded-lg text-label-13 font-bold text-[var(--ds-gray-1000)] gap-1 min-w-0 w-auto focus:ring-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ALL_KEYS.map(k => {
-                    const st = semitonesBetween(cur.song.key, k);
-                    const display = st > 6 ? st - 12 : st;
-                    return (
-                      <SelectItem key={k} value={k}>
-                        {k}{st !== 0 && ` (${display > 0 ? '+' : ''}${display})`}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              {cur.capo > 0 && (
-                <span className="text-label-12 font-bold text-[var(--color-brand)] whitespace-nowrap bg-[var(--color-brand-soft)] px-1.5 py-0.5 rounded border border-[var(--color-brand-border)]">
-                  Capo {cur.capo}
-                </span>
-              )}
-              {cur.song.tempo && (
-                <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap">
-                  ♩ {cur.song.tempo}
-                </span>
-              )}
-              {cur.song.time && (
-                <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap">
-                  {cur.song.time}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Separator */}
-          <div className="w-px h-5 bg-[var(--ds-gray-400)] shrink-0" />
-
-          {/* Overflow: font size + columns */}
-          <div className="relative" ref={overflowRef}>
-            <IconButton
-              variant={showOverflow ? 'active' : 'default'}
-              size="sm"
-              onClick={() => setShowOverflow(s => !s)}
-              aria-label="Display options"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="5" cy="12" r="2" />
-                <circle cx="12" cy="12" r="2" />
-                <circle cx="19" cy="12" r="2" />
+        {/* Title row — hidden when collapsed */}
+        {!headerCollapsed && (
+          <div className="a4-container flex items-center gap-2 py-3">
+            {/* Back */}
+            <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Back">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
               </svg>
             </IconButton>
-            {showOverflow && (
-              <div className="absolute right-0 top-full mt-2 z-[200] min-w-[190px] rounded-xl bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] shadow-xl p-3 flex flex-col gap-3">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-label-12 text-[var(--ds-gray-700)]">Font size</span>
-                  <div className="flex items-center bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] rounded-lg p-0.5">
-                    <button
-                      onClick={() => setFontSize(p => Math.max(12, p - 2))}
-                      className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-100)] text-label-14 font-bold"
-                    >−</button>
-                    <span className="px-2 text-label-11-mono text-[var(--ds-gray-700)] tabular-nums">{fontSize}px</span>
-                    <button
-                      onClick={() => setFontSize(p => Math.min(32, p + 2))}
-                      className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-100)] text-label-14 font-bold"
-                    >+</button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-label-12 text-[var(--ds-gray-700)]">Columns</span>
-                  <div className="flex items-center gap-1.5">
-                    {[1, 2].map(n => (
-                      <button
-                        key={n}
-                        onClick={() => setColumns(n)}
-                        className="h-7 px-3 rounded-lg text-label-12 font-semibold transition-colors border"
-                        style={{
-                          background: columns === n ? 'var(--color-brand)' : 'var(--ds-background-100)',
-                          color: columns === n ? 'white' : 'var(--ds-gray-900)',
-                          borderColor: columns === n ? 'transparent' : 'var(--ds-gray-400)',
-                        }}
-                      >{n}</button>
-                    ))}
-                  </div>
-                </div>
+
+            {/* Title */}
+            <h1 className="text-heading-16 text-[var(--ds-gray-1000)] m-0 flex-1 min-w-0 truncate">
+              {cur.isBreak ? (cur.label || 'Break') : cur.song.title}
+            </h1>
+
+            {/* Meta: key picker + tempo + time */}
+            {!cur.isBreak && displayKey && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Select value={displayKey} onValueChange={setSelectedKey}>
+                  <SelectTrigger className="h-7 px-2 border border-[var(--ds-gray-400)] bg-[var(--ds-background-200)] rounded-lg text-label-13 font-bold text-[var(--ds-gray-1000)] gap-1 min-w-0 w-auto focus:ring-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ALL_KEYS.map(k => {
+                      const st = semitonesBetween(cur.song.key, k);
+                      const display = st > 6 ? st - 12 : st;
+                      return (
+                        <SelectItem key={k} value={k}>
+                          {k}{st !== 0 && ` (${display > 0 ? '+' : ''}${display})`}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                {cur.capo > 0 && (
+                  <span className="text-label-12 font-bold text-[var(--color-brand)] whitespace-nowrap bg-[var(--color-brand-soft)] px-1.5 py-0.5 rounded border border-[var(--color-brand-border)]">
+                    Capo {cur.capo}
+                  </span>
+                )}
+                {cur.song.tempo && (
+                  <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap">
+                    ♩ {cur.song.tempo}
+                  </span>
+                )}
+                {cur.song.time && (
+                  <span className="text-label-12 text-[var(--ds-gray-700)] whitespace-nowrap">
+                    {cur.song.time}
+                  </span>
+                )}
               </div>
             )}
+
+            {/* Separator */}
+            <div className="w-px h-5 bg-[var(--ds-gray-400)] shrink-0" />
+
+            {/* Overflow: font size + columns */}
+            <div className="relative" ref={overflowRef}>
+              <IconButton
+                variant={showOverflow ? 'active' : 'default'}
+                size="sm"
+                onClick={() => setShowOverflow(s => !s)}
+                aria-label="Display options"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="5" cy="12" r="2" />
+                  <circle cx="12" cy="12" r="2" />
+                  <circle cx="19" cy="12" r="2" />
+                </svg>
+              </IconButton>
+              {showOverflow && (
+                <div className="absolute right-0 top-full mt-2 z-[200] min-w-[190px] rounded-xl bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] shadow-xl p-3 flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-label-12 text-[var(--ds-gray-700)]">Font size</span>
+                    <div className="flex items-center bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] rounded-lg p-0.5">
+                      <button
+                        onClick={() => setFontSize(p => Math.max(12, p - 2))}
+                        className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-100)] text-label-14 font-bold"
+                      >−</button>
+                      <span className="px-2 text-label-11-mono text-[var(--ds-gray-700)] tabular-nums">{fontSize}px</span>
+                      <button
+                        onClick={() => setFontSize(p => Math.min(32, p + 2))}
+                        className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-100)] text-label-14 font-bold"
+                      >+</button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-label-12 text-[var(--ds-gray-700)]">Columns</span>
+                    <div className="flex items-center gap-1.5">
+                      {[1, 2].map(n => (
+                        <button
+                          key={n}
+                          onClick={() => setColumns(n)}
+                          className="h-7 px-3 rounded-lg text-label-12 font-semibold transition-colors border"
+                          style={{
+                            background: columns === n ? 'var(--color-brand)' : 'var(--ds-background-100)',
+                            color: columns === n ? 'white' : 'var(--ds-gray-900)',
+                            borderColor: columns === n ? 'transparent' : 'var(--ds-gray-400)',
+                          }}
+                        >{n}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Structure ribbon — only for songs */}
         {!cur.isBreak && cur.song.sections?.length > 0 && (
-          <div className="a4-container pb-2 pt-0">
-            <StructureRibbon
-              structure={cur.song.structure || cur.song.sections.map(s => s.type)}
-              compact
-              onSelect={(i) => {
-                const struct = cur.song.structure || cur.song.sections.map(s => s.type);
-                const name = struct[i];
-                const sectionIdx = cur.song.sections.findIndex(s => s.type === name);
-                if (sectionIdx !== -1) {
-                  const el = document.getElementById(`perf-section-${sectionIdx}`);
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-            />
+          <div className="a4-container pb-2 pt-0 flex items-center gap-1">
+            <div className="flex-1 overflow-x-auto no-scrollbar">
+              <StructureRibbon
+                structure={cur.song.structure || cur.song.sections.map(s => s.type)}
+                compact
+                onSelect={(i) => {
+                  const struct = cur.song.structure || cur.song.sections.map(s => s.type);
+                  const name = struct[i];
+                  const sectionIdx = cur.song.sections.findIndex(s => s.type === name);
+                  if (sectionIdx !== -1) {
+                    const el = document.getElementById(`perf-section-${sectionIdx}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              />
+            </div>
+            <IconButton
+              size="xs"
+              variant="ghost"
+              onClick={() => setHeaderCollapsed(c => !c)}
+              aria-label={headerCollapsed ? 'Expand header' : 'Collapse header'}
+              className="shrink-0 text-[var(--ds-gray-500)] hover:text-[var(--ds-gray-900)]"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d={headerCollapsed ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7'} />
+              </svg>
+            </IconButton>
           </div>
         )}
       </div>
