@@ -1,3 +1,8 @@
+import { useEffect, useState } from 'react';
+import Account from './Account';
+import TeamScreen from './TeamScreen';
+import { useAuth } from '../auth/useAuth';
+import { useTeam } from '../auth/useTeam';
 import SyncSettings from './settings/SyncSettings';
 import ScreenHeader from './ui/ScreenHeader';
 import { Button } from './ui/Button';
@@ -108,7 +113,8 @@ function HubRow({ icon: Icon, label, value, onClick }) {
 // ─── Panel labels (also the ScreenHeader title) ──────────────────────────
 
 const PANEL_TITLES = {
-  hub: 'Preferences',
+  account: 'My account',
+  workspace: 'Workspace',
   appearance: 'Appearance',
   chart: 'Chart Defaults',
   sync: 'Cloud Sync',
@@ -349,10 +355,26 @@ function syncSummary(syncState) {
 
 // ─── Main component ──────────────────────────────────────────────────────
 
-export default function Settings({
+const AccountIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const WorkspaceIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
+export default function SettingsModal({
   settings,
   onUpdate,
-  onBack,
+  onClose,
   onClearAll,
   onDownloadSongs,
   songCount,
@@ -363,81 +385,246 @@ export default function Settings({
   onRequestSignIn,
   isSignedIn = false,
   displayName = '',
-  // Sub-panel state lives in App.jsx so it participates in the back stack.
-  panel = 'hub',
-  onChangePanel = () => {},
-  activeLibrary = 'personal',
-  team = null,
+  displayEmail = '',
+  plan = 'Free',
+  onUpgrade,
+  onSignIn,
+  onCreateAccount,
+  onSignOut,
+  onSwitchLibrary,
+  initialPanel = 'account',
 }) {
   const update = (key, value) => onUpdate({ ...settings, [key]: value });
+  const [panel, setPanel] = useState(initialPanel);
 
-  return (
-    <div className="flex flex-col min-h-screen bg-[var(--notion-bg)]">
-      <ScreenHeader onBack={onBack} title={PANEL_TITLES[panel]} />
+  useEffect(() => {
+    setPanel(initialPanel);
+  }, [initialPanel]);
 
-      <div className="a4-container py-6 pb-20 flex flex-col gap-6">
-        {panel === 'hub' && (
-          <div className="flex flex-col bg-[var(--notion-bg)] border border-[var(--notion-border)] rounded-lg overflow-hidden divide-y divide-[var(--notion-border)]">
-            <HubRow
-              icon={AppearanceIcon}
-              label="Appearance"
-              value={appearanceSummary(settings)}
-              onClick={() => onChangePanel('appearance')}
-            />
-            <HubRow
-              icon={ChartIcon}
-              label="Chart Defaults"
-              value={chartSummary(settings)}
-              onClick={() => onChangePanel('chart')}
-            />
-            <HubRow
-              icon={CloudIcon}
-              label="Cloud Sync"
-              value={syncSummary(syncState)}
-              onClick={() => onChangePanel('sync')}
-            />
-            <HubRow
-              icon={DataIcon}
-              label="Data"
-              value={`${songCount} songs · ${setlistCount} setlists`}
-              onClick={() => onChangePanel('data')}
-            />
-            <HubRow
-              icon={AboutIcon}
-              label="About"
-              value="v1.2.0"
-              onClick={() => onChangePanel('about')}
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const renderContent = () => {
+    switch (panel) {
+      case 'account':
+        return (
+          <div className="pt-2">
+            <h1 className="text-[20px] font-semibold text-[var(--notion-text-main)] mb-6 hidden md:block">My account</h1>
+            <Account
+              settings={settings}
+              onUpdate={onUpdate}
+              isSignedIn={isSignedIn}
+              displayName={displayName}
+              displayEmail={displayEmail}
+              plan={plan}
+              songCount={songCount}
+              setlistCount={setlistCount}
+              onUpgrade={onUpgrade}
+              onSignIn={onSignIn}
+              onCreateAccount={onCreateAccount}
+              onSignOut={onSignOut}
+              isModal={true}
             />
           </div>
-        )}
+        );
+      case 'workspace':
+        return (
+          <div className="pt-2">
+            <h1 className="text-[20px] font-semibold text-[var(--notion-text-main)] mb-6 hidden md:block">Workspace</h1>
+            <TeamScreen
+              onBack={() => setPanel('hub')}
+              onUpgrade={onUpgrade}
+              onSwitchLibrary={onSwitchLibrary}
+              isModal={true}
+            />
+          </div>
+        );
+      case 'appearance':
+        return (
+          <div className="pt-2">
+            <h1 className="text-[20px] font-semibold text-[var(--notion-text-main)] mb-6 hidden md:block">Appearance</h1>
+            <AppearancePanel settings={settings} update={update} isSignedIn={isSignedIn} />
+          </div>
+        );
+      case 'chart':
+        return (
+          <div className="pt-2">
+            <h1 className="text-[20px] font-semibold text-[var(--notion-text-main)] mb-6 hidden md:block">Chart Defaults</h1>
+            <ChartPanel settings={settings} update={update} />
+          </div>
+        );
+      case 'sync':
+        return (
+          <div className="pt-2">
+            <h1 className="text-[20px] font-semibold text-[var(--notion-text-main)] mb-6 hidden md:block">Cloud Sync</h1>
+            <SyncPanel
+              syncState={syncState}
+              onSyncStateChange={onSyncStateChange}
+              onSyncNow={onSyncNow}
+              onRequestSignIn={onRequestSignIn}
+              activeLibrary={undefined} // Not used in Settings.jsx SyncPanel actually
+              team={undefined}
+            />
+          </div>
+        );
+      case 'data':
+        return (
+          <div className="pt-2">
+            <h1 className="text-[20px] font-semibold text-[var(--notion-text-main)] mb-6 hidden md:block">Data</h1>
+            <DataPanel
+              songCount={songCount}
+              setlistCount={setlistCount}
+              onDownloadSongs={onDownloadSongs}
+              onClearAll={onClearAll}
+            />
+          </div>
+        );
+      case 'about':
+        return (
+          <div className="pt-2">
+            <h1 className="text-[20px] font-semibold text-[var(--notion-text-main)] mb-6 hidden md:block">About</h1>
+            <AboutPanel isSignedIn={isSignedIn} displayName={displayName} />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
-        {panel === 'appearance' && (
-          <AppearancePanel settings={settings} update={update} isSignedIn={isSignedIn} />
-        )}
-        {panel === 'chart' && (
-          <ChartPanel settings={settings} update={update} />
-        )}
-        {panel === 'sync' && (
-          <SyncPanel
-            syncState={syncState}
-            onSyncStateChange={onSyncStateChange}
-            onSyncNow={onSyncNow}
-            onRequestSignIn={onRequestSignIn}
-            activeLibrary={activeLibrary}
-            team={team}
-          />
-        )}
-        {panel === 'data' && (
-          <DataPanel
-            songCount={songCount}
-            setlistCount={setlistCount}
-            onDownloadSongs={onDownloadSongs}
-            onClearAll={onClearAll}
-          />
-        )}
-        {panel === 'about' && (
-          <AboutPanel isSignedIn={isSignedIn} displayName={displayName} />
-        )}
+  const navItems = [
+    { id: 'account', label: 'My account', icon: AccountIcon },
+    { id: 'workspace', label: 'Workspace', icon: WorkspaceIcon },
+    { id: 'appearance', label: 'Appearance', icon: AppearanceIcon },
+    { id: 'chart', label: 'Chart Defaults', icon: ChartIcon },
+    { id: 'sync', label: 'Cloud Sync', icon: CloudIcon },
+    { id: 'data', label: 'Data', icon: DataIcon },
+    { id: 'about', label: 'About', icon: AboutIcon },
+  ];
+
+  if (isMobile) {
+    return (
+      <div className="fixed inset-0 z-[200] bg-[var(--notion-bg)] flex flex-col overflow-y-auto">
+        <ScreenHeader onBack={panel === 'hub' ? onClose : () => setPanel('hub')} title={panel === 'hub' ? 'Settings' : PANEL_TITLES[panel] || 'Settings'} />
+        <div className="p-4 flex-1">
+          {panel === 'hub' ? (
+            <div className="flex flex-col bg-[var(--notion-bg)] border border-[var(--notion-border)] rounded-lg overflow-hidden divide-y divide-[var(--notion-border)]">
+              {navItems.map(item => (
+                <HubRow
+                  key={item.id}
+                  icon={item.icon}
+                  label={item.label}
+                  onClick={() => setPanel(item.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            renderContent()
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop Modal
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-[1000px] h-[85vh] bg-[var(--notion-bg)] rounded-xl shadow-2xl flex overflow-hidden relative"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-[var(--notion-text-dim)] hover:text-[var(--notion-text-main)] hover:bg-[var(--notion-bg-hover)] rounded-md transition-colors border-none bg-transparent cursor-pointer z-10"
+          aria-label="Close settings"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        {/* Sidebar */}
+        <div className="w-[240px] flex-shrink-0 bg-[var(--ds-background-200)] border-r border-[var(--notion-border)] py-6 flex flex-col h-full overflow-y-auto">
+          <div className="px-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-5 rounded bg-[var(--color-brand)] flex items-center justify-center text-white text-[11px] font-bold">
+                {displayName ? displayName.charAt(0).toUpperCase() : 'M'}
+              </div>
+              <span className="text-[14px] font-medium text-[var(--notion-text-main)] truncate">
+                {displayName || 'Account'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-[2px] px-2">
+            <div className="px-3 pb-1 pt-4">
+              <span className="text-[11px] font-semibold text-[var(--notion-text-dim)] uppercase tracking-wider">Account</span>
+            </div>
+            {navItems.slice(0, 1).map(item => (
+              <button
+                key={item.id}
+                onClick={() => setPanel(item.id)}
+                className={`flex items-center gap-3 px-3 py-1.5 rounded-md text-[14px] transition-colors border-none cursor-pointer ${
+                  panel === item.id
+                    ? 'bg-[var(--notion-bg-hover)] text-[var(--notion-text-main)] font-medium'
+                    : 'bg-transparent text-[var(--notion-text-dim)] hover:bg-[var(--notion-bg-hover)] hover:text-[var(--notion-text-main)]'
+                }`}
+              >
+                <item.icon />
+                {item.label}
+              </button>
+            ))}
+
+            <div className="px-3 pb-1 pt-4">
+              <span className="text-[11px] font-semibold text-[var(--notion-text-dim)] uppercase tracking-wider">Workspace</span>
+            </div>
+            {navItems.slice(1, 2).map(item => (
+              <button
+                key={item.id}
+                onClick={() => setPanel(item.id)}
+                className={`flex items-center gap-3 px-3 py-1.5 rounded-md text-[14px] transition-colors border-none cursor-pointer ${
+                  panel === item.id
+                    ? 'bg-[var(--notion-bg-hover)] text-[var(--notion-text-main)] font-medium'
+                    : 'bg-transparent text-[var(--notion-text-dim)] hover:bg-[var(--notion-bg-hover)] hover:text-[var(--notion-text-main)]'
+                }`}
+              >
+                <item.icon />
+                {item.label}
+              </button>
+            ))}
+
+            <div className="px-3 pb-1 pt-4">
+              <span className="text-[11px] font-semibold text-[var(--notion-text-dim)] uppercase tracking-wider">Preferences</span>
+            </div>
+            {navItems.slice(2).map(item => (
+              <button
+                key={item.id}
+                onClick={() => setPanel(item.id)}
+                className={`flex items-center gap-3 px-3 py-1.5 rounded-md text-[14px] transition-colors border-none cursor-pointer ${
+                  panel === item.id
+                    ? 'bg-[var(--notion-bg-hover)] text-[var(--notion-text-main)] font-medium'
+                    : 'bg-transparent text-[var(--notion-text-dim)] hover:bg-[var(--notion-bg-hover)] hover:text-[var(--notion-text-main)]'
+                }`}
+              >
+                <item.icon />
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 bg-[var(--notion-bg)] overflow-y-auto">
+          <div className="max-w-[700px] mx-auto px-10 py-12 pb-24">
+            {renderContent()}
+          </div>
+        </div>
       </div>
     </div>
   );

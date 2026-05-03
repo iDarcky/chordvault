@@ -9,7 +9,7 @@ import { getSyncState, setActiveProvider } from './sync/tokens';
 import OnboardingFlow from './onboarding/OnboardingFlow';
 import Dashboard from './components/Dashboard';
 import Library from './components/Library';
-import Settings from './components/Settings';
+import SettingsModal from './components/SettingsModal';
 import Account from './components/Account';
 import Setlists from './components/Setlists';
 import BottomNav from './components/BottomNav';
@@ -162,7 +162,8 @@ export default function App() {
   const [showFounderNote, setShowFounderNote] = useState(false);
   // Settings sub-panel ('hub' | 'appearance' | 'chart' | 'sync' | 'data' | 'about')
   // Lifted to App so it participates in the back-button history stack.
-  const [settingsPanel, setSettingsPanel] = useState('hub');
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [settingsModalPanel, setSettingsModalPanel] = useState('hub');
   // Wake-lock explainer is now state-driven (was render-condition-driven) so
   // it can participate in the history stack.
   const [showWakeLockExplainer, setShowWakeLockExplainer] = useState(false);
@@ -533,7 +534,7 @@ export default function App() {
     if (setlist !== undefined) setCurrentSetlist(setlist);
     setView(nextView);
     // Entering Settings fresh always lands on the hub.
-    if (nextView === 'settings') setSettingsPanel('hub');
+
   };
 
   const goBack = useCallback(() => {
@@ -542,7 +543,7 @@ export default function App() {
       setView(prev.view);
       setCurrentSong(prev.song);
       setCurrentSetlist(prev.setlist);
-      if (prev.settingsPanel !== undefined) setSettingsPanel(prev.settingsPanel);
+
       setAccountWallTrigger(prev.accountWall ?? null);
       setShowFounderNote(!!prev.founderNote);
       setShowIOSHint(!!prev.iosHint);
@@ -552,7 +553,7 @@ export default function App() {
       setView('home');
       setCurrentSong(null);
       setCurrentSetlist(null);
-      setSettingsPanel('hub');
+
       setAccountWallTrigger(null);
       setShowFounderNote(false);
       setShowIOSHint(false);
@@ -614,6 +615,16 @@ export default function App() {
   // Help / Design). Now pushes history so hardware Back navigates within the
   // app instead of exiting the PWA.
   const goToMainView = (viewName) => {
+    if (viewName === 'account-modal') {
+      setIsSettingsModalOpen(true);
+      setSettingsModalPanel('account');
+      return;
+    }
+    if (viewName === 'team-modal') {
+      setIsSettingsModalOpen(true);
+      setSettingsModalPanel('workspace');
+      return;
+    }
     if (view === viewName) return;
     pushHistory(snapshot());
     const apply = () => {
@@ -621,7 +632,7 @@ export default function App() {
       setCurrentSong(null);
       setCurrentSetlist(null);
       setIsFullscreen(false);
-      if (viewName === 'settings') setSettingsPanel('hub');
+
     };
     if (typeof document !== 'undefined' && typeof document.startViewTransition === 'function') {
       document.startViewTransition(apply);
@@ -630,13 +641,6 @@ export default function App() {
     }
   };
 
-  // Drill into a Settings sub-panel ('appearance', 'chart', etc.) — pushes
-  // history so the in-app and hardware back both return to the hub.
-  const goSettingsPanel = (nextPanel) => {
-    if (nextPanel === settingsPanel) return;
-    pushHistory(snapshot());
-    setSettingsPanel(nextPanel);
-  };
 
   // Modal openers — each one pushes history first so hardware Back closes
   // the modal instead of bypassing it. Modal close handlers call
@@ -707,7 +711,7 @@ export default function App() {
     navigate('setlist-performance', { setlist: sl });
   };
   const goSetlistPractice = (sl) => navigate('setlist-practice', { setlist: sl });
-  const goTeam = () => goToMainView('team');
+  const goTeam = () => (() => { setIsSettingsModalOpen(true); setSettingsModalPanel('workspace'); })();
   const goSchedule = () => navigate('schedule');
 
   // Song CRUD
@@ -1378,7 +1382,7 @@ export default function App() {
           songCount={songs.length}
           setlistCount={setlists.length}
           hasUnreadNotifications={hasUnreadNotifications}
-          onOpenSettings={() => { setDrawerOpen(false); goToMainView('settings'); }}
+          onOpenSettings={() => { setDrawerOpen(false); setIsSettingsModalOpen(true); setSettingsModalPanel('hub'); }}
           onOpenNotifications={() => { setDrawerOpen(false); setNotifTrayOpen(true); }}
           onOpenHelp={() => { setDrawerOpen(false); navigate('help'); }}
           onSignOut={async () => { setDrawerOpen(false); await handleSignOut(); }}

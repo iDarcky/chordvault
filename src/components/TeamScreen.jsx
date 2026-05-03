@@ -585,7 +585,9 @@ function TeamDashboard({ team, members, invites, isAdmin, currentUserId, onRemov
 
 // ── Main Screen ─────────────────────────────────────────────────────────────
 
-export default function TeamScreen({ onBack, onUpgrade, onSwitchLibrary }) {
+export default function TeamScreen({ onBack, onUpgrade, onSwitchLibrary,
+  isModal = false
+}) {
   const { user } = useAuth();
   const { team, members, invites, isAdmin, loading, createTeam, inviteMember, removeMember, cancelInvite, leaveTeam, deleteTeam, hasTeamPlan, updateTeam } = useTeam();
 
@@ -597,8 +599,8 @@ export default function TeamScreen({ onBack, onUpgrade, onSwitchLibrary }) {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <ScreenHeader onBack={onBack} title="Your Team" />
+    <div className={`flex flex-col ${isModal ? '' : 'h-full'}`}>
+      {!isModal && <ScreenHeader onBack={onBack} title="Your Team" />}
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
