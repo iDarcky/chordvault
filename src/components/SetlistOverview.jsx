@@ -23,14 +23,6 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const { songCount, breakCount } = useMemo(() => {
-    let sc = 0, bc = 0;
-    for (const it of setlist.items) {
-      if (it.type === 'break') bc++;
-      else sc++;
-    }
-    return { songCount: sc, breakCount: bc };
-  }, [setlist, songs]);
 
   // Per-row song number (skips breaks). Lookup table keeps the running
   // counter out of the render body so React Compiler stays happy.
@@ -56,6 +48,19 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
 
   const actionIcons = (
     <div className="flex items-center gap-1 shrink-0">
+      {onPractice && (
+        <IconButton variant="ghost" size="sm" onClick={onPractice} aria-label="Practice setlist" title="Practice setlist">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </IconButton>
+      )}
+      <IconButton variant="ghost" size="sm" onClick={onPlay} aria-label="Play setlist" title="Play setlist" className="text-[var(--color-brand)]">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      </IconButton>
       {team && (
         <IconButton
           variant={showRoster ? 'active' : 'ghost'}
@@ -113,151 +118,140 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
   );
 
   return (
-    <div className="min-h-screen material-page pb-8">
+    <div className="min-h-screen bg-[var(--notion-bg)] pb-8">
+      {/* ── Sticky header (Desktop/Mobile) ── */}
+      <div className="sticky top-0 z-10 bg-[var(--notion-bg)]/80 backdrop-blur-md border-b border-[var(--notion-border)] lg:border-transparent transition-all duration-200">
+        <div className="a4-container lg:max-w-4xl mx-auto px-4 lg:px-8">
+          <div className="flex items-center justify-between gap-3 py-2.5 min-h-[56px]">
+            {/* Desktop Back Button / Mobile Title */}
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <IconButton variant="ghost" size="sm" onClick={onBack} aria-label="Back" className="lg:hidden">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </IconButton>
 
-      {/* ── Sticky header ── */}
-      <div className="material-header transition-all duration-200">
-        <div className="a4-container">
-
-          {collapsed ? (
-            /* ── Collapsed: title + actions in one row ── */
-            <div className="flex items-center justify-between gap-3 py-2.5">
-              <h1 className="text-heading-16 text-[var(--ds-gray-1000)] m-0 truncate flex-1 min-w-0">
+              {/* Only show title in header when collapsed on mobile, or always on desktop but subtle */}
+              <span className={`text-label-13 font-medium text-[var(--notion-text-main)] truncate ${!collapsed && 'lg:hidden opacity-0'}`}>
                 {setlist.name || 'Untitled Setlist'}
-              </h1>
-              {actionIcons}
+              </span>
             </div>
-          ) : (
-            /* ── Expanded: date row, title, chip row ── */
-            <>
-              {/* Row 1: date + actions */}
-              <div className="flex items-center justify-between pt-3 pb-1">
-                <span className="text-label-11 text-[var(--ds-gray-700)] uppercase tracking-widest">
-                  {dateStr} {timeStr && `• ${timeStr}`}
-                </span>
-                {actionIcons}
-              </div>
+            {actionIcons}
+          </div>
+        </div>
+      </div>
 
-              {/* Row 2: setlist name */}
-              <h1 className="text-heading-24 text-[var(--ds-gray-1000)] m-0 mb-2 truncate">
-                {setlist.name || 'Untitled Setlist'}
-              </h1>
+      {/* ── Document Header ── */}
+      <div className="a4-container lg:max-w-4xl mx-auto px-4 lg:px-8 pt-8 pb-6">
+        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-[var(--notion-text-main)] m-0 mb-4">
+          {setlist.name || 'Untitled Setlist'}
+        </h1>
 
-              {/* Row 3: tags + song count */}
-              <div className="flex items-center justify-between gap-3 pb-4">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {(setlist.tags?.length ? setlist.tags : setlist.service ? [setlist.service] : []).map((tag, i) => (
-                    <Chip key={i} variant="success">{tag}</Chip>
-                  ))}
-                  {setlist.location && (
-                    <span className="flex items-center gap-1 text-label-13 text-[var(--ds-gray-700)] ml-2">
-                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                       {setlist.location}
-                    </span>
-                  )}
-                </div>
-                <span className="text-label-12 text-[var(--ds-gray-700)] shrink-0">
-                  {songCount} song{songCount !== 1 ? 's' : ''}
-                  {breakCount > 0 && ` + ${breakCount} break${breakCount !== 1 ? 's' : ''}`}
-                </span>
-              </div>
-            </>
+        <div className="flex flex-col gap-2">
+          {/* Date & Time */}
+          <div className="flex items-center gap-2 text-[var(--notion-text-dim)]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span className="text-copy-14">
+              {dateStr} {timeStr && `at ${timeStr}`}
+            </span>
+          </div>
+
+          {/* Location */}
+          {setlist.location && (
+            <div className="flex items-center gap-2 text-[var(--notion-text-dim)]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span className="text-copy-14">{setlist.location}</span>
+            </div>
           )}
 
+          {/* Tags */}
+          <div className="flex items-center gap-2 mt-2">
+            {(setlist.tags?.length ? setlist.tags : setlist.service ? [setlist.service] : []).map((tag, i) => (
+              <span key={i} className="px-2 py-0.5 rounded text-label-12 bg-[var(--notion-bg-hover)] text-[var(--notion-text-main)] border border-[var(--notion-border)]">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* ── Set order ── */}
-      <div className="a4-container pt-6 pb-4">
-        <p className="section-title m-0 mb-4">Set Order</p>
-
-        <div className="flex flex-col gap-2">
+      <div className="a4-container lg:max-w-4xl mx-auto px-4 lg:px-8 pb-4">
+        <div className="flex flex-col border border-[var(--notion-border)] rounded-md overflow-hidden bg-[var(--notion-bg)]">
           {setlist.items.map((item, idx) => {
-
-              /* ── Break banner ── separator-style, no song number ── */
-              if (item.type === 'break') {
-                return (
-                  <div
-                    key={idx}
-                    className="flex flex-col items-stretch py-2"
-                    aria-label="Break"
-                  >
-                    <div className="flex items-center gap-3 px-1">
-                      <span className="flex-1 border-t border-dashed border-[var(--ds-gray-400)]" aria-hidden="true" />
-                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)]">
-                        <span className="text-label-11 uppercase tracking-[0.18em] font-semibold text-[var(--ds-gray-1000)]">
-                          {item.label || 'Break'}
-                        </span>
-                        {(item.duration || 0) > 0 && (
-                          <>
-                            <span className="w-[3px] h-[3px] rounded-full bg-[var(--ds-gray-600)]" aria-hidden="true" />
-                            <span className="text-label-11 text-[var(--ds-gray-700)] tabular-nums">
-                              {item.duration} min
-                            </span>
-                          </>
-                        )}
+            /* ── Break banner ── separator-style, no song number ── */
+            if (item.type === 'break') {
+              return (
+                <div key={idx} className="flex flex-col items-stretch py-2 bg-[var(--notion-bg-hover)] border-b border-[var(--notion-border)] last:border-b-0" aria-label="Break">
+                  <div className="flex items-center gap-3 px-4 lg:px-6">
+                    <span className="text-label-12 uppercase tracking-wider font-semibold text-[var(--notion-text-main)]">
+                      {item.label || 'Break'}
+                    </span>
+                    {(item.duration || 0) > 0 && (
+                      <span className="text-copy-13 text-[var(--notion-text-dim)] tabular-nums">
+                        {item.duration} min
                       </span>
-                      <span className="flex-1 border-t border-dashed border-[var(--ds-gray-400)]" aria-hidden="true" />
-                    </div>
-                    {item.note && (
-                      <p className="text-copy-12 text-[var(--ds-gray-600)] italic m-0 mt-1.5 text-center px-4">
-                        {item.note}
+                    )}
+                  </div>
+                  {item.note && (
+                    <p className="text-copy-13 text-[var(--notion-text-dim)] italic m-0 mt-1 px-4 lg:px-6">
+                      {item.note}
+                    </p>
+                  )}
+                </div>
+              );
+            }
+
+            /* ── Song row ── */
+            const song = getSong(item.songId, item.songTitle);
+            const num = String(songNumberByIdx[idx] || 0).padStart(2, '0');
+
+            if (!song) {
+              return (
+                <div key={idx} className="flex items-center gap-3 px-4 lg:px-6 py-3 border-b border-[var(--notion-border)] last:border-b-0 opacity-60">
+                  <span className="text-copy-14 text-[var(--notion-text-dim)] tabular-nums w-6 shrink-0">
+                    {num}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-copy-14 text-[var(--notion-text-dim)] m-0 truncate italic">
+                      Missing Song (Waiting for sync)
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
+            const displayKey = transposeKey(song.key, item.transpose);
+
+            return (
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-4 lg:px-6 py-3 border-b border-[var(--notion-border)] last:border-b-0 hover:bg-[var(--notion-bg-hover)] transition-colors">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <span className="text-copy-14 text-[var(--notion-text-dim)] tabular-nums w-6 shrink-0">
+                    {num}
+                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-copy-14 font-medium text-[var(--notion-text-main)] m-0 truncate">
+                      {song.title}
+                    </p>
+                    {song.artist && (
+                      <p className="text-copy-13 text-[var(--notion-text-dim)] m-0 truncate">
+                        {song.artist}
                       </p>
                     )}
                   </div>
-                );
-              }
-
-              /* ── Song row ── */
-              const song = getSong(item.songId, item.songTitle);
-              const num = String(songNumberByIdx[idx] || 0).padStart(2, '0');
-
-              if (!song) {
-                return (
-                  <div key={idx} className="material-card flex items-center gap-3 px-4 py-3 opacity-60">
-                    <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
-                      {num}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-heading-14 text-[var(--ds-gray-700)] m-0 truncate italic">
-                        Missing Song (Waiting for sync)
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-
-              const displayKey = transposeKey(song.key, item.transpose);
-
-              return (
-                <div
-                  key={idx}
-                  className="material-card flex items-center gap-3 px-4 py-3"
-                >
-                  <span className="text-label-14 text-[var(--ds-gray-500)] tabular-nums w-7 text-center shrink-0">
-                    {num}
-                  </span>
-
-                <div className="flex-1 min-w-0">
-                  <p className="text-heading-14 text-[var(--ds-gray-1000)] m-0 truncate">
-                    {song.title}
-                  </p>
-                  <p className="text-copy-12 text-[var(--ds-gray-700)] m-0 mt-0.5 truncate">
-                    {song.artist}
-                  </p>
                 </div>
 
-                <div className="flex flex-col items-end shrink-0 gap-0.5">
-                  <span className="text-label-14 text-[var(--ds-gray-1000)] font-semibold flex items-center gap-1.5">
+                <div className="flex items-center gap-4 sm:shrink-0 ml-9 sm:ml-0">
+                  <span className="flex items-center gap-1.5 text-copy-14 text-[var(--notion-text-main)] w-16 sm:w-20">
                     {(item.capo || 0) > 0 && (
-                      <span className="text-label-10 text-[var(--ds-gray-600)] uppercase font-normal">
-                        Capo {item.capo}
+                      <span className="text-[10px] text-[var(--notion-text-dim)] uppercase font-medium bg-[var(--notion-bg-hover)] px-1 rounded border border-[var(--notion-border)]">
+                        C{item.capo}
                       </span>
                     )}
                     {displayKey}
                   </span>
-                  <span className="text-label-11 text-[var(--ds-gray-600)] tabular-nums">
-                    {song.tempo} BPM
+                  <span className="text-copy-14 text-[var(--notion-text-dim)] tabular-nums w-16 sm:w-20 text-left sm:text-right">
+                    {song.tempo ? `${song.tempo} BPM` : '—'}
                   </span>
                 </div>
               </div>
@@ -281,40 +275,7 @@ export default function SetlistOverview({ setlist, songs, onBack, onEdit, onExpo
         </div>
       )}
 
-      {/* ── FAB buttons: Practice + Play ── */}
-      <div
-        className="fixed right-6 z-[150] flex flex-col items-end gap-2"
-        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
-      >
-        {onPractice && (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={onPractice}
-            onKeyDown={(e) => e.key === 'Enter' && onPractice?.()}
-            className="flex items-center gap-2 h-10 px-4 rounded-full bg-[var(--ds-background-200)] border border-[var(--ds-gray-400)] shadow-md cursor-pointer hover:bg-[var(--ds-background-100)] transition-all duration-150 active:scale-95 select-none"
-            aria-label="Practice setlist"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ds-gray-900)]">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-            </svg>
-            <span className="text-label-13 font-semibold text-[var(--ds-gray-900)]">Practice</span>
-          </div>
-        )}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={onPlay}
-          onKeyDown={(e) => e.key === 'Enter' && onPlay?.()}
-          className="w-14 h-14 rounded-full bg-[var(--color-brand)] shadow-lg flex items-center justify-center cursor-pointer hover:opacity-90 transition-all duration-150 active:scale-95"
-          aria-label="Play setlist"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-0.5">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </div>
-      </div>
+      {/* FABs removed (moved to top header) */}
 
       {exportOpen && (
         <ExportSetlistDialog
