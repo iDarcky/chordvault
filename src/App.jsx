@@ -1072,7 +1072,7 @@ export default function App() {
         <DesktopLayout 
           activeView={view === 'setlist-view' ? 'setlists' : view === 'design' ? 'settings' : view === 'schedule' ? 'home' : view}
           onNavigate={goToMainView} 
-          isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || (isFullscreen && (view === 'library' || view === 'setlists'))}
+          isFullscreen={view === 'setlist-performance' || view === 'setlist-play' || view === 'setlist-practice' || (isFullscreen && (view === 'library' || view === 'setlists'))}
           hideBanner={view === 'setlist-performance' || view === 'setlist-play' || view === 'setlist-practice'}
           hasUnreadNotifications={hasUnreadNotifications} 
           notifications={settings?.notifications || []} 
