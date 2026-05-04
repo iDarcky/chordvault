@@ -1496,21 +1496,38 @@ export default function App() {
       {isSettingsModalOpen && (
         <SettingsModal
           open={isSettingsModalOpen}
-          onOpenChange={(open) => {
-            if (!open) {
-              setIsSettingsModalOpen(false);
-            }
-          }}
           initialPanel={settingsModalPanel}
-          setPanel={setSettingsModalPanel}
           settings={settings}
-          setSettings={setSettings}
-          user={user}
-          onSignOut={handleSignOut}
+          onUpdate={setSettings}
           onClose={() => setIsSettingsModalOpen(false)}
-          onNavigate={navigate}
-          onPricing={() => navigate('upgrade')}
-          onDesign={() => navigate('design')}
+          onClearAll={handleClearAll}
+          onDownloadSongs={() => {
+            songs.forEach(s => {
+              const md = songToMd(s);
+              const blob = new Blob([md], { type: 'text/markdown' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = slugify(s.title) + '.md';
+              a.click();
+              URL.revokeObjectURL(url);
+            });
+          }}
+          songCount={songs.length}
+          setlistCount={setlists.length}
+          syncState={syncState}
+          onSyncStateChange={setSyncState}
+          onSyncNow={triggerSync}
+          onRequestSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
+          isSignedIn={isSignedIn}
+          displayName={displayName}
+          displayEmail={displayEmail}
+          plan={plan}
+          onUpgrade={() => navigate('upgrade')}
+          onSignIn={() => { setAuthStartMode('signin'); navigate('signin'); }}
+          onCreateAccount={() => { setAuthStartMode('signup'); navigate('signin'); }}
+          onSignOut={handleSignOut}
+          onSwitchLibrary={setActiveLibrary}
         />
       )}
     </Suspense>

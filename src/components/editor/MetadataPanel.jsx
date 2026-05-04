@@ -1,23 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { splitMd, replaceFrontmatter, parseFrontmatterFields, serializeFrontmatterFields } from '../../parser';
+import SongInfoDrawer from './SongInfoDrawer';
+import { ALL_KEYS } from '../../music';
 
-const FIELDS = [
+const PRIMARY_FIELDS = [
   { key: 'title', label: 'Title', placeholder: 'Song title', span: 2 },
-  { key: 'artist', label: 'Artist', placeholder: 'Artist / band', span: 2 },
-  { key: 'capo', label: 'Capo', placeholder: '0', span: 1 },
-  { key: 'ccli', label: 'CCLI', placeholder: 'CCLI number', span: 1 },
-  { key: 'tags', label: 'Tags', placeholder: 'worship, hymn, fast', span: 2 },
-  { key: 'spotify', label: 'Spotify', placeholder: 'https://…', span: 2 },
-  { key: 'youtube', label: 'YouTube', placeholder: 'https://…', span: 2 },
-  { key: 'notes', label: 'Notes', placeholder: 'Performance notes', span: 2 },
+  { key: 'key', label: 'Key', placeholder: 'C', span: 1 },
+  { key: 'tempo', label: 'Tempo', placeholder: '120', span: 1 },
+  { key: 'time', label: 'Time', placeholder: '4/4', span: 1 },
 ];
 
-export default function MetadataPanel({ md, onChange, isOpen, onToggle }) {
+const TIME_OPTIONS = ['4/4', '3/4', '6/8', '7/8', '12/8', '2/4', '5/4'];
+
+export default function MetadataPanel({ md, onChange, isInfoOpen, onInfoClose }) {
   const isInternalUpdate = useRef(false);
 
   const [fields, setFields] = useState(() => parseFrontmatterFields(splitMd(md).frontmatter));
 
-  // Sync from external md changes (e.g., WriteTab edited frontmatter directly)
   useEffect(() => {
     if (isInternalUpdate.current) {
       isInternalUpdate.current = false;
@@ -37,37 +36,67 @@ export default function MetadataPanel({ md, onChange, isOpen, onToggle }) {
 
   return (
     <div>
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center gap-1.5 bg-transparent border-none cursor-pointer px-0 py-1.5 text-left"
-      >
-        <span className="text-[10px] text-[var(--ds-gray-600)]">{isOpen ? '▾' : '▸'}</span>
-        <span className="text-label-11 font-semibold text-[var(--ds-gray-600)] uppercase tracking-wider">
-          Song Details
-        </span>
-      </button>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pb-3 pt-1">
+        <label className="block sm:col-span-2">
+            <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)] block mb-0.5">
+              Title
+            </span>
+            <input
+              value={fields.title || ''}
+              onChange={e => handleChange('title', e.target.value)}
+              placeholder="Song title"
+              className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none focus:border-[var(--ds-gray-500)] transition-colors font-mono"
+            />
+        </label>
 
-      {isOpen && (
-        <div className="grid grid-cols-2 gap-2 pb-3">
-          {FIELDS.map(f => (
-            <label
-              key={f.key}
-              className="block"
-              style={{ gridColumn: f.span === 2 ? 'span 2' : 'span 1' }}
+        <label className="block">
+            <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)] block mb-0.5">
+              Key
+            </span>
+            <select
+                value={fields.key || ''}
+                onChange={e => handleChange('key', e.target.value)}
+                className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none focus:border-[var(--ds-gray-500)] transition-colors font-mono cursor-pointer"
             >
-              <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)] block mb-0.5">
-                {f.label}
-              </span>
-              <input
-                value={fields[f.key]}
-                onChange={e => handleChange(f.key, e.target.value)}
-                placeholder={f.placeholder}
-                className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none font-mono"
-              />
-            </label>
-          ))}
-        </div>
-      )}
+                <option value=""></option>
+                {ALL_KEYS.map(k => <option key={k} value={k}>{k}</option>)}
+            </select>
+        </label>
+
+        <label className="block">
+            <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)] block mb-0.5">
+              Tempo
+            </span>
+            <input
+              type="number"
+              value={fields.tempo || ''}
+              onChange={e => handleChange('tempo', e.target.value)}
+              placeholder="120"
+              min="30" max="300"
+              className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none focus:border-[var(--ds-gray-500)] transition-colors font-mono"
+            />
+        </label>
+
+        <label className="block">
+            <span className="text-label-10 font-semibold uppercase tracking-wider text-[var(--ds-gray-600)] block mb-0.5">
+              Time
+            </span>
+            <select
+                value={fields.time || '4/4'}
+                onChange={e => handleChange('time', e.target.value)}
+                className="w-full px-2.5 py-1.5 bg-[var(--ds-gray-100)] border border-[var(--ds-gray-300)] rounded-md text-copy-13 text-[var(--ds-gray-1000)] outline-none focus:border-[var(--ds-gray-500)] transition-colors font-mono cursor-pointer"
+            >
+                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+        </label>
+      </div>
+
+      <SongInfoDrawer
+        open={isInfoOpen}
+        onClose={onInfoClose}
+        fields={fields}
+        onChangeField={handleChange}
+      />
     </div>
   );
 }

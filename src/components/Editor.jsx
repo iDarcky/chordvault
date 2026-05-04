@@ -33,7 +33,7 @@ export default function Editor({ song, onSave, onBack, onDelete, onMove, activeL
   const [md, setMd] = useState(song ? songToMd(song) : DEFAULT_MD);
   const [activeTab, setActiveTab] = useState('arrange');
   const [preview, setPreview] = useState(null);
-  const [metaPanelOpen, setMetaPanelOpen] = useState(!song);
+  const [metaPanelOpen, setMetaPanelOpen] = useState(false);
   const textareaRef = useRef(null);
 
   // Parse md → preview with debounce
@@ -136,27 +136,9 @@ export default function Editor({ song, onSave, onBack, onDelete, onMove, activeL
               )}
 
               <div className="flex items-center gap-2 ml-auto">
-                <select
-                  value={currentKey}
-                  onChange={e => updateField('key', e.target.value)}
-                  className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none cursor-pointer"
-                >
-                  {ALL_KEYS.map(k => <option key={k} value={k}>{k}</option>)}
-                </select>
-                <input
-                  type="number"
-                  value={currentTempo}
-                  onChange={e => updateField('tempo', e.target.value)}
-                  className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none w-14"
-                  min="30" max="300"
-                />
-                <select
-                  value={currentTime}
-                  onChange={e => updateField('time', e.target.value)}
-                  className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none cursor-pointer hidden sm:block"
-                >
-                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
+                <Button variant="secondary" size="xs" onClick={() => setMetaPanelOpen(true)}>
+                  Song Info
+                </Button>
 
                 {song && onMove && team && (
                   <Button
@@ -186,12 +168,11 @@ export default function Editor({ song, onSave, onBack, onDelete, onMove, activeL
               </div>
             </div>
 
-            {/* Collapsible metadata */}
             <MetadataPanel
               md={md}
               onChange={setMd}
-              isOpen={metaPanelOpen}
-              onToggle={() => setMetaPanelOpen(v => !v)}
+              isInfoOpen={metaPanelOpen}
+              onInfoClose={() => setMetaPanelOpen(false)}
             />
 
             {/* Tabs + tools */}
