@@ -38,6 +38,7 @@ export default function Account({
   onSignIn,
   onCreateAccount,
   onSignOut,
+  isModal = false,
 }) {
   const { profile, updateProfile, updatePassword, deleteAccount, user } = useAuth();
   const { team, members, updateMyInstruments } = useTeam();
@@ -152,12 +153,12 @@ export default function Account({
 
   return (
     <div
-      className="drawer-panel min-h-screen pb-8"
-      style={{
+      className={`pb-8 ${isModal ? '' : 'drawer-panel min-h-screen'}`}
+      style={isModal ? {} : {
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
       }}
     >
-      <div className="a4-container pt-6 pb-10 flex flex-col gap-6">
+      <div className={`flex flex-col gap-6 ${isModal ? 'pb-10' : 'a4-container pt-6 pb-10'}`}>
         <StageGreeting displayName={displayName} tone="drawer" />
         <AccountSummary
           isSignedIn={isSignedIn}

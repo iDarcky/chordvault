@@ -7,6 +7,7 @@ import MetadataPanel from './editor/MetadataPanel';
 import { Button } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Tabs } from './ui/Tabs';
+import ChartView from './ChartView';
 import { toast } from './ui/use-toast';
 
 const TAB_LIST = [
@@ -32,7 +33,7 @@ export default function Editor({ song, onSave, onBack, onDelete, onMove, activeL
   const [md, setMd] = useState(song ? songToMd(song) : DEFAULT_MD);
   const [activeTab, setActiveTab] = useState('arrange');
   const [preview, setPreview] = useState(null);
-  const [metaPanelOpen, setMetaPanelOpen] = useState(!song);
+  const [metaPanelOpen, setMetaPanelOpen] = useState(false);
   const textareaRef = useRef(null);
 
   // Parse md → preview with debounce
@@ -99,115 +100,124 @@ export default function Editor({ song, onSave, onBack, onDelete, onMove, activeL
   };
 
   return (
-    <div className="h-screen bg-[var(--ds-background-200)] flex flex-col">
-      {/* ─── Sticky Header ─── */}
-      <div className="material-header border-b border-[var(--ds-gray-200)] pb-1">
-        <div className="a4-container pt-2 flex flex-col gap-1">
-          {/* Row 1: back + title + key/bpm/time + actions */}
-        <div className="flex items-center gap-2 mb-1">
-          <Button variant="ghost" size="xs" onClick={onBack}>←</Button>
-          <span className="text-heading-16 text-[var(--ds-gray-1000)] truncate max-w-[140px]">
-            {preview?.title || (song ? 'Edit Song' : 'New Song')}
-          </span>
-          {importProgress && (
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-2.5 py-0.5 text-label-11 font-semibold border"
-              style={{
-                color: 'var(--color-brand-text)',
-                borderColor: 'var(--color-brand-border)',
-                background: 'var(--color-brand-soft)',
-              }}
-            >
-              Importing {importProgress.current} of {importProgress.total}
-              {importProgress.onSkip && (
-                <button
-                  onClick={importProgress.onSkip}
-                  className="bg-transparent border-none p-0 text-[var(--color-brand-text)] underline cursor-pointer text-label-11 font-semibold"
+    <div className="h-screen bg-[var(--ds-background-200)] flex flex-col lg:flex-row overflow-hidden">
+
+      {/* ─── Left Column (Editor) ─── */}
+      <div className="flex-1 lg:w-1/2 flex flex-col min-w-0 h-full relative z-10 border-r border-[var(--ds-gray-200)]">
+        {/* Sticky Header */}
+        <div className="material-header border-b border-[var(--ds-gray-200)] pb-1 shrink-0">
+          <div className="px-4 md:px-6 pt-2 flex flex-col gap-1 max-w-3xl mx-auto w-full">
+            {/* Row 1: back + title + actions */}
+            <div className="flex items-center gap-2 mb-1">
+              <Button variant="ghost" size="xs" onClick={onBack}>←</Button>
+              <span className="text-heading-16 text-[var(--ds-gray-1000)] truncate max-w-[140px] md:max-w-xs">
+                {preview?.title || (song ? 'Edit Song' : 'New Song')}
+              </span>
+
+              {importProgress && (
+                <span
+                  className="inline-flex items-center gap-2 rounded-full px-2.5 py-0.5 text-label-11 font-semibold border"
+                  style={{
+                    color: 'var(--color-brand-text)',
+                    borderColor: 'var(--color-brand-border)',
+                    background: 'var(--color-brand-soft)',
+                  }}
                 >
-                  Skip
-                </button>
+                  Importing {importProgress.current} of {importProgress.total}
+                  {importProgress.onSkip && (
+                    <button
+                      onClick={importProgress.onSkip}
+                      className="bg-transparent border-none p-0 text-[var(--color-brand-text)] underline cursor-pointer text-label-11 font-semibold"
+                    >
+                      Skip
+                    </button>
+                  )}
+                </span>
               )}
-            </span>
-          )}
 
-          <div className="flex items-center gap-2 ml-auto">
-            <select
-              value={currentKey}
-              onChange={e => updateField('key', e.target.value)}
-              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none cursor-pointer"
-            >
-              {ALL_KEYS.map(k => <option key={k} value={k}>{k}</option>)}
-            </select>
-            <input
-              type="number"
-              value={currentTempo}
-              onChange={e => updateField('tempo', e.target.value)}
-              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none w-14"
-              min="30" max="300"
+              <div className="flex items-center gap-2 ml-auto">
+                <Button variant="secondary" size="xs" onClick={() => setMetaPanelOpen(true)}>
+                  Song Info
+                </Button>
+
+                {song && onMove && team && (
+                  <Button
+                    variant="secondary"
+                    size="xs"
+                    onClick={() => {
+                      const target = activeLibrary === 'personal' ? team.id : 'personal';
+                      const label = activeLibrary === 'personal' ? team.name : 'Personal Library';
+                      if (confirm(`Move to ${label}?`)) {
+                        onMove(target);
+                      }
+                    }}
+                    className="hidden sm:flex"
+                  >
+                    Move to {activeLibrary === 'personal' ? 'Team' : 'Personal'}
+                  </Button>
+                )}
+
+                {song && onDelete && (
+                  <Button variant="error" size="xs" onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }} className="hidden sm:flex">
+                    Delete
+                  </Button>
+                )}
+                <Button variant="brand" size="xs" onClick={handleSave} disabled={!preview}>
+                  Save
+                </Button>
+              </div>
+            </div>
+
+            <MetadataPanel
+              md={md}
+              onChange={setMd}
+              isInfoOpen={metaPanelOpen}
+              onInfoClose={() => setMetaPanelOpen(false)}
             />
-            <select
-              value={currentTime}
-              onChange={e => updateField('time', e.target.value)}
-              className="bg-[var(--ds-gray-100)] border border-[var(--ds-gray-400)] rounded px-1.5 py-0.5 text-label-11 font-mono text-[var(--ds-gray-1000)] outline-none cursor-pointer"
-            >
-              {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
 
-            {song && onMove && team && (
-              <Button
-                variant="secondary"
-                size="xs"
-                onClick={() => {
-                  const target = activeLibrary === 'personal' ? team.id : 'personal';
-                  const label = activeLibrary === 'personal' ? team.name : 'Personal Library';
-                  if (confirm(`Move to ${label}?`)) {
-                    onMove(target);
-                  }
-                }}
-              >
-                Move to {activeLibrary === 'personal' ? 'Team' : 'Personal'}
-              </Button>
-            )}
-
-            {song && onDelete && (
-              <Button variant="error" size="xs" onClick={() => { if (confirm('Delete this song?')) onDelete(song.id); }}>
-                Delete
-              </Button>
-            )}
-            <Button variant="brand" size="xs" onClick={handleSave} disabled={!preview}>
-              Save
-            </Button>
+            {/* Tabs + tools */}
+            <div className="flex items-center justify-between">
+              <Tabs tabs={TAB_LIST} activeTab={activeTab} onTabChange={setActiveTab} />
+              <div className="flex items-center gap-1 pb-1">
+                {activeTab === 'write' && (
+                  <>
+                    <IconButton variant="ghost" size="xs" onClick={handleUndo} aria-label="Undo">↶</IconButton>
+                    <IconButton variant="ghost" size="xs" onClick={handleRedo} aria-label="Redo">↷</IconButton>
+                  </>
+                )}
+                <IconButton variant="ghost" size="xs" onClick={handleImport} aria-label="Import from clipboard">📋</IconButton>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Collapsible metadata */}
-        <MetadataPanel
-          md={md}
-          onChange={setMd}
-          isOpen={metaPanelOpen}
-          onToggle={() => setMetaPanelOpen(v => !v)}
-        />
+        {/* Content Area */}
+        <div className={`flex-1 min-h-0 flex flex-col w-full max-w-3xl mx-auto px-4 md:px-6 ${activeTab === 'write' ? 'overflow-auto py-[18px]' : 'overflow-hidden'}`}>
+          {renderTab()}
+        </div>
+      </div>
 
-        {/* Tabs + tools */}
-        <div className="flex items-center justify-between">
-          <Tabs tabs={TAB_LIST} activeTab={activeTab} onTabChange={setActiveTab} />
-          <div className="flex items-center gap-1 pb-1">
-            {activeTab === 'write' && (
-              <>
-                <IconButton variant="ghost" size="xs" onClick={handleUndo} aria-label="Undo">↶</IconButton>
-                <IconButton variant="ghost" size="xs" onClick={handleRedo} aria-label="Redo">↷</IconButton>
-              </>
-            )}
-            <IconButton variant="ghost" size="xs" onClick={handleImport} aria-label="Import from clipboard">📋</IconButton>
+      {/* ─── Right Column (Live Preview) ─── */}
+      <div className="hidden lg:flex lg:flex-1 lg:w-1/2 flex-col min-w-0 bg-[var(--notion-bg)] h-full overflow-hidden">
+        {preview ? (
+          <ChartView
+            song={preview}
+            isPreview={true}
+            headerStyle="notion"
+            defaultColumns={1}
+            defaultFontSize={14}
+            chartLayout="columns"
+            showInlineNotes={true}
+            duplicateSections="full"
+            displayRole="leader"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[var(--ds-gray-500)] text-sm">
+            Invalid markdown or empty chart
           </div>
-        </div>
-        </div>
+        )}
       </div>
 
-      {/* ─── Content Area ─── */}
-      <div className={`flex-1 min-h-0 flex flex-col a4-container w-full ${activeTab === 'write' ? 'overflow-auto py-[18px] px-0' : 'overflow-hidden'}`}>
-        {renderTab()}
-      </div>
     </div>
   );
 }

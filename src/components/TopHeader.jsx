@@ -171,7 +171,7 @@ export default function TopHeader({
                 <button
                   onClick={() => {
                     setProfileDropdownOpen(false);
-                    onNavigate('account');
+                    onNavigate('account-modal');
                   }}
                   className="flex items-center gap-2 px-3 py-1.5 text-[14px] text-[var(--ds-gray-800)] hover:text-[var(--ds-gray-1000)] hover:bg-[var(--ds-gray-300)] border-none bg-transparent cursor-pointer text-left w-full transition-colors"
                 >
