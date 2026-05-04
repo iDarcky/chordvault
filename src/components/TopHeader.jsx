@@ -137,7 +137,7 @@ export default function TopHeader({
           </button>
 
           <button
-            onClick={() => onSettingsClick('settings')}
+            onClick={() => onNavigate('settings')}
             className={cn(
               "flex items-center justify-center p-2 rounded-full transition-colors cursor-pointer border-none bg-transparent",
               activeView === 'settings'

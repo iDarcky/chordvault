@@ -615,6 +615,11 @@ export default function App() {
   // Help / Design). Now pushes history so hardware Back navigates within the
   // app instead of exiting the PWA.
   const goToMainView = (viewName) => {
+    if (viewName === 'settings') {
+      setIsSettingsModalOpen(true);
+      setSettingsModalPanel('hub');
+      return;
+    }
     if (viewName === 'account-modal') {
       setIsSettingsModalOpen(true);
       setSettingsModalPanel('account');
