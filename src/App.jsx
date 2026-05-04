@@ -1492,6 +1492,27 @@ export default function App() {
           }}
         />
       )}
+
+      {isSettingsModalOpen && (
+        <SettingsModal
+          open={isSettingsModalOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setIsSettingsModalOpen(false);
+            }
+          }}
+          initialPanel={settingsModalPanel}
+          setPanel={setSettingsModalPanel}
+          settings={settings}
+          setSettings={setSettings}
+          user={user}
+          onSignOut={handleSignOut}
+          onClose={() => setIsSettingsModalOpen(false)}
+          onNavigate={navigate}
+          onPricing={() => navigate('upgrade')}
+          onDesign={() => navigate('design')}
+        />
+      )}
     </Suspense>
     </ErrorBoundary>
   );
