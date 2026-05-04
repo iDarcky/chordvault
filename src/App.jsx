@@ -513,7 +513,7 @@ export default function App() {
     view,
     song: currentSong,
     setlist: currentSetlist,
-    settingsPanel,
+    settingsPanel: settingsModalPanel,
     accountWall: accountWallTrigger,
     founderNote: showFounderNote,
     iosHint: showIOSHint,
