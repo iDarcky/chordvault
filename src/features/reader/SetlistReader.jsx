@@ -226,7 +226,16 @@ export default function SetlistReader({
   // earlier cut also handed over the whole set (`played`) to list on the finale;
   // that list turned a full stop into a page you scroll, and was cut. Don't
   // reintroduce the payload without the screen that needs it.
-  const finish = () => onFinish?.({ startTime });
+  // ⚠ NULL when there is nowhere to finish TO, not a function that quietly
+  // does nothing. Every nav guards its Finish with `… && onFinish` — the
+  // footer swaps the arrow for it, the pill and the edge arrows show it only at
+  // the end — and `onFinish?.()` made that guard always true, so a host with no
+  // finale would still have drawn a Finish button that did nothing at all. No
+  // caller is in that position today (App always passes one), which is what
+  // makes it a landmine rather than a bug: it arrives with the next caller.
+  // READER.md trap 23 — when you write `?.`, decide what it means for the
+  // thing to be absent.
+  const finish = onFinish ? () => onFinish({ startTime }) : null;
 
   const openRail = () => setRailOpen(o => !o);
 
@@ -294,22 +303,46 @@ export default function SetlistReader({
           restacked: song navigation is locked in edit mode anyway, so a control
           that cannot do anything is worse than no control. */}
       {(cfg.nav === 'edge' || cfg.nav === 'swipe') && !railOpen && !locked && (
-        <button
-          type="button"
-          onClick={openRail}
-          aria-label="Open setlist"
-          // min-h-0: the global `button { min-height: 44px }` on phones would
-          // otherwise blow this chip up into a capsule.
-          className="fixed left-1/2 -translate-x-1/2 z-[95] min-h-0 px-3 py-1 rounded-full border text-label-11 font-mono tabular-nums backdrop-blur-md cursor-pointer"
-          style={{
-            bottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
-            background: 'var(--chart-header-bg, var(--header-bg-blur))',
-            borderColor: 'var(--chart-header-border, var(--ds-gray-400))',
-            color: 'var(--chart-subtle, var(--ds-gray-700))',
-          }}
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-[95] flex items-center gap-2"
+          style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
         >
-          {idx + 1} / {total}
-        </button>
+          <button
+            type="button"
+            onClick={openRail}
+            aria-label="Open setlist"
+            // min-h-0: the global `button { min-height: 44px }` on phones would
+            // otherwise blow this chip up into a capsule.
+            className="min-h-0 px-3 py-1 rounded-full border text-label-11 font-mono tabular-nums backdrop-blur-md cursor-pointer"
+            style={{
+              background: 'var(--chart-header-bg, var(--header-bg-blur))',
+              borderColor: 'var(--chart-header-border, var(--ds-gray-400))',
+              color: 'var(--chart-subtle, var(--ds-gray-700))',
+            }}
+          >
+            {idx + 1} / {total}
+          </button>
+          {/* ⚠ SWIPE COULD NOT FINISH A SET. The footer's last arrow becomes
+              Finish, the pill's does, and the edge arrows' does — swipe had no
+              visible control at all beyond this counter, and a swipe past the
+              last song just clamps. So one of the four documented nav styles
+              could reach element 13 by no route whatever, and the only way out
+              of a finished set was the ✕. It is a button rather than a gesture
+              because the other three navs all make Finish something you can
+              SEE, and an invisible gesture off the end of the set is not the
+              place to start. Edge is excluded: its right arrow already turns
+              into Finish, and two Finishes on one screen is worse than none. */}
+          {cfg.nav === 'swipe' && idx >= total - 1 && onFinish && (
+            <button
+              type="button"
+              onClick={finish}
+              className="min-h-0 px-3 py-1 rounded-full border-0 text-label-11 font-semibold cursor-pointer"
+              style={{ background: 'var(--color-brand)', color: '#fff' }}
+            >
+              Finish
+            </button>
+          )}
+        </div>
       )}
       {/* Element 29's strip, and it can be turned off now (Layout → The set).
           It used to be unconditional: only its open/closed state was a

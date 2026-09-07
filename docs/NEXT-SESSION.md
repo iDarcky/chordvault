@@ -1,13 +1,13 @@
-# Next session — element 13, then the tablet/Romanian-dot list
+# Next session — the walk is DONE; 29, then his open list
 
 > **Short-lived handoff.** It exists because a new chat session starts with **no
 > memory of previous conversations** — only this repo.
 >
 > _Rewritten 2026-08-21; corrected 2026-09-03 (element 8 was closed and three
 > docs still said it was open). State: `0.17.0` released on `main`; the tempo
-> history and the element-9 to -12 passes sit on
+> history and the element-9 to -13 passes sit on
 > `claude/next-roadmap-feature-d9eazw`, NOT yet finished or promoted to `beta`.
-> 1238 tests, 0 lint errors (7 pre-existing warnings), build clean._
+> 1248 tests, 0 lint errors (7 pre-existing warnings), build clean._
 >
 > ⚠ **`git checkout beta` may land you on a stale LOCAL branch.** It happened on
 > 2026-08-07 and silently reverted a whole element's work in the tree. Always
@@ -23,32 +23,61 @@ capo. Closed this session, and not numbered elements: the **`unifiedReader`
 graduation** and the **Practice/Live union**.
 
 **8** key change, **9** tabs, **10** getting to the next song, **11** chord
-diagrams and **12** practice tools are closed too — see below and `READER.md`,
-passes 9 / 10 / 11 / 12.
+diagrams, **12** practice tools and **13** the finale are closed too — see
+`READER.md`, passes 9 / 10 / 11 / 12 / 13.
 
-**You are on element 13 — the finale**, the last of the walk. Then 29 (the
-setlist rail), then the 14–27 table.
+**The element walk is COMPLETE.** 1–13 plus 19 are all closed. What is left of
+the reader is **29 — the setlist rail** (its permanent strip was pulled in
+element 4; the rest is open: what it looks like on a phone beyond the bottom
+sheet, whether it shows keys/durations/who-plays-what, what it does in a break,
+and whether it is the same object as element 8b's set bar), then the 14–27
+table.
 
-⚠ **Four passes running have found the same shape of bug — expect a fifth.** A
-rule or an answer that reaches the paths someone was looking at and not the
-ones they were not: a prop read once (**trap 25**), a lock on the visible
-controls only (**trap 26**), an overlay that owns every tap while it is up
-(**trap 27**), and in element 12 a capability gate on the control that OPENS a
-thing but not on the thing itself. **The check that found all four: for each
-promise the element makes, name every path that can reach it, then look at each
-path.** Element 13 takes `startTime` across a whole session and is reached from
-two navs and a Finish button — same shape.
+⚠ **But the element walk is not the same as §1.2.** Before starting 29, re-read
+`PLAN.md` §1.1–§1.3: the owner's freeze ends when the 🔴 list is clear AND the
+reader is finished AND the four old surfaces are deleted. **The delete is still
+pending and is now cheap** — `ChartView`, `PerformanceView`, `PracticeView`,
+`SetlistPlayer`, `LiveFinale`, `PracticeFinale` and `FullscreenChartViewer` are
+a closed dead island imported by nothing live. That is ~2,800 lines, and it is
+the moment to drop the `showChords` migration fallback (those views were its
+only writers) and Settings → Chart Style.
 
-⚠ **And the docs lie in one specific direction: they say OPEN when the code
-says done.** Element 8 (twice) and element 12's metronome correction were both
-described as outstanding work long after they shipped, which sends a session to
-build something that exists. **Grep the code before believing any 🔴.**
+⚠ **And read §2.1 before picking anything.** It is September; the public beta
+targets October 1; the domain split → email → OAuth chain has not started and
+each link waits on the one above. `PLAN.md` calls it the only thing that can
+make October 1 not happen.
+
+### What five passes in a row found, so the sixth looks for it first
+
+Every single one was **a rule or an answer that reached the paths someone was
+looking at and not the ones they were not**:
+
+- **25** a prop read once (`useState(defaultOpen)`, where the prop arrives late)
+- **26** a lock on the visible controls only (keyboard and swipe walked out of
+  an edit)
+- **27** an overlay that owns every tap while it is up (the chord backdrop)
+- **28** a capability gate on the control that OPENS a thing, not on the thing
+- **13's** Finish, present on three navs out of four
+
+**The check that found all five, and it is cheap:** for each promise the element
+makes, name every path that can reach it, then look at each path. Write the
+paths down first — the missing one is never the one you were thinking about.
+
+⚠ **The docs lie in one direction: they say OPEN when the code says done.**
+Element 8 (in three files), element 12's metronome correction, and element 11's
+alias list were all described as outstanding long after they shipped or were
+already half-built. **Grep the code before believing any 🔴.**
 
 ⚠ **Measure in a browser for hit-testing, layout or event-delivery questions.**
-Two of this session's findings turned on them and jsdom could answer neither:
-trap 27 was real (`elementFromPoint` returned the backdrop) and a predicted
-runaway interval was NOT (pointer events bubble from a disabled button). Both
-took about a minute — see below.
+Two findings this session turned on them and jsdom could answer neither: trap 27
+was real (`elementFromPoint` returned the backdrop) and a predicted runaway
+interval was NOT (pointer events bubble from a disabled button — so the fix was
+*not* made). Both took about a minute; recipe below.
+
+⚠ **Read a test file before writing one with the same name.** `reader-finale.
+test.jsx` already existed with 21 tests pinning the three cuts, and a `Write`
+silently replaced it. Caught and restored, but only by noticing the tool said
+"updated" rather than "created".
 
 ---
 

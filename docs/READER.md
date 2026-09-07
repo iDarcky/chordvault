@@ -1188,6 +1188,36 @@ with their key, breaks dashed and italic.
 
 ### 13 — The finale
 
+> **The element-13 pass.** The screen itself is right — one screenful, no page
+> scroll, both ways out pinned outside the scroller, the three cuts still cut.
+> What the pass found is all on the way IN and the way the number is read.
+>
+> 1. ⚠ **One of the four navs could not finish a set.** The footer's last arrow
+>    turns into Finish, the floating pill's does, the edge arrows' does —
+>    **swipe** had no visible control at all beyond the counter chip, and a
+>    swipe past the last song simply clamps. So for a swipe user element 13 was
+>    reachable by no route whatever, and the only way out of a finished set was
+>    the ✕. It gets a Finish button beside the chip on the last item — a button
+>    and not a gesture, because the other three navs all make Finish something
+>    you can SEE, and an invisible gesture off the end of the set is not the
+>    place to start. Edge is excluded: its right arrow is already Finish, and
+>    two of them on one screen is worse than none.
+> 2. ⚠ **The clock kept running after the thing it was timing had stopped.**
+>    `now` ticked once a minute "so the clock stays honest if they linger" — but
+>    this screen mounts when Finish is pressed, so the run ended at that
+>    instant, and the tick counted the time spent LOOKING at the finale into the
+>    session it reports. Left on a music stand, a 20-minute practice reads as an
+>    hour and a half. Frozen at mount. The one number on this screen has to be a
+>    fact about the run, not about the screen.
+> 3. ⚠ **`onFinish?.()` made every Finish guard always true.** Each nav asks
+>    `… && onFinish` before drawing Finish, and `SetlistReader` handed them
+>    `() => onFinish?.({ startTime })` — a function whether or not the host gave
+>    one. A caller with no finale would have got a Finish button that did
+>    nothing. Latent (App always passes one), and now null when there is nowhere
+>    to finish to. **Trap 23, again, from the other end: when you write `?.`,
+>    decide what it means for the thing to be absent.**
+
+
 **One screen for both kinds** (`ReaderFinale`), in place of `LiveFinale` (246
 lines) and `PracticeFinale` (252) — which were ~80% the same file, with
 `formatDuration` and `StatGrid` duplicated verbatim and the copy already drifting
@@ -3207,6 +3237,15 @@ being routes into `live`.
    thing has to read the capability too** — and the closing half is a
    render-phase adjustment, not an effect: the compiler lint rejects `setState`
    in an effect, and it is right to.
+29. **An affordance present on three of four variants is absent, not
+   consistent.** Element 10 offers four nav styles and each turns its last
+   control into Finish — except swipe, which has no visible control at all, so
+   element 13 was unreachable for a whole nav mode. The variants were built one
+   at a time and each was checked against the one before it, never against the
+   list. **When a feature has N variants, put the promise in a loop over all N**
+   — `for (const nav of NAVS)` in `setlist-reader-finish.test.jsx` is the whole
+   fix, and it is what makes a fifth variant answer the question before it
+   ships.
 19. **A doc that says "removed" is not a removal.** beta.58 wrote the
    `scrollTop`-compensation warning above into both the code and this file and
    left the line itself running; the next round then read the comment, believed
