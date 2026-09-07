@@ -126,3 +126,36 @@ for (const name of Object.keys(CHORD_SHAPES)) {
   // fills gaps, it never overwrites a voicing somebody chose on purpose.
   if (twin && !CHORD_SHAPES[twin]) CHORD_SHAPES[twin] = CHORD_SHAPES[name];
 }
+
+/**
+ * ⚠ THE SHAPES STORE ABSOLUTE FRETS; SVGUITAR READS THEM RELATIVE TO
+ * `position`. So `Ab` — barre at fret 4, `position: 4`, fingers up to fret 6 —
+ * was drawn as "fret 6 of a window that starts at 4", i.e. three frets below
+ * the bottom of a four-fret box: dots sitting on and under the edge of the
+ * diagram, which is exactly what a barre chord looked like on screen.
+ *
+ * The stored numbers are RIGHT — in every one of the seven shapes with
+ * `position > 1` the barre's fret equals the position, which is what proves
+ * they mean absolute frets. So convert here rather than re-deriving seven
+ * voicings by hand: `Ab` becomes a barre at relative fret 1 with fingers
+ * 1,1,2,3,3,1, which is the E-shape barre at the 4th fret.
+ *
+ * Eleven shapes are affected — Ab, Eb, Gb, Bm, Cm, Gm, Bm7, Abm, Dbm, Ebm,
+ * Gbm — and **Bm is diatonic in G and D**, the two commonest worship keys, so
+ * this was on screen constantly. The enharmonic aliases added in the element-11
+ * pass made it reachable from G#, D# and F# too, which is how it got noticed.
+ * (A first count said seven: four of these are written without a space after
+ * the colon and a regex missed them. The test derives the list instead.)
+ */
+export function toRelativeFrets(shape) {
+  const pos = shape?.position || 1;
+  if (pos <= 1) return shape;
+  const shift = pos - 1;
+  // An open string (0) and a muted one (-1) are not fret numbers and never move.
+  const move = (f) => (f > 0 ? f - shift : f);
+  return {
+    ...shape,
+    fingers: (shape.fingers || []).map(([string, fret, ...rest]) => [string, move(fret), ...rest]),
+    barres: (shape.barres || []).map(b => ({ ...b, fret: move(b.fret) })),
+  };
+}
