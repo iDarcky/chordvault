@@ -211,7 +211,7 @@ serious thing in this document; the last two are blocked on you.
    Not an open question: `docs/READER.md` already records the decision — "a white
    chart card sitting inside a dark app reads as broken rather than as a stage" —
    and the code disagrees with it. A bug against a written decision.
-6. 🔴 **Prod-only sync loop — ROOT-CAUSED 2026-08-07, not yet fixed in code.**
+6. 🟡 **Prod-only sync loop — ROOT-CAUSED 2026-08-07; the CODE half fixed 2026-09-09, the stale-client half is operational.**
    Measured against production, not guessed:
    - `team_activity` held **27,628 rows, 93% of them `song_edited`** — 5,482 in
      the last 7 days alone. Nobody edits songs 5,482 times in a week.
@@ -250,6 +250,26 @@ serious thing in this document; the last two are blocked on you.
      assert every key it emits is in `KNOWN_FRONTMATTER_KEYS`, so adding a key
      to the serializer and forgetting the list fails the suite instead of
      writing that key twice on the next save.
+   - ✅ **Reproduced on CURRENT builds 2026-09-09 and fixed.** The stale
+     client was only half the story. The pull-side merge (`mergeRemoteSong`
+     in `team-engine.js`, and its twin inline in `engine.js`) carried exactly
+     six song fields — title, artist, ccli, tags, spotify, youtube — onto an
+     existing local copy. Every field added since (the extended metadata, the
+     preserved unknown frontmatter, `structureMode`, `keyChanges`) kept its
+     STALE local value after a pull. The device then hashed that copy, saw it
+     differ from the server hash it had just recorded as the baseline, and
+     pushed the old values back; the other device did the same in reverse. So
+     two current builds loop with no old client anywhere. Measured against
+     `team_song_versions`: "Domn peste veacuri" alternating between two hashes
+     every 3–5 s on 08-21 and again on 09-03, same account both sides, the two
+     versions differing only by `language:` and `year:`; the amplification
+     guard is why each burst stops near 20 snapshots. The merge now lives in
+     `src/sync/mergeRemote.js` and adopts the server copy **wholesale** via
+     `songFromFlat(parsed)` — the parser's own shape, so a future field cannot
+     be missed — keeping only what the wire cannot carry: play histories and
+     local-only extra arrangements. Pinned by `merge-remote.test.js` and a
+     convergence scenario (`language`/`year` set on A reach B, and every later
+     sync on both devices uploads nothing).
 
    **Cleanup done** (`supabase/migrations/20260807_activity_retention.sql`):
    27,628 → 2,041 rows by collapsing edit storms to one row per entity per
@@ -365,6 +385,17 @@ Ordered by what hurts most if it goes wrong in front of real churches.
       a field serialized locally but absent from older server content, a
       client-side normalisation applied after adopt, or a lost manifest write.
       Note `createAmplificationGuard` isn't tripping, so it runs below that threshold.
+      **Probably the same bug as §1.2 #6** (the six-field pull merge) — confirm
+      with SyncDoctor once that fix is deployed before digging further.
+- [ ] **Key changes and song length never leave the device.** Found
+      2026-09-09 while pinning the pull-merge fix: `songToMd`'s v2 view copies
+      `key/tempo/time/capo/notes/structure/structureMode/sections/tabLibrary`
+      from the arrangement but not `keyChanges` or `duration`, so
+      `serializeKeyChangeList` and the `duration:` line see `undefined` for
+      every stored song. Element 8's overlay and the editor's Length field are
+      written to IndexedDB and lost on sync, export and import (0 of 359
+      server rows carry a `keyChanges` line). Two view fields + a round-trip
+      test; songs that already hold either locally will re-upload once.
 - [ ] **Dashboard global search returns nothing (desktop/tablet).** The home
       top-bar / ⌘K search yields no results where the same query works elsewhere.
       Likely a wiring gap between the dashboard input and `lib/search.js`.

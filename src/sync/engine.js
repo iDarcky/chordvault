@@ -3,7 +3,8 @@ import { getSyncState, updateSyncManifest, updateSetlistManifest, updateTokens, 
 import { SONGS_FOLDER, SETLISTS_FOLDER, SYNC_DEBOUNCE_MS } from './constants';
 import { withRetry } from './retry';
 import { parseSongMd, songToMd, generateId } from '@/parser';
-import { songFromFlat, withArrangement } from '@/arrangements';
+import { songFromFlat } from '@/arrangements';
+import { mergeRemoteSong } from './mergeRemote';
 import { canonicalSongHash, canonicalSetlistHash, HASH_VERSION } from './canonical';
 import { createAmplificationGuard } from './amplification-guard';
 import { withSyncLock } from './lock';
@@ -149,49 +150,10 @@ export function createSyncEngine(onStatusChange, libraryId = 'personal', { readO
             const lastSyncedHash = manifestEntry?.lastSyncedHash;
             const isConflict = !migrating && lastSyncedHash != null
               && canonicalSongHash(songToMd(localSong)) !== lastSyncedHash;
-            // For v2 songs, merge the remote arrangement into the existing
-            // arrangements rather than replacing the whole song object.
-            // Pick the local arrangement to patch. Prefer an id match
-            // with the remote; fall back to the default arrangement when
-            // the local copy was created before arrangement ids were
-            // preserved across the wire.
-            const hasIdMatch = Array.isArray(localSong.arrangements)
-              && localSong.arrangements.some(a => a.id === parsed.arrangementId);
-            const localTargetId = hasIdMatch
-              ? parsed.arrangementId
-              : (localSong.defaultArrangementId || localSong.arrangements?.[0]?.id);
-            let next = withArrangement(localSong, localTargetId, (a) => ({
-              ...a,
-              name: parsed.arrangementName || a.name,
-              key: parsed.key, tempo: parsed.tempo, time: parsed.time,
-              capo: parsed.capo, notes: parsed.notes,
-              structure: parsed.structure, sections: parsed.sections,
-            }));
-            // Migrate the local arrangement id to the remote one so the
-            // next round-trip hashes match (and `withArrangement` finds
-            // a target on every future pull). This is a one-time fix
-            // for songs synced before this preservation existed.
-            if (parsed.arrangementId && !hasIdMatch && localTargetId) {
-              next = {
-                ...next,
-                arrangements: next.arrangements.map(a => a.id === localTargetId
-                  ? { ...a, id: parsed.arrangementId }
-                  : a),
-                defaultArrangementId: next.defaultArrangementId === localTargetId
-                  ? parsed.arrangementId
-                  : next.defaultArrangementId,
-              };
-            }
-            // Carry song-level fields from the remote payload.
-            const remoteVersion = {
-              ...next,
-              title: parsed.title || next.title,
-              artist: parsed.artist || next.artist,
-              ccli: parsed.ccli || next.ccli,
-              tags: parsed.tags || next.tags,
-              spotify: parsed.spotify || next.spotify,
-              youtube: parsed.youtube || next.youtube,
-            };
+            // Server copy wins wholesale; the device keeps only what the wire
+            // cannot carry (play histories, local-only extra arrangements).
+            // See ./mergeRemote for the loop the old field-by-field patch caused.
+            const remoteVersion = mergeRemoteSong(localSong, parsed, remoteTime);
             // Adopt remote so the immediate post-pull push can't clobber it.
             // On conflict, the divergent local copy travels in the conflict
             // object (not lost) for the user to resolve.

@@ -1,7 +1,8 @@
 import { supabase as defaultClient } from '@/auth/supabase';
 import { getSyncState, updateSyncManifest, updateSetlistManifest, setPendingPush, setHashVersion } from './tokens';
 import { parseSongMd, songToMd } from '@/parser';
-import { songFromFlat, withArrangement } from '@/arrangements';
+import { songFromFlat } from '@/arrangements';
+import { mergeRemoteSong } from './mergeRemote';
 import { SYNC_DEBOUNCE_MS } from './constants';
 import { withRetry } from './retry';
 import { canonicalSongHash, canonicalSetlistHash, HASH_VERSION } from './canonical';
@@ -60,51 +61,6 @@ async function fetchConflictSetlist(client, teamId, rowId, id) {
     if (!data?.content) return null;
     return { ...data.content, id };
   } catch { return null; }
-}
-
-// Merge a freshly-pulled flat song (parsed .md) into an existing local song,
-// preserving local-only extra arrangements. Mirrors the proven merge in
-// engine.js pull(): patch the matching arrangement (by id, falling back to
-// the default), then carry song-level fields from the remote payload.
-function mergeRemoteSong(localSong, parsed, serverUpdatedAt) {
-  if (!Array.isArray(localSong?.arrangements) || localSong.arrangements.length === 0) {
-    const fresh = songFromFlat({ ...parsed, id: localSong?.id || parsed.id });
-    return serverUpdatedAt ? { ...fresh, updatedAt: serverUpdatedAt } : fresh;
-  }
-  const hasIdMatch = localSong.arrangements.some(a => a.id === parsed.arrangementId);
-  const localTargetId = hasIdMatch
-    ? parsed.arrangementId
-    : (localSong.defaultArrangementId || localSong.arrangements[0]?.id);
-  let next = withArrangement(localSong, localTargetId, (a) => ({
-    ...a,
-    name: parsed.arrangementName || a.name,
-    key: parsed.key, tempo: parsed.tempo, time: parsed.time,
-    capo: parsed.capo, notes: parsed.notes,
-    structure: parsed.structure, sections: parsed.sections,
-  }));
-  if (parsed.arrangementId && !hasIdMatch && localTargetId) {
-    next = {
-      ...next,
-      arrangements: next.arrangements.map(a => a.id === localTargetId
-        ? { ...a, id: parsed.arrangementId }
-        : a),
-      defaultArrangementId: next.defaultArrangementId === localTargetId
-        ? parsed.arrangementId
-        : next.defaultArrangementId,
-    };
-  }
-  return {
-    ...next,
-    title: parsed.title || next.title,
-    artist: parsed.artist || next.artist,
-    ccli: parsed.ccli || next.ccli,
-    tags: parsed.tags || next.tags,
-    spotify: parsed.spotify || next.spotify,
-    youtube: parsed.youtube || next.youtube,
-    // withArrangement stamped Date.now(); restore the server's edit time so a
-    // pulled-but-unedited song doesn't surface as freshly edited.
-    ...(serverUpdatedAt ? { updatedAt: serverUpdatedAt } : {}),
-  };
 }
 
 export function createTeamSyncEngine(onStatusChange, teamId, { readOnly = false, client = defaultClient, onConflicts, pageSize = 1000 } = {}) {

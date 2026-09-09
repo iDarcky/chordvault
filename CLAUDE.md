@@ -732,6 +732,12 @@ directly:
   a fallback to the previous manifest's `remoteId` mapping (legacy rows
   without embedded ids), then the row UUID. Duplicate rows for one id are
   healed (newest kept, others deleted by writers).
+- **Pull adoption is WHOLESALE** (`sync/mergeRemote.js`, both engines): a
+  pulled song replaces the local copy via `songFromFlat(parsed)`; only the
+  play histories and local-only extra arrangements survive from the local
+  object. Never patch a hand-written field list there — the six-field patch
+  it replaced kept every newer field stale after a pull, and the re-push of
+  those stale values was the `language`/`year` ping-pong (PLAN §1.2 #6).
 - Members (`readOnly`) are a pure mirror — no writes ever leave the device, and
   **pull never raises a conflict for them** (the cloud copy is always adopted
   silently). Conflict detection in `pull()` is guarded by `!readOnly`; conflicts

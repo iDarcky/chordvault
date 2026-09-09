@@ -207,6 +207,67 @@ describe('two-device convergence', () => {
     expect(db.team_setlists).toHaveLength(1);
   });
 
+  it('extended metadata set on A reaches B, and B stays silent (the language/year ping-pong)', async () => {
+    const db = { team_songs: [], team_setlists: [] };
+    const A = makeDevice('A', db);
+    const B = makeDevice('B', db);
+    A.addSong(mkSong('s1', 'Domn peste veacuri', 'base'));
+    await A.sync();
+    await B.sync();
+
+    // A fills in the catalogue fields — song-level, arrangement-level, and a
+    // key this build does not model (carried verbatim by the parser).
+    A.songs = A.songs.map(s => (s.id === 's1'
+      ? {
+          ...s,
+          language: 'Română',
+          year: '2014',
+          extraFrontmatter: [['somethingNew', 'kept']],
+          arrangements: s.arrangements.map(a => ({ ...a, structureMode: 'custom' })),
+          updatedAt: Date.now(),
+        }
+      : s));
+    await A.sync();
+    await B.sync();
+
+    expect(B.songs[0].language).toBe('Română');
+    expect(B.songs[0].year).toBe('2014');
+    expect(B.songs[0].extraFrontmatter).toEqual([['somethingNew', 'kept']]);
+    expect(B.songs[0].arrangements[0].structureMode).toBe('custom');
+    expectConverged(A, B);
+
+    // THE LOOP (production, 2026-08-21 and 09-03): B kept its stale empty
+    // fields after the pull, hashed them, and pushed them back; A then kept
+    // ITS values and pushed those back. Every sync must now be a no-op.
+    for (let i = 0; i < 3; i++) {
+      const b = await B.sync();
+      const a = await A.sync();
+      expect(b.uploaded.songs + a.uploaded.songs).toBe(0);
+    }
+    expect(db.team_songs).toHaveLength(1);
+    expect(db.team_songs[0].content).toContain('language: Română');
+    expect(db.team_songs[0].content).toContain('year: 2014');
+    expect(db.team_songs[0].content).toContain('somethingNew: kept');
+
+    // Clearing them on A clears them on B — a field the remote no longer
+    // carries must not survive from the local copy.
+    A.songs = A.songs.map(s => {
+      if (s.id !== 's1') return s;
+      const { extraFrontmatter, ...rest } = s;
+      void extraFrontmatter;
+      return { ...rest, language: '', year: '', updatedAt: Date.now() };
+    });
+    await A.sync();
+    await B.sync();
+    expect(B.songs[0].language).toBe('');
+    expect(B.songs[0].year).toBe('');
+    expect(B.songs[0].extraFrontmatter).toBeUndefined();
+    const b2 = await B.sync();
+    const a2 = await A.sync();
+    expect(b2.uploaded.songs + a2.uploaded.songs).toBe(0);
+    expectConverged(A, B);
+  });
+
   it('randomized interleaving converges with no data loss (seeded fuzz)', async () => {
     // Deterministic PRNG so a failure is reproducible.
     let seed = 0xC0FFEE;
